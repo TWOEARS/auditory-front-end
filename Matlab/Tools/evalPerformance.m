@@ -21,6 +21,7 @@ function [pcCorrect,rmse] = evalPerformance(azRef,azEst,thresDeg)
 % 
 %   History :  
 %   v.0.1   2014/01/26
+%   v.0.2   2014/01/31 check if azRef and azEst are vectors
 %   ***********************************************************************
 
 
@@ -40,6 +41,14 @@ if nargin < 3 || isempty(thresDeg); thresDeg = 10; end
 %% 2. EVALUATE LOCALIZATION PERFORMANCE
 % 
 % 
+if any(size(azRef)<2)
+    % Ensure column vectors
+    azRef = azRef(:);
+    azEst = azEst(:);
+else
+   error('''azRef'' and ''azEst'' must be vectors.') 
+end
+
 % Calculate localization error in degree
 azErrorDeg = calcLocalizationError(azRef,azEst);
 

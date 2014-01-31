@@ -22,20 +22,41 @@ addpath Tools
 %% ALGORITHM SETTINGS
 % 
 % 
-% Depending on these settings, the localization models are calibrated such
-% that the estimated ITD can be mapped to its corresponding sound source
-% azimuth. If you keep these settings constant, the existing calibration
-% files can be re-used, which reduces the runtime of the experiment.
+
+% Localization approach
+
+preset = 'broadband';   % No peripheral processing
+% preset = 'subband';   % With peripheral processing
+
 
 % Reference sampling frequency in Hertz
 fs = 48E3;
 
-% Window size in seconds 
-winSec = 20E-3;
-  
-% Lowest and highest center frequency in Hertz of the gammatone filterbank
-fLowHz  = 100;
-fHighHz = 12000;
+STATES.signal.fsHz     = fs;
+STATES.signal.bNormRMS = false;
+
+% Auditory front-end
+STATES.periphery.bCompute = true;      % Activate auditory front-end
+STATES.periphery.nErbs    = 1;         % Number of gammatone filters per ERB
+STATES.periphery.fLowHz   = 100;       % Lowest center frequency in Hertz
+STATES.periphery.fHighHz  = 8E3;       % Highest center frequency in Hertz
+STATES.periphery.bAlign   = false;     % Time-align auditory channels 
+
+% Binaural stage
+STATES.binaural.winSizeSec  = 20E-3;   % Window size in seconds used for correlation analysis
+STATES.binaural.maxDelaySec = 1E-3;    % Maximum time delay that is considered
+
+% Change preset-specific parameters
+switch(lower(preset))
+    case 'broadband'    
+        % Deactivate auditory front-end
+        STATES.periphery.bCompute = false;
+    case 'subband'
+        % Activate auditory front-end
+        STATES.periphery.bCompute = true;
+    otherwise
+        error('Preset is not supported');
+end
 
 
 %% ACOUSTIC SETTINGS
@@ -69,19 +90,12 @@ nMixtures = 5;
 % Absolute error boundary in degree
 thresDeg = 10;
 
-% Visualize localization results 
-bVisualize = true;
-
    
-%% PERFORM CALIBRATION
+%% INITIALIZE ALGORITHM
 % 
 % 
-% Frequency range of gammatone analysis
-fRangeHz = [fLowHz fHighHz];
-
-% Learn mapping between ITD and sound source azimuth
-calibrate_ITD_Broadband(fs,winSec);
-calibrate_ITD_Subband(fs,winSec,fRangeHz);
+% Configure WP2 processing
+STATES = init_WP2(STATES);
 
 
 %% INITIALIZE PARAMETERS
@@ -90,7 +104,13 @@ calibrate_ITD_Subband(fs,winSec,fRangeHz);
 % Reset internal states of random number generator. This allows to use
 % different settings, while still obtaining the "same" random matrix with
 % sound source positions.
-rng(0);
+try
+    % Since MATLAB 2011a 
+    rng(0);
+catch
+    % For older versions
+    rand('seed',0); %#ok
+end
 
 % Azimuth range of sound source positions
 azRange = (-90:5:90)';
@@ -107,16 +127,10 @@ nSentences = numel(audioFiles);
 nAzim      = numel(azRange);
 
 % Allocate memory
-[pc1,pc2,rmse1,rmse2] = deal(zeros(nMixtures,nRooms));
+[pc,rmse] = deal(zeros(nMixtures,nRooms));
 
 % Matrix with randomized sound source positions
 azPos = azRange(round(1+(nAzim-1) * rand(nMixtures,nSpeakers)));
-
-% Prepare visualization
-if bVisualize
-    % Figure handles
-    fig1 = figure(99); fig2 = figure(100); arrange(fig1,fig2); 
-end
 
 
 %% MAIN LOOP OF THE LOCALIZATION EXPERIMENT
@@ -137,39 +151,27 @@ for ii = 1 : nMixtures
     % Read audio signals
     audio = readAudio(files,fs);
 
-    if bVisualize(1)
-        % Encode original sound source positions for plotting purpose
-        bVisualize = [bVisualize(1) azPos(ii,:)];
-    end
-    
     % Loop over number of different rooms
     for rr = 1 : nRooms
            
         % Spatialize audio signals using HRTF processing
-        binaural = spatializeAudio(audio,fs,azPos(ii,:),rooms{rr});
+        earSignals = spatializeAudio(audio,fs,azPos(ii,:),rooms{rr});
         
-        % Broadband estimation of the sound source azimuth
-        azimEst1 = estimate_Azimuth_Broadband(binaural,fs,winSec,nSpeakers,bVisualize);
-        
-        % Subband estimation of the sound source azimuth
-        azimEst2 = estimate_Azimuth_Subband(binaural,fs,winSec,fRangeHz,nSpeakers,bVisualize);
-        
-        % Evaluate localization performance
-        [pc1(ii,rr),rmse1(ii,rr)] = evalPerformance(azPos(ii,:),azimEst1,thresDeg);
-        [pc2(ii,rr),rmse2(ii,rr)] = evalPerformance(azPos(ii,:),azimEst2,thresDeg);
+        % Perform WP2 computation
+        [SIGNALS,FEATURES,STATES] = process_WP2(earSignals,STATES);
+                
+        % Select most salient azimuth directions (e.g. in WP3)
+        azEst = selectAzimuth(FEATURES.azimuth.direction,FEATURES.azimuth.salience,nSpeakers);
+                
+        % Evaluate localization performance (e.g. in WP6)
+        [pc(ii,rr),rmse(ii,rr)] = evalPerformance(azPos(ii,:),azEst,thresDeg);
     end
-    
-    % Small delay to allow visual inspection of the figures
-    if bVisualize(1); pause(1); end
     
     % Report progress
     fprintf('\nLocalization experiment: %.2f %%',100*ii/nMixtures);
 end    
     
-fprintf('\n\nBroadband approach\n');
-fprintf('Percentage correct: %.2f %%\n%',mean(pc1,1));
-fprintf('RMSE: %.2f %',nanmean(rmse1,1));
-fprintf('\n\nSubband approach\n');
-fprintf('Percentage correct: %.2f %%\n%',mean(pc2,1));
-fprintf('RMSE: %.2f %',nanmean(rmse2,1));
+fprintf('\n\nLocalization accuracy\n');
+fprintf('Percentage correct: %.2f %%\n%',mean(pc,1));
+fprintf('RMSE: %.2f %',nanmean(rmse,1));
 

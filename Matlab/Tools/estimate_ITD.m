@@ -1,4 +1,4 @@
-function [itd,lags] = estimate_ITD_Subband(binaural,fs,winSec,fRange,N)
+function [itd,lags] = estimate_ITD(periphery,fs,winSec,N)
 %estimate_ITD_Subband   Subband ITD estimation.
 %
 % The interaural time difference (ITD) is estimated from binaural signals.
@@ -15,16 +15,13 @@ function [itd,lags] = estimate_ITD_Subband(binaural,fs,winSec,fRange,N)
 % 
 %USAGE
 %    [itd,lags] = estimate_ITD_Subband(binaural,fs)
-%    [itd,lags] = estimate_ITD_Subband(binaural,fs,winSec,fRange,N)
+%    [itd,lags] = estimate_ITD_Subband(binaural,fs,winSec,N)
 %
 %INPUT PARAMETERS
-%   binaural : binaural input signal [nSamples x 2]
+%   binaural : peripheral signal [nSamples x nFilter x 2]
 %         fs : sampling frequency in Hertz
 %     winSec : frame size in seconds of the cross-correlation analysis
 %              (default, winSec = 20E-3)
-%     fRange : [fLowHz fHighHz] where fLowHz and fHighHz define the lowest
-%              and the highest center frequency of the gammatone filterbank
-%              (default, fRange = [100 12000])
 %          N : number of sources that should be localized (default, N = 1) 
 %
 %OUTPUT PARAMETERS
@@ -38,7 +35,7 @@ function [itd,lags] = estimate_ITD_Subband(binaural,fs,winSec,fRange,N)
 %              tobmay@elektro.dtu.dk
 % 
 %   History :  
-%   v.0.1   2014/01/26
+%   v.0.1   2014/01/31
 %   ***********************************************************************
 
 
@@ -46,22 +43,21 @@ function [itd,lags] = estimate_ITD_Subband(binaural,fs,winSec,fRange,N)
 % 
 % 
 % Check for proper input arguments
-if nargin < 2 || nargin > 5
+if nargin < 2 || nargin > 4
     help(mfilename);
     error('Wrong number of input arguments!')
 end
 
 % Set default parameters
-if nargin < 3 || isempty(winSec);   winSec   = 20E-3;       end
-if nargin < 4 || isempty(fRange);   fRange   = [100 12000]; end
-if nargin < 5 || isempty(N);        N        = 1;           end
+if nargin < 3 || isempty(winSec); winSec = 20E-3; end
+if nargin < 4 || isempty(N);      N      = 1;     end
 
 
 %% 2. INITIALIZE PARAMETERS
 % 
 % 
-% Maximum time delay that should be considered
-maxDelaySec = 1.25e-3;  
+% Maximum time delay in seconds that is considered
+maxDelaySec = 1.25E-3;
 
 % Framing parameters
 winSize = 2 * round(winSec * fs / 2);
@@ -71,30 +67,22 @@ window  = hann(winSize);
 % Relate maximum delay to samples (lags)                 
 maxLag = ceil(maxDelaySec * fs);
 
-
-%% 3. DECOMPOSE INPUT INTO INDIVIDUAL FREQUENCY CHANNELS
-% 
-% 
-% Gammatone filtering    
-bm_L = gammaFB(binaural(:,1),fs,fRange(1),fRange(2));
-bm_R = gammaFB(binaural(:,2),fs,fRange(1),fRange(2));
-
 % Number of auditory filters
-nFilter = size(bm_L,2);
+nFilter = size(periphery,2);
 
 % Allocate memory
 itd = zeros(nFilter,N);
 
 
-%% 4. FRAME-BASED CROSS-CORRELATION ANALYSIS
+%% 3. FRAME-BASED CROSS-CORRELATION ANALYSIS
 % 
 % 
 % Loop over number of auditory filters
 for ii = 1 : nFilter
     
     % Framing
-    frames_L = frameData(bm_L(:,ii),winSize,hopSize,window,false);
-    frames_R = frameData(bm_R(:,ii),winSize,hopSize,window,false);
+    frames_L = frameData(periphery(:,ii,1),winSize,hopSize,window,false);
+    frames_R = frameData(periphery(:,ii,2),winSize,hopSize,window,false);
     
     % Cross-correlation analysis to estimate ITD
     [CCF,lags] = xcorrNorm(frames_L,frames_R,maxLag);

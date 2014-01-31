@@ -1,20 +1,19 @@
-function calibrate_ITD_Subband(fs,winSec,fRangeHz,bCalibrate)
+function calibrate_ITD(fs,winSec,P,bCalibrate)
 %calibrate_ITD_Subband   Calculate frequency-dependent ITD2azimuth mapping
 %
 %USAGE
-%      calibrate_ITD_Subband(fs,winSec,fRangeHz)
-%      calibrate_ITD_Subband(fs,winSec,fRangeHz,bCalib)
+%      calibrate_ITD(fs,winSec)
+%      calibrate_ITD(fs,winSec,G,bCalib)
 %
 %INPUT PARAMETERS
 %            fs : sampling frequency in Hertz
 %        winSec : frame size in seconds of the cross-correlation analysis
-%      fRangeHz : [fLow fHigh] defining the lowest and highest center
-%                 frequency in Hertz of the gammatone filterbank 
+%             P : periphery parameter struct (initialized by init_WP2.m)
 %    bCalibrate : if true, enforce re-computation of the mapping function
 % 
 %OUTPUT PARAMETERS
 %     The ITD2Azimuth mapping will be stored in the MAT file
-%     ITD2Azimuth_Subband.mat inside the \Tools directory.
+%     ITD2Azimuth_Mapping.mat inside the \Tools directory.
 
 %   Developed with Matlab 8.2.0.701 (R2013b). Please send bug reports to:
 %   
@@ -23,12 +22,11 @@ function calibrate_ITD_Subband(fs,winSec,fRangeHz,bCalibrate)
 %              tobmay@elektro.dtu.dk
 % 
 %   History :  
-%   v.0.1   2014/01/22
-%   v.0.2   2014/01/28 added flag to enforce re-calibration 
+%   v.0.1   2014/01/31
 %   ***********************************************************************
 
 % Initialize persistent variables
-persistent PERfs PERwinSec PERfRangeHz
+persistent PER_fs PER_winSec PER_P
 
 
 %% 1. CHECK INPUT ARGUMENTS 
@@ -68,9 +66,13 @@ pOrder = 3;
 % 
 % 
 % Check if we can re-use the calibration file from the last function call
-if isequal(fs,PERfs) && isequal(winSec,PERwinSec) && ...
-   isequal(fRangeHz,PERfRangeHz) && ~bCalibrate 
+if isequal(fs,PER_fs) && isequal(winSec,PER_winSec) && ...
+   isequal(P,PER_P) && ~bCalibrate 
     bRecalibrate = false;
+    % If no mapping file is detected ... re-calibrate
+    if ~exist('ITD2Azimuth_Mapping.mat','file')
+        bRecalibrate = true;
+    end
 else
     bRecalibrate = true;
 end
@@ -78,7 +80,7 @@ end
 % Perform calibration
 if bRecalibrate
     % Store persistent variables
-    PERfs = fs; PERwinSec = winSec; PERfRangeHz = fRangeHz;
+    PER_fs = fs; PER_winSec = winSec; PER_P = P; 
 
     % Number of different sound source positions
     nAzim = numel(azimRange);
@@ -86,12 +88,16 @@ if bRecalibrate
     % Number of different sound source positions after interpolation
     nAzimInterp = numel(azimRangeInterp);
     
+    % Number of auditory channels
+    if P.bCompute
+        nFilter = P.gammatone.nFilter;
+    else
+        nFilter = 1;
+    end
+        
     % Create white noise
     noise = randn(round(lengthSec*fs),1);
 
-    % Number of aduitory filters
-    nFilter = numel(freq2erb(fRangeHz(1)):1:freq2erb(fRangeHz(2)));
-    
     % Allocate memory
     itd2Azim       = zeros(nAzim,nFilter);
     itd2AzimInterp = zeros(nAzimInterp,nFilter);
@@ -106,14 +112,17 @@ if bRecalibrate
         % Spatialize audio signal using HRTF processing
         binaural = spatializeAudio(noise,fs,azimRange(ii),room);
         
+        % Compute peripheral auditory signal
+        peripheral = auditoryPeriphery(binaural,fs,P);
+        
         % Estimate ITD
-        [itdEst,lags] = estimate_ITD_Subband(binaural,fs,winSec,fRangeHz);
+        [itdEst,lags] = estimate_ITD(peripheral,fs,winSec);
 
         % Store azimuth-dependent ITD
         itd2Azim(ii,:) = itdEst;
         
         % Report progress
-        fprintf('\nSubband-based ITD2Azimuth calibration: %.2f %%',100*ii/nAzim);
+        fprintf('\nITD2Azimuth calibration: %.2f %%',100*ii/nAzim);
     end
     
         
@@ -143,5 +152,5 @@ if bRecalibrate
     mapping.itdMin       = min(itd2AzimPoly);
     
     % Store ITD2Azimuth template
-    save([pwd,filesep,'Tools',filesep,'ITD2Azimuth_Subband.mat'],'mapping');    
+    save([pwd,filesep,'Tools',filesep,'ITD2Azimuth_Mapping.mat'],'mapping');    
 end

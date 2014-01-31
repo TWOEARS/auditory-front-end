@@ -1,4 +1,4 @@
-function azimEst = findAzimuth(CWarped,azimuth,nSources)
+function [azimEst,evidence] = findAzimuth(CWarped,azimuth,nSources)
 
 
 %% 1. CHECK INPUT ARGUMENTS  
@@ -35,7 +35,7 @@ azimInt = azimuth(pIdx(idx(1:nEst)));
 % 
 % 
 % Fractional azimuth: Refine peak position by parabolic interpolation
-azimDelta = interpolateParabolic(CWarped,pIdx(idx(1:nEst)));
+[azimDelta,evidence] = interpolateParabolic(CWarped,pIdx(idx(1:nEst)));
 
 % Azimuth stepsize (required for interpolation)
 deltaT = abs(diff(azimuth(1:2)));

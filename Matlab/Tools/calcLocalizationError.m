@@ -23,6 +23,7 @@ function [locErrDeg,newIdx] = calcLocalizationError(azRef,azEst)
 % 
 %   History :  
 %   v.0.1   2014/01/26
+%   v.0.2   2014/01/31 will work for if azRef & azEst differ in length
 %   ***********************************************************************
 
 % Check for proper input arguments
@@ -38,12 +39,15 @@ nSourcesRef = numel(azRef);
 % Allocate memory
 estIdx    = 1:nSourcesEst;
 refIdx    = 1:nSourcesRef;
-newIdx    = zeros(nSourcesEst,1);
-locErrDeg = zeros(nSourcesEst,1);
+newIdx    = zeros(nSourcesRef,1);
+locErrDeg = zeros(nSourcesRef,1);
+
+% Counter
+nIter = 1;
 
 % Loop over all localization estimates and iteratively select the one with
 % the minimum deviation from the reference position. 
-for ii = 1:nSourcesEst
+while(~isempty(refIdx))
     
     currEst = azEst(estIdx);
     currRef = azRef(refIdx);
@@ -61,10 +65,13 @@ for ii = 1:nSourcesEst
     [minErr,minIdx] = min(currCosts(:));
     
     % Store localization error
-    locErrDeg(estIdx(estPIdx(minIdx))) = minErr;
+    locErrDeg(nIter) = minErr;
     
     % Store new index 
-    newIdx(ii) = estIdx(estPIdx(minIdx));
+    newIdx(nIter) = estIdx(estPIdx(minIdx));
+    
+    % Increase counter
+    nIter = nIter + 1;
     
     % Remove index 
     estIdx(estPIdx(minIdx)) = [];
