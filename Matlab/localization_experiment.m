@@ -25,8 +25,8 @@ addpath Tools
 
 % Localization approach
 
-preset = 'broadband';   % No peripheral processing
-% preset = 'subband';   % With peripheral processing
+% preset = 'broadband';   % No peripheral processing
+preset = 'subband';   % With peripheral processing
 
 
 % Reference sampling frequency in Hertz
@@ -35,7 +35,7 @@ fs = 48E3;
 STATES.signal.fsHz     = fs;
 STATES.signal.bNormRMS = false;
 
-% Auditory front-end
+% Auditory periphery
 STATES.periphery.bCompute = true;      % Activate auditory front-end
 STATES.periphery.nErbs    = 1;         % Number of gammatone filters per ERB
 STATES.periphery.fLowHz   = 100;       % Lowest center frequency in Hertz
@@ -43,8 +43,15 @@ STATES.periphery.fHighHz  = 8E3;       % Highest center frequency in Hertz
 STATES.periphery.bAlign   = false;     % Time-align auditory channels 
 
 % Binaural stage
+STATES.binaural.BinProcType ='Xcorr';  % Type of binaural processing Xcorr or EC
 STATES.binaural.winSizeSec  = 20E-3;   % Window size in seconds used for correlation analysis
 STATES.binaural.maxDelaySec = 1E-3;    % Maximum time delay that is considered
+
+% Cue selection
+STATES.CueSelection = false;           % Cue-Selection mechanism
+
+% Feature extraction
+STATES.FeatureExtraction = true;       % Feature extraction
 
 % Change preset-specific parameters
 switch(lower(preset))

@@ -39,27 +39,41 @@ fsHz = STATES.signal.fsHz;
 
 %% CREATE PERIPHERAL AUDITORY SIGNAL
 % 
-% 
+% Input: Ear signals
+% Output: Peripheral auditory signals
+%
 % Compute peripheral auditory signal
-auditorySignals = auditoryPeriphery(earSignals,fsHz,STATES.periphery);
+SIGNALS.auditorySignals = PeripheralProcessing(earSignals,fsHz,STATES.periphery);
 
+%% CREATE BINAURAL MAP
+% 
+% Input:  Peripheral auditory signals
+% Output: Binaural map
+%
+% Compute binaural map
+SIGNALS.BinauralMap = BinauralProcessing(SIGNALS.auditorySignals,fsHz,STATES.binaural);
+
+%% EXTRACT CUES
+%
+% Input: Binaural map
+% Output: Refined binaural map
 
 %% EXTRACT FEATURES
 % 
 % Do not assume any prior knowledge, extract all potential positions
 nSources = inf;
-
 % Estimate sound source azimuth
-[azim,salience] = estimate_Azimuth(auditorySignals,fsHz,STATES.binaural.winSizeSec,nSources);
-        
+[azim,salience] = AzimuthExtraction(SIGNALS,STATES,nSources);
 
+%[azim,salience] = estimate_Azimuth(auditorySignals,fsHz,STATES.binaural.winSizeSec,nSources);
 
 %% CREATE OUTPUT 
 % 
 % 
 % Signal struct
 SIGNALS.fsHz = STATES.signal.fsHz;
-SIGNALS.data = auditorySignals;
+%SIGNALS.periphery.data = auditorySignals;
+%SIGNALS.binaural.data  = BinauralMap;
 
 % Feature struct
 FEATURES.azimuth.direction = azim;

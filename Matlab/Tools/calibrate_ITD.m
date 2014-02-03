@@ -113,7 +113,7 @@ if bRecalibrate
         binaural = spatializeAudio(noise,fs,azimRange(ii),room);
         
         % Compute peripheral auditory signal
-        peripheral = auditoryPeriphery(binaural,fs,P);
+        peripheral = PeripheralProcessing(binaural,fs,P);
         
         % Estimate ITD
         [itdEst,lags] = estimate_ITD(peripheral,fs,winSec);
