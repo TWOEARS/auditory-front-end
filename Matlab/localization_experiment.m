@@ -15,8 +15,11 @@ clear
 close all
 clc
 
-% Add utilities
+% Add working directories to path
 addpath Tools
+addpath AuditoryModel
+addpath FeatureExtraction
+addpath Framework
 
 
 %% ALGORITHM SETTINGS
@@ -98,12 +101,6 @@ nMixtures = 5;
 thresDeg = 10;
 
    
-%% INITIALIZE ALGORITHM
-% 
-% 
-% Configure WP2 processing
-STATES = init_WP2(STATES);
-
 
 %% INITIALIZE PARAMETERS
 %
@@ -138,6 +135,10 @@ nAzim      = numel(azRange);
 
 % Matrix with randomized sound source positions
 azPos = azRange(round(1+(nAzim-1) * rand(nMixtures,nSpeakers)));
+
+%% INITIALIZE WP2 PROCESSING
+% 
+STATES = init_WP2(STATES);
 
 
 %% MAIN LOOP OF THE LOCALIZATION EXPERIMENT

@@ -15,9 +15,10 @@ function [SIGNALS,FEATURES,STATES] = process_WP2(earSignals,STATES)
 
 %   Developed with Matlab 8.2.0.701 (R2013b). Please send bug reports to:
 %   
-%   Author  :  Tobias May, © 2013
+%   Author  :  Tobias May, Nicolas Le Goff © 2013, 2014
 %              Technical University of Denmark
 %              tobmay@elektro.dtu.dk
+%              nlg@elektro.dtu.dk
 % 
 %   History :  
 %   v.0.1   2014/01/31

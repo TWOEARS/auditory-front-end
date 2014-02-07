@@ -54,9 +54,15 @@ end
 
 %% 3. HAIRCELL TRANSDUCTON
 %
-%   To come...
-%
+% EnvExtSig = EnvExtract(FiltSig,fs,1000,2);
+
+
 %% 4. NEURAL ADAPTATION
 %
-%   To come...
-%
+%   load minlim.mat; % table of min vals
+%         MinSig=zeros(length(MidEarSig),nchannels);
+%         for n = 1 : size(fc,2)
+%             [~,lookupnum] = min(abs(minlim(:,1) - fc(n)));
+%             MinSig(:,n) = max(ExpSig(:,n),minlim(lookupnum,2));
+%         end
+%   output = AdaptLoops(MinSig,fs,10,2e-7,[0.005 0.050 0.129 0.253 0.500]);
