@@ -1,4 +1,4 @@
-function [SIGNALS,FEATURES,STATES] = process_WP2(earSignals,STATES)
+unction [SIGNALS,FEATURES,STATES] = process_WP2(earSignals,STATES)
 %process_WP2   Perform WP2 processing
 %
 %USAGE
@@ -40,11 +40,24 @@ fsHz = STATES.signal.fsHz;
 
 %% CREATE PERIPHERAL AUDITORY SIGNAL
 % 
-% Input: Ear signals
-% Output: Peripheral auditory signals
+% Input: Ear signals [nSamples x 2]
+% Output: Peripheral auditory signals [nSamples x nAuditoryChannels x 2]
 %
 % Compute peripheral auditory signal
 SIGNALS.auditorySignals = PeripheralProcessing(earSignals,fsHz,STATES.periphery);
+
+
+%% PERFORM FRAMING
+% 
+% Input:  Peripheral auditory signals 
+%         [nSamples x nAuditoryChannels x 2]
+% 
+% Output: Frame-based peripheral auditory signals 
+%         [Framesize x nFrames x nAuditoryChannels x 2]
+%
+% Segment input into overlapping frames
+
+
 
 %% CREATE BINAURAL MAP
 % 
@@ -52,12 +65,20 @@ SIGNALS.auditorySignals = PeripheralProcessing(earSignals,fsHz,STATES.periphery)
 % Output: Binaural map
 %
 % Compute binaural map
+
+% XCORR : [NFrames x nChannels x lags x ild] => ITD & IC
+% EC    : [NFrames x nChannels x lags x alpha] => ITD & ILD & IC
+
+
 SIGNALS.BinauralMap = BinauralProcessing(SIGNALS.auditorySignals,fsHz,STATES.binaural);
 
 %% EXTRACT CUES
 %
 % Input: Binaural map
-% Output: Refined binaural map
+% Output: ITD, ILD, IC
+
+% estimateBinauralCues
+
 
 %% EXTRACT FEATURES
 % 
@@ -67,6 +88,11 @@ nSources = inf;
 [azim,salience] = AzimuthExtraction(SIGNALS,STATES,nSources);
 
 %[azim,salience] = estimate_Azimuth(auditorySignals,fsHz,STATES.binaural.winSizeSec,nSources);
+
+
+% IC-based Cue selecion as an option
+
+
 
 %% CREATE OUTPUT 
 % 
