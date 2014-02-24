@@ -18,55 +18,60 @@ clc
 % Add working directories to path
 addpath Tools
 addpath AuditoryModel
+addpath CueExtraction
 addpath FeatureExtraction
 addpath Framework
+addpath HRTF_WP1
 
 
 %% ALGORITHM SETTINGS
 % 
 % 
-
-% Localization approach
-
-% preset = 'broadband';   % No peripheral processing
-preset = 'subband';   % With peripheral processing
-
+% Basic feature set
+preset = 'basic';
 
 % Reference sampling frequency in Hertz
-fs = 48E3;
-
-STATES.signal.fsHz     = fs;
-STATES.signal.bNormRMS = false;
-
-% Auditory periphery
-STATES.periphery.bCompute = true;      % Activate auditory front-end
-STATES.periphery.nErbs    = 1;         % Number of gammatone filters per ERB
-STATES.periphery.fLowHz   = 100;       % Lowest center frequency in Hertz
-STATES.periphery.fHighHz  = 8E3;       % Highest center frequency in Hertz
-STATES.periphery.bAlign   = false;     % Time-align auditory channels 
-
-% Binaural stage
-STATES.binaural.BinProcType ='Xcorr';  % Type of binaural processing Xcorr or EC
-STATES.binaural.winSizeSec  = 20E-3;   % Window size in seconds used for correlation analysis
-STATES.binaural.maxDelaySec = 1E-3;    % Maximum time delay that is considered
-
-% Cue selection
-STATES.CueSelection = false;           % Cue-Selection mechanism
-
-% Feature extraction
-STATES.FeatureExtraction = true;       % Feature extraction
+fsHz = 44.1E3;
+% fsHz = 18E3;
 
 % Change preset-specific parameters
 switch(lower(preset))
-    case 'broadband'    
-        % Deactivate auditory front-end
-        STATES.periphery.bCompute = false;
-    case 'subband'
-        % Activate auditory front-end
-        STATES.periphery.bCompute = true;
+    case 'basic'
+        
+        % Input signal
+        SET.fsHz       = fsHz;
+        SET.bNormRMS   = false;
+        
+        % Auditory periphery
+        SET.nErbs      = 1;         % ERB spacing of gammatone filters
+        SET.fLowHz     = 50;        % Lowest center frequency in Hertz
+        SET.fHighHz    = 10E3;      % Highest center frequency in Hertz
+        SET.bAlign     = false;     % Time-align auditory channels
+        SET.ihcMethod  = 'halfwave';
+        
+        % Binaural cross-correlation processor
+        SET.maxDelaySec = 1.1E-3;
+        
+        % Framing parameters
+        SET.winSizeSec = 20E-3;     % Window size in seconds
+        SET.hopSizeSec = 10E-3;     % Window step size in seconds
+        SET.winType    = 'hann';    % Window type
+        
+        % Specify cues that should be extracted
+%         strCues = {'rms' 'ratemap' 'itd_xcorr' 'ic_xcorr' 'ild'};
+%         strCues = {'rms' 'ratemap' 'itd_xcorr' 'ic_xcorr' 'ild'};
+        strCues = {'ratemap' 'itd_xcorr' 'ic_xcorr' 'ild'};
+        
+        % Specify features that should be extracted
+%         strFeatures = {'azimuth_hist'};
+%         strFeatures = {'azimuth_hist' 'ratemap'};
+%         strFeatures = {'ratemap'};
+        strFeatures = {'source_position'};
+        
     otherwise
         error('Preset is not supported');
 end
+
 
 
 %% ACOUSTIC SETTINGS
@@ -78,28 +83,15 @@ nSpeakers = 2;
 % Minimum distance between competing sound sources in degree
 minDistance = 5;
 
-% *************************************************************************
-% List of different rooms:
-% *************************************************************************
-% 'SURREY_A' 'SURREY_ROOM_A' 'SURREY_ROOM_B' 'SURREY_ROOM_C' 'SURREY_ROOM_D'
-%  
-%  RT60 = 0s  RT60 = 0.32s    RT60 = 0.47s    RT60 = 0.68s   RT60 = 0.89s
-%  DRR  = inf DRR  = 6.09dB   DRR  = 5.31dB   DRR  = 8.82dB  DRR  = 6.12dB
-% 
-
-% rooms = {'SURREY_A' 'SURREY_ROOM_A' 'SURREY_ROOM_B' 'SURREY_ROOM_C' 'SURREY_ROOM_D'};
-rooms = {'SURREY_A'};
-
 
 %% EVALUATION SETTINGS
 % 
 % 
 % Number of acoustic mixtures for each acoustic condition
-nMixtures = 5; 
+nMixtures = 25; 
 
 % Absolute error boundary in degree
 thresDeg = 10;
-
    
 
 %% INITIALIZE PARAMETERS
@@ -117,7 +109,9 @@ catch
 end
 
 % Azimuth range of sound source positions
-azRange = (-90:5:90)';
+azRange = (-180:5:175)';
+
+azRange = (-90:1:90)';
 
 % Audio path
 pathAudio = [pwd,filesep,'Audio',filesep];
@@ -126,19 +120,22 @@ pathAudio = [pwd,filesep,'Audio',filesep];
 audioFiles = listFiles(pathAudio,'*.wav');
 
 % Number of different conditions
-nRooms     = numel(rooms);
+% nRooms     = numel(rooms);
 nSentences = numel(audioFiles);
 nAzim      = numel(azRange);
 
 % Allocate memory
-[pc,rmse] = deal(zeros(nMixtures,nRooms));
+[pc,rmse] = deal(zeros(nMixtures,1));
 
 % Matrix with randomized sound source positions
 azPos = azRange(round(1+(nAzim-1) * rand(nMixtures,nSpeakers)));
 
+
+
 %% INITIALIZE WP2 PROCESSING
 % 
-STATES = init_WP2(STATES);
+STATES = init_WP2(SET,strCues,strFeatures);
+
 
 
 %% MAIN LOOP OF THE LOCALIZATION EXPERIMENT
@@ -155,25 +152,25 @@ for ii = 1 : nMixtures
         % Revise random initialization
         azPos(ii,:) = azRange(round(1+(nAzim-1) * rand(1,nSpeakers)));
     end
-
+    
     % Read audio signals
-    audio = readAudio(files,fs);
-
-    % Loop over number of different rooms
-    for rr = 1 : nRooms
-           
-        % Spatialize audio signals using HRTF processing
-        earSignals = spatializeAudio(audio,fs,azPos(ii,:),rooms{rr});
-        
-        % Perform WP2 computation
-        [SIGNALS,FEATURES,STATES] = process_WP2(earSignals,STATES);
-                
-        % Select most salient azimuth directions (e.g. in WP3)
-        azEst = selectAzimuth(FEATURES.azimuth.direction,FEATURES.azimuth.salience,nSpeakers);
-                
-        % Evaluate localization performance (e.g. in WP6)
-        [pc(ii,rr),rmse(ii,rr)] = evalPerformance(azPos(ii,:),azEst,thresDeg);
-    end
+    audio = readAudio(files,fsHz);
+    
+    % Spatialize audio signals using HRTF processing
+    % earSignals = spatializeAudio(audio,fsHz,azPos(ii,:),rooms{rr});
+    earSignals = auralizeWP1(audio,fsHz,azPos(ii,:));
+    
+    % Perform WP2 cue computation
+    [SIGNALS,CUES] = process_WP2_cues(earSignals,fsHz,STATES);
+    
+    % Perform WP2 feature extraction
+    FEATURES = process_WP2_features(CUES,STATES.features);
+    
+    % Select most salient source positions
+    azEst = FEATURES(3).data(1:nSpeakers,:);
+  
+    % Evaluate localization performance (e.g. in WP6)
+    [pc(ii),rmse(ii)] = evalPerformance(azPos(ii,:),azEst,thresDeg);
     
     % Report progress
     fprintf('\nLocalization experiment: %.2f %%',100*ii/nMixtures);

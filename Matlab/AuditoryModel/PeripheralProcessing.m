@@ -1,4 +1,4 @@
-function out = PeripheralProcessing(earsignals,fs,P)
+function out = PeripheralProcessing(earsignals,fsHz,P)
 %
 %USAGE
 %        out = PeripheralProcessing(earsignals,fs,P)
@@ -17,7 +17,6 @@ function out = PeripheralProcessing(earsignals,fs,P)
 %              Technical University of Denmark
 %              tobmay@elektro.dtu.dk
 %              nlg@elektro.dtu.dk
-%              
 % 
 %   History :  
 %   v.0.1   2014/01/31
@@ -33,28 +32,32 @@ if nargin ~= 3
     error('Wrong number of input arguments!')
 end
 
+% error('%s: The input signal must be numeric.',upper(mfilename));
+
 % Determine size of input
 [nSamples,nChannels] = size(earsignals);
+
+% Allocate memory
+out = zeros(nSamples,P.gammatone.nFilter,nChannels);
+% out.env   = zeros(nSamples,P.gammatone.nFilter,nChannels);
+% out.adapt = zeros(nSamples,P.gammatone.nFilter,nChannels);
 
 
 %% 2. DECOMPOSE INPUT INTO INDIVIDUAL FREQUENCY CHANNELS
 % 
 % 
-if P.bCompute
-    % Allocate memory
-    out = zeros(nSamples,P.gammatone.nFilter,nChannels);
-    
-    % Gammatone filtering
-    
-    out(:,:,1) = gammaFB(earsignals(:,1),fs,P.gammatone);
-    out(:,:,2) = gammaFB(earsignals(:,2),fs,P.gammatone);
-else
-    out = permute(earsignals,[1 3 2]);
-end
+% Gammatone filtering
+out(:,:,1) = gammaFB(earsignals(:,1),fsHz,P.gammatone);
+out(:,:,2) = gammaFB(earsignals(:,2),fsHz,P.gammatone);
 
-%% 3. HAIRCELL TRANSDUCTON
+
+%% 3. EXTRACT INNER HAIR CELL ENVELOPE
 %
-% EnvExtSig = EnvExtract(FiltSig,fs,1000,2);
+% 
+% Hair cell processing
+out(:,:,1) = ihcenvelope(out(:,:,1),fsHz,P.ihc.method);
+out(:,:,2) = ihcenvelope(out(:,:,2),fsHz,P.ihc.method);
+
 
 
 %% 4. NEURAL ADAPTATION
