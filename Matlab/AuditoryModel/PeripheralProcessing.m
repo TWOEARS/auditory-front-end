@@ -1,15 +1,14 @@
-function out = PeripheralProcessing(earsignals,fsHz,P)
+function [out,STATES] = PeripheralProcessing(earsignals,STATES)
 %
 %USAGE
-%        out = PeripheralProcessing(earsignals,fs,P)
+%   [out,STATES] = PeripheralProcessing(earsignals,STATES)
 %
 %INPUT PARAMETERS
-% earsignals : binaural signals [nSamples x 2]
-%         fs : sampling frequency in Hertz
-%          P : peripheral parameter structure (initialized by init_WP2.m)
+%   earsignals : binaural signals [nSamples x 2]
+%       STATES : settings initialized by init_WP2
 % 
 %OUTPUT PARAMETERS
-%        out : Peripheral internal representations [nSamples x nFilter x 2]
+%          out : Peripheral internal representations [nSamples x nFilter x 2]
 
 %   Developed with Matlab 8.2.0.701 (R2013b). Please send bug reports to:
 %   
@@ -20,6 +19,7 @@ function out = PeripheralProcessing(earsignals,fsHz,P)
 % 
 %   History :  
 %   v.0.1   2014/01/31
+%   v.0.2   2014/02/24 added STATES to output (for block-based processing)
 %   ***********************************************************************
 
 
@@ -27,7 +27,7 @@ function out = PeripheralProcessing(earsignals,fsHz,P)
 % 
 % 
 % Check for proper input arguments
-if nargin ~= 3
+if nargin ~= 2
     help(mfilename);
     error('Wrong number of input arguments!')
 end
@@ -37,8 +37,13 @@ end
 % Determine size of input
 [nSamples,nChannels] = size(earsignals);
 
+% Short-cut to gammatone struct
+GT   = STATES.signal.periphery.gammatone;
+IHC  = STATES.signal.periphery.ihc;
+fsHz = STATES.signal.fsHz;
+
 % Allocate memory
-out = zeros(nSamples,P.gammatone.nFilter,nChannels);
+out = zeros(nSamples,GT.nFilter,nChannels);
 % out.env   = zeros(nSamples,P.gammatone.nFilter,nChannels);
 % out.adapt = zeros(nSamples,P.gammatone.nFilter,nChannels);
 
@@ -47,17 +52,16 @@ out = zeros(nSamples,P.gammatone.nFilter,nChannels);
 % 
 % 
 % Gammatone filtering
-out(:,:,1) = gammaFB(earsignals(:,1),fsHz,P.gammatone);
-out(:,:,2) = gammaFB(earsignals(:,2),fsHz,P.gammatone);
+out(:,:,1) = gammaFB(earsignals(:,1),fsHz,GT);
+out(:,:,2) = gammaFB(earsignals(:,2),fsHz,GT);
 
 
 %% 3. EXTRACT INNER HAIR CELL ENVELOPE
 %
 % 
 % Hair cell processing
-out(:,:,1) = ihcenvelope(out(:,:,1),fsHz,P.ihc.method);
-out(:,:,2) = ihcenvelope(out(:,:,2),fsHz,P.ihc.method);
-
+out(:,:,1) = ihcenvelope(out(:,:,1),fsHz,IHC.method);
+out(:,:,2) = ihcenvelope(out(:,:,2),fsHz,IHC.method);
 
 
 %% 4. NEURAL ADAPTATION

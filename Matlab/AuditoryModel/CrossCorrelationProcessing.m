@@ -1,4 +1,4 @@
-function xcorr = CrossCorrelationProcessing(periphery,SIGNAL)
+function [xcorr,STATES] = CrossCorrelationProcessing(periphery,STATES)
 %
 %USAGE
 %       xcorr = CrossCorrelationProcessing(periphery,SIGNAL)
@@ -16,6 +16,7 @@ function xcorr = CrossCorrelationProcessing(periphery,SIGNAL)
 % 
 %   History :  
 %   v.0.1   2014/02/22
+%   v.0.2   2014/02/24 added STATES to output (for block-based processing)
 %   ***********************************************************************
 
 
@@ -36,9 +37,9 @@ end
 [nSamples,nFilter,nChannels] = size(periphery); %#ok
 
 % Short-cut
-wSize = SIGNAL.framing.winSize;
-hSize = SIGNAL.framing.hopSize;
-win   = SIGNAL.framing.window;
+wSize = STATES.signal.framing.winSize;
+hSize = STATES.signal.framing.hopSize;
+win   = STATES.signal.framing.window;
 
 % Compute number of frames
 nFrames = max(floor((nSamples-(wSize-hSize))/(hSize)),1);
@@ -48,7 +49,7 @@ nFrames = max(floor((nSamples-(wSize-hSize))/(hSize)),1);
 % 
 % 
 % Allocate memory
-xcorr = zeros(SIGNAL.xcorr.maxLag*2+1,nFrames,nFilter);
+xcorr = zeros(STATES.signal.xcorr.maxLag*2+1,nFrames,nFilter);
 
 % Loop over number of auditory filters
 for ii = 1 : nFilter
@@ -59,6 +60,6 @@ for ii = 1 : nFilter
     
     % Cross-correlation analysis
     % xcorr(:,:,ii) = xcorrNorm(frames_L,frames_R,STATES.binaural.maxLag);
-    xcorr(:,:,ii) = calcXCorr(frames_L,frames_R,SIGNAL.xcorr.maxLag,'coeff');
+    xcorr(:,:,ii) = calcXCorr(frames_L,frames_R,STATES.signal.xcorr.maxLag,'coeff');
 end
 

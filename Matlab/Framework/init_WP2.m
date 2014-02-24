@@ -55,6 +55,9 @@ allDepend   = {{}         {}        {'azimuth'}   {'azimuth_hist'}};
 %% INITIALIZE SIGNAL PARAMETERS
 % 
 % 
+% TODO: Use feedback to control frequency resolution, therefore, all
+% internal filter states have to be reset
+
 % STATES parameter struct
 STATES = struct('signal',[],'cues',[],'features',[]);
 

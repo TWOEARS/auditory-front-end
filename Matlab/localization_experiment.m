@@ -88,7 +88,7 @@ minDistance = 5;
 % 
 % 
 % Number of acoustic mixtures for each acoustic condition
-nMixtures = 25; 
+nMixtures = 5; 
 
 % Absolute error boundary in degree
 thresDeg = 10;

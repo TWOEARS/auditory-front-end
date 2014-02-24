@@ -1,8 +1,8 @@
-function SIGNALS = process_Signals(earSignals,fsHz,STATES)
+function [SIGNALS,STATES] = process_Signals(earSignals,fsHz,STATES)
 %process_Signals   Create multi-dimensional signal representation.
 %
 %USAGE
-%     SIGNALS = process_Signals(earSignals,STATES)
+%     [SIGNALS,STATES] = process_Signals(earSignals,STATES)
 %
 %INPUT PARAMETERS
 %     binaural : binaural signals [nSamples x 2]
@@ -19,6 +19,7 @@ function SIGNALS = process_Signals(earSignals,fsHz,STATES)
 % 
 %   History :  
 %   v.0.1   2014/02/22
+%   v.0.2   2014/02/24 added STATES to output (for block-based processing)
 %   ***********************************************************************
 
 
@@ -48,9 +49,6 @@ SIGNALS = repmat(cell2struct({[] [] []},{'domain' 'dim' 'data'},2),[nDomains 1])
        
 % Initialize domain counter
 iD = 0;
-
-% Short-cut
-SIGNAL = STATES.signal;
 
 
 %% PRE-PROCESS EAR SIGNALS
@@ -92,7 +90,7 @@ if any(strcmp('periphery',domain))
     
     SIGNALS(iD).domain = 'periphery';
     SIGNALS(iD).dim    = {'nSamples x nFilter x [left right]'};
-    SIGNALS(iD).data   = PeripheralProcessing(SIGNALS(iI).data,fsHz,SIGNAL.periphery);
+    [SIGNALS(iD).data,STATES] = PeripheralProcessing(SIGNALS(iI).data,STATES);
 end
 
 
@@ -109,7 +107,7 @@ if any(strcmp('crosscorrelation',domain))
     
     SIGNALS(iD).domain = 'crosscorrelation';
     SIGNALS(iD).dim    = {'nLags x nFrames x nFilter'};
-    SIGNALS(iD).data   = CrossCorrelationProcessing(SIGNALS(iI).data,SIGNAL);
+    [SIGNALS(iD).data,STATES] = CrossCorrelationProcessing(SIGNALS(iI).data,STATES);
 end
 
 

@@ -1,4 +1,4 @@
-function [SIGNALS,CUES] = process_WP2_cues(earSignals,fsHz,STATES)
+function [SIGNALS,CUES,STATES] = process_WP2_cues(earSignals,fsHz,STATES)
 %process_WP2_cues   Perform WP2 processing
 %
 %USAGE
@@ -12,6 +12,7 @@ function [SIGNALS,CUES] = process_WP2_cues(earSignals,fsHz,STATES)
 %OUTPUT PARAMETERS
 %      SIGNALS : Multi-dimensional signal structure
 %         CUES : Multi-dimensional cue structure
+%       STATES : Settings 
 
 %   Developed with Matlab 8.2.0.701 (R2013b). Please send bug reports to:
 %   
@@ -23,6 +24,7 @@ function [SIGNALS,CUES] = process_WP2_cues(earSignals,fsHz,STATES)
 %   History :  
 %   v.0.1   2014/01/31
 %   v.0.2   2014/02/21 added modular cue extraction structure
+%   v.0.3   2014/02/21 added STATES to output (for block-based processing)
 %   ***********************************************************************
 
 
