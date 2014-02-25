@@ -37,9 +37,9 @@ end
 [nSamples,nFilter,nChannels] = size(periphery); %#ok
 
 % Short-cut
-wSize = STATES.signal.framing.winSize;
-hSize = STATES.signal.framing.hopSize;
-win   = STATES.signal.framing.window;
+wSize = STATES.signals.framing.winSize;
+hSize = STATES.signals.framing.hopSize;
+win   = STATES.signals.framing.window;
 
 % Compute number of frames
 nFrames = max(floor((nSamples-(wSize-hSize))/(hSize)),1);
@@ -49,7 +49,7 @@ nFrames = max(floor((nSamples-(wSize-hSize))/(hSize)),1);
 % 
 % 
 % Allocate memory
-xcorr = zeros(STATES.signal.xcorr.maxLag*2+1,nFrames,nFilter);
+xcorr = zeros(STATES.signals.xcorr.maxLag*2+1,nFrames,nFilter);
 
 % Loop over number of auditory filters
 for ii = 1 : nFilter
@@ -60,6 +60,6 @@ for ii = 1 : nFilter
     
     % Cross-correlation analysis
     % xcorr(:,:,ii) = xcorrNorm(frames_L,frames_R,STATES.binaural.maxLag);
-    xcorr(:,:,ii) = calcXCorr(frames_L,frames_R,STATES.signal.xcorr.maxLag,'coeff');
+    xcorr(:,:,ii) = calcXCorr(frames_L,frames_R,STATES.signals.xcorr.maxLag,'coeff');
 end
 

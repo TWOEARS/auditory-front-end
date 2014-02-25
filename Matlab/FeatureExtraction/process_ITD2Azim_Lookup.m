@@ -1,4 +1,4 @@
-function azim = estimateAzimuth_Lookup(CUE,P)
+function azim = process_ITD2Azim_Lookup(CUE,P)
 
 %   Developed with Matlab 8.2.0.701 (R2013b). Please send bug reports to:
 %   

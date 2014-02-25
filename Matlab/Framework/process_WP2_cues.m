@@ -42,7 +42,7 @@ end
 % 
 % 
 % Compute signals 
-SIGNALS = process_Signals(earSignals,fsHz,STATES);
+SIGNALS = process_WP2_signals(earSignals,fsHz,STATES);
 
 
 %% EXTRACT CUES

@@ -1,4 +1,4 @@
-function mapping = calibrate_ITD(STATES,set,bCalibrate)
+function mapping = init_ITD2Azim_Lookup(STATES,set,bCalibrate)
 %calibrate_ITD_Subband   Calculate frequency-dependent ITD2azimuth mapping
 %
 %USAGE
@@ -75,7 +75,7 @@ end
 % Perform calibration
 if bRecalibrate
     % Short-cut
-    fsHz = STATES.signal.fsHz;
+    fsHz = STATES.signals.fsHz;
     
     % Store persistent variables
     PER_set = set; PER_STATES = STATES; 
@@ -87,7 +87,7 @@ if bRecalibrate
     nAzimInterp = numel(set.rangeAzim);
     
     % Number of auditory filters
-    nFilter = STATES.signal.periphery.gammatone.nFilter;
+    nFilter = STATES.signals.periphery.gammatone.nFilter;
     
     % Create white noise
     noise = randn(round(lengthSec*fsHz),1);

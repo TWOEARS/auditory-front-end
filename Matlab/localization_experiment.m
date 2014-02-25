@@ -59,13 +59,13 @@ switch(lower(preset))
         
         % Specify cues that should be extracted
 %         strCues = {'rms' 'ratemap' 'itd_xcorr' 'ic_xcorr' 'ild'};
-%         strCues = {'rms' 'ratemap' 'itd_xcorr' 'ic_xcorr' 'ild'};
-        strCues = {'ratemap' 'itd_xcorr' 'ic_xcorr' 'ild'};
+        strCues = {'rms' 'ratemap' 'itd_xcorr' 'ic_xcorr' 'ild'};
+%         strCues = {'ratemap' 'itd_xcorr' 'ic_xcorr' 'ild'};
         
         % Specify features that should be extracted
 %         strFeatures = {'azimuth_hist'};
 %         strFeatures = {'azimuth_hist' 'ratemap'};
-%         strFeatures = {'ratemap'};
+%         strFeatures = {'ratemap' 'azimuth_hist' 'ratemap' 'source_position'};
         strFeatures = {'source_position'};
         
     otherwise
@@ -157,7 +157,6 @@ for ii = 1 : nMixtures
     audio = readAudio(files,fsHz);
     
     % Spatialize audio signals using HRTF processing
-    % earSignals = spatializeAudio(audio,fsHz,azPos(ii,:),rooms{rr});
     earSignals = auralizeWP1(audio,fsHz,azPos(ii,:));
     
     % Perform WP2 cue computation

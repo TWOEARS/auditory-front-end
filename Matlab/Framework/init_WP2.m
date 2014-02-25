@@ -42,27 +42,37 @@ if ~iscell(listFeat); listFeat = {listFeat}; end
 %% DEFINE DEPENDENCIES
 % 
 % 
+% TODO: Add dependencies of signals, cues & features. Note that these
+% dependencies have to be defined prior to initialization, because we might
+% have to request more signals/cues/features ... 
+
+
 % List of supported features
 allFeatures = {'ratemap' 'azimuth' 'azimuth_hist' 'source_position'};
 % List of feature dependencies
 allDepend   = {{}         {}        {'azimuth'}   {'azimuth_hist'}};
+
+
 
 % Re-organize feature list to consider proper order of processing
 [listFeat,listDep] = updateFeatureList(listFeat,allFeatures,allDepend);
 [listFeat,listDep] = updateFeatureList(listFeat,allFeatures,allDepend);
 
 
-%% INITIALIZE SIGNAL PARAMETERS
+%% CONFIGURE SIGNAL EXTRACTION
 % 
 % 
 % TODO: Use feedback to control frequency resolution, therefore, all
 % internal filter states have to be reset
 
+
+% TODO: Use similar structure as used for the cues and the features!!!
+
 % STATES parameter struct
-STATES = struct('signal',[],'cues',[],'features',[]);
+STATES = struct('signals',[],'cues',[],'features',[]);
 
 % Signal parameters
-signal = struct('fsHz',SET.fsHz,'bNormRMS',SET.bNormRMS,...
+signals = struct('fsHz',SET.fsHz,'bNormRMS',SET.bNormRMS,...
                 'periphery',[],'xcorr',[],'framing',[]);
 
 % Short-cut
@@ -73,19 +83,19 @@ nErbs   = SET.nErbs;
 bAlign  = SET.bAlign;
 
 % Gammatone parameters 
-signal.periphery.gammatone = gammaFIR(fsHz,fLowHz,fHighHz,nErbs,bAlign);
+signals.periphery.gammatone = gammaFIR(fsHz,fLowHz,fHighHz,nErbs,bAlign);
 
 % Hair cell parameters
-signal.periphery.ihc.method = SET.ihcMethod;
+signals.periphery.ihc.method = SET.ihcMethod;
 
 % Framing parameters
-signal.framing.winSize = 2 * round(SET.winSizeSec * fsHz / 2);
-signal.framing.hopSize = 2 * round(SET.hopSizeSec * fsHz / 2);
-signal.framing.winType = SET.winType;
-signal.framing.window  = window(SET.winType,signal.framing.winSize);
+signals.framing.winSize = 2 * round(SET.winSizeSec * fsHz / 2);
+signals.framing.hopSize = 2 * round(SET.hopSizeSec * fsHz / 2);
+signals.framing.winType = SET.winType;
+signals.framing.window  = window(SET.winType,signals.framing.winSize);
 
 % Maximum time delay in seconds that is evaluated
-signal.xcorr.maxLag = ceil(SET.maxDelaySec * fsHz);
+signals.xcorr.maxLag = ceil(SET.maxDelaySec * fsHz);
 
 
 %% CONFIGURE CUE EXTRACTION  
@@ -115,9 +125,9 @@ for ii = 1 : nCues
             S.unit         = {'dB'};
             S.dim          = {'nFrames x [left right]'};
             
-            S.set.wSize    = signal.framing.winSize;
-            S.set.hSize    = signal.framing.hopSize;
-            S.set.win      = signal.framing.window;
+            S.set.wSize    = signals.framing.winSize;
+            S.set.hSize    = signals.framing.hopSize;
+            S.set.win      = signals.framing.window;
             
         case 'ratemap'
             % Ratemap
@@ -129,8 +139,8 @@ for ii = 1 : nCues
 
             S.set.fsHz     = fsHz;
             S.set.decaySec = 10E-3;
-            S.set.wSize    = signal.framing.winSize;
-            S.set.hSize    = signal.framing.hopSize;
+            S.set.wSize    = signals.framing.winSize;
+            S.set.hSize    = signals.framing.hopSize;
             S.set.winType  = 'rectwin';
             
         case 'itd_xcorr'
@@ -158,8 +168,8 @@ for ii = 1 : nCues
             S.unit         = {'dB'};
             S.dim          = {'nFilter x nFrames'};
             
-            S.set.wSize    = signal.framing.winSize;
-            S.set.hSize    = signal.framing.hopSize;
+            S.set.wSize    = signals.framing.winSize;
+            S.set.hSize    = signals.framing.hopSize;
             S.set.winType  = 'rectwin';
             
         otherwise
@@ -171,8 +181,8 @@ for ii = 1 : nCues
 end
 
 % Copy cue structure
-STATES.signal = signal;
-STATES.cues   = C;
+STATES.signals = signals;
+STATES.cues    = C;
 
 
 %% CONFIGURE FEATURE EXTRACTION  
@@ -200,7 +210,7 @@ for ii = 1 : nFeatures
             S.name          = {lower(listFeat{ii})};
             S.cue           = {'itd'};
             S.feature       = listDep{ii};
-            S.fHandle       = 'estimateAzimuth_Lookup';
+            S.fHandle       = 'process_ITD2Azim_Lookup';
             S.unit          = {'degree'};
             S.dim           = {'nFilter x nFrames'};
                         
@@ -211,7 +221,7 @@ for ii = 1 : nFeatures
             set.rangeAzim   = (-90:1:90).';
             set.average     = 'median';
             
-            S.set.mapping   = calibrate_ITD(STATES,set);
+            S.set.mapping   = init_ITD2Azim_Lookup(STATES,set);
             
             S.set.bFitPoly  = true;
             S.set.polyOrder = 11;
@@ -231,10 +241,6 @@ for ii = 1 : nFeatures
             
             S.set.bCueSelection = false;
             S.set.thresIC       = 0.95;
-            
-%             S.set.bSelectChan   = false;
-%             S.set.cfHz          = STATES.signal.periphery.gammatone.cfHz;
-%             S.set.thresFreq     = 2500;
 
         case 'source_position'
             % Estimate source position based on azimuth histogram

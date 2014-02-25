@@ -38,9 +38,9 @@ end
 [nSamples,nChannels] = size(earsignals);
 
 % Short-cut to gammatone struct
-GT   = STATES.signal.periphery.gammatone;
-IHC  = STATES.signal.periphery.ihc;
-fsHz = STATES.signal.fsHz;
+GT   = STATES.signals.periphery.gammatone;
+IHC  = STATES.signals.periphery.ihc;
+fsHz = STATES.signals.fsHz;
 
 % Allocate memory
 out = zeros(nSamples,GT.nFilter,nChannels);

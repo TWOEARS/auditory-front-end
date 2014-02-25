@@ -40,16 +40,6 @@ if SET.bCueSelection
 end
 
 
-% %% CHANNEL SELECTION
-% % 
-% % 
-% % Perform IC selection
-% if SET.bSelectChan
-%     % Only use channels up to S.set.thresFreq 
-%     azimuth(SET.cfHz > SET.thresFreq,:) = NaN;
-% end
-
-
 %% AZIMUTH HISTOGRAM
 % 
 % 

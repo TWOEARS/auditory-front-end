@@ -1,4 +1,4 @@
-function [SIGNALS,STATES] = process_Signals(earSignals,fsHz,STATES)
+function [SIGNALS,STATES] = process_WP2_signals(earSignals,fsHz,STATES)
 %process_Signals   Create multi-dimensional signal representation.
 %
 %USAGE
@@ -21,6 +21,8 @@ function [SIGNALS,STATES] = process_Signals(earSignals,fsHz,STATES)
 %   v.0.1   2014/02/22
 %   v.0.2   2014/02/24 added STATES to output (for block-based processing)
 %   ***********************************************************************
+
+% also use dependencies
 
 
 %% CHECK INPUT ARGUMENTS 
@@ -55,12 +57,12 @@ iD = 0;
 % 
 % 
 % Resample input signal
-if fsHz ~= STATES.signal.fsHz 
-    earSignals = resample(earSignals,fsHz,STATES.signal.fsHz);
+if fsHz ~= STATES.signals.fsHz 
+    earSignals = resample(earSignals,fsHz,STATES.signals.fsHz);
 end
 
 % Normalize input
-if STATES.signal.bNormRMS
+if STATES.signals.bNormRMS
     earSignals = earSignals / max(rms(earSignals));
 end
 
