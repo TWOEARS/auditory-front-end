@@ -92,7 +92,7 @@ if any(strcmp('periphery',domain))
     
     SIGNALS(iD).domain = 'periphery';
     SIGNALS(iD).dim    = {'nSamples x nFilter x [left right]'};
-    [SIGNALS(iD).data,STATES] = PeripheralProcessing(SIGNALS(iI).data,STATES);
+    [SIGNALS(iD).data,STATES] = process_Periphery(SIGNALS(iI).data,STATES);
 end
 
 
@@ -109,10 +109,10 @@ if any(strcmp('crosscorrelation',domain))
     
     SIGNALS(iD).domain = 'crosscorrelation';
     SIGNALS(iD).dim    = {'nLags x nFrames x nFilter'};
-    [SIGNALS(iD).data,STATES] = CrossCorrelationProcessing(SIGNALS(iI).data,STATES);
+    [SIGNALS(iD).data,STATES] = process_CrossCorrelation(SIGNALS(iI).data,STATES);
 end
 
 
 %% ADAPTATION 
 
-
+% process_Adaptation ...

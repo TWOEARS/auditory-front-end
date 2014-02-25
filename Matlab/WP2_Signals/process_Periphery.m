@@ -1,4 +1,4 @@
-function [out,STATES] = PeripheralProcessing(earsignals,STATES)
+function [out,STATES] = process_Periphery(earsignals,STATES)
 %
 %USAGE
 %   [out,STATES] = PeripheralProcessing(earsignals,STATES)

@@ -18,10 +18,12 @@ clc
 % Add working directories to path
 addpath Tools
 addpath AuditoryModel
-addpath CueExtraction
-addpath FeatureExtraction
-addpath Framework
 addpath HRTF_WP1
+
+addpath WP2_Framework
+addpath WP2_Signals
+addpath WP2_Cues
+addpath WP2_Features
 
 
 %% ALGORITHM SETTINGS

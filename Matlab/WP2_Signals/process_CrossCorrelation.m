@@ -1,4 +1,4 @@
-function [xcorr,STATES] = CrossCorrelationProcessing(periphery,STATES)
+function [xcorr,STATES] = process_CrossCorrelation(periphery,STATES)
 %
 %USAGE
 %       xcorr = CrossCorrelationProcessing(periphery,SIGNAL)
