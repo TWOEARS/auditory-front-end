@@ -1,4 +1,4 @@
-function azim = process_ITD2Azim_Lookup(CUE,P)
+function [azim,SET] = process_ITD2Azim_Lookup(CUE,SET)
 
 %   Developed with Matlab 8.2.0.701 (R2013b). Please send bug reports to:
 %   
@@ -58,16 +58,16 @@ azim = zeros(nFilter,nFrames);
 % 
 % Loop over number of auditory filters
 for ii = 1 : nFilter
-    if P.set.bFitPoly
-        [p(:,ii),S{ii},MU(:,ii)] = polyfit(P.set.mapping.itd(:,ii),P.set.mapping.azimuth,P.set.polyOrder);
-        azim(ii,:) = polyval(p(:,ii),CUE.data(ii,:),S{ii},MU(:,ii));
+    if SET.bFitPoly
+        [p,S,MU] = polyfit(SET.mapping.itd(:,ii),SET.mapping.azimuth,SET.polyOrder);
+        azim(ii,:) = polyval(p,CUE.data(ii,:),S,MU);
     else
-        azim(ii,:) = interp1(P.set.mapping.itd(:,ii),P.set.mapping.azimuth,CUE.data(ii,:));
+        azim(ii,:) = interp1(SET.mapping.itd(:,ii),SET.mapping.azimuth,CUE.data(ii,:));
     end
 end
 
-azim(azim > max(P.set.mapping.azimuth)) = NaN;
-azim(azim < min(P.set.mapping.azimuth)) = NaN;
+azim(azim > max(SET.mapping.azimuth)) = NaN;
+azim(azim < min(SET.mapping.azimuth)) = NaN;
 
 
 % % Loop over the number of files

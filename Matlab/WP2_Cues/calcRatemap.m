@@ -1,4 +1,4 @@
-function cues = calcRatemap(periphery,P)
+function [cues,SET] = calcRatemap(signal,SET)
 % 
 %USAGE
 %    cues = calcRatemap(periphery,S)
@@ -29,15 +29,10 @@ if nargin ~= 2
 end
 
 % Determine input size
-[nSamples,nFilter,nChannels] = size(periphery);
-
-% Short-cut
-wSize = P.set.wSize;
-hSize = P.set.hSize;
-win   = window(P.set.winType,wSize);
+[nSamples,nFilter,nChannels] = size(signal);
 
 % Compute number of frames
-nFrames = max(floor((nSamples-(wSize-hSize))/(hSize)),1);
+nFrames = max(floor((nSamples-(SET.wSize-SET.hSize))/SET.hSize),1);
 
  % Allocate memory
 cues = zeros(nFilter,nFrames,nChannels);
@@ -47,20 +42,20 @@ cues = zeros(nFilter,nFrames,nChannels);
 % 
 % 
 % Filter deacy
-intDecay = exp(-(1/(P.set.fsHz * P.set.decaySec)));
+intDecay = exp(-(1/(SET.fsHz * SET.decaySec)));
 
 % Integration gain
 intGain = 1-intDecay;
 
 % Apply integration filter
-periphery = filter(intGain, [1 -intDecay], periphery);
+signal = filter(intGain, [1 -intDecay], signal);
  
 % Loop over number of auditory channels
 for ii = 1 : nFilter
     
     % Framing
-    frames_L = frameData(periphery(:,ii,1),wSize,hSize,win,false);
-    frames_R = frameData(periphery(:,ii,2),wSize,hSize,win,false);
+    frames_L = frameData(signal(:,ii,1),SET.wSize,SET.hSize,SET.win,false);
+    frames_R = frameData(signal(:,ii,2),SET.wSize,SET.hSize,SET.win,false);
     
     % Frame-based averaging 
     cues(ii,:,1) = mean(frames_L,1);

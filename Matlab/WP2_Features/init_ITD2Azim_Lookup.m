@@ -1,4 +1,4 @@
-function mapping = init_ITD2Azim_Lookup(STATES,set,bCalibrate)
+function mapping = init_ITD2Azim_Lookup(STATES,SET,bCalibrate)
 %calibrate_ITD_Subband   Calculate frequency-dependent ITD2azimuth mapping
 %
 %USAGE
@@ -41,31 +41,30 @@ end
 % Set default parameter
 if nargin < 3 || isempty(bCalibrate); bCalibrate = false; end
 
-% Detect ITD cue 
-bITDCues = strcmp('itd',[STATES.cues.name]);
 
-if any(bITDCues)
-    STATES.cues = STATES.cues(bITDCues);
-else
-    error('%s: ITD cue is required for azimuth extraction.',mfilename);
-end
+% Select list of cues and features that should be extracted
+listFeatures = {};
+listCues     = {'itd_xcorr'};
+
+% Initialize processing
+STATES = init_WP2(listFeatures,listCues,STATES.SET);
 
 
 %% 2. CALIBRATION SETTINGS
 % 
 % 
 % Length of random noise sequence in seconds
-lengthSec = 0.5;
+lengthSec = 1;
 
 
 %% 3. CALIBRATION STAGE
 % 
 % 
 % Check if we can re-use the calibration file from the last function call
-if isequal(set,PER_set) && isequal(STATES,PER_STATES) && ~bCalibrate 
+if isequal(SET,PER_set) && isequal(STATES,PER_STATES) && ~bCalibrate 
     bRecalibrate = false;
     % If no mapping file is detected ... re-calibrate
-    if ~exist([set.rootDir,'ITD2Azimuth_Mapping.mat'],'file')
+    if ~exist([SET.rootDir,'ITD2Azimuth_Mapping.mat'],'file')
         bRecalibrate = true;
     end
 else
@@ -74,23 +73,20 @@ end
 
 % Perform calibration
 if bRecalibrate
-    % Short-cut
-    fsHz = STATES.signals.fsHz;
-    
     % Store persistent variables
-    PER_set = set; PER_STATES = STATES; 
+    PER_set = SET; PER_STATES = STATES; 
 
     % Number of different sound source positions
-    nAzimPos = numel(set.rangeSource);
+    nAzimPos = numel(SET.rangeSource);
     
     % Number of different sound source positions after interpolation
-    nAzimInterp = numel(set.rangeAzim);
+    nAzimInterp = numel(SET.rangeAzim);
     
     % Number of auditory filters
-    nFilter = STATES.signals.periphery.gammatone.nFilter;
+    nFilter = STATES.signals(strcmp([STATES.signals.domain],'gammatone')).set.paramGT.nFilter;
     
     % Create white noise
-    noise = randn(round(lengthSec*fsHz),1);
+    noise = randn(round(lengthSec*SET.fsHz),1);
 
     % Allocate memory
     itd       = zeros(nAzimPos,nFilter);
@@ -104,13 +100,16 @@ if bRecalibrate
     for ii = 1 : nAzimPos
 
         % Spatialize audio signal using HRTF processing
-        earSignals = auralizeWP1(noise,fsHz,set.rangeSource(ii));
+        earSignals = auralizeWP1(noise,SET.fsHz,SET.rangeSource(ii));
         
-        % Perform WP2 computation
-        [SIGNALS,CUES] = process_WP2_cues(earSignals,fsHz,STATES);
+        % Perform WP2 signal computation
+        [SIGNALS,STATES] = process_WP2_signals(earSignals,SET.fsHz,STATES);
+
+        % Perform WP2 cue computation
+        [CUES,STATES] = process_WP2_cues(SIGNALS,STATES);
         
         % Estimate ITD
-        itdEst = feval(set.average,CUES.data(:,:,1),2);
+        itdEst = feval(SET.average,CUES.data(:,:,1),2);
         
         % Store azimuth-dependent ITD
         itd(ii,:) = itdEst;
@@ -126,7 +125,7 @@ if bRecalibrate
     % Loop over the number of files
     for jj = 1 : nFilter
         % Interpolate to 'rangeAzInterp'
-        itdInterp(:,jj) = interp1(set.rangeSource,itd(:,jj),set.rangeAzim);
+        itdInterp(:,jj) = interp1(SET.rangeSource,itd(:,jj),SET.rangeAzim);
         
 %         % Ensure that mapping is monotonic by using a polynomial fit
 %         itd2AzimPoly(:,jj) = polyval(polyfit(set.rangeAzim,itd2AzimInterp(:,jj).',set.polyOrder),set.rangeAzim);
@@ -135,8 +134,8 @@ if bRecalibrate
     % Save data
     %
     %
-    mapping.fs      = fsHz;
-    mapping.azimuth = set.rangeAzim;
+    mapping.fs      = SET.fsHz;
+    mapping.azimuth = SET.rangeAzim;
     mapping.itd     = itdInterp;
     
 %     mapping.itd2azimRaw  = itd2Azim;
@@ -145,7 +144,7 @@ if bRecalibrate
 %     mapping.itdMin       = min(itd2AzimPoly);
     
     % Store ITD2Azimuth template
-    save([set.rootDir,'ITD2Azimuth_Mapping.mat'],'mapping');    
+    save([SET.rootDir,'ITD2Azimuth_Mapping.mat'],'mapping');    
 else
-    load([set.rootDir,'ITD2Azimuth_Mapping.mat']);    
+    load([SET.rootDir,'ITD2Azimuth_Mapping.mat']);    
 end

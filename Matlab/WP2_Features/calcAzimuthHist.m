@@ -1,4 +1,4 @@
-function azimHist = calcAzimuthHist(CUE,FEATURE)
+function [azimHist,SET] = calcAzimuthHist(CUE,FEATURE,SET)
 
 %   Developed with Matlab 8.2.0.701 (R2013b). Please send bug reports to:
 %   
@@ -15,19 +15,13 @@ function azimHist = calcAzimuthHist(CUE,FEATURE)
 % 
 % 
 % Check for proper input arguments
-if nargin ~= 2
+if nargin ~= 3
     help(mfilename);
     error('Wrong number of input arguments!')
 end
 
-% Find active feature
-bActive = selectCells({FEATURE.fHandle},mfilename);
-
-% Detect feature settings
-SET = FEATURE(bActive).set;
-
 % Get azimuth estimation
-azimuth = FEATURE(~bActive).data;
+azimuth = FEATURE.data;
 
 
 %% IC-BASED AZIMUTH SELECTION

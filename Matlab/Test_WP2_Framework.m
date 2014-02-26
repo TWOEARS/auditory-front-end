@@ -33,8 +33,8 @@ addpath WP2_Features
 preset = 'basic';
 
 % Reference sampling frequency in Hertz
-fsHz = 44.1E3;
-% fsHz = 18E3;
+% fsHz = 44.1E3;
+fsHz = 18E3;
 
 % Change preset-specific parameters
 switch(lower(preset))
@@ -61,14 +61,17 @@ switch(lower(preset))
         
         % Specify cues that should be extracted
 %         strCues = {'rms' 'ratemap' 'itd_xcorr' 'ic_xcorr' 'ild'};
-        strCues = {'rms' 'ratemap' 'itd_xcorr' 'ic_xcorr' 'ild'};
+%         strCues = {'rms' 'ratemap' 'itd_xcorr' 'ic_xcorr' 'ild'};
 %         strCues = {'ratemap' 'itd_xcorr' 'ic_xcorr' 'ild'};
         
         % Specify features that should be extracted
 %         strFeatures = {'azimuth_hist'};
-%         strFeatures = {'azimuth_hist' 'ratemap'};
-%         strFeatures = {'ratemap' 'azimuth_hist' 'ratemap' 'source_position'};
+%         strFeatures = {'azimuth_hist' 'ratemap_feature'};
+%         strFeatures = {'ratemap_feature' 'azimuth_hist' 'ratemap_feature' 'source_position'};
+
+        strCues = {};
         strFeatures = {'source_position'};
+%         strFeatures = {'ratemap_feature'};
         
     otherwise
         error('Preset is not supported');
@@ -122,7 +125,6 @@ pathAudio = [pwd,filesep,'Audio',filesep];
 audioFiles = listFiles(pathAudio,'*.wav');
 
 % Number of different conditions
-% nRooms     = numel(rooms);
 nSentences = numel(audioFiles);
 nAzim      = numel(azRange);
 
@@ -136,7 +138,7 @@ azPos = azRange(round(1+(nAzim-1) * rand(nMixtures,nSpeakers)));
 
 %% INITIALIZE WP2 PROCESSING
 % 
-STATES = init_WP2(SET,strCues,strFeatures);
+STATES = init_WP2(strFeatures,strCues,SET);
 
 
 
@@ -161,11 +163,14 @@ for ii = 1 : nMixtures
     % Spatialize audio signals using HRTF processing
     earSignals = auralizeWP1(audio,fsHz,azPos(ii,:));
     
+    % Perform WP2 signal computation
+    [SIGNALS,STATES] = process_WP2_signals(earSignals,fsHz,STATES);
+    
     % Perform WP2 cue computation
-    [SIGNALS,CUES] = process_WP2_cues(earSignals,fsHz,STATES);
+    [CUES,STATES] = process_WP2_cues(SIGNALS,STATES);
     
     % Perform WP2 feature extraction
-    FEATURES = process_WP2_features(CUES,STATES.features);
+    [FEATURES,STATES] = process_WP2_features(CUES,STATES);
     
     % Select most salient source positions
     azEst = FEATURES(3).data(1:nSpeakers,:);

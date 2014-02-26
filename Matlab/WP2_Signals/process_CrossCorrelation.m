@@ -1,4 +1,4 @@
-function [xcorr,STATES] = process_CrossCorrelation(periphery,STATES)
+function [output,SET] = process_CrossCorrelation(signal,SET)
 %
 %USAGE
 %       xcorr = CrossCorrelationProcessing(periphery,SIGNAL)
@@ -34,32 +34,27 @@ end
 % 
 % 
 % Determine size of input
-[nSamples,nFilter,nChannels] = size(periphery); %#ok
-
-% Short-cut
-wSize = STATES.signals.framing.winSize;
-hSize = STATES.signals.framing.hopSize;
-win   = STATES.signals.framing.window;
+[nSamples,nFilter,nChannels] = size(signal); %#ok
 
 % Compute number of frames
-nFrames = max(floor((nSamples-(wSize-hSize))/(hSize)),1);
+nFrames = max(floor((nSamples-(SET.wSize-SET.hSize))/(SET.hSize)),1);
 
 
 %% BINAURAL CROSS-CORRELATION PROCESSING
 % 
 % 
 % Allocate memory
-xcorr = zeros(STATES.signals.xcorr.maxLag*2+1,nFrames,nFilter);
+output = zeros(SET.maxLag * 2 + 1,nFrames,nFilter);
 
 % Loop over number of auditory filters
 for ii = 1 : nFilter
     
     % Framing
-    frames_L = frameData(periphery(:,ii,1),wSize,hSize,win,false);
-    frames_R = frameData(periphery(:,ii,2),wSize,hSize,win,false);
+    frames_L = frameData(signal(:,ii,1),SET.wSize,SET.hSize,SET.win,false);
+    frames_R = frameData(signal(:,ii,2),SET.wSize,SET.hSize,SET.win,false);
     
     % Cross-correlation analysis
     % xcorr(:,:,ii) = xcorrNorm(frames_L,frames_R,STATES.binaural.maxLag);
-    xcorr(:,:,ii) = calcXCorr(frames_L,frames_R,STATES.signals.xcorr.maxLag,'coeff');
+    output(:,:,ii) = calcXCorr(frames_L,frames_R,SET.maxLag,'coeff');
 end
 

@@ -1,4 +1,4 @@
-function itd = calcITD(xcf,P)
+function [itd,SET] = calcITD(signal,SET)
 %calcITD   Calculate interaural time differences (ITDs). 
 %
 %USAGE
@@ -32,7 +32,7 @@ if nargin ~= 2
 end
 
 % Determine input size
-[nLags,nFrames,nFilter] = size(xcf);
+[nLags,nFrames,nFilter] = size(signal);
 
 % Allocate memory
 itd = zeros(nFilter,nFrames);
@@ -48,14 +48,14 @@ lags = (0:nLags-1).'-(nLags-1)/2;
 for ii = 1:nFilter
     
     % Find maximum peak per frame
-    [pIdx,rowIdx] = findLocalPeaks(xcf(:,:,ii),'max');
+    [pIdx,rowIdx] = findLocalPeaks(signal(:,:,ii),'max'); %#ok
     
     % Integer lag: Take most salient peaks
     lagInt = lags(rowIdx);
     
     % Fractional lag: Refine peak position by parabolic interpolation
-    lagDelta = interpolateParabolic(xcf(:,:,ii),rowIdx);
+    lagDelta = interpolateParabolic(signal(:,:,ii),rowIdx);
     
     % Final interaural time delay estimates
-    itd(ii,:) = (lagInt + lagDelta)/P.set.fsHz;
+    itd(ii,:) = (lagInt + lagDelta)/SET.fsHz;
 end

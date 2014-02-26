@@ -10,11 +10,8 @@ end
 % Number of expressions
 nExp = numel(exp);
 
-% Number of list entries
-nList = numel(fullList);
-
 % Allocate memory
-bSelect = false(1,nList);
+bSelect = false(size(fullList));
 
 % Loop over number of entries
 for ii = 1 : nExp

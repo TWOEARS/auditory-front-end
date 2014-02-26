@@ -1,4 +1,4 @@
-function ild = calcILD(periphery,P)
+function [ild,SET] = calcILD(signal,SET)
 %calcILD   Calculate interaural level differences (ILDs). 
 %   Negative ILDs are associated with sound sources positioned at the
 %   left-hand side and positive ILDs with sources at the right-hand side.  
@@ -38,15 +38,10 @@ end
 % 
 % 
 % Determine size of input
-[nSamples,nFilter,nChannels] = size(periphery); %#ok
-
-% Short-cut
-wSize = P.set.wSize;
-hSize = P.set.hSize;
-win   = window(P.set.winType,wSize);
+[nSamples,nFilter,nChannels] = size(signal); %#ok
 
 % Compute number of frames
-nFrames = max(floor((nSamples-(wSize-hSize))/(hSize)),1);
+nFrames = max(floor((nSamples-(SET.wSize-SET.hSize))/SET.hSize),1);
 
 
 %% COMPUTE ILD
@@ -59,8 +54,8 @@ ild = zeros(nFilter,nFrames);
 for ii = 1 : nFilter
     
     % Framing
-    frames_L = frameData(periphery(:,ii,1),wSize,hSize,win,false);
-    frames_R = frameData(periphery(:,ii,2),wSize,hSize,win,false);
+    frames_L = frameData(signal(:,ii,1),SET.wSize,SET.hSize,SET.win,false);
+    frames_R = frameData(signal(:,ii,2),SET.wSize,SET.hSize,SET.win,false);
     
     % Compute energy
     energyL = mean(power(frames_L,2),1);

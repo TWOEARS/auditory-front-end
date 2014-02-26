@@ -1,4 +1,4 @@
-function FEATURES = process_WP2_features(CUES,FEATURES)
+function [FEATURES,STATES] = process_WP2_features(CUES,STATES)
 %process_WP2_features   Perform WP2 feature processing
 %
 %USAGE
@@ -36,25 +36,27 @@ end
 %
 % 
 % Number of features to extract
-nFeatures = numel(FEATURES);
+nFeatures = numel(STATES.features);
+
+% Initialize feature struct
+FEATURES = STATES.features;
 
 % Loop over number of features
 for ii = 1 : nFeatures
     
     % Select required cues
-    iC = selectCells([CUES(:).name],FEATURES(ii).cue);
+    iDCue = selectCells([CUES(:).name],FEATURES(ii).dependency{2});
     
     % Select required features
-    iF = selectCells([FEATURES.name],FEATURES(ii).feature);
-    
-    % Activate ii-th feature setting
-    iF(ii) = true;
+    iDFeature = selectCells([FEATURES.name],FEATURES(ii).dependency{1});
     
     % Perform feature processing
-    if any(iC) 
-        FEATURES(ii).data = feval(FEATURES(ii).fHandle,CUES(iC),FEATURES(iF));
-    elseif any(iF)
-        FEATURES(ii).data = feval(FEATURES(ii).fHandle,FEATURES(iF));
+    if any(iDCue) && any(iDFeature)
+        [FEATURES(ii).data,STATES.features(ii).set] = feval(FEATURES(ii).fHandle,CUES(iDCue),FEATURES(iDFeature),STATES.features(ii).set);
+    elseif any(iDFeature)
+        [FEATURES(ii).data,STATES.features(ii).set] = feval(FEATURES(ii).fHandle,FEATURES(iDFeature),STATES.features(ii).set);
+    elseif any(iDCue)
+        [FEATURES(ii).data,STATES.features(ii).set] = feval(FEATURES(ii).fHandle,CUES(iDCue),STATES.features(ii).set);        
     else
         error('%s: Cue ''%s'' does not exist.',mfilename.FEATURES(ii).cue);
     end

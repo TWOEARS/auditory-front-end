@@ -1,4 +1,4 @@
-function ratemap = calcRatemapFeatures(CUE,P)
+function [ratemap,SET] = calcRatemapFeatures(CUE,SET)
 % 
 %USAGE
 %    ratemap = calcRatemapFeatures(CUE,S)
@@ -32,7 +32,7 @@ end
 %% DOWNMIX
 % 
 % 
-if ~P.set.bBinaural
+if ~SET.bBinaural
     % Monoaural feature space
     ratemap = mean(CUE.data, 3);
 else
@@ -45,13 +45,13 @@ end
 % 
 % 
 % Apply compression
-switch lower(P.set.compress)
+switch lower(SET.compress)
     case 'cuberoot'
         ratemap = ratemap.^0.33;
     case 'log'
         ratemap = log(ratemap);
     otherwise
-        error('%s: Compression ''%s'' is not supported.',mfilename,P.set.compress);
+        error('%s: Compression ''%s'' is not supported.',mfilename,SET.compress);
 end
 
 
@@ -60,5 +60,5 @@ end
 % 
 % Apply feature normalization
 for ii = 1 : size(ratemap,3)
-    ratemap(:,:,ii) = normalizeData(ratemap(:,:,ii).',P.set.normalize).';
+    ratemap(:,:,ii) = normalizeData(ratemap(:,:,ii).',SET.normalize).';
 end

@@ -1,4 +1,4 @@
-function out = estSourceAzimuth(FEATURE)
+function [out,SET] = estSourceAzimuth(FEATURE,SET)
 
 %   Developed with Matlab 8.2.0.701 (R2013b). Please send bug reports to:
 %   
@@ -15,20 +15,17 @@ function out = estSourceAzimuth(FEATURE)
 % 
 % 
 % Check for proper input arguments
-if nargin ~= 1
+if nargin ~= 2
     help(mfilename);
     error('Wrong number of input arguments!')
 end
 
-% Find active feature
-bActive = selectCells({FEATURE.fHandle},mfilename);
 
-% Detect feature settings
-SET = FEATURE(bActive).set;
-
-% Get azimuth histogram
-azimuthHist = FEATURE(~bActive).data;
-azimuthGrid = FEATURE(~bActive).set.azimuth;
+%% GET AZIMUTH HISTOGRAM DATA
+% 
+% 
+azimuthHist = FEATURE.data;
+azimuthGrid = FEATURE.set.azimuth;
 
 
 %% DETECT LOCAL PEAKS

@@ -1,4 +1,4 @@
-function ic = calcIC(xcf,P)
+function [ic,SET] = calcIC(signal,SET)
 %calcITD   Calculate interaural correlation (IC). 
 %
 %USAGE
@@ -32,13 +32,10 @@ if nargin ~= 2
 end
 
 % Determine input size
-[nLags,nFrames,nFilter] = size(xcf);
+[nLags,nFrames,nFilter] = size(signal); %#ok
 
 % Allocate memory
-itd = zeros(nFilter,nFrames);
-
-% Create lag vector
-lags = (0:nLags-1).'-(nLags-1)/2;
+ic = zeros(nFilter,nFrames);
 
 
 %% COMPUTE IC
@@ -48,11 +45,8 @@ lags = (0:nLags-1).'-(nLags-1)/2;
 for ii = 1:nFilter
     
     % Find maximum peak per frame
-    [pIdx,rowIdx] = findLocalPeaks(xcf(:,:,ii),'max');
-    
-    % Integer lag: Take most salient peaks
-    lagInt = lags(rowIdx);
+    [pIdx,rowIdx] = findLocalPeaks(signal(:,:,ii),'max'); %#ok
     
     % Determine IC by parabolic interpolation
-    [lagDelta,ic(ii,:)] = interpolateParabolic(xcf(:,:,ii),rowIdx);
+    [lagDelta,ic(ii,:)] = interpolateParabolic(signal(:,:,ii),rowIdx); %#ok
 end

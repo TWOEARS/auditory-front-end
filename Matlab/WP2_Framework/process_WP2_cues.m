@@ -1,4 +1,4 @@
-function [SIGNALS,CUES,STATES] = process_WP2_cues(earSignals,fsHz,STATES)
+function [CUES,STATES] = process_WP2_cues(SIGNALS,STATES)
 %process_WP2_cues   Perform WP2 processing
 %
 %USAGE
@@ -32,17 +32,10 @@ function [SIGNALS,CUES,STATES] = process_WP2_cues(earSignals,fsHz,STATES)
 % 
 % 
 % Check for proper input arguments
-if nargin ~= 3
+if nargin ~= 2
     help(mfilename);
     error('Wrong number of input arguments!');
 end
-
-
-%% CREATE MULTI-DIMENSIONAL SIGNAL REPRESENTATION
-% 
-% 
-% Compute signals 
-SIGNALS = process_WP2_signals(earSignals,fsHz,STATES);
 
 
 %% EXTRACT CUES
@@ -51,18 +44,18 @@ SIGNALS = process_WP2_signals(earSignals,fsHz,STATES);
 % Number of cues
 nCues = numel(STATES.cues);
 
-% Short-cut
+% Initialize cue struct
 CUES = STATES.cues;
 
 % Loop over number of cues
 for ii = 1 : nCues
     
     % Select proper domain
-    iD = strcmp({SIGNALS.domain},CUES(ii).domain);
+    iDCue = strcmp([SIGNALS.domain],CUES(ii).dependency);
     
     % Perform processing
-    if any(iD)
-        CUES(ii).data = feval(CUES(ii).fHandle,SIGNALS(iD).data,CUES(ii));          
+    if any(iDCue)
+        [CUES(ii).data,STATES.cues(ii).set] = feval(CUES(ii).fHandle,SIGNALS(iDCue).data,STATES.cues(ii).set);          
     else
         error('%s: Domain ''%s'' does not exist.',mfilename,CUES(ii).domain);
     end
