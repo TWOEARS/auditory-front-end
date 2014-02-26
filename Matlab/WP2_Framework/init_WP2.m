@@ -205,7 +205,7 @@ for ii = 1 : nCues
             S.set.win      = window(S.set.winType,S.set.wSize);
             
         case 'itd_xcorr'
-            % Binaural cues according to [1]
+            % Interaural time difference
             S.fHandle      = 'calcITD';
             S.unit         = {'s'};
             S.dim          = {'nFilter x nFrames'};
@@ -213,12 +213,13 @@ for ii = 1 : nCues
             S.set.fsHz     = fsHz;
             
         case 'ic_xcorr'
-            % Binaural cues according to [1]
+            % Interaural correlation
             S.fHandle      = 'calcIC';
             S.unit         = {};
             S.dim          = {'nFilter x nFrames'};
             
         case 'ild'
+            % Interaural level difference
             S.fHandle      = 'calcILD';
             S.unit         = {'dB'};
             S.dim          = {'nFilter x nFrames'};
@@ -272,17 +273,19 @@ for ii = 1 : nFeatures
             S.unit          = {'degree'};
             S.dim           = {'nFilter x nFrames'};
                         
-            set.rootDir     = [pwd,filesep,'Data',filesep];
+            set.rootDir     = [pwd,filesep,'WP2_Data',filesep];
             set.fsHz        = fsHz;
 
-            set.rangeSource = (-90:5:90).';
+%             set.rangeSource = (-180:5:180).';
+%             set.rangeAzim   = (-180:1:180).';
+            set.rangeSource = (-90:1:90).';
             set.rangeAzim   = (-90:1:90).';
             set.average     = 'median';
             
             S.set.mapping   = init_ITD2Azim_Lookup(STATES,set);
             
-            S.set.bFitPoly  = true;
-            S.set.polyOrder = 9;
+            S.set.bFitPoly  = false;
+            S.set.polyOrder = 11;
             
 
         case 'azimuth_hist'
@@ -291,11 +294,11 @@ for ii = 1 : nFeatures
             S.unit          = {'degree'};
             S.dim           = {'nAzimuth x 1'};
                         
-            S.set.azimuth       = (-180:5:180).';
+%             S.set.azimuth       = (-180:5:180).';
             S.set.azimuth       = (-90:5:90).';
             
-            S.set.bCueSelection = false;
-            S.set.thresIC       = 0.95;
+            S.set.bCueSelection = true;
+            S.set.thresIC       = 0.985;
 
         case 'source_position'
             % Estimate source position based on azimuth histogram

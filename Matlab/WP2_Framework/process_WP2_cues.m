@@ -1,18 +1,17 @@
 function [CUES,STATES] = process_WP2_cues(SIGNALS,STATES)
-%process_WP2_cues   Perform WP2 processing
+%process_WP2_cues   Create multi-dimensional cue representation.
 %
 %USAGE
-%   [SIGNALS,CUES] = process_WP2(earSignals,STATES)
+%   [CUES,STATES] = process_WP2_cues(SIGNALS,STATES)
 %
 %INPUT PARAMETERS
-%     binaural : binaural signals [nSamples x 2]
-%         fsHz : sampling frequency in Hertz
+%      SIGNALS : multi-dimensional signal structure created by
+%                process_WP2_signals
 %       STATES : settings initialized by init_WP2
 % 
 %OUTPUT PARAMETERS
-%      SIGNALS : Multi-dimensional signal structure
-%         CUES : Multi-dimensional cue structure
-%       STATES : Settings 
+%         CUES : multi-dimensional cue structure
+%       STATES : updated settings 
 
 %   Developed with Matlab 8.2.0.701 (R2013b). Please send bug reports to:
 %   
@@ -38,14 +37,18 @@ if nargin ~= 2
 end
 
 
+%% INITIALIZE CUE STRUCTURE
+% 
+% 
+% Initialize cue struct
+CUES = STATES.cues;
+
+
 %% EXTRACT CUES
 %
 % 
 % Number of cues
 nCues = numel(STATES.cues);
-
-% Initialize cue struct
-CUES = STATES.cues;
 
 % Loop over number of cues
 for ii = 1 : nCues
@@ -61,3 +64,12 @@ for ii = 1 : nCues
     end
 end
 
+
+%% REMOVE FIELD NAMES
+% 
+% 
+% Field entries in the CUES structure that should not be "visible"
+rmFields = {'dependency'};
+
+% Remove fields 
+CUES = rmfield(CUES,rmFields);

@@ -38,44 +38,54 @@ azim = zeros(nFilter,nFrames);
 % end
 
 
-% % Loop over number of auditory filters
-% for ii = 1 : nFilter
-%     % Fit polynomial
-%     if P.set.bFitPoly
-%         [p,S,MU] = polyfit(P.set.mapping.azimuth,P.set.mapping.itd(:,ii),P.set.polyOrder);
-%         itdPoly  = polyval(p,P.set.mapping.azimuth,S,MU);
-%         
-%         % Warp cross-correlation function from ITD to azimuth
-%         azim(ii,:) = interp1(itdPoly,P.set.mapping.azimuth,CUE.data(ii,:));
-%     else
-%         % Warp cross-correlation function from ITD to azimuth
-%         azim(ii,:) = interp1(P.set.mapping.itd(:,ii),P.set.mapping.azimuth,CUE.data(ii,:));
-%     end
-% end
-
-
-% HAGEN's version
-% 
 % Loop over number of auditory filters
 for ii = 1 : nFilter
+    % Fit polynomial
     if SET.bFitPoly
-        [p,S,MU] = polyfit(SET.mapping.itd(:,ii),SET.mapping.azimuth,SET.polyOrder);
-        azim(ii,:) = polyval(p,CUE.data(ii,:),S,MU);
+        [p,S,MU] = polyfit(SET.mapping.azimuth,SET.mapping.itd(:,ii),SET.polyOrder);
+        itdPoly  = polyval(p,SET.mapping.azimuth,S,MU);
+        
+        % Warp cross-correlation function from ITD to azimuth
+        azim(ii,:) = interp1(itdPoly,SET.mapping.azimuth,CUE.data(ii,:));
     else
+        % Warp cross-correlation function from ITD to azimuth
         azim(ii,:) = interp1(SET.mapping.itd(:,ii),SET.mapping.azimuth,CUE.data(ii,:));
     end
 end
 
-azim(azim > max(SET.mapping.azimuth)) = NaN;
-azim(azim < min(SET.mapping.azimuth)) = NaN;
+
+% % HAGEN's version
+% % 
+% % Loop over number of auditory filters
+% for ii = 1 : nFilter
+%     if SET.bFitPoly
+%         [p,S,MU] = polyfit(SET.mapping.itd(:,ii),SET.mapping.azimuth,SET.polyOrder);
+%         azim(ii,:) = polyval(p,CUE.data(ii,:),S,MU);
+%     else
+%         azim(ii,:) = interp1(SET.mapping.itd(:,ii),SET.mapping.azimuth,CUE.data(ii,:));
+%     end
+% end
+
 
 
 % % Loop over the number of files
-%     for jj = 1 : nFilter
-%         % Interpolate to 'rangeAzInterp'
-%         itd2AzimInterp(:,jj) = interp1(azimRange,itd2Azim(:,jj),set.rangeAzim);
-%         
-%         % Ensure that mapping is monotonic by using a polynomial fit
-%         itd2AzimPoly(:,jj) = polyval(polyfit(set.rangeAzim,itd2AzimInterp(:,jj).',set.polyOrder),set.rangeAzim);
-%     end
+% for ii = 1 : nFilter
+%     [itdSort,idxSort] = sort(SET.mapping.itd(:,ii),'ascend');
+%     
+%     rmIdx = find(diff(itdSort)==0);
+%     itdSort(rmIdx) = [];
+%     idxSort(rmIdx) = [];
+%     
+%     
+%     % Warp cross-correlation function from ITD to azimuth
+%     azim(ii,:) = interp1(itdSort,SET.mapping.azimuth(idxSort),CUE.data(ii,:));
+%     
+%     
+% %     azim(ii,:) = interp1(SET.mapping.itd(:,ii),SET.mapping.azimuth,CUE.data(ii,:));
+% end
     
+
+
+azim(azim > max(SET.mapping.azimuth)) = NaN;
+azim(azim < min(SET.mapping.azimuth)) = NaN;
+

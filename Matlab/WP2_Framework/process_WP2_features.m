@@ -1,15 +1,16 @@
 function [FEATURES,STATES] = process_WP2_features(CUES,STATES)
-%process_WP2_features   Perform WP2 feature processing
+%process_WP2_features   Create multi-dimensional feature representation.
 %
 %USAGE
-%      FEATURES = process_WP2_features(CUES,FEATURES)
+%   [FEATURES,STATES] = process_WP2_features(CUES,STATES)
 %
 %INPUT PARAMETERS
-%         CUES : Multi-dimensional cue structure 
-%     FEATURES : feature settings initialized by init_WP2
+%         CUES : multi-dimensional cue structure 
+%       STATES : settings initialized by init_WP2
 % 
 %OUTPUT PARAMETERS
-%     FEATURES : extracted signals (e.g. output of gammatone filterbank)
+%     FEATURES : multi-dimensional feature structure 
+%       STATES : updated settings 
 
 %   Developed with Matlab 8.2.0.701 (R2013b). Please send bug reports to:
 %   
@@ -32,14 +33,18 @@ if nargin ~= 2
 end
 
 
+%% INITIALIZE FEATURE STRUCTURE
+% 
+% 
+% Initialize feature struct
+FEATURES = STATES.features;
+
+
 %% EXTRACT FEATURES
 %
 % 
 % Number of features to extract
 nFeatures = numel(STATES.features);
-
-% Initialize feature struct
-FEATURES = STATES.features;
 
 % Loop over number of features
 for ii = 1 : nFeatures
@@ -63,4 +68,11 @@ for ii = 1 : nFeatures
 end
 
 
+%% REMOVE FIELD NAMES
+% 
+% 
+% Field entries in the FEATURE structure that should not be "visible"
+rmFields = {'dependency'};
 
+% Remove fields 
+FEATURES = rmfield(FEATURES,rmFields);

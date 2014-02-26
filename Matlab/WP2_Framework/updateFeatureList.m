@@ -50,6 +50,8 @@ end
 
 newList = [listFeat newFeat];
 
+newList = unique(newList);
+
 % Organize features according to their dependencies
 newListOrder = cell(size(newList));
 

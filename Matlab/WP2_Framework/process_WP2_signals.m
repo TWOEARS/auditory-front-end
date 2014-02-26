@@ -1,8 +1,8 @@
 function [SIGNALS,STATES] = process_WP2_signals(earSignals,fsHz,STATES)
-%process_WP2_signals   Perform WP2 processing
+%process_WP2_signals   Create multi-dimensional signal representation.
 %
 %USAGE
-%   [SIGNALS,CUES] = process_WP2(earSignals,STATES)
+%   [SIGNALS,STATES] = process_WP2(earSignals,fsHz,STATES)
 %
 %INPUT PARAMETERS
 %     binaural : binaural signals [nSamples x 2]
@@ -10,9 +10,8 @@ function [SIGNALS,STATES] = process_WP2_signals(earSignals,fsHz,STATES)
 %       STATES : settings initialized by init_WP2
 % 
 %OUTPUT PARAMETERS
-%      SIGNALS : Multi-dimensional signal structure
-%         CUES : Multi-dimensional cue structure
-%       STATES : Settings 
+%      SIGNALS : multi-dimensional signal structure
+%       STATES : updated settings 
 
 %   Developed with Matlab 8.2.0.701 (R2013b). Please send bug reports to:
 %   
@@ -34,9 +33,10 @@ if nargin ~= 3
     error('Wrong number of input arguments!');
 end
 
-% Number of signals
-nSignals = numel(STATES.signals);
 
+%% INITIALIZE SIGNAL STRUCTURE
+% 
+% 
 % Initialize signal struct
 SIGNALS = STATES.signals;
 
@@ -59,6 +59,9 @@ SIGNALS(iDTime).data = earSignals;
 %% CREATE MULTI-DIMENSIONAL SIGNAL REPRESENTATION
 % 
 % 
+% Number of signals
+nSignals = numel(STATES.signals);
+
 % Loop over number of cues
 for ii = 1 : nSignals
         
@@ -73,3 +76,12 @@ for ii = 1 : nSignals
     end
 end
 
+
+%% REMOVE FIELD NAMES
+% 
+% 
+% Field entries in the SIGNAL structure that should not be "visible"
+rmFields = {'dependency'};
+
+% Remove fields 
+SIGNALS = rmfield(SIGNALS,rmFields);
