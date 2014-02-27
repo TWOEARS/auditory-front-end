@@ -63,7 +63,7 @@ cueDEP{nIter}  = {'time'};
 nIter = nIter + 1;
 
 cueList{nIter} = 'ratemap';
-cueDEP{nIter}  = {'gammatone'};
+cueDEP{nIter}  = {'innerhaircell'};
 
 nIter = nIter + 1;
 
@@ -78,7 +78,12 @@ cueDEP{nIter}  = {'crosscorrelation'};
 nIter = nIter + 1;
 
 cueList{nIter} = 'ild';
-cueDEP{nIter}  = {'gammatone'};
+cueDEP{nIter}  = {'innerhaircell'};
+
+nIter = nIter + 1;
+
+cueList{nIter} = 'average_deviation';
+cueDEP{nIter}  = {'innerhaircell'};
 
 
 %% DEFINE SIGNAL DEPENDENCIES

@@ -5,7 +5,7 @@ function STATES = init_WP2(listFeatures,listCues,SET)
 %      STATES = init_WP2(STATES,listCues,listFeat)
 %
 %INPUT PARAMETERS
-%       STATES : settings
+%          SET : general settings
 %     listCues : list of cues to be extracted
 %     listCues : list of features to be extracted
 % 
@@ -38,6 +38,8 @@ function STATES = init_WP2(listFeatures,listCues,SET)
 % 
 % TODO: implement separate scripts for initialization of
 % signals,cues and features
+% 
+% TODO: define signals, cues and features as classes
 
 
 %% CHECK INPUT ARGUMENTS 
@@ -228,6 +230,18 @@ for ii = 1 : nCues
             S.set.hSize    = hopSize;
             S.set.winType  = 'rectwin';
             S.set.win      = window(S.set.winType,S.set.wSize);
+            
+        case 'average_deviation'
+            % Average deviation
+            S.fHandle      = 'calcAverageDeviation';
+            S.unit         = {};
+            S.dim          = {'nFilter x nFrames'};
+            
+            S.set.bBinaural = true;
+            S.set.wSize    = winSize;
+            S.set.hSize    = hopSize;
+            S.set.winType  = 'rectwin';
+            S.set.win      = window(S.set.winType,S.set.wSize);            
             
         otherwise
             error('%s: Cue ''%s'' is not supported.',mfilename,listCues{ii})

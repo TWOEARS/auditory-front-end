@@ -49,14 +49,14 @@ nFeatures = numel(STATES.features);
 % Loop over number of features
 for ii = 1 : nFeatures
     
-    % Select required cues
-    iDCue = selectCells([CUES(:).name],FEATURES(ii).dependency{2});
-    
     % Select required features
     iDFeature = selectCells([FEATURES.name],FEATURES(ii).dependency{1});
     
+    % Select required cues
+    iDCue = selectCells([CUES(:).name],FEATURES(ii).dependency{2});
+    
     % Perform feature processing
-    if any(iDCue) && any(iDFeature)
+    if any(iDFeature) && any(iDCue)
         [FEATURES(ii).data,STATES.features(ii).set] = feval(FEATURES(ii).fHandle,CUES(iDCue),FEATURES(iDFeature),STATES.features(ii).set);
     elseif any(iDFeature)
         [FEATURES(ii).data,STATES.features(ii).set] = feval(FEATURES(ii).fHandle,FEATURES(iDFeature),STATES.features(ii).set);

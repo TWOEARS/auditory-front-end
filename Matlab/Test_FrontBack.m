@@ -1,16 +1,3 @@
-%localization_experiment   ITD-based sound source localization 
-% 
-
-%   Developed with Matlab 8.2.0.701 (R2013b). Please send bug reports to:
-%   
-%   Author  :  Tobias May, © 2013
-%              Technical University of Denmark
-%              tobmay@elektro.dtu.dk
-% 
-%   History :  
-%   v.0.1   2014/01/22
-%   ***********************************************************************
-
 clear
 close all
 clc
@@ -34,7 +21,6 @@ preset = 'basic';
 
 % Reference sampling frequency in Hertz
 fsHz = 44.1E3;
-% fsHz = 18E3;
 
 % Change preset-specific parameters
 switch(lower(preset))
@@ -60,11 +46,9 @@ switch(lower(preset))
         SET.winType    = 'hann';    % Window type
         
         % Specify cues that should be extracted
-        strCues = {};
-        
-        % Specify features that should be extracted
-        strFeatures = {'source_position'};
-        
+%         strCues = {'ild'};
+        strCues = {'ild' 'average_deviation'};
+        strFeatures = {};
     otherwise
         error('Preset is not supported');
 end
@@ -75,21 +59,11 @@ end
 % 
 % 
 % Define number of competing speech sources
-nSpeakers = 2;
+nSpeakers = 1;
 
-% Minimum distance between competing sound sources in degree
-minDistance = 5;
-
-
-%% EVALUATION SETTINGS
-% 
-% 
 % Number of acoustic mixtures for each acoustic condition
 nMixtures = 20; 
 
-% Absolute error boundary in degree
-thresDeg = 10;
-   
 
 %% INITIALIZE PARAMETERS
 %
@@ -105,10 +79,6 @@ catch
     rand('seed',0); %#ok
 end
 
-% Azimuth range of sound source positions
-% azRange = (-180:5:175)';
-azRange = (-90:1:90)';
-
 % Audio path
 pathAudio = [pwd,filesep,'Audio',filesep];
 
@@ -117,13 +87,6 @@ audioFiles = listFiles(pathAudio,'*.wav');
 
 % Number of different conditions
 nSentences = numel(audioFiles);
-nAzim      = numel(azRange);
-
-% Allocate memory
-[pc,rmse] = deal(zeros(nMixtures,1));
-
-% Matrix with randomized sound source positions
-azPos = azRange(round(1+(nAzim-1) * rand(nMixtures,nSpeakers)));
 
 
 %% INITIALIZE WP2 PROCESSING
@@ -140,35 +103,16 @@ for ii = 1 : nMixtures
     % Randomly select "nSpeakers" sentences
     files = {audioFiles(round(1+(nSentences-1) * rand(nSpeakers,1))).name};
     
-    % Enforce a "minDistance" spacing between all sources
-    while any(diff(sort(azPos(ii,:),'ascend'),1,2) <= minDistance)
-        % Revise random initialization
-        azPos(ii,:) = azRange(round(1+(nAzim-1) * rand(1,nSpeakers)));
-    end
-    
     % Read audio signals
     audio = readAudio(files,fsHz);
     
     % Spatialize audio signals using HRTF processing
-    earSignals = auralizeWP1(audio,fsHz,azPos(ii,:));
-    
-%     % Perform WP2 signal computation
-%     [SIGNALS,STATES] = process_WP2_signals(earSignals,fsHz,STATES);
-%     
-%     % Perform WP2 cue computation
-%     [CUES,STATES] = process_WP2_cues(SIGNALS,STATES);
-%     
-%     % Perform WP2 feature extraction
-%     [FEATURES,STATES] = process_WP2_features(CUES,STATES);
-    
+    earSignals1 = auralizeWP1(audio,fsHz,0);
+    earSignals2 = auralizeWP1(audio,fsHz,180);
+        
     % Perform WP2 computation
-    [SIGNALS,CUES,FEATURES,STATES] = process_WP2(earSignals,fsHz,STATES);
-    
-    % Select most salient source positions
-    azEst = FEATURES(3).data(1:nSpeakers,:);
-  
-    % Evaluate localization performance (e.g. in WP6)
-    [pc(ii),rmse(ii)] = evalPerformance(azPos(ii,:),azEst,thresDeg);
+    [SIGNALS1,CUES1,FEATURES1,STATES1] = process_WP2(earSignals1,fsHz,STATES);
+    [SIGNALS2,CUES2,FEATURES2,STATES2] = process_WP2(earSignals2,fsHz,STATES);
     
     % Report progress
     fprintf('\nLocalization experiment: %.2f %%',100*ii/nMixtures);

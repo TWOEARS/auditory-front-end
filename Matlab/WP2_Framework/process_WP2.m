@@ -1,5 +1,5 @@
 function [SIGNALS,CUES,FEATURES,STATES] = process_WP2(earSignals,fsHz,STATES)
-%process_WP2   Perform WP2 processing
+%process_WP2   Perform WP2 processing.
 %
 %USAGE
 %   [SIGNALS,CUES,FEATURES,STATES] = process_WP2(earSignals,fsHz,STATES)
@@ -34,7 +34,6 @@ if nargin ~= 3
     help(mfilename);
     error('Wrong number of input arguments!');
 end
-
 
 
 %% PERFORM SIGNAL EXTRACTION
