@@ -1,4 +1,4 @@
-%localization_experiment   ITD-based sound source localization 
+%Test_WP2_Framework 
 % 
 
 %   Developed with Matlab 8.2.0.701 (R2013b). Please send bug reports to:
@@ -34,10 +34,10 @@ preset = 'basic';
 
 % Reference sampling frequency in Hertz
 fsHz = 44.1E3;
-% fsHz = 18E3;
 
 % Change preset-specific parameters
 switch(lower(preset))
+    
     case 'basic'
         
         % Input signal
@@ -60,10 +60,16 @@ switch(lower(preset))
         SET.winType    = 'hann';    % Window type
         
         % Specify cues that should be extracted
+        % *****************************************************************
+        % 'rms' 'ratemap' 'itd_xcorr' 'ic_xcorr' 'ild'
+        % *****************************************************************
         strCues = {};
         
-        % Specify features that should be extracted
-        strFeatures = {'source_position'};
+        % Specify features that should be extracted :
+        % *****************************************************************
+        % 'ratemap_feature' 'azimuth' 'azimuth_hist' 'source_position'         
+        % *****************************************************************
+        strFeatures = {'ratemap_feature' 'source_position'};
         
     otherwise
         error('Preset is not supported');
@@ -85,7 +91,7 @@ minDistance = 5;
 % 
 % 
 % Number of acoustic mixtures for each acoustic condition
-nMixtures = 20; 
+nMixtures = 10; 
 
 % Absolute error boundary in degree
 thresDeg = 10;
@@ -106,7 +112,6 @@ catch
 end
 
 % Azimuth range of sound source positions
-% azRange = (-180:5:175)';
 azRange = (-90:1:90)';
 
 % Audio path
@@ -128,6 +133,8 @@ azPos = azRange(round(1+(nAzim-1) * rand(nMixtures,nSpeakers)));
 
 %% INITIALIZE WP2 PROCESSING
 % 
+% 
+% Initialize all WP2-related parameters
 STATES = init_WP2(strFeatures,strCues,SET);
 
 
@@ -152,20 +159,11 @@ for ii = 1 : nMixtures
     % Spatialize audio signals using HRTF processing
     earSignals = auralizeWP1(audio,fsHz,azPos(ii,:));
     
-%     % Perform WP2 signal computation
-%     [SIGNALS,STATES] = process_WP2_signals(earSignals,fsHz,STATES);
-%     
-%     % Perform WP2 cue computation
-%     [CUES,STATES] = process_WP2_cues(SIGNALS,STATES);
-%     
-%     % Perform WP2 feature extraction
-%     [FEATURES,STATES] = process_WP2_features(CUES,STATES);
-    
     % Perform WP2 computation
     [SIGNALS,CUES,FEATURES,STATES] = process_WP2(earSignals,fsHz,STATES);
     
     % Select most salient source positions
-    azEst = FEATURES(3).data(1:nSpeakers,:);
+    azEst = FEATURES(strcmp([FEATURES(:).name],'source_position')).data(1:nSpeakers,:);
   
     % Evaluate localization performance (e.g. in WP6)
     [pc(ii),rmse(ii)] = evalPerformance(azPos(ii,:),azEst,thresDeg);

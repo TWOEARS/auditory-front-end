@@ -48,17 +48,27 @@ if nargin < 2 || isempty(method);  method  = 'peaks'; end
 % Select method
 switch lower(method)
     case 'peaks'
-        % Overall window size (odd)
-        wSize = minDist*2+1;
         
-        % Maximum filtering
-        dataM = ordfilt2(data,wSize,ones(wSize,1),'symmetric');
+        peakIdx = []; I = [];
         
-        % Find local peaks
-        [I, J] = find(dataM == data);
+        % Loop over number of channels
+        for ii = 1 : nChannels
+            pIdx    = findpeaks(data(:,ii));
+            peakIdx = [peakIdx; pIdx(:) + (ii-1) * nSamples];
+            I       = [I; pIdx(:)];
+        end
         
-        % Transform peak positions to indices
-        peakIdx = sub2ind([nSamples nChannels],I,J);
+%         % Overall window size (odd)
+%         wSize = minDist*2+1;
+%         
+%         % Maximum filtering
+%         dataM = ordfilt2(data,wSize,ones(wSize,1),'symmetric');
+%         
+%         % Find local peaks
+%         [I, J] = find(dataM == data);
+%         
+%         % Transform peak positions to indices
+%         peakIdx = sub2ind([nSamples nChannels],I,J);
         
     case 'max'
         % Detect maximum per channel

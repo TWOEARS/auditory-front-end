@@ -22,7 +22,7 @@ function mapping = init_ITD2Azim_Lookup(STATES,SET,bCalibrate)
 % 
 %   History :  
 %   v.0.1   2014/01/31
-%   v.0.2   2014/02/22 adopted to new structure
+%   v.0.2   2014/02/22 adopted to new WP2 structure
 %   ***********************************************************************
 
 % Initialize persistent variables

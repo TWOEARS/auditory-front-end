@@ -205,6 +205,7 @@ for ii = 1 : nCues
             S.set.hSize    = hopSize;
             S.set.winType  = 'rectwin';
             S.set.win      = window(S.set.winType,S.set.wSize);
+            S.set.fHz      = STATES.signals(strcmp([STATES.signals.domain],'gammatone')).set.paramGT.cfHz;
             
         case 'itd_xcorr'
             % Interaural time difference
@@ -290,10 +291,8 @@ for ii = 1 : nFeatures
             set.rootDir     = [pwd,filesep,'WP2_Data',filesep];
             set.fsHz        = fsHz;
 
-%             set.rangeSource = (-180:5:180).';
-%             set.rangeAzim   = (-180:1:180).';
-            set.rangeSource = (-90:1:90).';
-            set.rangeAzim   = (-90:1:90).';
+            set.rangeSource = (-90:5:90).';
+            set.rangeAzim   = (-90:5:90).';
             set.average     = 'median';
             
             S.set.mapping   = init_ITD2Azim_Lookup(STATES,set);
@@ -312,7 +311,7 @@ for ii = 1 : nFeatures
             S.set.azimuth       = (-90:5:90).';
             
             S.set.bCueSelection = true;
-            S.set.thresIC       = 0.985;
+            S.set.thresIC       = 0.95;
 
         case 'source_position'
             % Estimate source position based on azimuth histogram
