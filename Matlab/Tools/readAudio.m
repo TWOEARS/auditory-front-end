@@ -11,14 +11,15 @@ nFiles = numel(audioFiles);
 
 % Allocate memory
 nSamples = zeros(nFiles,2);
+fsOrig   = zeros(nFiles,1);
 
 % Loop over number of audio files
 for ii = 1 : nFiles
-    nSamples(ii,:) = wavread(audioFiles{ii},'size'); %#ok
+    [nSamples(ii,:),fsOrig(ii)] = wavread(audioFiles{ii},'size'); %#ok
 end
 
 % Overall duration
-nSamplesMax = max(nSamples(:,1));
+nSamplesMax = round(max(nSamples(:,1)) * (fsRef/max(fsOrig)));
 
 % Allocate memory for signals
 signals = zeros(nSamplesMax,nFiles);
@@ -28,8 +29,11 @@ for ii = 1 : nFiles
     % Read ii-th signal
     [currSig,fs] = wavread(audioFiles{ii}); %#ok
     
+    % Resampling, if required
+    currSig = resample(currSig,fsRef,fs);
+
     % Replicate signal to match longest signal
-    currSig = repmat(currSig,[ceil(nSamplesMax/nSamples(ii,1)) 1]);
+    currSig = repmat(currSig,[ceil(nSamplesMax/size(currSig,1)) 1]);
     
     % Trim edges
     signals(:,ii) = currSig(1:nSamplesMax);
@@ -38,5 +42,3 @@ for ii = 1 : nFiles
     signals(:,ii) = signals(:,ii) / rms(signals(:,ii));
 end
 
-% Resampling, if required
-signals = resample(signals,fsRef,fs);
