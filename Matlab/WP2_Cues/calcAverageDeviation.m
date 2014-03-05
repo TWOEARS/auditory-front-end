@@ -36,7 +36,7 @@ end
 % 
 % 
 if ~SET.bBinaural
-    % Monoaural feature space
+    % Monoaural signal
     signal = mean(signal, 3);
 end
 

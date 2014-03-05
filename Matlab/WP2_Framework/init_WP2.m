@@ -24,6 +24,7 @@ function STATES = init_WP2(listFeatures,listCues,SET)
 %   v.0.3   2014/02/22 added feature extraction structure
 %   v.0.4   2014/02/22 added dependencies
 %   v.0.5   2014/02/26 automatically determine dependencies
+%   v.0.6   2014/03/05 added onset and offset strength
 %   ***********************************************************************
 
 
@@ -52,6 +53,36 @@ if nargin < 2 || nargin > 3
 end
 
 
+%% DEFINE DEPENDENCIES
+% 
+% 
+% Get dependencies for features, cues and signals
+DEP = define_Dependencies;
+
+% Convert char to cell array
+if ~iscell(listCues)     && ~isempty(listCues) 
+    listCues     = {listCues};     
+end
+if ~iscell(listFeatures) && ~isempty(listFeatures)
+    listFeatures = {listFeatures}; 
+end
+
+% Check if either cues or features are requested
+if isempty(listCues) && isempty(listFeatures)
+    msgCue  = verifyList(fieldnames(DEP.cues).',{});
+    msgFeat = verifyList(fieldnames(DEP.features).',{});
+
+    % List supported cues and features
+    error('No CUES and no FEATURES selected! The following options are supported:\n\nCUES: %s \n\nFEATURES: %s',msgCue,msgFeat);
+end
+
+% Update cue list and feature list to consider all dependencies
+[listFeatures,listCues,listSignals] = updateSigCueFeatList(listFeatures,listCues,DEP);
+
+% STATES parameter struct
+STATES = struct('SET',SET,'DEP',DEP,'signals',[],'cues',[],'features',[]);
+
+
 %% CONFIGURE GENERAL PARAMETERS
 % 
 % 
@@ -73,23 +104,6 @@ win     = window(winType,winSize);
 
 % Maximum time delay in seconds considered for cross-correlation analysis
 maxLag = ceil(SET.maxDelaySec * fsHz);
-
-
-%% DEFINE DEPENDENCIES
-% 
-% 
-% Get dependencies for features, cues and signals
-DEP = define_Dependencies;
-
-% Convert char to cell array
-if ~iscell(listCues);     listCues     = {listCues};     end
-if ~iscell(listFeatures); listFeatures = {listFeatures}; end
-
-% Update cue list and feature list to consider all dependencies
-[listFeatures,listCues,listSignals] = updateSigCueFeatList(listFeatures,listCues,DEP);
-
-% STATES parameter struct
-STATES = struct('SET',SET,'DEP',DEP,'signals',[],'cues',[],'features',[]);
 
 
 %% CONFIGURE SIGNAL EXTRACTION  
@@ -200,12 +214,57 @@ for ii = 1 : nCues
             S.dim          = {'nFilter x nFrames x [left right]'};
 
             S.set.fsHz     = fsHz;
-            S.set.decaySec = 10E-3;
+            S.set.decaySec = 8E-3;
+            
+            % Select downsampling ('downsample' or 'average')
+            S.set.downSample = 'downsample';
+            
             S.set.wSize    = winSize;
             S.set.hSize    = hopSize;
             S.set.winType  = 'rectwin';
             S.set.win      = window(S.set.winType,S.set.wSize);
+            % Get gammatone center frequencies 
             S.set.fHz      = STATES.signals(strcmp([STATES.signals.domain],'gammatone')).set.paramGT.cfHz;
+            
+        case 'onset_strength'
+            % Onset strength in dB
+            S.fHandle      = 'calcOnsetStrength';
+            S.unit         = {'dB'};
+            
+            S.set.bBinaural  = true;
+            S.set.maxOnsetdB = 30;
+            S.set.fsHz       = fsHz;
+            S.set.decaySec   = 8E-3;
+            S.set.wSize      = winSize;
+            S.set.hSize      = hopSize;
+            S.set.winType    = 'rectwin';
+            S.set.win        = window(S.set.winType,S.set.wSize);
+
+            if S.set.bBinaural
+                S.dim = {'nFilter x nFrames x [left right]'};
+            else
+                S.dim = {'nFilter x nFrames'};
+            end
+            
+        case 'offset_strength'
+            % Offset strength in dB
+            S.fHandle      = 'calcOffsetStrength';
+            S.unit         = {'dB'};
+            
+            S.set.bBinaural   = true;
+            S.set.maxOffsetdB = 30;
+            S.set.fsHz        = fsHz;
+            S.set.decaySec    = 8E-3;
+            S.set.wSize       = winSize;
+            S.set.hSize       = hopSize;
+            S.set.winType     = 'rectwin';
+            S.set.win         = window(S.set.winType,S.set.wSize);
+            
+            if S.set.bBinaural
+                S.dim = {'nFilter x nFrames x [left right]'};
+            else
+                S.dim = {'nFilter x nFrames'};
+            end
             
         case 'itd_xcorr'
             % Interaural time difference
@@ -236,13 +295,18 @@ for ii = 1 : nCues
             % Average deviation
             S.fHandle      = 'calcAverageDeviation';
             S.unit         = {};
-            S.dim          = {'nFilter x nFrames'};
-            
+
             S.set.bBinaural = true;
-            S.set.wSize    = winSize;
-            S.set.hSize    = hopSize;
-            S.set.winType  = 'rectwin';
-            S.set.win      = window(S.set.winType,S.set.wSize);            
+            S.set.wSize     = winSize;
+            S.set.hSize     = hopSize;
+            S.set.winType   = 'rectwin';
+            S.set.win       = window(S.set.winType,S.set.wSize);            
+            
+            if S.set.bBinaural
+                S.dim = {'nFilter x nFrames x [left right]'};
+            else
+                S.dim = {'nFilter x nFrames'};
+            end
             
         otherwise
             error('%s: Cue ''%s'' is not supported.',mfilename,listCues{ii})

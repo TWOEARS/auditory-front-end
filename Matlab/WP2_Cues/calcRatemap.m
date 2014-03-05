@@ -41,7 +41,7 @@ cues = zeros(nFilter,nFrames,nChannels);
 %% COMPUTE RATEMAP
 % 
 % 
-% Filter deacy
+% Filter decay
 intDecay = exp(-(1/(SET.fsHz * SET.decaySec)));
 
 % Integration gain
@@ -53,12 +53,22 @@ signal = filter(intGain, [1 -intDecay], signal);
 % Loop over number of auditory channels
 for ii = 1 : nFilter
     
-    % Framing
-    frames_L = frameData(signal(:,ii,1),SET.wSize,SET.hSize,SET.win,false);
-    frames_R = frameData(signal(:,ii,2),SET.wSize,SET.hSize,SET.win,false);
-    
-    % Frame-based averaging 
-    cues(ii,:,1) = mean(frames_L,1);
-    cues(ii,:,2) = mean(frames_R,1);
+    % Select method for downsampling
+    switch(lower(SET.downSample))
+        
+        case 'downsample'
+            % Downsample input
+            cues(ii,:,1) = signal(SET.wSize:SET.hSize:nSamples,ii,1);
+            cues(ii,:,2) = signal(SET.wSize:SET.hSize:nSamples,ii,2);
+            
+        case 'average'            
+            % Framing
+            frames_L = frameData(signal(:,ii,1),SET.wSize,SET.hSize,SET.win,false);
+            frames_R = frameData(signal(:,ii,2),SET.wSize,SET.hSize,SET.win,false);
+            
+            % Frame-based averaging
+            cues(ii,:,1) = mean(frames_L,1);
+            cues(ii,:,2) = mean(frames_R,1);
+    end
 end
 

@@ -85,6 +85,16 @@ nIter = nIter + 1;
 cueList{nIter} = 'average_deviation';
 cueDEP{nIter}  = {'innerhaircell'};
 
+nIter = nIter + 1;
+
+cueList{nIter} = 'onset_strength';
+cueDEP{nIter}  = {'innerhaircell'};
+
+nIter = nIter + 1;
+
+cueList{nIter} = 'offset_strength';
+cueDEP{nIter}  = {'innerhaircell'};
+
 
 %% DEFINE SIGNAL DEPENDENCIES
 % 

@@ -63,14 +63,13 @@ switch(lower(preset))
         % *****************************************************************
         % 'rms' 'ratemap' 'itd_xcorr' 'ic_xcorr' 'ild'
         % *****************************************************************
-        strCues = {};
+        strCues = {'onset_strength' 'offset_strength'};
         
         % Specify features that should be extracted :
         % *****************************************************************
         % 'ratemap_feature' 'azimuth' 'azimuth_hist' 'source_position'         
         % *****************************************************************
         strFeatures = {'ratemap_feature' 'source_position'};
-        
     otherwise
         error('Preset is not supported');
 end
@@ -81,7 +80,7 @@ end
 % 
 % 
 % Define number of competing speech sources
-nSpeakers = 2;
+nSpeakers = 1;
 
 % Minimum distance between competing sound sources in degree
 minDistance = 5;
