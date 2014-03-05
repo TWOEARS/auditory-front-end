@@ -70,6 +70,7 @@ switch(lower(preset))
         % 'ratemap_feature' 'azimuth' 'azimuth_hist' 'source_position'         
         % *****************************************************************
         strFeatures = {'ratemap_feature' 'source_position'};
+        
     otherwise
         error('Preset is not supported');
 end

@@ -31,10 +31,10 @@ azimuthGrid = FEATURE.set.azimuth;
 %% DETECT LOCAL PEAKS
 % 
 % 
-peakIdx = findLocalPeaks(azimuthHist,'peaks');
+peakIdx = findLocalPeaks(azimuthHist,'peaks',true);
 
 % Rank peaks according to salience
-[tmp,newIdx] = sort(azimuthHist(peakIdx),'descend');
+[tmp,newIdx] = sort(azimuthHist(peakIdx),'descend'); %#ok
 
 out(:,1) = azimuthGrid(peakIdx(newIdx));
 out(:,2) = azimuthHist(peakIdx(newIdx));

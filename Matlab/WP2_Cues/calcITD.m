@@ -48,7 +48,7 @@ lags = (0:nLags-1).'-(nLags-1)/2;
 for ii = 1:nFilter
     
     % Find maximum peak per frame
-    [pIdx,rowIdx] = findLocalPeaks(signal(:,:,ii),'max'); %#ok
+    [pIdx,rowIdx] = findLocalPeaks(signal(:,:,ii),'max',true); %#ok
     
     % Integer lag: Take most salient peaks
     lagInt = lags(rowIdx);

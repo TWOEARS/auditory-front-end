@@ -6,7 +6,7 @@ function [ic,SET] = calcIC(signal,SET)
 %
 %INPUT ARGUMENTS
 %   xcf  : cross-correlation pattern [nLags x nFrames x nFilter]
-%   P : parameter structure
+%      P : parameter structure
 % 
 %OUTPUT ARGUMENTS
 %   IC : interaural correlation  [nFilter x nFrames]
@@ -45,7 +45,7 @@ ic = zeros(nFilter,nFrames);
 for ii = 1:nFilter
     
     % Find maximum peak per frame
-    [pIdx,rowIdx] = findLocalPeaks(signal(:,:,ii),'max'); %#ok
+    [pIdx,rowIdx] = findLocalPeaks(signal(:,:,ii),'max',true); %#ok
     
     % Determine IC by parabolic interpolation
     [lagDelta,ic(ii,:)] = interpolateParabolic(signal(:,:,ii),rowIdx); %#ok
