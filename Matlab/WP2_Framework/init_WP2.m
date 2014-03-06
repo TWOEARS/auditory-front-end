@@ -159,8 +159,26 @@ for ii = 1 : nSignals
             S.set.wSize     = winSize;
             S.set.hSize     = hopSize;
             S.set.winType   = winType;
-            S.set.win       = win;
+            S.set.winType   = 'rectwin';
+            S.set.win       = window(S.set.winType,S.set.wSize);
             
+        case 'autocorrelation'
+            S.fHandle       = 'process_AutoCorrelation';
+            S.dim           = {'nLags x nFrames x nFilters x [left right]'};
+            
+            S.set.wSize     = winSize;
+            S.set.hSize     = hopSize;
+            S.set.winType   = winType;
+            S.set.winType   = 'rectwin';
+            S.set.win       = window(S.set.winType,S.set.wSize);           
+
+            S.set.fsHz      = fsHz;
+            S.set.bBandpass = true;
+
+            S.set.bCenterClip = false;
+            S.set.ccMethod    = 'clc';
+            S.set.ccAlpha     = 0.68;
+             
         otherwise
             error('%s: SIGNAL ''%s'' is not supported.',mfilename,listSignals{ii})
     end
@@ -207,6 +225,28 @@ for ii = 1 : nCues
             S.set.hSize    = hopSize;
             S.set.win      = win;
             
+        case 'synchrony'
+            % Autocorrelogram
+            S.fHandle      = 'calcSynchrony';
+            S.unit         = {'magnitude'};
+            S.dim          = {'nFilter x nFrames x [left right]'};
+
+            S.set.fsHz     = fsHz;
+            S.set.fRangeHz = [50 800];
+                        
+            S.set.wSize    = winSize;
+            S.set.hSize    = hopSize;
+            S.set.winType  = 'rectwin';
+            S.set.win      = window(S.set.winType,S.set.wSize);
+            % Get gammatone center frequencies 
+            S.set.fHz      = STATES.signals(strcmp([STATES.signals.domain],'gammatone')).set.paramGT.cfHz;
+        
+        case 'sacf'
+            % Summary-auto correlation function
+            S.fHandle      = 'calcSACF';
+            S.unit         = {'magnitude'};
+            S.dim          = {'nLags x nFrames x [left right]'};
+       
         case 'ratemap'
             % Ratemap
             S.fHandle      = 'calcRatemap';
@@ -363,7 +403,6 @@ for ii = 1 : nFeatures
             
             S.set.bFitPoly  = false;
             S.set.polyOrder = 11;
-            
 
         case 'azimuth_hist'
             % Azimuth histogram
@@ -400,6 +439,17 @@ for ii = 1 : nFeatures
                 S.dim = {'nFilter x nFrames'};
             end
             
+        case 'pitch'
+            % Pitch estimation based on SACF
+            S.fHandle       = 'estPitch_SACF';
+            S.unit          = {'Hz'};
+            S.dim           = {'nFrames x [left right] x [pitch confidence]'};
+                        
+            S.set.fsHz      = fsHz;
+            S.set.fRangeHz  = [50 400];
+            S.set.medFilt   = 5;
+            S.set.confThres = 0.33;
+           
         otherwise
             error('%s: Feature ''%s'' is not supported.',mfilename,listFeatures{ii})
     end

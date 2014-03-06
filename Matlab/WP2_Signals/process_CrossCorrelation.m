@@ -1,7 +1,7 @@
 function [output,SET] = process_CrossCorrelation(signal,SET)
 %
 %USAGE
-%       xcorr = CrossCorrelationProcessing(periphery,SIGNAL)
+%       xcorr = process_CrossCorrelation(periphery,SIGNAL)
 %
 %INPUT PARAMETERS
 %   periphery : Peripheral auditory signals

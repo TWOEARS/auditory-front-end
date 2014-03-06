@@ -45,10 +45,10 @@ switch(lower(preset))
         SET.bNormRMS   = false;
         
         % Auditory periphery
-        SET.nErbs      = 1;         % ERB spacing of gammatone filters
-        SET.fLowHz     = 50;        % Lowest center frequency in Hertz
-        SET.fHighHz    = 10E3;      % Highest center frequency in Hertz
-        SET.bAlign     = false;     % Time-align auditory channels
+        SET.nErbs      = 0.5;       % ERB spacing of gammatone filters
+        SET.fLowHz     = 80;         % Lowest center frequency in Hertz
+        SET.fHighHz    = 8E3;        % Highest center frequency in Hertz
+        SET.bAlign     = false;      % Time-align auditory channels
         SET.ihcMethod  = 'halfwave';
         
         % Binaural cross-correlation processor
@@ -63,13 +63,13 @@ switch(lower(preset))
         % *****************************************************************
         % 'rms' 'ratemap' 'itd_xcorr' 'ic_xcorr' 'ild'
         % *****************************************************************
-        strCues = {'onset_strength' 'offset_strength'};
+        strCues = {'synchrony' 'onset_strength' 'offset_strength'};
         
         % Specify features that should be extracted :
         % *****************************************************************
         % 'ratemap_feature' 'azimuth' 'azimuth_hist' 'source_position'         
         % *****************************************************************
-        strFeatures = {'ratemap_feature' 'source_position'};
+        strFeatures = {'ratemap_feature' 'pitch' 'azimuth' 'source_position'};
         
     otherwise
         error('Preset is not supported');

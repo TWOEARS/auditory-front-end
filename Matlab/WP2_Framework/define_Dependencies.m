@@ -51,6 +51,12 @@ featureList{nIter} = 'source_position';
 featureDEP1{nIter} = {'azimuth_hist'};
 featureDEP2{nIter} = {};
 
+nIter = nIter + 1;
+
+featureList{nIter} = 'pitch';
+featureDEP1{nIter} = {};
+featureDEP2{nIter} = {'sacf'};
+
 
 %% DEFINE CUE DEPENDENCIES
 % 
@@ -95,6 +101,16 @@ nIter = nIter + 1;
 cueList{nIter} = 'offset_strength';
 cueDEP{nIter}  = {'innerhaircell'};
 
+nIter = nIter + 1;
+
+cueList{nIter} = 'synchrony';
+cueDEP{nIter}  = {'autocorrelation'};
+
+nIter = nIter + 1;
+
+cueList{nIter} = 'sacf';
+cueDEP{nIter}  = {'autocorrelation'};
+
 
 %% DEFINE SIGNAL DEPENDENCIES
 % 
@@ -119,6 +135,12 @@ nIter = nIter + 1;
 
 signalList{nIter} = 'crosscorrelation';
 signalDEP{nIter}  = {'innerhaircell'};
+
+nIter = nIter + 1;
+
+signalList{nIter} = 'autocorrelation';
+signalDEP{nIter}  = {'innerhaircell'};
+
 
 for ii = 1 : numel(signalList)
     DEP.signals.(signalList{ii}) = signalDEP{ii};

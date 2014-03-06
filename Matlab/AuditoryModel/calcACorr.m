@@ -1,31 +1,26 @@
-function [xcorr,lags] = calcXCorr(sig1,sig2,maxLags,scale)
-%calcXCorr   FFT-based cross-correlation function.
+function [acorr,lags] = calcACorr(sig,maxLags,scale)
+%calcACorr   FFT-based cross-correlation function.
 %
 %USAGE
-%	[XCORR,LAGS] = calcXCorr(SIG1,SIG2)
-%	[XCORR,LAGS] = calcXCorr(SIG1,SIG2,MAXLAGS,SCALE)
+%	       ACORR = calcACorr(SIG)
+%	[ACORR,LAGS] = calcACorr(SIG,MAXLAGS,SCALE)
 %
 %INPUT ARGUMENTS
-%      SIG1 : first input signal, either vector or matrix of dimension
+%       SIG : input signal, either vector or matrix of dimension
 %             [nSamples x nChannels]
-%      SIG2 : second input signal either vector or matrix of dimension
-%             [nSamples x nChannels]. 
-%             If input are matrices, the cross-correlation function is
-%             computed over the columns. 
 %   MAXLAGS : the correlation sequenze is computed over the lag range
 %             -MAXLAGS:MAXLAGS 
-%             (default, MAXLAGS = max(size(SIG1,1),size(SIG2,1))-1)
+%             (default, MAXLAGS = size(SIG,1)-1
 %     SCALE : string specifying normalization 
-%             'biased'   - scale XCORR by 1/nSamples
-%             'unbiased' - scale XCORR by 1/(nSamples-abs(lags))
-%             'coeff'    - scale XCORR by the autocorrelation at lag zero
+%             'biased'   - scale ACORR by 1/nSamples
+%             'unbiased' - scale ACORR by 1/(nSamples-abs(lags))
+%             'coeff'    - scale ACORR by the autocorrelation at lag zero
 %             'none'     - no scaling
 %             (default, scale = 'none')
 %
 %OUTPUT ARGUMENTS
-%     XCORR : cross-correlation function between SIG1 and SIG2
-%             [2*MAXLAGS+1 x nChannels]
-%      LAGS : time lags of cross-correlation function [-MAXLAG:MAXLAG x 1]
+%     ACORR : auto-correlation function of SIG [2*MAXLAGS+1 x nChannels]
+%      LAGS : time lags of auto-correlation function [-MAXLAG:MAXLAG x 1]
 
 
 %   Developed with Matlab 7.4.0.287 (R2007a). Please send bug reports to:
@@ -35,8 +30,7 @@ function [xcorr,lags] = calcXCorr(sig1,sig2,maxLags,scale)
 %              tobmay@elektro.dtu.dk%
 % 
 %   History :   
-%   v.0.1   2014/03/04
-%   v.0.2   2014/03/05 fixed zero-padding
+%   v.0.1   2014/03/05
 %   ***********************************************************************
 
 
@@ -44,49 +38,40 @@ function [xcorr,lags] = calcXCorr(sig1,sig2,maxLags,scale)
 % 
 % 
 % Set default values
-if nargin < 4 || isempty(scale); scale = 'none';   end
+if nargin < 3 || isempty(scale); scale = 'none'; end
 
 % FFT approach for matrices...
-[blockSize1,nChannels1,check1] = size(sig1);
-[blockSize2,nChannels2,check2] = size(sig2);
-
-% Check if number of channels are identical
-if ~isequal(nChannels1,nChannels2)
-    error('Number of channels must be identical for both input matrices!');
-end
+[blockSize,nChannels,check] = size(sig);
 
 % Check dimensionaly of input signals
-if any([check1 check2] > 1)
-    error('Require either vector or a matrix as input!');
+if any(check > 1)
+    error('Require either vector or matrix as input!');
 end
 
 % Work along non-singleton dimension
-if (blockSize1 == 1 && blockSize2 == 1)
+if blockSize == 1 
     % Transpose data
-    sig1 = transpose(sig1);
-    sig2 = transpose(sig2);
+    sig = transpose(sig);
     
     % Swap channel to blockSize
-    blockSize1 = nChannels1;
-    blockSize2 = nChannels2;  
+    blockSize = nChannels;
 end
 
 % Determine maximum number of samples ...
-M = max(blockSize1,blockSize2);
+M = blockSize;
 
 % Set default number of lags if necessary...
-if nargin < 3 || isempty(maxLags);  maxLags = M - 1; end
+if nargin < 2 || isempty(maxLags);  maxLags = M - 1; end
 
 
 %% **************************  COMPUTE SPECTRA  ***************************
 % 
 % 
 % Transform both input signals
-X = fft(sig1,2^nextpow2(2*M-1));
-Y = fft(sig2,2^nextpow2(2*M-1));
+X = fft(sig,2^nextpow2(2*M-1));
 
 % Compute cross-power spectrum
-XY = X.*conj(Y);
+XY = abs(X).^2;
 
 
 %% ************************  BACK TO TIME DOMAIN  *************************
@@ -101,7 +86,7 @@ lags = (-maxLags:maxLags).';
 % Keep only the lags we want and move negative lags in front 
 if maxLags >= M,
     % Pad with zeros
-    padZeros = zeros(maxLags-M+1,nChannels1);
+    padZeros = zeros(maxLags-M+1,nChannels);
 	c        = [padZeros; c(end-M+2:end,:);c(1:M,:); padZeros];
 else
 	c = [c(end-maxLags+1:end,:);c(1:maxLags+1,:)];
@@ -114,19 +99,15 @@ end
 % Normalization
 switch lower(scale)
     case 'none'
-        xcorr = c;
+        acorr = c;
     case 'biased'
-        xcorr = c / M;
+        acorr = c / M;
     case 'unbiased'
         scale = M-abs(lags'); scale(scale<=0)=1;
-        xcorr = c./repmat(scale(:),[1 nChannels1]);
+        acorr = c./repmat(scale(:),[1 nChannels1]);
     case 'coeff'
-        % Compute autocorrelation at lag zero
-        powL = sum(sig1.^2,1);
-        powR = sum(sig2.^2,1);
-        
-        % Normalization
-        xcorr = c ./ repmat(sqrt(powL .* powR),[length(lags) 1]);
+        % Normalization by autocorrelation at lag zero
+        acorr = c ./ repmat(c(maxLags+1,:),[length(lags) 1]);
     otherwise
         error(['Normalization method ''',lower(scale),...
                ''' is not supported.'])
