@@ -1,4 +1,4 @@
-function [azimHist,SET] = calcAzimuthHist(CUE,FEATURE,SET)
+function [FEAT,SET] = calcAzimuthHist(CUE,FEATURE,FEAT)
 
 %   Developed with Matlab 8.2.0.701 (R2013b). Please send bug reports to:
 %   
@@ -19,6 +19,10 @@ if nargin ~= 3
     help(mfilename);
     error('Wrong number of input arguments!')
 end
+
+
+SET = FEAT.set;
+
 
 % Get azimuth estimation
 azimuth = FEATURE.data;
@@ -41,3 +45,4 @@ end
 azimHist = hist(azimuth(:),SET.azimuth).'/sum(isfinite(azimuth(:)));
 
 
+FEAT.data = azimHist;

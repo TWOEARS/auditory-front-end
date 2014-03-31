@@ -1,4 +1,4 @@
-function [out,SET] = estSourceAzimuth(FEATURE,SET)
+function [FEAT,SET] = estSourceAzimuth(FEATURE,FEAT)
 
 %   Developed with Matlab 8.2.0.701 (R2013b). Please send bug reports to:
 %   
@@ -20,6 +20,7 @@ if nargin ~= 2
     error('Wrong number of input arguments!')
 end
 
+SET = FEAT.set;
 
 %% GET AZIMUTH HISTOGRAM DATA
 % 
@@ -38,3 +39,5 @@ peakIdx = findLocalPeaks(azimuthHist,'peaks',true);
 
 out(:,1) = azimuthGrid(peakIdx(newIdx));
 out(:,2) = azimuthHist(peakIdx(newIdx));
+
+FEAT.data = out;

@@ -1,14 +1,16 @@
-function [data,SET] = process_InnerHairCell(data,SET)
+function [SIGNAL,SET] = process_InnerHairCell(INPUT,SIGNAL)
+%process_InnerHairCell   Perform inner hair cell processing.
 %
 %USAGE
-%   [signal,STATES] = process_InnerHairCell(signal,STATES)
+%   [SIGNAL,SET] = process_InnerHairCell(INPUT,SIGNAL)
 %
 %INPUT PARAMETERS
-%       signal : gammatone signals [nSamples x nFilters x 2]
-%       STATES : settings initialized by init_WP2
+%          INPUT : gammatone domain signal structure 
+%         SIGNAL : signal structure initialized by init_WP2
 % 
 %OUTPUT PARAMETERS
-%       signal : Peripheral internal representations [nSamples x nFilter x 2]
+%         SIGNAL : modified signal structure
+%            SET : updated signal settings (e.g., filter states)
 
 %   Developed with Matlab 8.2.0.701 (R2013b). Please send bug reports to:
 %   
@@ -19,7 +21,7 @@ function [data,SET] = process_InnerHairCell(data,SET)
 % 
 %   History :  
 %   v.0.1   2014/01/31
-%   v.0.2   2014/02/24 added STATES to output (for block-based processing)
+%   v.0.2   2014/02/24 added SET to output parameters 
 %   ***********************************************************************
 
 
@@ -33,10 +35,43 @@ if nargin ~= 2
 end
 
 
+%% GET INPUT DATA
+% 
+% 
+% Input signal and sampling frequency
+data = INPUT.data;
+fsHz = INPUT.fsHz;
+
+
+%% GET SIGNAL-RELATED SETINGS 
+% 
+% 
+% Copy settings
+SET = SIGNAL.set;
+
+
+%% RESAMPLING
+% 
+% 
+% Resample input signal, is required
+if fsHz ~= SET.fsHz 
+    data = resample(data,SET.fsHz,fsHz);
+    fsHz = SET.fsHz;
+end
+
+
 %% EXTRACT INNER HAIR CELL ENVELOPE
 %
 % 
 % Hair cell processing
-data(:,:,1) = ihcenvelope(data(:,:,1),SET.fsHz,SET.ihcMethod);
-data(:,:,2) = ihcenvelope(data(:,:,2),SET.fsHz,SET.ihcMethod);
+data(:,:,1) = ihcenvelope(data(:,:,1),fsHz,SET.ihcMethod);
+data(:,:,2) = ihcenvelope(data(:,:,2),fsHz,SET.ihcMethod);
+
+
+%% UPDATE SIGNAL STRUCTURE
+% 
+% 
+% Copy signal
+SIGNAL.data = data;
+SIGNAL.fsHz = fsHz;
 

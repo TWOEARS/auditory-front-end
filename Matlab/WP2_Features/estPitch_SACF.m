@@ -1,4 +1,4 @@
-function [out,SET] = estPitch_SACF(FEATURE,SET)
+function [FEAT,SET] = estPitch_SACF(FEATURE,FEAT)
 
 %   Developed with Matlab 8.2.0.701 (R2013b). Please send bug reports to:
 %   
@@ -21,6 +21,13 @@ if nargin ~= 2
 end
 
 
+%% GET FEATURE-RELATED SETINGS 
+% 
+% 
+% Copy settings
+SET = FEAT.set;
+
+
 %% RESTRICT LAG RANGE
 % 
 % 
@@ -31,7 +38,7 @@ end
 lags = 1:nLags;
 
 % Restrict lags to plausible pitch range
-rangeLags = round(SET.fsHz./SET.fRangeHz);
+rangeLags = round(FEATURE.set.fsHz./SET.fRangeHz);
 
 % Find corresponding lags
 bUseLags = lags >= min(rangeLags) & lags <= min(max(rangeLags),nLags);
@@ -56,7 +63,7 @@ for ii = 1 : nChannels
     iiSACF = sacf(:,:,ii);
     
     % Find all local peaks 
-    [idxPeaks,I,J] = findLocalPeaks(iiSACF,'peaks',false);
+    [idxPeaks,I,J] = findLocalPeaks(iiSACF,'peaks',true); %#ok
        
     % Loop over number of frames
     for jj = 1 : nFrames
@@ -73,7 +80,7 @@ for ii = 1 : nChannels
         % Only accept pitch estimate if confidence value is above 0
         if maxVal > 0
             % Pitch estimate in Hertz
-            pitch(jj,ii) = SET.fsHz/lags(iiPeaks(maxIdx));
+            pitch(jj,ii) = FEATURE.set.fsHz/lags(iiPeaks(maxIdx));
         end
     end
 end
@@ -104,4 +111,4 @@ pitch = medfilt1(pitch,SET.medFilt);
 conf  = medfilt1(conf,SET.medFilt);
 
 % Combine both measure
-out = cat(3,pitch,conf);
+FEAT.data = cat(3,pitch,conf);

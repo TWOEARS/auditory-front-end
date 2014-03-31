@@ -2,7 +2,7 @@ function [xcorr,lags] = calcXCorr(sig1,sig2,maxLags,scale)
 %calcXCorr   FFT-based cross-correlation function.
 %
 %USAGE
-%	[XCORR,LAGS] = calcXCorr(SIG1,SIG2)
+%	        LAGS = calcXCorr(SIG1,SIG2)
 %	[XCORR,LAGS] = calcXCorr(SIG1,SIG2,MAXLAGS,SCALE)
 %
 %INPUT ARGUMENTS
@@ -20,7 +20,7 @@ function [xcorr,lags] = calcXCorr(sig1,sig2,maxLags,scale)
 %             'unbiased' - scale XCORR by 1/(nSamples-abs(lags))
 %             'coeff'    - scale XCORR by the autocorrelation at lag zero
 %             'none'     - no scaling
-%             (default, scale = 'none')
+%             (default, SCALE = 'none')
 %
 %OUTPUT ARGUMENTS
 %     XCORR : cross-correlation function between SIG1 and SIG2
@@ -28,11 +28,11 @@ function [xcorr,lags] = calcXCorr(sig1,sig2,maxLags,scale)
 %      LAGS : time lags of cross-correlation function [-MAXLAG:MAXLAG x 1]
 
 
-%   Developed with Matlab 7.4.0.287 (R2007a). Please send bug reports to:
+%   Developed with Matlab 8.2.0.701 (R2013b). Please send bug reports to:
 %   
 %   Author  :  Tobias May © 2014
 %              Technical University of Denmark
-%              tobmay@elektro.dtu.dk%
+%              tobmay@elektro.dtu.dk
 % 
 %   History :   
 %   v.0.1   2014/03/04
@@ -40,11 +40,17 @@ function [xcorr,lags] = calcXCorr(sig1,sig2,maxLags,scale)
 %   ***********************************************************************
 
 
-%% ***********************  CHECK INPUT ARGUMENTS  ************************
+%% CHECK INPUT ARGUMENTS 
 % 
 % 
+% Check for proper input arguments
+if nargin < 2 || nargin > 4
+    help(mfilename);
+    error('Wrong number of input arguments!')
+end
+
 % Set default values
-if nargin < 4 || isempty(scale); scale = 'none';   end
+if nargin < 4 || isempty(scale); scale = 'none'; end
 
 % FFT approach for matrices...
 [blockSize1,nChannels1,check1] = size(sig1);
@@ -78,7 +84,7 @@ M = max(blockSize1,blockSize2);
 if nargin < 3 || isempty(maxLags);  maxLags = M - 1; end
 
 
-%% **************************  COMPUTE SPECTRA  ***************************
+%% COMPUTE SPECTRA
 % 
 % 
 % Transform both input signals
@@ -89,7 +95,7 @@ Y = fft(sig2,2^nextpow2(2*M-1));
 XY = X.*conj(Y);
 
 
-%% ************************  BACK TO TIME DOMAIN  *************************
+%% BACK TO TIME DOMAIN
 % 
 % 
 % Inverse FFT
@@ -108,7 +114,7 @@ else
 end
 
 
-%% ***************************  NORMALIZATION  ****************************
+%% NORMALIZATION
 % 
 % 
 % Normalization

@@ -1,14 +1,16 @@
-function [output,SET] = process_Gammatone(signal,SET)
+function [SIGNAL,SET] = process_Gammatone(INPUT,SIGNAL)
+%process_Gammatone   Apply gammatone filterbank.
 %
 %USAGE
-%   [out,STATES] = process_Gammatone(earsignals,STATES)
+%   [SIGNAL,SET] = process_Gammatone(INPUT,SIGNAL)
 %
 %INPUT PARAMETERS
-%   earsignals : binaural signals [nSamples x 2]
-%       STATES : settings initialized by init_WP2
+%          INPUT : time domain signal structure 
+%         SIGNAL : signal structure initialized by init_WP2
 % 
 %OUTPUT PARAMETERS
-%          out : gammatone representations [nSamples x nFilters x 2]
+%         SIGNAL : modified signal structure
+%            SET : updated signal settings (e.g., filter states)
 
 %   Developed with Matlab 8.2.0.701 (R2013b). Please send bug reports to:
 %   
@@ -31,17 +33,50 @@ if nargin ~= 2
     error('Wrong number of input arguments!')
 end
 
-% Determine size of input
-[nSamples,nChannels] = size(signal);
 
-% Allocate memory
-output = zeros(nSamples,SET.paramGT.nFilter,nChannels);
+%% GET INPUT DATA
+% 
+% 
+% Input signal and sampling frequency
+data = INPUT.data;
+fsHz = INPUT.fsHz;
+
+
+%% GET SIGNAL-RELATED SETINGS 
+% 
+% 
+% Copy settings
+SET = SIGNAL.set;
+
+
+%% RESAMPLING
+% 
+% 
+% Resample input signal, is required
+if fsHz ~= SET.fsHz 
+    data = resample(data,SET.fsHz,fsHz);
+    fsHz = SET.fsHz;
+end
 
 
 %% DECOMPOSE INPUT INTO INDIVIDUAL FREQUENCY CHANNELS
 % 
 % 
+% Determine size of input
+[nSamples,nChannels] = size(data);
+
+% Allocate memory
+output = zeros(nSamples,SET.paramGT.nFilter,nChannels);
+
 % Gammatone filtering
-output(:,:,1) = gammaFB(signal(:,1),SET.fsHz,SET.paramGT);
-output(:,:,2) = gammaFB(signal(:,2),SET.fsHz,SET.paramGT);
+output(:,:,1) = gammaFB(data(:,1),SIGNAL.fsHz,SET.paramGT);
+output(:,:,2) = gammaFB(data(:,2),SIGNAL.fsHz,SET.paramGT);
+
+
+%% UPDATE SIGNAL STRUCTURE
+% 
+% 
+% Copy signal
+SIGNAL.data = output;
+SIGNAL.fsHz = fsHz;
 

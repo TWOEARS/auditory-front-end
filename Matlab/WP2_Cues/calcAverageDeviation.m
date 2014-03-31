@@ -1,15 +1,16 @@
-function [avd,SET] = calcAverageDeviation(signal,SET)
+function [CUE,SET] = calcAverageDeviation(SIGNAL,CUE)
 %calcILD   Calculate average deviation within frames.
 %
 %USAGE
-%   [avd,SET] = calcAverageDeviation(signal,SET)
+%   [CUE,SET] = calcAverageDeviation(SIGNAL,CUE)
 %
 %INPUT ARGUMENTS
-%    signals : auditory signal
-%        SET : parameter structure
-%
+%      SIGNAL : signal structure
+%         CUE : cue structure initialized by init_WP2
+% 
 %OUTPUT ARGUMENTS
-%        avg : average deviation [nFilter x nFrames]
+%         CUE : updated cue structure
+%         SET : updated cue settings (e.g., filter states)
 
 %   Developed with Matlab 8.2.0.701 (R2013b). Please send bug reports to:
 %   
@@ -32,23 +33,43 @@ if nargin ~= 2
 end
 
 
+%% GET INPUT DATA
+% 
+% 
+% Input signal and sampling frequency
+data = SIGNAL.data;
+fsHz = SIGNAL.fsHz;
+
+
+%% GET CUE-RELATED SETINGS 
+% 
+% 
+% Copy settings
+SET = CUE.set;
+
+
 %% DOWNMIX
 % 
 % 
 if ~SET.bBinaural
     % Monoaural signal
-    signal = mean(signal, 3);
+    data = mean(data, 3);
 end
 
 
-%% INITIATE FRAMING
+%% INITIALIZE FRAME-BASED PROCESSING
 % 
 % 
+% Compute framing parameters
+wSize = 2 * round(SET.wSizeSec * fsHz / 2);
+hSize = 2 * round(SET.hSizeSec * fsHz / 2);
+win   = window(SET.winType,wSize);
+
 % Determine size of input
-[nSamples,nFilter,nChannels] = size(signal); 
+[nSamples,nFilter,nChannels] = size(data);
 
 % Compute number of frames
-nFrames = max(floor((nSamples-(SET.wSize-SET.hSize))/SET.hSize),1);
+nFrames = max(floor((nSamples-(wSize-hSize))/hSize),1);
 
 
 %% COMPUTE AVERAGE DEVIATION
@@ -64,12 +85,19 @@ for ii = 1 : nFilter
     for jj = 1 : nChannels
         
         % Framing
-        frames = frameData(signal(:,ii,jj),SET.wSize,SET.hSize,SET.win,false);
+        frames = frameData(data(:,ii,jj),wSize,hSize,win,false);
                 
         % Calculate average deviation
         avd(ii,:,jj) = calcAvgDev(frames);
     end
 end
+
+
+%% UPDATE CUE STRUCTURE
+% 
+% 
+% Copy cue
+CUE.data = avd;
 
 
 %   ***********************************************************************

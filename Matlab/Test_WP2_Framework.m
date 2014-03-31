@@ -45,7 +45,7 @@ switch(lower(preset))
         SET.bNormRMS   = false;
         
         % Auditory periphery
-        SET.nErbs      = 0.5;       % ERB spacing of gammatone filters
+        SET.nErbs      = 1;          % ERB spacing of gammatone filters
         SET.fLowHz     = 80;         % Lowest center frequency in Hertz
         SET.fHighHz    = 8E3;        % Highest center frequency in Hertz
         SET.bAlign     = false;      % Time-align auditory channels
@@ -63,14 +63,16 @@ switch(lower(preset))
         % *****************************************************************
         % 'rms' 'ratemap' 'itd_xcorr' 'ic_xcorr' 'ild'
         % *****************************************************************
-        strCues = {'synchrony' 'onset_strength' 'offset_strength'};
+%         strCues = {'synchrony' 'onset_strength' 'offset_strength'};
+        strCues = {'itd_xcorr' 'ic_xcorr' 'ild'};
         
         % Specify features that should be extracted :
         % *****************************************************************
         % 'ratemap_feature' 'azimuth' 'azimuth_hist' 'source_position'         
         % *****************************************************************
-        strFeatures = {'ratemap_feature' 'pitch' 'azimuth' 'source_position'};
-        
+%         strFeatures = {'ratemap_feature' 'pitch'};
+        strFeatures = {};
+
     otherwise
         error('Preset is not supported');
 end
@@ -162,12 +164,12 @@ for ii = 1 : nMixtures
     % Perform WP2 computation
     [SIGNALS,CUES,FEATURES,STATES] = process_WP2(earSignals,fsHz,STATES);
     
-    % Select most salient source positions
-    azEst = FEATURES(strcmp([FEATURES(:).name],'source_position')).data(1:nSpeakers,:);
-  
-    % Evaluate localization performance (e.g. in WP6)
-    [pc(ii),rmse(ii)] = evalPerformance(azPos(ii,:),azEst,thresDeg);
-    
+%     % Select most salient source positions
+%     azEst = FEATURES(strcmp([FEATURES(:).name],'source_position')).data(1:nSpeakers,:);
+%   
+%     % Evaluate localization performance (e.g. in WP6)
+%     [pc(ii),rmse(ii)] = evalPerformance(azPos(ii,:),azEst,thresDeg);
+%     
     % Report progress
     fprintf('\nLocalization experiment: %.2f %%',100*ii/nMixtures);
 end    

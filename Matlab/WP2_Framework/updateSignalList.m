@@ -3,8 +3,11 @@ function listSignalsOrder = updateSignalList(listCues,DEP)
 listSignals = cell(size(listCues));
 
 for ii = 1 : numel(listCues);
-    listSignals{ii} = DEP.cues.(listCues{ii}){:};
+    listSignals{ii} = DEP.cues.(listCues{ii}){2};
 end
+
+
+listSignals = [listSignals{:}];
 
 listSignals = unique(listSignals);
 

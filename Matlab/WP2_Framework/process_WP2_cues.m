@@ -24,6 +24,7 @@ function [CUES,STATES] = process_WP2_cues(SIGNALS,STATES)
 %   v.0.1   2014/01/31
 %   v.0.2   2014/02/21 added modular cue extraction structure
 %   v.0.3   2014/02/21 added STATES to output (for block-based processing)
+%   v.0.4   2014/03/07 modified handling of STATES
 %   ***********************************************************************
 
 
@@ -40,8 +41,8 @@ end
 %% INITIALIZE CUE STRUCTURE
 % 
 % 
-% Initialize cue struct
-CUES = STATES.cues;
+% Initialize cue structure and add empty field "data"
+CUES = arrayfun(@(x) setfield(x, 'data', []), STATES.cues); %#ok
 
 
 %% EXTRACT CUES
@@ -53,12 +54,19 @@ nCues = numel(STATES.cues);
 % Loop over number of cues
 for ii = 1 : nCues
     
-    % Select proper domain
-    iDCue = strcmp([SIGNALS.domain],CUES(ii).dependency);
+    % Select required cue domain
+    iDCue = selectCells([CUES(:).name],CUES(ii).dependency{1});
     
+    % Select required signal domain
+    iDSig = selectCells([SIGNALS(:).domain],CUES(ii).dependency{2});
+        
     % Perform processing
-    if any(iDCue)
-        [CUES(ii).data,STATES.cues(ii).set] = feval(CUES(ii).fHandle,SIGNALS(iDCue).data,STATES.cues(ii).set);          
+    if any(iDCue) && any(iDSig)
+        [CUES(ii),STATES.cues(ii).set] = feval(CUES(ii).fHandle,SIGNALS(iDSig),CUES(iDCue),STATES.cues(ii));          
+    elseif any(iDCue)
+        [CUES(ii),STATES.cues(ii).set] = feval(CUES(ii).fHandle,CUES(iDCue),STATES.cues(ii));
+    elseif any(iDSig)
+        [CUES(ii),STATES.cues(ii).set] = feval(CUES(ii).fHandle,SIGNALS(iDSig),STATES.cues(ii));          
     else
         error('%s: Domain ''%s'' does not exist.',mfilename,CUES(ii).domain);
     end
@@ -67,9 +75,11 @@ end
 
 %% REMOVE FIELD NAMES
 % 
-% 
-% Field entries in the CUES structure that should not be "visible"
-rmFields = {'dependency'};
-
-% Remove fields 
-CUES = rmfield(CUES,rmFields);
+%
+if nCues > 0
+    % Field entries in the CUES structure that should not be "visible"
+    rmFields = {'dependency'};
+    
+    % Remove fields
+    CUES = rmfield(CUES,rmFields);
+end

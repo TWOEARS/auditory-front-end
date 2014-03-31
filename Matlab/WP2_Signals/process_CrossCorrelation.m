@@ -1,14 +1,16 @@
-function [output,SET] = process_CrossCorrelation(signal,SET)
+function [SIGNAL,SET] = process_CrossCorrelation(INPUT,SIGNAL)
+%process_CrossCorrelation   Compute cross-correlation function.
 %
 %USAGE
-%       xcorr = process_CrossCorrelation(periphery,SIGNAL)
+%   [SIGNAL,SET] = process_CrossCorrelation(INPUT,SIGNAL)
 %
 %INPUT PARAMETERS
-%   periphery : Peripheral auditory signals
-%      SIGNAL : signal parameter structures (initialized by init_WP2.m)
+%          INPUT : haircell domain signal structure 
+%         SIGNAL : signal structure initialized by init_WP2
 % 
 %OUTPUT PARAMETERS
-%        xcorr : cross-correlation pattern [nLags x nFilter x 2]
+%         SIGNAL : modified signal structure
+%            SET : updated signal settings (e.g., filter states)
 
 %   Authors :  Tobias May © 2014
 %              Technical University of Denmark
@@ -30,31 +32,76 @@ if nargin ~= 2
 end
 
 
-%% INITIATE TIME FRAMING
+%% GET INPUT DATA
 % 
 % 
+% Input signal and sampling frequency
+data = INPUT.data;
+fsHz = INPUT.fsHz;
+
+
+%% GET SIGNAL-RELATED SETINGS 
+% 
+% 
+% Copy settings
+SET = SIGNAL.set;
+
+
+%% RESAMPLING
+% 
+% 
+% Resample input signal, is required
+if fsHz ~= SET.fsHz 
+    data = resample(data,SET.fsHz,fsHz);
+    fsHz = SET.fsHz;
+end
+
+
+%% INITIALIZE FRAME-BASED PROCESSING
+% 
+% 
+% Compute framing parameters
+wSize = 2 * round(SET.wSizeSec * fsHz / 2);
+hSize = 2 * round(SET.hSizeSec * fsHz / 2);
+win   = window(SET.winType,wSize);
+
 % Determine size of input
-[nSamples,nFilter,nChannels] = size(signal); %#ok
+[nSamples,nFilter,nChannels] = size(data);
+
+% Check if input is binaural
+if nChannels ~= 2
+   error('Binaural input is required.') 
+end
 
 % Compute number of frames
-nFrames = max(floor((nSamples-(SET.wSize-SET.hSize))/(SET.hSize)),1);
+nFrames = max(floor((nSamples-(wSize-hSize))/hSize),1);
+
 
 
 %% BINAURAL CROSS-CORRELATION PROCESSING
 % 
 % 
+% Determine maximum lag
+maxLag = ceil(SET.maxDelaySec * fsHz);
+
 % Allocate memory
-output = zeros(SET.maxLag * 2 + 1,nFrames,nFilter);
+output = zeros(maxLag * 2 + 1,nFrames,nFilter);
 
 % Loop over number of auditory filters
 for ii = 1 : nFilter
     
     % Framing
-    frames_L = frameData(signal(:,ii,1),SET.wSize,SET.hSize,SET.win,false);
-    frames_R = frameData(signal(:,ii,2),SET.wSize,SET.hSize,SET.win,false);
+    frames_L = frameData(data(:,ii,1),wSize,hSize,win,false);
+    frames_R = frameData(data(:,ii,2),wSize,hSize,win,false);
     
     % Cross-correlation analysis
-    % xcorr(:,:,ii) = xcorrNorm(frames_L,frames_R,STATES.binaural.maxLag);
-    output(:,:,ii) = calcXCorr(frames_L,frames_R,SET.maxLag,'coeff');
+    output(:,:,ii) = calcXCorr(frames_L,frames_R,maxLag,'coeff');
 end
 
+
+%% UPDATE SIGNAL STRUCTURE
+% 
+% 
+% Copy signal
+SIGNAL.data = output;
+SIGNAL.fsHz = fsHz;

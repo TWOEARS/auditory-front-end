@@ -1,17 +1,18 @@
-function [ild,SET] = calcILD(signal,SET)
+function [CUE,SET] = calcILD(SIGNAL,CUE)
 %calcILD   Calculate interaural level differences (ILDs). 
 %   Negative ILDs are associated with sound sources positioned at the
 %   left-hand side and positive ILDs with sources at the right-hand side.  
 %
 %USAGE
-%         ild = calcILD(periphery,P)
+%   [CUE,SET] = calcILD(SIGNAL,CUE)
 %
 %INPUT ARGUMENTS
-%   periphery : auditory signal
-%           P : parameter structure
-%
+%      SIGNAL : signal structure
+%         CUE : cue structure initialized by init_WP2
+% 
 %OUTPUT ARGUMENTS
-%         ild : Interaural Level Difference in decibel [nFilter x nFrames]
+%         CUE : updated cue structure
+%         SET : updated cue settings (e.g., filter states)
 
 %   Developed with Matlab 8.2.0.701 (R2013b). Please send bug reports to:
 %   
@@ -24,24 +25,39 @@ function [ild,SET] = calcILD(signal,SET)
 %   ***********************************************************************
 
 
-%% CHECK INPUT ARGUMENTS 
+%% GET INPUT DATA
 % 
 % 
-% Check for proper input arguments
-if nargin ~= 2
-    help(mfilename);
-    error('Wrong number of input arguments!')
+% Input signal and sampling frequency
+data = SIGNAL.data;
+fsHz = SIGNAL.fsHz;
+
+
+%% GET CUE-RELATED SETINGS 
+% 
+% 
+% Copy settings
+SET = CUE.set;
+
+
+%% INITIALIZE FRAME-BASED PROCESSING
+% 
+% 
+% Compute framing parameters
+wSize = 2 * round(SET.wSizeSec * fsHz / 2);
+hSize = 2 * round(SET.hSizeSec * fsHz / 2);
+win   = window(SET.winType,wSize);
+
+% Determine size of input
+[nSamples,nFilter,nChannels] = size(data);
+
+% Check if input is binaural
+if nChannels ~= 2
+    error('Binaural input required.')
 end
 
-
-%% INITIATE FRAMING
-% 
-% 
-% Determine size of input
-[nSamples,nFilter,nChannels] = size(signal); %#ok
-
 % Compute number of frames
-nFrames = max(floor((nSamples-(SET.wSize-SET.hSize))/SET.hSize),1);
+nFrames = max(floor((nSamples-(wSize-hSize))/hSize),1);
 
 
 %% COMPUTE ILD
@@ -54,8 +70,8 @@ ild = zeros(nFilter,nFrames);
 for ii = 1 : nFilter
     
     % Framing
-    frames_L = frameData(signal(:,ii,1),SET.wSize,SET.hSize,SET.win,false);
-    frames_R = frameData(signal(:,ii,2),SET.wSize,SET.hSize,SET.win,false);
+    frames_L = frameData(data(:,ii,1),wSize,hSize,win,false);
+    frames_R = frameData(data(:,ii,2),wSize,hSize,win,false);
     
     % Compute energy
     energyL = mean(power(frames_L,2),1);
@@ -64,6 +80,13 @@ for ii = 1 : nFilter
     % Calculate interaural level difference
     ild(ii,:) = 10 * (log10(energyR + eps) - log10(energyL + eps));
 end
+
+
+%% UPDATE CUE STRUCTURE
+% 
+% 
+% Copy signal
+CUE.data = ild;
 
 
 %   ***********************************************************************

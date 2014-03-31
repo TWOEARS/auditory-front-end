@@ -1,15 +1,16 @@
-function [sacf,SET] = calcSACF(acf,SET)
+function [CUE, SET] = calcSACF(SIGNAL,CUE)
 %calcSACF   Calculate summary auto-correlation function. 
 %
 %USAGE
-%    itd = calcSACF(acf,P)
+%    [CUE, SET] = calcSACF(SIGNAL,CUE)
 %
 %INPUT ARGUMENTS
-%    acf : auto-correlation pattern [nLags x nFrames x nFilter]
-%      P : parameter structure
+%      SIGNAL : signal structure
+%         CUE : cue structure initialized by init_WP2
 % 
 %OUTPUT ARGUMENTS
-%   sacf : summary auto-correlation pattern [nLags x nFrames x [left right]]
+%         CUE : updated cue structure
+%         SET : updated cue settings (e.g., filter states)
 
 %   Developed with Matlab 8.2.0.701 (R2013b). Please send bug reports to:
 %   
@@ -32,8 +33,30 @@ if nargin ~= 2
 end
 
 
+%% GET INPUT DATA
+% 
+% 
+% Input signal
+data = SIGNAL.data;
+
+
+%% GET CUE-RELATED SETINGS 
+% 
+% 
+% Copy settings
+SET = CUE.set;
+
+
 %% COMPUTE SACF
 % 
 % 
 % Integrate ACF across all auditory filters
-sacf = squeeze(mean(acf,3));
+data = squeeze(mean(data,3));
+
+
+%% UPDATE CUE STRUCTURE
+% 
+% 
+% Copy cue
+CUE.data = data;
+CUE.set.fsHz = SIGNAL.fsHz;

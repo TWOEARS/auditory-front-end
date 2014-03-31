@@ -1,15 +1,16 @@
-function [sync,SET] = calcSynchrony(acf,SET)
+function [CUE,SET] = calcSynchrony(SIGNAL,CUE)
 %calcSynchrony   Compute across-channel synchrony. 
 %
 %USAGE
-%    sync = calcITD(acf,P)
+%    [CUE, SET] = calcITD(SIGNAL,CUE)
 %
 %INPUT ARGUMENTS
-%    acf : auto-correlation pattern [nLags x nFrames x nFilter x [left right]]
-%      P : parameter structure
+%      SIGNAL : signal structure
+%         CUE : cue structure initialized by init_WP2
 % 
 %OUTPUT ARGUMENTS
-%   sync : across-channel synchrony [nFilter x nFrames x [left right]]
+%         CUE : updated cue structure
+%         SET : updated cue settings (e.g., filter states)
 
 %   Developed with Matlab 8.2.0.701 (R2013b). Please send bug reports to:
 %   
@@ -22,14 +23,19 @@ function [sync,SET] = calcSynchrony(acf,SET)
 %   ***********************************************************************
 
 
-%% CHECK INPUT ARGUMENTS 
+%% GET INPUT DATA
 % 
 % 
-% Check for proper input arguments
-if nargin ~= 2
-    help(mfilename);
-    error('Wrong number of input arguments!')
-end
+% Input signal and sampling frequency
+acf  = SIGNAL.data;
+fsHz = SIGNAL.fsHz;
+
+
+%% GET CUE-RELATED SETINGS 
+% 
+% 
+% Copy settings
+SET = CUE.set;
 
 
 %% RESTRICT LAG RANGE
@@ -42,7 +48,7 @@ maxLag = (size(acf,1)-1)/2;
 lags = -maxLag:maxLag;
 
 % Restrict lags to plausible pitch range
-rangeLags = round(SET.fsHz./SET.fRangeHz);
+rangeLags = round(fsHz./SET.fRangeHz);
 
 % Find corresponding lags
 bUseLags = lags >= min(rangeLags) & lags <= min(max(rangeLags),maxLag);
@@ -82,3 +88,10 @@ end
 
 % Copy last channel
 sync(nFilter,:,:) = sync(nFilter-1,:,:);
+
+
+%% UPDATE CUE STRUCTURE
+% 
+% 
+% Copy cue
+CUE.data = sync;

@@ -29,15 +29,15 @@ function DEP = define_Dependencies
 % List of features
 nIter = 1;
 
-featureList{nIter} = 'ratemap_feature'; % Feature name
-featureDEP1{nIter} = {};                % List of feature dependencies
-featureDEP2{nIter} = {'ratemap'};       % List of cue dependencies
+featureList{nIter} = 'ratemap_feature';     % Feature name
+featureDEP1{nIter} = {};                    % List of feature dependencies
+featureDEP2{nIter} = {'ratemap_magnitude'}; % List of cue dependencies
 
 nIter = nIter + 1;
 
 featureList{nIter} = 'azimuth';
-featureDEP1{nIter}  = {};
-featureDEP2{nIter}  = {'itd_xcorr'};
+featureDEP1{nIter} = {};
+featureDEP2{nIter} = {'itd_xcorr'};
 
 nIter = nIter + 1;
 
@@ -64,52 +64,68 @@ featureDEP2{nIter} = {'sacf'};
 % List of cues
 nIter = 1;
 cueList{nIter} = 'rms';
-cueDEP{nIter}  = {'time'};
+cueDEP1{nIter}  = {};
+cueDEP2{nIter}  = {'time'};
 
 nIter = nIter + 1;
 
-cueList{nIter} = 'ratemap';
-cueDEP{nIter}  = {'innerhaircell'};
+cueList{nIter} = 'ratemap_magnitude';
+cueDEP1{nIter}  = {};
+cueDEP2{nIter}  = {'innerhaircell'};
+
+nIter = nIter + 1;
+
+cueList{nIter} = 'ratemap_power';
+cueDEP1{nIter}  = {};
+cueDEP2{nIter}  = {'innerhaircell'};
 
 nIter = nIter + 1;
 
 cueList{nIter} = 'itd_xcorr';
-cueDEP{nIter}  = {'crosscorrelation'};
+cueDEP1{nIter}  = {};
+cueDEP2{nIter}  = {'crosscorrelation'};
 
 nIter = nIter + 1;
 
 cueList{nIter} = 'ic_xcorr';
-cueDEP{nIter}  = {'crosscorrelation'};
+cueDEP1{nIter}  = {};
+cueDEP2{nIter}  = {'crosscorrelation'};
 
 nIter = nIter + 1;
 
 cueList{nIter} = 'ild';
-cueDEP{nIter}  = {'innerhaircell'};
+cueDEP1{nIter}  = {};
+cueDEP2{nIter}  = {'innerhaircell'};
 
 nIter = nIter + 1;
 
 cueList{nIter} = 'average_deviation';
-cueDEP{nIter}  = {'innerhaircell'};
+cueDEP1{nIter}  = {};
+cueDEP2{nIter}  = {'innerhaircell'};
 
 nIter = nIter + 1;
 
 cueList{nIter} = 'onset_strength';
-cueDEP{nIter}  = {'innerhaircell'};
+cueDEP1{nIter}  = {'ratemap_power'};
+cueDEP2{nIter}  = {};
 
 nIter = nIter + 1;
 
 cueList{nIter} = 'offset_strength';
-cueDEP{nIter}  = {'innerhaircell'};
+cueDEP1{nIter}  = {'ratemap_power'};
+cueDEP2{nIter}  = {};
 
 nIter = nIter + 1;
 
 cueList{nIter} = 'synchrony';
-cueDEP{nIter}  = {'autocorrelation'};
+cueDEP1{nIter}  = {};
+cueDEP2{nIter}  = {'autocorrelation'};
 
 nIter = nIter + 1;
 
 cueList{nIter} = 'sacf';
-cueDEP{nIter}  = {'autocorrelation'};
+cueDEP1{nIter}  = {};
+cueDEP2{nIter}  = {'autocorrelation'};
 
 
 %% DEFINE SIGNAL DEPENDENCIES
@@ -133,6 +149,16 @@ signalDEP{nIter}  = {'gammatone'};
 
 nIter = nIter + 1;
 
+signalList{nIter} = 'ratemap_magnitude';
+signalDEP{nIter}  = {'innerhaircell'};
+
+nIter = nIter + 1;
+
+signalList{nIter} = 'ratemap_power';
+signalDEP{nIter}  = {'innerhaircell'};
+
+nIter = nIter + 1;
+
 signalList{nIter} = 'crosscorrelation';
 signalDEP{nIter}  = {'innerhaircell'};
 
@@ -146,7 +172,8 @@ for ii = 1 : numel(signalList)
     DEP.signals.(signalList{ii}) = signalDEP{ii};
 end
 for ii = 1 : numel(cueList)
-    DEP.cues.(cueList{ii}) = cueDEP{ii};
+    DEP.cues.(cueList{ii}){1} = cueDEP1{ii};
+    DEP.cues.(cueList{ii}){2} = cueDEP2{ii};
 end
 for ii = 1 : numel(featureList)
     DEP.features.(featureList{ii}){1} = featureDEP1{ii};

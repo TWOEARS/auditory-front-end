@@ -1,4 +1,4 @@
-function [ratemap,SET] = calcRatemapFeatures(CUE,SET)
+function [FEAT,SET] = calcRatemapFeatures(CUE,FEAT)
 % 
 %USAGE
 %    ratemap = calcRatemapFeatures(CUE,S)
@@ -27,6 +27,13 @@ if nargin ~= 2
     help(mfilename);
     error('Wrong number of input arguments!')
 end
+
+
+%% GET FEATURE-RELATED SETINGS 
+% 
+% 
+% Copy settings
+SET = FEAT.set;
 
 
 %% DOWNMIX
@@ -62,3 +69,10 @@ end
 for ii = 1 : size(ratemap,3)
     ratemap(:,:,ii) = normalizeData(ratemap(:,:,ii).',SET.normalize).';
 end
+
+
+%% UPDATE FEATURE STRUCTURE
+% 
+% 
+% Copy signal
+FEAT.data = ratemap;

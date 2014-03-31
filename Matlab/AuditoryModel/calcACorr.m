@@ -1,43 +1,59 @@
-function [acorr,lags] = calcACorr(sig,maxLags,scale)
-%calcACorr   FFT-based cross-correlation function.
+function [acorr,lags] = calcACorr(sig,maxLags,scale,K)
+%calcACorr   FFT-based auto-correlation function.
 %
 %USAGE
 %	       ACORR = calcACorr(SIG)
-%	[ACORR,LAGS] = calcACorr(SIG,MAXLAGS,SCALE)
+%	[ACORR,LAGS] = calcACorr(SIG,MAXLAGS,SCALE,K)
 %
 %INPUT ARGUMENTS
 %       SIG : input signal, either vector or matrix of dimension
 %             [nSamples x nChannels]
-%   MAXLAGS : the correlation sequenze is computed over the lag range
+%   MAXLAGS : the auto-correlation sequenze is computed over the lag range
 %             -MAXLAGS:MAXLAGS 
 %             (default, MAXLAGS = size(SIG,1)-1
 %     SCALE : string specifying normalization 
 %             'biased'   - scale ACORR by 1/nSamples
 %             'unbiased' - scale ACORR by 1/(nSamples-abs(lags))
-%             'coeff'    - scale ACORR by the autocorrelation at lag zero
+%             'coeff'    - scale ACORR by the auto-correlation at lag zero
 %             'none'     - no scaling
-%             (default, scale = 'none')
+%             (default, SCALE = 'none')
+%         K : exponent of auto-correlation. K == 2 for normal
+%             auto-correlation. A smaller value (e.g. K = 2/3) shows
+%             resemblance to loudness scaling [1].
+%             (default, K = 2)
 %
 %OUTPUT ARGUMENTS
 %     ACORR : auto-correlation function of SIG [2*MAXLAGS+1 x nChannels]
 %      LAGS : time lags of auto-correlation function [-MAXLAG:MAXLAG x 1]
+% 
+%REFERENCES
+%   [1] M. Karjalainen and T. Tolonen (1999), "Multi-pitch and periodicity
+%       analysis model for sound separation andauditory scene analysis",
+%       IEEE ICASSP.
 
-
-%   Developed with Matlab 7.4.0.287 (R2007a). Please send bug reports to:
+%   Developed with Matlab 8.2.0.701 (R2013b). Please send bug reports to:
 %   
 %   Author  :  Tobias May © 2014
 %              Technical University of Denmark
-%              tobmay@elektro.dtu.dk%
+%              tobmay@elektro.dtu.dk
 % 
 %   History :   
 %   v.0.1   2014/03/05
+%   v.0.2   2014/03/08 added exponent scaling
 %   ***********************************************************************
 
 
-%% ***********************  CHECK INPUT ARGUMENTS  ************************
+%% CHECK INPUT ARGUMENTS 
 % 
 % 
+% Check for proper input arguments
+if nargin < 1 || nargin > 4
+    help(mfilename);
+    error('Wrong number of input arguments!')
+end
+
 % Set default values
+if nargin < 4 || isempty(K);     K     = 2;      end
 if nargin < 3 || isempty(scale); scale = 'none'; end
 
 % FFT approach for matrices...
@@ -64,17 +80,17 @@ M = blockSize;
 if nargin < 2 || isempty(maxLags);  maxLags = M - 1; end
 
 
-%% **************************  COMPUTE SPECTRA  ***************************
+%% COMPUTE SPECTRA  
 % 
 % 
 % Transform both input signals
 X = fft(sig,2^nextpow2(2*M-1));
 
 % Compute cross-power spectrum
-XY = abs(X).^2;
+XY = abs(X).^K;
 
 
-%% ************************  BACK TO TIME DOMAIN  *************************
+%% BACK TO TIME DOMAIN
 % 
 % 
 % Inverse FFT
@@ -93,7 +109,7 @@ else
 end
 
 
-%% ***************************  NORMALIZATION  ****************************
+%% NORMALIZATION  
 % 
 % 
 % Normalization

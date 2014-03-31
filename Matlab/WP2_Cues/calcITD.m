@@ -1,15 +1,16 @@
-function [itd,SET] = calcITD(signal,SET)
+function [CUE,SET] = calcITD(SIGNAL,CUE)
 %calcITD   Calculate interaural time differences (ITDs). 
 %
 %USAGE
-%    itd = calcITD(xcf,P)
+%   [CUE,SET] = calcITD(SIGNAL,CUE)
 %
 %INPUT ARGUMENTS
-%   xcf  : cross-correlation pattern [nLags x nFrames x nFilter]
-%      P : parameter structure
+%      SIGNAL : signal structure
+%         CUE : cue structure initialized by init_WP2
 % 
 %OUTPUT ARGUMENTS
-%   ITD : interaural time difference in seconds [nFilter x nFrames]
+%         CUE : updated cue structure
+%         SET : updated cue settings (e.g., filter states)
 
 %   Developed with Matlab 8.2.0.701 (R2013b). Please send bug reports to:
 %   
@@ -31,8 +32,19 @@ if nargin ~= 2
     error('Wrong number of input arguments!')
 end
 
+
+%% GET CUE-RELATED SETINGS 
+% 
+% 
+% Copy settings
+SET = CUE.set;
+
+
+%% COMPUTE ITD 
+% 
+% 
 % Determine input size
-[nLags,nFrames,nFilter] = size(signal);
+[nLags,nFrames,nFilter] = size(SIGNAL.data);
 
 % Allocate memory
 itd = zeros(nFilter,nFrames);
@@ -40,22 +52,25 @@ itd = zeros(nFilter,nFrames);
 % Create lag vector
 lags = (0:nLags-1).'-(nLags-1)/2;
 
-
-%% COMPUTE ITD 
-% 
-% 
 % Loop over number of auditory filters
 for ii = 1:nFilter
     
     % Find maximum peak per frame
-    [pIdx,rowIdx] = findLocalPeaks(signal(:,:,ii),'max',true); %#ok
+    [pIdx,rowIdx] = findLocalPeaks(SIGNAL.data(:,:,ii),'max',false); %#ok
     
     % Integer lag: Take most salient peaks
     lagInt = lags(rowIdx);
     
     % Fractional lag: Refine peak position by parabolic interpolation
-    lagDelta = interpolateParabolic(signal(:,:,ii),rowIdx);
+    lagDelta = interpolateParabolic(SIGNAL.data(:,:,ii),rowIdx);
     
     % Final interaural time delay estimates
-    itd(ii,:) = (lagInt + lagDelta)/SET.fsHz;
+    itd(ii,:) = (lagInt + lagDelta)/SIGNAL.fsHz;
 end
+
+
+%% UPDATE CUE STRUCTURE
+% 
+% 
+% Copy signal
+CUE.data = itd;

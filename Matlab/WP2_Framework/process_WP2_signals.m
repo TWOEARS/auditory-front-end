@@ -21,6 +21,7 @@ function [SIGNALS,STATES] = process_WP2_signals(earSignals,fsHz,STATES)
 % 
 %   History :  
 %   v.0.1   2014/02/25
+%   v.0.2   2014/03/07 modified handling of STATES
 %   ***********************************************************************
 
 
@@ -47,13 +48,9 @@ SIGNALS = STATES.signals;
 % Select time domain signal
 iDTime = strcmp([STATES.signals.domain],'time');
 
-% Resample input signal
-if fsHz ~= SIGNALS(iDTime).set.fsHz
-    earSignals = resample(earSignals,fsHz,SIGNALS(iDTime).set.fsHz);
-end
-
 % Initialize time domain signal with ear signals
 SIGNALS(iDTime).data = earSignals;
+SIGNALS(iDTime).fsHz = fsHz;
 
 
 %% CREATE MULTI-DIMENSIONAL SIGNAL REPRESENTATION
@@ -65,12 +62,12 @@ nSignals = numel(STATES.signals);
 % Loop over number of cues
 for ii = 1 : nSignals
         
-    % Select required cues
+    % Select required signal domain
     iDSignal = selectCells([SIGNALS.domain],SIGNALS(ii).dependency);
     
     % Perform processing
     if any(iDSignal)
-        [SIGNALS(ii).data,STATES.signals(ii).set] = feval(SIGNALS(ii).fHandle,SIGNALS(iDSignal).data,STATES.signals(ii).set);          
+        [SIGNALS(ii),STATES.signals(ii).set] = feval(SIGNALS(ii).fHandle,SIGNALS(iDSignal),STATES.signals(ii));          
     else
         error('%s: SIGNAL ''%s'' does not exist.',mfilename,SIGNALS(ii).domain);
     end

@@ -2,15 +2,15 @@ function STATES = init_WP2(listFeatures,listCues,SET)
 %init_WP2   Initialize parameters for WP2 processing
 %
 %USAGE
-%      STATES = init_WP2(STATES,listCues,listFeat)
+%         STATES = init_WP2(listFeatures,listCues,SET)
 %
 %INPUT PARAMETERS
-%          SET : general settings
-%     listCues : list of cues to be extracted
-%     listCues : list of features to be extracted
+%   listFeatures : list of features to be extracted
+%       listCues : list of cues to be extracted
+%            SET : general settings
 % 
 %OUTPUT PARAMETERS
-%     STATES : 
+%         STATES : initialized states for all SIGNALS, CUES and FEATURES
 
 %   Developed with Matlab 8.2.0.701 (R2013b). Please send bug reports to:
 %   
@@ -42,6 +42,9 @@ function STATES = init_WP2(listFeatures,listCues,SET)
 % 
 % TODO: define signals, cues and features as classes
 
+% TODO: SIGNALS and CUES can be monaural or binaural, and this request
+% should be trigger by the respective CUES and FEATURES
+
 
 %% CHECK INPUT ARGUMENTS 
 % 
@@ -60,8 +63,8 @@ end
 DEP = define_Dependencies;
 
 % Convert char to cell array
-if ~iscell(listCues)     && ~isempty(listCues) 
-    listCues     = {listCues};     
+if ~iscell(listCues) && ~isempty(listCues) 
+    listCues = {listCues};     
 end
 if ~iscell(listFeatures) && ~isempty(listFeatures)
     listFeatures = {listFeatures}; 
@@ -97,13 +100,8 @@ bAlign  = SET.bAlign;
 ihcMethod = SET.ihcMethod;
 
 % Framing parameters
-winSize = 2 * round(SET.winSizeSec * fsHz / 2);
-hopSize = 2 * round(SET.hopSizeSec * fsHz / 2);
-winType = SET.winType;
-win     = window(winType,winSize);
-
-% Maximum time delay in seconds considered for cross-correlation analysis
-maxLag = ceil(SET.maxDelaySec * fsHz);
+wSizeSec = SET.winSizeSec;
+hSizeSec = SET.hopSizeSec;
 
 
 %% CONFIGURE SIGNAL EXTRACTION  
@@ -113,8 +111,8 @@ maxLag = ceil(SET.maxDelaySec * fsHz);
 nSignals = numel(listSignals);
 
 % Array of structs for cue settings 
-SIGNALS = repmat(cell2struct({[] [] [] [] []},...
-          {'domain' 'fHandle' 'dependency' 'dim' 'set'},2),[nSignals 1]);
+SIGNALS = repmat(cell2struct({[] [] [] [] [] []},...
+          {'domain' 'fsHz' 'fHandle' 'dependency' 'dim' 'set'},2),[nSignals 1]);
 
 % Loop over the number of cues
 for ii = 1 : nSignals
@@ -135,46 +133,46 @@ for ii = 1 : nSignals
             S.dim           = {'nSamples x [left right]'};
             
             S.set.fsHz      = fsHz;
+            S.set.bRemoveDC = true;
             S.set.bNormRMS  = true;
                         
         case 'gammatone'
             S.fHandle       = 'process_Gammatone';
             S.dim           = {'nSamples x nFilters x [left right]'};
             
-            S.set.fsHz      = fsHz;
+            S.set.fsHz      = fsHz;            
             S.set.paramGT   = gammaFIR(fsHz,fLowHz,fHighHz,nErbs,bAlign);
             
         case 'innerhaircell'
             S.fHandle       = 'process_InnerHairCell';
             S.dim           = {'nSamples x nFilters x [left right]'};
             
+            S.set.fsHz      = fsHz;            
             S.set.ihcMethod = ihcMethod;
-            S.set.fsHz      = fsHz;
             
         case 'crosscorrelation'
             S.fHandle       = 'process_CrossCorrelation';
             S.dim           = {'nLags x nFrames x nFilters'};
             
-            S.set.maxLag    = maxLag;
-            S.set.wSize     = winSize;
-            S.set.hSize     = hopSize;
-            S.set.winType   = winType;
+            S.set.fsHz      = fsHz;                        
+            S.set.wSizeSec  = wSizeSec;
+            S.set.hSizeSec  = hSizeSec;
             S.set.winType   = 'rectwin';
-            S.set.win       = window(S.set.winType,S.set.wSize);
             
+            S.set.maxDelaySec = SET.maxDelaySec;
+
         case 'autocorrelation'
             S.fHandle       = 'process_AutoCorrelation';
             S.dim           = {'nLags x nFrames x nFilters x [left right]'};
-            
-            S.set.wSize     = winSize;
-            S.set.hSize     = hopSize;
-            S.set.winType   = winType;
-            S.set.winType   = 'rectwin';
-            S.set.win       = window(S.set.winType,S.set.wSize);           
 
+%             S.set.fsHz      = 8E3;
             S.set.fsHz      = fsHz;
-            S.set.bBandpass = true;
-
+            S.set.wSizeSec  = wSizeSec;
+            S.set.hSizeSec  = hSizeSec;
+            S.set.winType   = 'rectwin';
+            
+            S.set.bBandpass   = true;
+            S.set.K           = 2;
             S.set.bCenterClip = false;
             S.set.ccMethod    = 'clc';
             S.set.ccAlpha     = 0.68;
@@ -221,9 +219,10 @@ for ii = 1 : nCues
             S.unit         = {'dB'};
             S.dim          = {'nFrames x [left right]'};
             
-            S.set.wSize    = winSize;
-            S.set.hSize    = hopSize;
-            S.set.win      = win;
+            S.set.bBinaural = true;
+            S.set.wSizeSec  = wSizeSec;
+            S.set.hSizeSec  = hSizeSec;
+            S.set.winType   = 'hann';
             
         case 'synchrony'
             % Autocorrelogram
@@ -234,10 +233,10 @@ for ii = 1 : nCues
             S.set.fsHz     = fsHz;
             S.set.fRangeHz = [50 800];
                         
-            S.set.wSize    = winSize;
-            S.set.hSize    = hopSize;
+            S.set.wSize    = wSizeSec;
+            S.set.hSize    = hSizeSec;
             S.set.winType  = 'rectwin';
-            S.set.win      = window(S.set.winType,S.set.wSize);
+
             % Get gammatone center frequencies 
             S.set.fHz      = STATES.signals(strcmp([STATES.signals.domain],'gammatone')).set.paramGT.cfHz;
         
@@ -247,7 +246,7 @@ for ii = 1 : nCues
             S.unit         = {'magnitude'};
             S.dim          = {'nLags x nFrames x [left right]'};
        
-        case 'ratemap'
+        case 'ratemap_magnitude'
             % Ratemap
             S.fHandle      = 'calcRatemap';
             S.unit         = {'magnitude'};
@@ -256,16 +255,35 @@ for ii = 1 : nCues
             S.set.fsHz     = fsHz;
             S.set.decaySec = 8E-3;
             
-            % Select downsampling ('downsample' or 'average')
-            S.set.downSample = 'downsample';
-            
-            S.set.wSize    = winSize;
-            S.set.hSize    = hopSize;
+            S.set.bBinaural   = true;
+            S.set.bDownSample = false;
+            S.set.scaling  = 'magnitude';
+            S.set.wSizeSec = wSizeSec;
+            S.set.hSizeSec = hSizeSec;
             S.set.winType  = 'rectwin';
-            S.set.win      = window(S.set.winType,S.set.wSize);
+            
             % Get gammatone center frequencies 
             S.set.fHz      = STATES.signals(strcmp([STATES.signals.domain],'gammatone')).set.paramGT.cfHz;
+      
+        case 'ratemap_power'
+            % Ratemap
+            S.fHandle      = 'calcRatemap';
+            S.unit         = {'power'};
+            S.dim          = {'nFilter x nFrames x [left right]'};
+
+            S.set.fsHz     = fsHz;
+            S.set.decaySec = 8E-3;
             
+            S.set.bBinaural   = true;
+            S.set.bDownSample = false;
+            S.set.scaling  = 'power';
+            S.set.wSizeSec = wSizeSec;
+            S.set.hSizeSec = hSizeSec;
+            S.set.winType  = 'rectwin';
+            
+            % Get gammatone center frequencies 
+            S.set.fHz      = STATES.signals(strcmp([STATES.signals.domain],'gammatone')).set.paramGT.cfHz;
+              
         case 'onset_strength'
             % Onset strength in dB
             S.fHandle      = 'calcOnsetStrength';
@@ -275,10 +293,9 @@ for ii = 1 : nCues
             S.set.maxOnsetdB = 30;
             S.set.fsHz       = fsHz;
             S.set.decaySec   = 8E-3;
-            S.set.wSize      = winSize;
-            S.set.hSize      = hopSize;
+            S.set.wSizeSec   = wSizeSec;
+            S.set.hSizeSec   = hSizeSec;
             S.set.winType    = 'rectwin';
-            S.set.win        = window(S.set.winType,S.set.wSize);
 
             if S.set.bBinaural
                 S.dim = {'nFilter x nFrames x [left right]'};
@@ -295,11 +312,10 @@ for ii = 1 : nCues
             S.set.maxOffsetdB = 30;
             S.set.fsHz        = fsHz;
             S.set.decaySec    = 8E-3;
-            S.set.wSize       = winSize;
-            S.set.hSize       = hopSize;
+            S.set.wSizeSec    = wSizeSec;
+            S.set.hSizeSec    = hSizeSec;
             S.set.winType     = 'rectwin';
-            S.set.win         = window(S.set.winType,S.set.wSize);
-            
+                        
             if S.set.bBinaural
                 S.dim = {'nFilter x nFrames x [left right]'};
             else
@@ -326,10 +342,9 @@ for ii = 1 : nCues
             S.unit         = {'dB'};
             S.dim          = {'nFilter x nFrames'};
             
-            S.set.wSize    = winSize;
-            S.set.hSize    = hopSize;
+            S.set.wSizeSec = wSizeSec;
+            S.set.hSizeSec = hSizeSec;
             S.set.winType  = 'rectwin';
-            S.set.win      = window(S.set.winType,S.set.wSize);
             
         case 'average_deviation'
             % Average deviation
@@ -337,11 +352,10 @@ for ii = 1 : nCues
             S.unit         = {};
 
             S.set.bBinaural = true;
-            S.set.wSize     = winSize;
-            S.set.hSize     = hopSize;
+            S.set.wSizeSec  = wSizeSec;
+            S.set.hSizeSec  = hSizeSec;
             S.set.winType   = 'rectwin';
-            S.set.win       = window(S.set.winType,S.set.wSize);            
-            
+                        
             if S.set.bBinaural
                 S.dim = {'nFilter x nFrames x [left right]'};
             else

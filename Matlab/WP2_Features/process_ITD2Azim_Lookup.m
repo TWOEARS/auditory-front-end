@@ -1,4 +1,4 @@
-function [azim,SET] = process_ITD2Azim_Lookup(CUE,SET)
+function [FEAT,SET] = process_ITD2Azim_Lookup(CUE,FEAT)
 
 %   Developed with Matlab 8.2.0.701 (R2013b). Please send bug reports to:
 %   
@@ -26,6 +26,8 @@ end
 % Allocate memory
 azim = zeros(nFilter,nFrames);
 
+
+SET = FEAT.set;
 
 %% MAP ITD TO AZIMUTH
 % 
@@ -84,8 +86,8 @@ end
 % %     azim(ii,:) = interp1(SET.mapping.itd(:,ii),SET.mapping.azimuth,CUE.data(ii,:));
 % end
     
-
-
 azim(azim > max(SET.mapping.azimuth)) = NaN;
 azim(azim < min(SET.mapping.azimuth)) = NaN;
 
+
+FEAT.data = azim;

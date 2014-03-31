@@ -1,15 +1,19 @@
-function [output,SET] = process_AutoCorrelation(signal,SET)
+function [SIGNAL,SET] = process_AutoCorrelation(INPUT,SIGNAL)
+%process_AutoCorrelation   Compute auto-correlation function.
 %
 %USAGE
-%       xcorr = process_AutoCorrelation(periphery,SIGNAL)
+%   [SIGNAL,SET] = process_AutoCorrelation(INPUT,SIGNAL)
 %
 %INPUT PARAMETERS
-%   periphery : Peripheral auditory signals
-%      SIGNAL : signal parameter structures (initialized by init_WP2.m)
+%       INPUT : haircell domain signal structure 
+%      SIGNAL : signal structure initialized by init_WP2
 % 
 %OUTPUT PARAMETERS
-%        xcorr : auto-correlation pattern [nLags x nFilter x 2]
+%      SIGNAL : updated signal structure
+%         SET : updated signal settings (e.g., filter states)
 
+%   Developed with Matlab 8.2.0.701 (R2013b). Please send bug reports to:
+%   
 %   Authors :  Tobias May © 2014
 %              Technical University of Denmark
 %              tobmay@elektro.dtu.dk
@@ -29,30 +33,57 @@ if nargin ~= 2
 end
 
 
-%% INITIATE TIME FRAMING
+%% GET INPUT DATA
 % 
 % 
+% Input signal and sampling frequency
+data = INPUT.data;
+fsHz = INPUT.fsHz;
+
+
+%% GET SIGNAL-RELATED SETINGS 
+% 
+% 
+% Copy settings
+SET = SIGNAL.set;
+
+
+%% RESAMPLING
+% 
+% 
+% Resample input signal, is required
+if fsHz ~= SET.fsHz 
+    data = resample(data,SET.fsHz,fsHz);
+    fsHz = SET.fsHz;
+end
+
+
+%% INITIALIZE FRAME-BASED PROCESSING
+% 
+% 
+% Compute framing parameters
+wSize = 2 * round(SET.wSizeSec * fsHz / 2);
+hSize = 2 * round(SET.hSizeSec * fsHz / 2);
+win   = window(SET.winType,wSize);
+
 % Determine size of input
-[nSamples,nFilter,nChannels] = size(signal);
+[nSamples,nFilter,nChannels] = size(data);
 
 % Compute number of frames
-nFrames = max(floor((nSamples-(SET.wSize-SET.hSize))/(SET.hSize)),1);
+nFrames = max(floor((nSamples-(wSize-hSize))/hSize),1);
 
 % Maximum lag
-maxLag = SET.wSize - 1;
+maxLag = wSize - 1;
 
 
-%% PRE-PROCESSING
-%
-%
-% Pre-processing input signal
-if SET.bBandpass
-    % Design second-order bandpass
-    [bBP,aBP] = butter(2,[450 8500]/(SET.fsHz/2));
-    
-    % Apply filter
-    signal = filter(bBP,aBP,signal);
-end
+% % Pre-processing input signal
+% if SET.bBandpass
+%     % Design second-order bandpass
+%     [bBP,aBP] = butter(2,[450 8500]/(SET.fsHz/2));
+%     
+%     % Apply filter
+%     signal = filter(bBP,aBP,signal);
+% end
 
 
 %% AUTO-CORRELATION PROCESSING
@@ -67,7 +98,7 @@ for ii = 1 : nFilter
     for jj = 1 : nChannels
         
         % Framing
-        frames = frameData(signal(:,ii,jj),SET.wSize,SET.hSize,SET.win,false);
+        frames = frameData(data(:,ii,jj),wSize,hSize,win,false);
             
         % Perform center clipping
         if SET.bCenterClip
@@ -75,10 +106,17 @@ for ii = 1 : nFilter
         end
  
         % Auto-correlation analysis
-        acf = calcACorr(frames,[],'coeff');
+        acf = calcACorr(frames,[],'coeff',SET.K);
         
         % Store ACF pattern for positive lags only
         output(:,:,ii,jj) = acf(maxLag+1:end,:);
     end
 end
 
+
+%% UPDATE SIGNAL STRUCTURE
+% 
+% 
+% Copy signal
+SIGNAL.data = output;
+SIGNAL.fsHz = fsHz;

@@ -1,12 +1,16 @@
-function [cues,SET] = calcOffsetStrength(signal,SET)
+function [CUE,SET] = calcOffsetStrength(SIGNAL,CUE)
+%calcOffsetStrength   Calculate offset strength in dB. 
 % 
 %USAGE
-%    [cues,SET] = calcOffsetStrength(signal,SET)
+%   [CUE,SET] = calcOffsetStrength(SIGNAL,CUE)
 %
 %INPUT PARAMETERS
+%      SIGNAL : signal structure
+%         CUE : cue structure initialized by init_WP2
 % 
 %OUTPUT PARAMETERS
-% 
+%         CUE : updated cue structure
+%         SET : updated cue settings (e.g., filter states)
 
 %   Developed with Matlab 8.2.0.701 (R2013b). Please send bug reports to:
 %   
@@ -29,36 +33,54 @@ if nargin ~= 2
 end
 
 
+%% GET INPUT DATA
+% 
+% 
+% Input signal 
+data = SIGNAL.data;
+fsHz = SIGNAL.set.fsHz;
+
+
+%% GET CUE-RELATED SETINGS 
+% 
+% 
+% Copy settings
+SET = CUE.set;
+
+
 %% DOWNMIX
 % 
 % 
 if ~SET.bBinaural
     % Monoaural signals
-    signal = mean(signal, 3);
+    data = mean(data, 3);
 end
 
 
 %% SMOOTH ENVELOPE
 % 
 % 
-% Filter decay
-intDecay = exp(-(1/(SET.fsHz * SET.decaySec)));
-
-% Integration gain
-intGain = 1-intDecay;
-
-% Apply integration filter
-signal = filter(intGain, [1 -intDecay], signal);
+% Perform leaky integration 
+if exist('SET.states','var')
+    [data,SET.states] = leakyIntegrator(data,fsHz,SET.decaySec,SET.states);
+else
+    [data,SET.states] = leakyIntegrator(data,fsHz,SET.decaySec);
+end
 
 
-%% INITIATE FRAMING
+%% INITIALIZE FRAME-BASED PROCESSING
 % 
 % 
-% Determine input size
-[nSamples,nFilter,nChannels] = size(signal);
+% Compute framing parameters
+wSize = 2 * round(SET.wSizeSec * fsHz / 2);
+hSize = 2 * round(SET.hSizeSec * fsHz / 2);
+win   = window(SET.winType,wSize);
+
+% Determine size of input
+[nSamples,nFilter,nChannels] = size(data);
 
 % Compute number of frames
-nFrames = max(floor((nSamples-(SET.wSize-SET.hSize))/SET.hSize),1);
+nFrames = max(floor((nSamples-(wSize-hSize))/hSize),1);
 
 
 %% COMPUTE ENERGY
@@ -74,7 +96,7 @@ for ii = 1 : nFilter
     for jj = 1 : nChannels
         
         % Framing
-        frames = frameData(signal(:,ii,jj),SET.wSize,SET.hSize,SET.win,false);
+        frames = frameData(data(:,ii,jj),wSize,hSize,win,false);
                 
         % Compute envelope energy in dB
         energy(ii,:,jj) = 10 * log10(sum(frames.^2,1));
@@ -86,8 +108,14 @@ end
 % 
 % 
 % Compute first order difference, zero-pad offset map
-cues = cat(2,zeros(nFilter,1,nChannels),diff(energy,1,2));
+offset = cat(2,zeros(nFilter,1,nChannels),diff(energy,1,2));
 
 % Discard onsets and limit offset strength
-cues = min(abs(min(cues,0)),abs(SET.maxOffsetdB));
+offset = min(abs(min(offset,0)),abs(SET.maxOffsetdB));
 
+
+%% UPDATE CUE STRUCTURE
+% 
+% 
+% Copy cue
+CUE.data = offset;

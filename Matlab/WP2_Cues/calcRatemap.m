@@ -1,12 +1,16 @@
-function [cues,SET] = calcRatemap(signal,SET)
+function [CUE,SET] = calcRatemap(SIGNAL,CUE)
+%calcRatemap   Calculate ratemap representation. 
 % 
 %USAGE
-%    cues = calcRatemap(periphery,S)
+%   [CUE,SET] = calcRatemap(SIGNAL,CUE)
 %
 %INPUT PARAMETERS
+%      SIGNAL : signal structure
+%         CUE : cue structure initialized by init_WP2
 % 
 %OUTPUT PARAMETERS
-% 
+%         CUE : updated cue structure
+%         SET : updated cue settings (e.g., filter states)
 
 %   Developed with Matlab 8.2.0.701 (R2013b). Please send bug reports to:
 %   
@@ -28,47 +32,98 @@ if nargin ~= 2
     error('Wrong number of input arguments!')
 end
 
-% Determine input size
-[nSamples,nFilter,nChannels] = size(signal);
+
+%% GET INPUT DATA
+% 
+% 
+% Input signal and sampling frequency
+data = SIGNAL.data;
+fsHz = SIGNAL.fsHz;
+
+
+%% GET CUE-RELATED SETINGS 
+% 
+% 
+% Copy settings
+SET = CUE.set;
+
+
+%% DOWNMIX
+% 
+% 
+if ~SET.bBinaural
+    % Monoaural signal
+    data = mean(data, 3);
+end
+
+
+%% INITIALIZE FRAME-BASED PROCESSING
+% 
+% 
+% Compute framing parameters
+wSize = 2 * round(SET.wSizeSec * fsHz / 2);
+hSize = 2 * round(SET.hSizeSec * fsHz / 2);
+win   = window(SET.winType,wSize);
+
+% Determine size of input
+[nSamples,nFilter,nChannels] = size(data);
 
 % Compute number of frames
-nFrames = max(floor((nSamples-(SET.wSize-SET.hSize))/SET.hSize),1);
+nFrames = max(floor((nSamples-(wSize-hSize))/hSize),1);
 
  % Allocate memory
-cues = zeros(nFilter,nFrames,nChannels);
+ratemap = zeros(nFilter,nFrames,nChannels);
 
 
 %% COMPUTE RATEMAP
 % 
 % 
-% Filter decay
-intDecay = exp(-(1/(SET.fsHz * SET.decaySec)));
+% Perform leaky integration 
+if exist('SET.states','var')
+    [data,SET.states] = leakyIntegrator(data,fsHz,SET.decaySec,SET.states);
+else
+    [data,SET.states] = leakyIntegrator(data,fsHz,SET.decaySec);
+end
 
-% Integration gain
-intGain = 1-intDecay;
-
-% Apply integration filter
-signal = filter(intGain, [1 -intDecay], signal);
- 
 % Loop over number of auditory channels
 for ii = 1 : nFilter
     
-    % Select method for downsampling
-    switch(lower(SET.downSample))
+    % Loop over number of channels
+    for jj = 1 : nChannels
         
-        case 'downsample'
-            % Downsample input
-            cues(ii,:,1) = signal(SET.wSize:SET.hSize:nSamples,ii,1);
-            cues(ii,:,2) = signal(SET.wSize:SET.hSize:nSamples,ii,2);
-            
-        case 'average'            
-            % Framing
-            frames_L = frameData(signal(:,ii,1),SET.wSize,SET.hSize,SET.win,false);
-            frames_R = frameData(signal(:,ii,2),SET.wSize,SET.hSize,SET.win,false);
-            
-            % Frame-based averaging
-            cues(ii,:,1) = mean(frames_L,1);
-            cues(ii,:,2) = mean(frames_R,1);
+        % Select method for downsampling
+        switch(lower(SET.scaling))
+            case 'magnitude'
+                if SET.bDownSample
+                    % Downsample input
+                    ratemap(ii,:,jj) = data(wSize:hSize:nSamples,ii,jj);
+                else
+                    % Framing
+                    frames = frameData(data(:,ii,jj),wSize,hSize,win,false);
+                    
+                    % Frame-based averaging
+                    ratemap(ii,:,jj) = mean(frames,1);
+                end
+            case 'power'
+                if SET.bDownSample
+                    % Downsample input
+                    ratemap(ii,:,jj) = data(wSize:hSize:nSamples,ii,jj).^2;
+                else
+                    % Framing
+                    frames = frameData(data(:,ii,jj),wSize,hSize,win,false);
+                    
+                    % Frame-based averaging
+                    ratemap(ii,:,jj) = mean(frames.^2,1);
+                end
+            otherwise
+                error('Ratemap scaling ''%s'' is not supprted',lower(SET.scaling));
+        end
     end
 end
 
+
+%% UPDATE CUE STRUCTURE
+% 
+% 
+% Copy cue
+CUE.data = ratemap;

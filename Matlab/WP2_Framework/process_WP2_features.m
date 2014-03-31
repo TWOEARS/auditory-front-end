@@ -20,6 +20,7 @@ function [FEATURES,STATES] = process_WP2_features(CUES,STATES)
 % 
 %   History :  
 %   v.0.1   2014/02/22
+%   v.0.2   2014/03/07 modified handling of STATES
 %   ***********************************************************************
 
 
@@ -36,8 +37,8 @@ end
 %% INITIALIZE FEATURE STRUCTURE
 % 
 % 
-% Initialize feature struct
-FEATURES = STATES.features;
+% Initialize feature structure and add empty field "data"
+FEATURES = arrayfun(@(x) setfield(x, 'data', []), STATES.features); %#ok
 
 
 %% EXTRACT FEATURES
@@ -57,11 +58,11 @@ for ii = 1 : nFeatures
     
     % Perform feature processing
     if any(iDFeature) && any(iDCue)
-        [FEATURES(ii).data,STATES.features(ii).set] = feval(FEATURES(ii).fHandle,CUES(iDCue),FEATURES(iDFeature),STATES.features(ii).set);
+        [FEATURES(ii),STATES.features(ii).set] = feval(FEATURES(ii).fHandle,CUES(iDCue),FEATURES(iDFeature),STATES.features(ii));
     elseif any(iDFeature)
-        [FEATURES(ii).data,STATES.features(ii).set] = feval(FEATURES(ii).fHandle,FEATURES(iDFeature),STATES.features(ii).set);
+        [FEATURES(ii),STATES.features(ii).set] = feval(FEATURES(ii).fHandle,FEATURES(iDFeature),STATES.features(ii));
     elseif any(iDCue)
-        [FEATURES(ii).data,STATES.features(ii).set] = feval(FEATURES(ii).fHandle,CUES(iDCue),STATES.features(ii).set);        
+        [FEATURES(ii),STATES.features(ii).set] = feval(FEATURES(ii).fHandle,CUES(iDCue),STATES.features(ii));        
     else
         error('%s: Cue ''%s'' does not exist.',mfilename.FEATURES(ii).cue);
     end
@@ -71,8 +72,10 @@ end
 %% REMOVE FIELD NAMES
 % 
 % 
-% Field entries in the FEATURE structure that should not be "visible"
-rmFields = {'dependency'};
-
-% Remove fields 
-FEATURES = rmfield(FEATURES,rmFields);
+if nFeatures > 0
+    % Field entries in the FEATURE structure that should not be "visible"
+    rmFields = {'dependency'};
+    
+    % Remove fields
+    FEATURES = rmfield(FEATURES,rmFields);
+end
