@@ -48,16 +48,6 @@ fsHz = INPUT.fsHz;
 SET = SIGNAL.set;
 
 
-%% RESAMPLING
-% 
-% 
-% Resample input signal, is required
-if fsHz ~= SET.fsHz 
-    data = resample(data,SET.fsHz,fsHz);
-    fsHz = SET.fsHz;
-end
-
-
 %% PRE-FILTER EAR SIGNALS
 % 
 % 
@@ -85,4 +75,3 @@ end
 % 
 % Copy signal
 SIGNAL.data = data;
-SIGNAL.fsHz = fsHz;

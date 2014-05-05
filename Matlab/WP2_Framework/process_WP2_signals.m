@@ -48,9 +48,13 @@ SIGNALS = STATES.signals;
 % Select time domain signal
 iDTime = strcmp([STATES.signals.domain],'time');
 
+% Resample input signal, is required
+if fsHz ~= SIGNALS(iDTime).fsHz
+    earSignals = resample(earSignals,SIGNALS(iDTime).fsHz,fsHz);
+end
+
 % Initialize time domain signal with ear signals
 SIGNALS(iDTime).data = earSignals;
-SIGNALS(iDTime).fsHz = fsHz;
 
 
 %% CREATE MULTI-DIMENSIONAL SIGNAL REPRESENTATION

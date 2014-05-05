@@ -54,9 +54,9 @@ SET = SIGNAL.set;
 % 
 % 
 % Resample input signal, is required
-if fsHz ~= SET.fsHz 
-    data = resample(data,SET.fsHz,fsHz);
-    fsHz = SET.fsHz;
+if fsHz ~= SIGNAL.fsHz 
+    data = resampleData(data,SIGNAL.fsHz,fsHz);
+    fsHz = SIGNAL.fsHz;
 end
 
 
@@ -73,5 +73,4 @@ data(:,:,2) = ihcenvelope(data(:,:,2),fsHz,SET.ihcMethod);
 % 
 % Copy signal
 SIGNAL.data = data;
-SIGNAL.fsHz = fsHz;
 

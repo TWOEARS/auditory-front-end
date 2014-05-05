@@ -35,6 +35,8 @@ if nargin ~= 3
     error('Wrong number of input arguments!');
 end
 
+% TODO: Re-initialize filter states ... for batch-based processing
+
 
 %% PERFORM SIGNAL EXTRACTION
 % 

@@ -52,9 +52,9 @@ SET = SIGNAL.set;
 % 
 % 
 % Resample input signal, is required
-if fsHz ~= SET.fsHz 
-    data = resample(data,SET.fsHz,fsHz);
-    fsHz = SET.fsHz;
+if fsHz ~= SIGNAL.fsHz 
+    data = resampleData(data,SIGNAL.fsHz,fsHz);
+    fsHz = SIGNAL.fsHz;
 end
 
 
@@ -79,7 +79,7 @@ maxLag = wSize - 1;
 % % Pre-processing input signal
 % if SET.bBandpass
 %     % Design second-order bandpass
-%     [bBP,aBP] = butter(2,[450 8500]/(SET.fsHz/2));
+%     [bBP,aBP] = butter(2,[450 8500]/(fsHz/2));
 %     
 %     % Apply filter
 %     signal = filter(bBP,aBP,signal);
@@ -119,4 +119,3 @@ end
 % 
 % Copy signal
 SIGNAL.data = output;
-SIGNAL.fsHz = fsHz;

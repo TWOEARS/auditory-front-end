@@ -53,9 +53,9 @@ SET = SIGNAL.set;
 % 
 % 
 % Resample input signal, is required
-if fsHz ~= SET.fsHz 
-    data = resample(data,SET.fsHz,fsHz);
-    fsHz = SET.fsHz;
+if fsHz ~= SIGNAL.fsHz 
+    data = resampleData(data,SIGNAL.fsHz,fsHz);
+    fsHz = SIGNAL.fsHz;
 end
 
 
@@ -69,8 +69,8 @@ end
 output = zeros(nSamples,SET.paramGT.nFilter,nChannels);
 
 % Gammatone filtering
-output(:,:,1) = gammaFB(data(:,1),SIGNAL.fsHz,SET.paramGT);
-output(:,:,2) = gammaFB(data(:,2),SIGNAL.fsHz,SET.paramGT);
+output(:,:,1) = gammaFB(data(:,1),fsHz,SET.paramGT);
+output(:,:,2) = gammaFB(data(:,2),fsHz,SET.paramGT);
 
 
 %% UPDATE SIGNAL STRUCTURE
@@ -78,5 +78,4 @@ output(:,:,2) = gammaFB(data(:,2),SIGNAL.fsHz,SET.paramGT);
 % 
 % Copy signal
 SIGNAL.data = output;
-SIGNAL.fsHz = fsHz;
 

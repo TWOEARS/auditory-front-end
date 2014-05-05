@@ -51,8 +51,8 @@ SET = SIGNAL.set;
 % 
 % 
 % Resample input signal, is required
-if fsHz ~= SET.fsHz 
-    data = resample(data,SET.fsHz,fsHz);
+if fsHz ~= SIGNAL.fsHz
+    data = resample(data,SIGNAL.fsHz,fsHz);
     fsHz = SET.fsHz;
 end
 
@@ -104,4 +104,3 @@ end
 % 
 % Copy signal
 SIGNAL.data = output;
-SIGNAL.fsHz = fsHz;

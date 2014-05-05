@@ -131,30 +131,30 @@ for ii = 1 : nSignals
         case 'time'
             S.fHandle       = 'process_EarSignals';
             S.dim           = {'nSamples x [left right]'};
+            S.fsHz          = fsHz;
             
-            S.set.fsHz      = fsHz;
             S.set.bRemoveDC = true;
             S.set.bNormRMS  = true;
                         
         case 'gammatone'
             S.fHandle       = 'process_Gammatone';
             S.dim           = {'nSamples x nFilters x [left right]'};
+            S.fsHz          = fsHz;            
             
-            S.set.fsHz      = fsHz;            
-            S.set.paramGT   = gammaFIR(fsHz,fLowHz,fHighHz,nErbs,bAlign);
+            S.set.paramGT   = gammaFIR(S.fsHz,fLowHz,fHighHz,nErbs,bAlign);
             
         case 'innerhaircell'
             S.fHandle       = 'process_InnerHairCell';
             S.dim           = {'nSamples x nFilters x [left right]'};
-            
-            S.set.fsHz      = fsHz;            
+            S.fsHz          = fsHz;            
+
             S.set.ihcMethod = ihcMethod;
             
         case 'crosscorrelation'
             S.fHandle       = 'process_CrossCorrelation';
             S.dim           = {'nLags x nFrames x nFilters'};
-            
-            S.set.fsHz      = fsHz;                        
+            S.fsHz          = fsHz;            
+    
             S.set.wSizeSec  = wSizeSec;
             S.set.hSizeSec  = hSizeSec;
             S.set.winType   = 'rectwin';
@@ -164,9 +164,8 @@ for ii = 1 : nSignals
         case 'autocorrelation'
             S.fHandle       = 'process_AutoCorrelation';
             S.dim           = {'nLags x nFrames x nFilters x [left right]'};
-
-%             S.set.fsHz      = 8E3;
-            S.set.fsHz      = fsHz;
+            S.fsHz          = fsHz;            
+            
             S.set.wSizeSec  = wSizeSec;
             S.set.hSizeSec  = hSizeSec;
             S.set.winType   = 'rectwin';
