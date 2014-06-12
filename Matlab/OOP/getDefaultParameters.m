@@ -29,6 +29,9 @@ available = {'plotting','processing'};
 if ~isnumeric(fs)
     error('Incorrect input arguments')
 end
+if isempty(varargin)
+    varargin = available;
+end
 
 
 % Sampling frequency is required for field "processing"
