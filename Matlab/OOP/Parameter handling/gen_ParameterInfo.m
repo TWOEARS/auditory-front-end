@@ -1,58 +1,70 @@
-function p_info = gen_ParameterInfo()
-% 
-% This function is not intended for use by non-developers of WP2
+clear all
+close all
+
+% This script (re)populates the parameter info structure
+
+% Re-initialize pInfo
+pInfo = struct;
+save('parameterInfo.mat','pInfo')
+clear pInfo
+
+% Add all parameters
+
+% Processing:
+
+    % Gammatone filterbank
+    addParameterInfo('gammatone','f_low',80,'Lowest center frequency (Hz)','Gammatone filterbank')
+    addParameterInfo('gammatone','f_high',8000,'Highest center frequency (Hz)')
+    addParameterInfo('gammatone','IRtype','IIR','Gammatone filter impulse response type (''IIR'' or ''FIR'')')
+    addParameterInfo('gammatone','nERBs',1,'Distance between neighbor filters in ERBs')
+    addParameterInfo('gammatone','bwERBs',1.018,'Bandwidth of the filters (ERBs)')
+    % addParameterInfo('gammatone','fb_decimation',1,'Decimation ratio of the filterbank')
+    addParameterInfo('gammatone','durSec',128E-3,'Duration of FIR (s)')
+    % addParameterInfo('gammatone','bAlign',false,'Correction for filter alignment')
+
+    % Inner hair-cell envelope extraction
+    addParameterInfo('ihc','IHCMethod','dau','Inner hair-cell envelope extraction method (''none'', ''halfwave'', ''fullwave'', ''square'', ''hilbert'', ''joergensen'', ''dau'', ''breebart'', ''berstein'')','Inner hair-cell envelope extraction')
+
+    % Interaural Level Difference (ILD)
+    addParameterInfo('ild','ild_wname','hann','Window name','Interaural Level Difference')
+    addParameterInfo('ild','ild_wSizeSec',20E-3,'Window duration (s)')
+    addParameterInfo('ild','ild_hSizeSec',10E-3,'Window step size (s)')
+
+    % Ratemap Extraction
+    addParameterInfo('rm','rm_wname','hann','Window name','Ratemap extraction')
+    addParameterInfo('rm','rm_wSizeSec',20E-3,'Window duration (s)')
+    addParameterInfo('rm','rm_hSizeSec',10E-3,'Window step size (s)')
+    addParameterInfo('rm','rm_scaling','power','Ratemap scaling (''power'' or ''magnitude'')')
+    addParameterInfo('rm','rm_decaySec',8E-3,'Leaky integrator time constant (s)')
+
+    % Auto-correlation
+    addParameterInfo('ac','ac_wname','hann','Window name','Auto-correlation')
+    addParameterInfo('ac','ac_wSizeSec',20E-3,'Window duration (s)')
+    addParameterInfo('ac','ac_hSizeSec',10E-3,'Window step size (s)')
+    addParameterInfo('ac','ac_clipMethod','clp','Center clipping method (''clc'', ''clp'', or ''sgn'')')
+    addParameterInfo('ac','ac_clipAlpha',0.6,'Threshold in center clipping (between 0 and 1)')
+    addParameterInfo('ac','ac_K',2,'Exponent in auto-correlation')
+
+    % Cross-correlation
+    addParameterInfo('cc','cc_wname','rectwin','Window name','Cross-correlation')
+    addParameterInfo('cc','cc_wSizeSec',20E-3,'Window duration (s)')
+    addParameterInfo('cc','cc_hSizeSec',10E-3,'Window step size (s)')
+    addParameterInfo('cc','cc_maxDelaySec',1.1E-3,'Maximum delay in cross-correlation computation (s)')
 
 
-% Load list of default parameters with dummy sampling frequency
-p_def = getDefaultParameters(1);
+% Plotting:
+    addParameterInfo('plotting','ftype','Helvetica','Plots font name','Plot default properties')
+    addParameterInfo('plotting','fsize_label',12,'Labels font size')
+    addParameterInfo('plotting','fsize_title',14,'Titles font size')
+    addParameterInfo('plotting','fsize_axes',10,'Axes font size')
+    addParameterInfo('plotting','color','b','Main plot color')
+    addParameterInfo('plotting','colors',{'b','r','g','c'},'Multiple plot colors')
+    addParameterInfo('plotting','linewidth_s',1,'Small linewidth')
+    addParameterInfo('plotting','linewidth_m',2,'Medium linewidth')
+    addParameterInfo('plotting','linewidth_l',3,'Large linewidth')
 
-% Categories
-cat = {'General',...
-    'Gammatone filterbank',...
-    'Inner hair-cell envelope',...
-    'Interaural level difference (ILD)',...
-    'Ratemap',...
-    'Auto-correlation',...
-    'Cross-correlation'};
-
-% List of parameter names
-names = fieldnames(p_def);
-
-% Total number of parameters
-n_par = size(names,1);
-
-% Initialize a cell array for parameter info
-p_info = cell(n_par,1);
+    addParameterInfo('plotting','dynrange',80,'Dynamic range for time-frequency plots (dB)')
+    addParameterInfo('plotting','aud_ticks',[100 250 500 1000 2000 4000 8000 16000 32000],'Auditory ticks for ERB-based representations')
 
 
 
-% Loop on all parameters
-for ii = 1:n_par
-    
-   % Initialize
-%    p_info{ii} = struct;
-   
-   % Find suitable category
-   switch names{ii}
-       case {'fs'}
-           p_info{ii}.category = 'General';
-       case {'f_low','f_high','IRtype','nERBs','n_gamma','bwERBs','fb_decimation','durSec','bAlign'}
-           p_info{ii}.category = 'Gammatone Filterbank';
-       case {'IHCMethod'}
-           p_info{ii}.category = 'Inner hair-cell envelope';
-       case {'ild_wname','ild_wSizeSec','ild_hSizeSec'}
-           p_info{ii}.category = 'Interaural level difference (ILD)';
-       case {'rm_wname','rm_wSizeSec','rm_hSizeSec','rm_scaling','rm_decaySec'}
-           p_info{ii}.category = 'Ratemap';
-       case {'ac_wname','ac_wSizeSec','ac_hSizeSec','ac_clipMethod','ac_clipAlpha','ac_K'}
-           p_info{ii}.category = 'Auto-correlation';
-       case {'cc_wname','cc_wSizeSec','cc_hSizeSec','cc_maxDelaySec'}
-           p_info{ii}.category = 'Cross-correlation';
-       otherwise
-           p_info{ii}.category = 'Misc.';
-   end
-   
-   % 
-    
-    
-end

@@ -58,30 +58,6 @@ end
 p = struct;
 
 
-%% Plotting parameters
-if ismember('plotting',varargin)
-    
-    % General parameters
-    p.ftype = 'Helvetica';      % Plots font name
-    p.fsize_label = 12;         % Labels font size 
-    p.fsize_title = 14;         % Titles font size
-    p.fsize_axes = 10;          % Axes font size
-    
-    % Time-domain representations
-    p.color = 'b';              % Main color
-    p.colors = {'b','r','g','c'};
-                                % Vector of colors for multiple plots
-    p.linewidth_s = 1;          % Small linewidth
-    p.linewidth_m = 2;          % Medium linewidth
-    p.linewidth_l = 3;          % Large linewidth
-    
-    % Time-frequency representations
-    p.dynrange = 80;        % Dynamic range for spectrograms
-    p.aud_ticks = [100 250 500 1000 2000 4000 8000 16000 32000];
-                            % Auditory ticks for ERB-based representations
-    
-    
-end
 
 %% Processors parameters
 if ismember('processing',varargin)
@@ -141,3 +117,27 @@ if ismember('processing',varargin)
     
 end
 
+%% Plotting parameters
+if ismember('plotting',varargin)
+    
+    % General parameters
+    p.ftype = 'Helvetica';      % Plots font name
+    p.fsize_label = 12;         % Labels font size 
+    p.fsize_title = 14;         % Titles font size
+    p.fsize_axes = 10;          % Axes font size
+    
+    % Time-domain representations
+    p.color = 'b';              % Main color
+    p.colors = {'b','r','g','c'};
+                                % Vector of colors for multiple plots
+    p.linewidth_s = 1;          % Small linewidth
+    p.linewidth_m = 2;          % Medium linewidth
+    p.linewidth_l = 3;          % Large linewidth
+    
+    % Time-frequency representations
+    p.dynrange = 80;        % Dynamic range for spectrograms
+    p.aud_ticks = [100 250 500 1000 2000 4000 8000 16000 32000];
+                            % Auditory ticks for ERB-based representations
+    
+    
+end
