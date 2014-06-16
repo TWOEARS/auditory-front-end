@@ -28,7 +28,6 @@ classdef manager < handle
             % TO DO:
             %  - Expand this h1 line as the implementation progresses
             %  - Add support for multiple requests
-            %  - Add support for custom parameters
 
             
             if nargin>0     % Failproof for Matlab empty calls
@@ -252,7 +251,6 @@ classdef manager < handle
             %
             %
             % TO DO:
-            %   - Add support for custom parameters
             %   - Add support for multiple requests
             %   - Add support for feedback (ie, no overwrite of existing
             %   processors.
@@ -261,7 +259,13 @@ classdef manager < handle
                 p = getDefaultParameters(mObj.Data.signal{1}.FsHz,...
                     'processing');
             else
-                % TO DO: HERE GOES PARAMETER HANDLING
+                % Add sampling frequency to the list of parameters
+                if ~isfield(p,'fs')
+                    p.fs = mObj.Data.signal{1}.FsHz;
+                end                
+                % Add default values for parameters not explicity defined
+                % in p
+                p = parseParameters(p);
             end
             
             % Try/Catch to check that the request is valid
@@ -364,7 +368,7 @@ classdef manager < handle
                             % Instantiate a processor
                             mObj.Processors{ii} = gammatoneProc(p.fs,p.f_low,p.f_high,p.IRtype,p.nERBs,p.bAlign,p.n_gamma,p.bwERBs,p.durSec);
                             % Generate a new signal
-                            sig = TimeFrequencySignal(p.fs,'gammatone',p.cfHz,'Gammatone filterbank output',[],'mono');
+                            sig = TimeFrequencySignal(mObj.Processors{ii}.FsHzOut,'gammatone',p.cfHz,'Gammatone filterbank output',[],'mono');
                             % Add signal to the data object
                             mObj.Data.addSignal(sig);
                         end

@@ -108,12 +108,7 @@ classdef itdProc < Processor
             
             hp = true;
         end
-            
-        
-        
+          
     end
-    
-    
-    
     
 end

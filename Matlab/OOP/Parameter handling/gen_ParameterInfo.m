@@ -5,7 +5,12 @@ close all
 
 % Re-initialize pInfo
 pInfo = struct;
-save('parameterInfo.mat','pInfo')
+
+% Get correct path
+path = fileparts(mfilename('fullpath'));
+
+% Save the empty structure
+save([path filesep 'parameterInfo.mat'],'pInfo')
 clear pInfo
 
 % Add all parameters
@@ -17,10 +22,11 @@ clear pInfo
     addParameterInfo('gammatone','f_high',8000,'Highest center frequency (Hz)')
     addParameterInfo('gammatone','IRtype','IIR','Gammatone filter impulse response type (''IIR'' or ''FIR'')')
     addParameterInfo('gammatone','nERBs',1,'Distance between neighbor filters in ERBs')
+    addParameterInfo('gammatone','n_gamma',4,'Gammatone rising slope order')
     addParameterInfo('gammatone','bwERBs',1.018,'Bandwidth of the filters (ERBs)')
     % addParameterInfo('gammatone','fb_decimation',1,'Decimation ratio of the filterbank')
     addParameterInfo('gammatone','durSec',128E-3,'Duration of FIR (s)')
-    % addParameterInfo('gammatone','bAlign',false,'Correction for filter alignment')
+    addParameterInfo('gammatone','bAlign',false,'Correction for filter alignment')
 
     % Inner hair-cell envelope extraction
     addParameterInfo('ihc','IHCMethod','dau','Inner hair-cell envelope extraction method (''none'', ''halfwave'', ''fullwave'', ''square'', ''hilbert'', ''joergensen'', ''dau'', ''breebart'', ''berstein'')','Inner hair-cell envelope extraction')

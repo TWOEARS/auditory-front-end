@@ -21,6 +21,14 @@
 clear all
 close all
 
+% Get to correct directory and add working directories to path
+path = fileparts(mfilename('fullpath')); 
+cd(path)
+cd ..
+addpath Tools
+addpath AuditoryModel
+
+
 % Load a signal
 load([pwd,filesep,'WP2_Data',filesep,'TestBinauralCues']);
 

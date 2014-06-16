@@ -49,7 +49,7 @@ classdef crosscorrelationProc < Processor
             pObj.wSizeSec = p.cc_wSizeSec;
             pObj.wSize = 2*round(pObj.wSizeSec*fs/2);
             pObj.hSizeSec = p.cc_hSizeSec;
-            pObj.hSize = 2*round(pObj.hSizeSec*fs/2);
+            pObj.hSize = round(pObj.hSizeSec*fs);
             pObj.win = window(pObj.wname,pObj.wSize);
             pObj.Type = 'Cross-correlation extractor';
             pObj.FsHzIn = fs;

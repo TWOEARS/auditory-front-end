@@ -1,7 +1,7 @@
 classdef icProc < Processor
     
     properties
-        %isBinaural  % Flag indicating the need for two channels
+        % No additional properties for this processor
     end
     
     methods
@@ -96,12 +96,7 @@ classdef icProc < Processor
             
             hp = true;
         end
-            
-        
-        
+           
     end
-    
-    
-    
-    
+        
 end

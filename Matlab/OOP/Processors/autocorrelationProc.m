@@ -48,7 +48,7 @@ classdef autocorrelationProc < Processor
             pObj.wSizeSec = p.ac_wSizeSec;
             pObj.wSize = 2*round(pObj.wSizeSec*fs/2);
             pObj.hSizeSec = p.ac_hSizeSec;
-            pObj.hSize = 2*round(pObj.hSizeSec*fs/2);
+            pObj.hSize = round(pObj.hSizeSec*fs);
             pObj.win = window(pObj.wname,pObj.wSize);
             pObj.clipMethod = p.ac_clipMethod;
             pObj.alpha = p.ac_clipAlpha;

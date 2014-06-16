@@ -15,7 +15,7 @@ function p_full = parseParameters(p)
 %
 
 
-if isempty(p)||isempty(p.fs)
+if isempty(p)||~isfield(p,'fs')
     error('Input parameter structure should at least include the sampling frequency')
 end
 
