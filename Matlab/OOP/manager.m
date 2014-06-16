@@ -16,14 +16,17 @@ classdef manager < handle
             %manager        Constructs a manager object
             %
             %USAGE
-            %     mObj = manager(request,data)
-            %     mObj = manager(request,data,p)
+            %       mObj = manager(request,data)
+            %       mObj = manager(request,data,p)
             %
             %INPUT ARGUMENTS
             %  request : Cell array of requested signals, cues or features
             %            e.g., request = {'azimuth','rms'}
             %     data : Handle of an existing data structure
             %        p : Set of parameters
+            %
+            %OUTPUT ARGUMENTS
+            %     mObj : Manager instance
             
             % TO DO:
             %  - Expand this h1 line as the implementation progresses
@@ -45,7 +48,9 @@ classdef manager < handle
             
             % Instantiate the requested processors
             % TO DO: HERE GOES SUPPORT FOR MULTIPLE REQUESTS
-            mObj.addProcessor(request,p)
+            if ~isempty(request)
+                mObj.addProcessor(request,p);
+            end
             
             end
         end
@@ -236,37 +241,40 @@ classdef manager < handle
             
         end
         
-        function addProcessor(mObj,request,p)
+        function out = addProcessor(mObj,request,p)
             %addProcessor       Add new processor needed to compute a
-            %                   single request
+            %                   single request. Optionally returns a handle
+            %                   for the requested signal for convenience.
             %
             %USAGE:
-            %  mObj.addProcessor(request,p)
+            %     mObj.addProcessor(request,p)
+            %     out = mObj.addProcessor(...)
             %
             %INPUT ARGUMENTS
             %    mObj : Manager instance
             % request : Requested signal (string)
             %       p : Structure of non-default parameters
             %
-            %
+            %OUTPUT ARGUMENTS
+            %     out : Handle for the requested signal
             %
             % TO DO:
             %   - Add support for multiple requests
             %   - Add support for feedback (ie, no overwrite of existing
             %   processors.
             
-            if nargin<3||isempty(p)
-                p = getDefaultParameters(mObj.Data.signal{1}.FsHz,...
-                    'processing');
-            else
-                % Add sampling frequency to the list of parameters
-                if ~isfield(p,'fs')
-                    p.fs = mObj.Data.signal{1}.FsHz;
-                end                
-                % Add default values for parameters not explicity defined
-                % in p
-                p = parseParameters(p);
+            if nargin<3 || isempty(p)
+                % Initialize parameter structure
+                p = struct;
             end
+            
+            if ~isfield(p,'fs')
+                % Add sampling frequency to the parameter structure
+                p.fs = mObj.Data.signal{1}.FsHz;
+            end
+            
+            % Add default values for parameters not explicitly defined in p
+            p = parseParameters(p);
             
             % Try/Catch to check that the request is valid
             try 
@@ -554,6 +562,11 @@ classdef manager < handle
             
             % The mapping at this point is linear
             mObj.Map(n_proc+1:n_proc+n_new_proc) = n_proc+1:n_proc+n_new_proc;
+            
+            % Provide the user with a pointer to the requested signal
+            if nargout>0
+                out = mObj.OutputList{n_proc+n_new_proc,1};
+            end
             
         end
         

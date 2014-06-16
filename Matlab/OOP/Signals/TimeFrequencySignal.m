@@ -87,74 +87,78 @@ classdef TimeFrequencySignal < Signal
                     warning('Cannot plot this object')
             end
             
+            if ~isempty(sObj.Data)
+            
+                % Get plotting parameters
+                p = getDefaultParameters([],'plotting')
 
-            p = getDefaultParameters([],'plotting');
+                if do_dB
+                    % Get the data in dB
+                    data = 20*log10(abs(sObj.Data.'));
+                else
+                    % Keep linear amplitude
+                    data = sObj.Data.';
+                end
 
-            if do_dB
-                % Get the data in dB
-                data = 20*log10(abs(sObj.Data.'));
+                % Get a time vector
+                t = 0:1/sObj.FsHz:(size(data,2)-1)/sObj.FsHz;
+
+                h = figure;             % Generate a new figure
+
+
+                % Managing frequency axis ticks for auditory filterbank
+                %
+                % Find position of y-axis ticks
+                M = size(sObj.cfHz,2);  % Number of channels
+                n_points = 500;         % Number of points in the interpolation
+                interpolate_ticks = spline(1:M,sObj.cfHz,...
+                    linspace(0.5,M+0.5,n_points));
+                %
+                % Restrain ticks to signal range (+/- a half channel)
+                aud_ticks = p.aud_ticks;
+                aud_ticks=aud_ticks(aud_ticks<=interpolate_ticks(end));
+                aud_ticks=aud_ticks(aud_ticks>=interpolate_ticks(1));
+                n_ticks = size(aud_ticks,2);        % Number of ticks
+                ticks_pos = zeros(size(aud_ticks)); % Tick position
+                %
+                % Find index for each tick
+                for ii = 1:n_ticks
+                    jj = find(interpolate_ticks>=aud_ticks(ii),1);
+                    ticks_pos(ii) = jj*M/n_points;
+                end
+
+                % Plot the figure
+                imagesc(t,1:M,data)  % Plot the data
+                axis xy                 % Use Cartesian coordinates
+                colorbar                % Display a colorbar
+
+                % Set up axes labels
+                xlabel('Time (s)','fontsize',p.fsize_label,'fontname',p.ftype)
+                ylabel('Frequency (Hz)','fontsize',p.fsize_label,'fontname',p.ftype)
+                title(sObj.Label,'fontsize',p.fsize_title,'fontname',p.ftype)
+
+                % Set up plot properties
+                set(gca,'YTick',ticks_pos,...
+                    'YTickLabel',aud_ticks,'fontsize',p.fsize_axes,...
+                    'fontname',p.ftype)
+
+                % Scaling the plot
+                switch sObj.Name
+                    case {'innerhaircell','ratemap_magnitude','ratemap_power'}
+                        m = max(data(:));    % Get maximum value for scaling
+                        set(gca,'CLim',[m-p.dynrange m])
+
+                    case {'gammatone','ild','itc_xcorr'}
+                        m = max(abs(data(:)));
+                        set(gca,'CLim',[-m m])
+
+                    case 'ic_xcorr'
+                        set(gca,'CLim',[0 1])
+
+                end
             else
-                % Keep linear amplitude
-                data = sObj.Data.';
+                warning('This is an empty signal, cannot be plotted')
             end
-
-            % Get a time vector
-            t = 0:1/sObj.FsHz:(size(data,2)-1)/sObj.FsHz;
-
-            h = figure;             % Generate a new figure
-           
-
-            % Managing frequency axis ticks for auditory filterbank
-            %
-            % Find position of y-axis ticks
-            M = size(sObj.cfHz,2);  % Number of channels
-            n_points = 500;         % Number of points in the interpolation
-            interpolate_ticks = spline(1:M,sObj.cfHz,...
-                linspace(0.5,M+0.5,n_points));
-            %
-            % Restrain ticks to signal range (+/- a half channel)
-            aud_ticks = p.aud_ticks;
-            aud_ticks=aud_ticks(aud_ticks<=interpolate_ticks(end));
-            aud_ticks=aud_ticks(aud_ticks>=interpolate_ticks(1));
-            n_ticks = size(aud_ticks,2);        % Number of ticks
-            ticks_pos = zeros(size(aud_ticks)); % Tick position
-            %
-            % Find index for each tick
-            for ii = 1:n_ticks
-                jj = find(interpolate_ticks>=aud_ticks(ii),1);
-                ticks_pos(ii) = jj*M/n_points;
-            end
-
-            % Plot the figure
-            imagesc(t,1:M,data)  % Plot the data
-            axis xy                 % Use Cartesian coordinates
-            colorbar                % Display a colorbar
-
-            % Set up axes labels
-            xlabel('Time (s)','fontsize',p.fsize_label,'fontname',p.ftype)
-            ylabel('Frequency (Hz)','fontsize',p.fsize_label,'fontname',p.ftype)
-            title(sObj.Label,'fontsize',p.fsize_title,'fontname',p.ftype)
-
-            % Set up plot properties
-            set(gca,'YTick',ticks_pos,...
-                'YTickLabel',aud_ticks,'fontsize',p.fsize_axes,...
-                'fontname',p.ftype)
-            
-            % Scaling the plot
-            switch sObj.Name
-                case {'innerhaircell','ratemap_magnitude','ratemap_power'}
-                    m = max(data(:));    % Get maximum value for scaling
-                    set(gca,'CLim',[m-p.dynrange m])
-            
-                case {'gammatone','ild','itc_xcorr'}
-                    m = max(abs(data(:)));
-                    set(gca,'CLim',[-m m])
-                
-                case 'ic_xcorr'
-                    set(gca,'CLim',[0 1])
-                    
-            end
-                
                 
                 
                 
