@@ -90,7 +90,7 @@ classdef TimeFrequencySignal < Signal
             if ~isempty(sObj.Data)
             
                 % Get plotting parameters
-                p = getDefaultParameters([],'plotting')
+                p = getDefaultParameters([],'plotting');
 
                 if do_dB
                     % Get the data in dB

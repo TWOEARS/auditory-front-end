@@ -88,19 +88,25 @@ classdef TimeDomainSignal < Signal
                 h = figure();
             end
             
-            % Get default plotting parameters
-            p = getDefaultParameters([],'plotting');
+            if ~isempty(sObj.Data)
+                
+                % Get default plotting parameters
+                p = getDefaultParameters([],'plotting');
+
+                % Generate a time axis
+                t = 0:1/sObj.FsHz:(length(sObj.Data)-1)/sObj.FsHz;
+
+                % Plot
+                plot(t,sObj.Data,'color',p.color,'linewidth',p.linewidth_s)
+                xlabel('Time (s)','fontsize',p.fsize_label,'fontname',p.ftype)
+                ylabel('Amplitude','fontsize',p.fsize_label,'fontname',p.ftype)
+                title(sObj.Label,'fontsize',p.fsize_title,'fontname',p.ftype)
+                set(gca,'fontsize',p.fsize_axes,'fontname',p.ftype)
             
-            % Generate a time axis
-            t = 0:1/sObj.FsHz:(length(sObj.Data)-1)/sObj.FsHz;
-            
-            % Plot
-            plot(t,sObj.Data,'color',p.color,'linewidth',p.linewidth_s)
-            xlabel('Time (s)','fontsize',p.fsize_label,'fontname',p.ftype)
-            ylabel('Amplitude','fontsize',p.fsize_label,'fontname',p.ftype)
-            title(sObj.Label,'fontsize',p.fsize_title,'fontname',p.ftype)
-            set(gca,'fontsize',p.fsize_axes,'fontname',p.ftype)
-            
+            else
+                warning('This is an empty signal, cannot be plotted')
+            end
+                
             
         end
         

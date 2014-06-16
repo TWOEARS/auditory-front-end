@@ -12,13 +12,9 @@ p.IHCMethod = 'hilbert';
 
 % Instantiate data and manager objects
 dObj = dataObject(earSignals(:,2),fsHz);    % Create a data object based on this signal
-mObj = manager([],dObj);                    % Instantiate an empty manager
-
-% Add the requested processor
-ihc = mObj.addProcessor(request,p);
+mObj = manager(request,dObj,p);                    % Instantiate an empty manager
 
 mObj.processSignal
-% dObj.innerhaircell{1}.plot;
 
-ihc.plot
+dObj.innerhaircell{1}.plot
 

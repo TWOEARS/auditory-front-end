@@ -172,8 +172,8 @@ classdef gammatoneProc < Processor
             % The gammatone processor has the following parameters to be
             % checked: f_low, f_high, nERBs, n, bwERBs, FsHzIn, FsHzOut
             
-            p_list = {'f_low','f_high','nERBs','n_gamma','bwERBs',...
-                'fb_decimation'};
+            p_list = {'f_low','f_high','nERBs','n_gamma','bwERBs'};%,...
+                %'fb_decimation'};
             
             % Initialization of a parameters difference vector
             delta = zeros(size(p_list,2),1);

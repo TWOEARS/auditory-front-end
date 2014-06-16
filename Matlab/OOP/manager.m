@@ -201,43 +201,74 @@ classdef manager < handle
             end
         end
         
-        function index = hasProcessor(mObj,name,p)
-            %hasProcessor       Determines if a given processor is already
-            %                   instantiated in the manager
+        function hProc = hasProcessor(mObj,name,p)
+            %hasProcessor       Determines if a processor (including its
+            %                   dependencies) already exists
             %
             %USAGE
-            %  index = mObj.hasProcessor(name,p)
+            %  hProc = mObj.hasProcessor(name,p)
             %
             %INPUT ARGUMENTS
             %   mObj : Instance of manager object
             %   name : Name of processor
-            %      p : Structure of parameters for that processor
+            %      p : Complete structure of parameters for that processor
             %
             %OUTPUT ARGUMENT
-            %  index : Index of the processor, if already existing, 0 else
-            %
-            %EXAMPLE
-            %  mObj.hasProcessor('gammatone',p) = 2 if mObj.Processors{2}
-            %  is a gammatone filterbank with the parameters specified in p
+            %  hProc : Handle to an existing processor, if any, 0 else
             
             % TO DO: This function needs to recursively look into dependent
             % processors
+            % - Will have to be adjusted when introducing features with
+            % multiple dependencies
             
-            % Do any processor with that name exist?
+            % Initialize the output
+            hProc = 0;
+            
+            % Loop over the processors to find the ones with suitable name
             for ii = 1:size(mObj.Processors,1)
-                if isa(mObj.Processors{ii},name)
+                
+                % Get a handle to that processor, for readability in the
+                % following
+                proc = mObj.Processors{ii,1};
+                
+                % Is the current processor one of the sought type?
+                if isa(proc,name)
+                    
                     % Does it have the requested parameters?
-                    if mObj.Processors{ii}.hasParameters(p);
-                        index = ii;
-                        break
-                    else
-                        index = 0;
+                    if proc.hasParameters(p)
+                        
+                        % Then it is a suitable candidate, we should
+                        % investigate its dependencies
+                        while true
+                            
+                            if isempty(proc.Dependencies)
+                                % Then we reached the end of the dependency
+                                % list without finding a mismatch in
+                                % parameters. The original processor is a
+                                % solution:
+                                hProc = mObj.Processors{ii,1};
+                                return
+                            end
+                            
+                            % Set current processor to proc dependency
+                            proc = proc.Dependencies;
+                            
+                            % Does the dependency also have requested
+                            % parameters? If not, break of the while loop
+                            if ~proc.hasParameters(p)
+                                break
+                            end
+                            
+                        end
+                        
+                        
                     end
-                else
-                    index = 0;
+                    
                 end
+                
+                % If not, move along in the loop
+                
             end
-            
             
         end
         
@@ -262,6 +293,9 @@ classdef manager < handle
             %   - Add support for multiple requests
             %   - Add support for feedback (ie, no overwrite of existing
             %   processors.
+            %   - Current bug in .cfHz property of signals. This cannot be
+            %   taken from p.cfHz but needs to be fetch from dependent
+            %   processors. Only affects labeling of the channels.
             
             if nargin<3 || isempty(p)
                 % Initialize parameter structure
@@ -367,8 +401,8 @@ classdef manager < handle
                             mObj.Processors{ii,1} = gammatoneProc(p.fs,p.f_low,p.f_high,p.IRtype,p.nERBs,p.bAlign,p.n_gamma,p.bwERBs,p.durSec);
                             mObj.Processors{ii,2} = gammatoneProc(p.fs,p.f_low,p.f_high,p.IRtype,p.nERBs,p.bAlign,p.n_gamma,p.bwERBs,p.durSec);
                             % Generate new signals
-                            sig_l = TimeFrequencySignal(mObj.Processors{ii}.FsHzOut,'gammatone',p.cfHz,'Gammatone filterbank output',[],'left');
-                            sig_r = TimeFrequencySignal(mObj.Processors{ii}.FsHzOut,'gammatone',p.cfHz,'Gammatone filterbank output',[],'right');
+                            sig_l = TimeFrequencySignal(mObj.Processors{ii}.FsHzOut,'gammatone',mObj.Processors{ii}.cfHz,'Gammatone filterbank output',[],'left');
+                            sig_r = TimeFrequencySignal(mObj.Processors{ii}.FsHzOut,'gammatone',mObj.Processors{ii}.cfHz,'Gammatone filterbank output',[],'right');
                             % Add the signals to the data object
                             mObj.Data.addSignal(sig_l);
                             mObj.Data.addSignal(sig_r)
@@ -376,7 +410,7 @@ classdef manager < handle
                             % Instantiate a processor
                             mObj.Processors{ii} = gammatoneProc(p.fs,p.f_low,p.f_high,p.IRtype,p.nERBs,p.bAlign,p.n_gamma,p.bwERBs,p.durSec);
                             % Generate a new signal
-                            sig = TimeFrequencySignal(mObj.Processors{ii}.FsHzOut,'gammatone',p.cfHz,'Gammatone filterbank output',[],'mono');
+                            sig = TimeFrequencySignal(mObj.Processors{ii}.FsHzOut,'gammatone',mObj.Processors{ii}.cfHz,'Gammatone filterbank output',[],'mono');
                             % Add signal to the data object
                             mObj.Data.addSignal(sig);
                         end
