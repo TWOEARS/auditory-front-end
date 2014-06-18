@@ -334,7 +334,7 @@ classdef manager < handle
                 dep_list = [request getDependencies(request)];
             else
                 % Time is a special case and is listed as its dependency
-                dep_list = [getDependencies(request)];
+                dep_list = getDependencies(request);
             end
             
             % The processing order is the reversed list of dependencies
@@ -607,12 +607,13 @@ classdef manager < handle
             
         end
         
-        function hProc = findInitProc(mObj,request,p)
+        function [hProc,list] = findInitProc(mObj,request,p)
             %findInitProc   Find an initial compatible processor for a new
             %               request
             %
             %USAGE:
-            %    mObj.findInitProc(request,p)
+            %         hProc = mObj.findInitProc(request,p)
+            %  [hProc,list] = mObj.findInitProc(request,p)
             %
             %INPUT PARAMETERS
             %    mObj : Manager instance
@@ -623,6 +624,9 @@ classdef manager < handle
             %   hProc : Handle to the highest processor in the processing 
             %           chain that is compatible with the provided
             %           parameters
+            %    list : List of signal names that need to be computed,
+            %           starting from the output of hProc, to obtain the
+            %           request
         
             % Input parameter checking
             if nargin<3 || isempty(p)
@@ -651,23 +655,37 @@ classdef manager < handle
                     'Valid names are as follows: %s'],request,str)
             end
             
-            % Get the list of dependencies corresponding to the request
-            dep_list = getDependencies(request);
+            % Get the full list of dependencies corresponding to the request
+            if ~strcmp(request,'time')
+                dep_list = [request getDependencies(request)];
+            else
+                % Time is a special case as it is listed as its own dependency
+                dep_list = getDependencies(request);
+            end
             
             % Initialization of while loop
             ii = 1;
             dep = signal2procName(dep_list{ii});
             hProc = mObj.hasProcessor(dep,p);
+            list = {};
             
             % Looping until we find a suitable processor in the list of
             % dependency
-            while hProc == 0
-               
-                % Then move on to next level of dependency
+            while hProc == 0 && ii<size(dep_list,2)
+                
+                % Then we will need to re-compute that signal
+                list = [list dep_list{ii}];
+                
+                % Move on to next level of dependency
                 ii = ii + 1;
                 dep = signal2procName(dep_list{ii});
                 hProc = mObj.hasProcessor(dep,p);
                 
+            end
+            
+            if hProc == 0
+                % Then all the signals need recomputation, including time
+                list = [list dep_list{end}];
             end
             
         end
