@@ -12,17 +12,17 @@ classdef manager < handle
     end
     
     methods
-        function mObj = manager(request,data,p)
+        function mObj = manager(data,request,p)
             %manager        Constructs a manager object
             %
             %USAGE
-            %       mObj = manager(request,data)
-            %       mObj = manager(request,data,p)
+            %       mObj = manager(data,request)
+            %       mObj = manager(data,request,p)
             %
             %INPUT ARGUMENTS
+            %     data : Handle of an existing data structure
             %  request : Cell array of requested signals, cues or features
             %            e.g., request = {'azimuth','rms'}
-            %     data : Handle of an existing data structure
             %        p : Set of parameters
             %
             %OUTPUT ARGUMENTS
@@ -38,8 +38,11 @@ classdef manager < handle
             % Input check
             if nargin<3||isempty(p);p=[];end
             if nargin<2
-                error(['Too few arguments, the manager is built upon a '...
-                    'request and an existing data Object'])
+                request = [];
+            end
+            if nargin<1
+                error(['Too few arguments, the manager is built upon '...
+                    'an existing data Object'])
             end
             
             

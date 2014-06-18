@@ -36,7 +36,7 @@ data = earSignals(:,2);
 %% 
 % Initialization is done in two steps:
 dObj = dataObject(data,fsHz); % Create a data object based on this signal
-mObj = manager(request,dObj); % Instantiate a manager
+mObj = manager(dObj,request); % Instantiate a manager
 
 %%
 % Everything is now ready for processing:
@@ -81,7 +81,7 @@ data = earSignals;
 % Create an empty data object. It will be filled up as new ear signal
 % chunks are "acquired". 
 dObj = dataObject([],fsHz,1);   % Last input (1) indicates a stereo signal
-mObj = manager(request,dObj);   % Instantiate a manager
+mObj = manager(dObj,request);   % Instantiate a manager
 
 %%
 % From here on, simulating real-time chunk acquisition and processing
@@ -114,7 +114,7 @@ dObj.ild{1}.plot;
 %%
 % Extract the same cue but from the whole signal at once for comparison
 dObj2 = dataObject(data,fsHz);  % Create a new data object
-mObj2 = manager(request,dObj2); % Create a new manager
+mObj2 = manager(dObj2,request); % Create a new manager
 mObj2.processSignal;            % Do the processing
 
 %%
