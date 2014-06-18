@@ -1,0 +1,2 @@
+Documentation regarding the used file format for the irs data sets can be found here:
+https://dev.qu.tu-berlin.de/projects/measurements/wiki/IRs_file_format
