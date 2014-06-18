@@ -244,7 +244,7 @@ classdef manager < handle
                         % investigate its dependencies
                         while true
                             
-                            if isempty(proc.Dependencies)
+                            if isempty(proc.Dependencies{1})
                                 % Then we reached the end of the dependency
                                 % list without finding a mismatch in
                                 % parameters. The original processor is a
@@ -254,7 +254,7 @@ classdef manager < handle
                             end
                             
                             % Set current processor to proc dependency
-                            proc = proc.Dependencies;
+                            proc = proc.Dependencies{1};
                             
                             % Does the dependency also have requested
                             % parameters? If not, break of the while loop
@@ -571,7 +571,7 @@ classdef manager < handle
                     % 2-Then there is a single input and single output
                     mObj.InputList{ii,1} = dep_sig;
                     mObj.OutputList{ii,1} = sig;
-                    mObj.Processors{ii}.Dependencies = dep_proc;
+                    mObj.Processors{ii}.Dependencies = {dep_proc};
                     dep_sig = sig;
                     dep_proc = mObj.Processors{ii};
                     
@@ -582,8 +582,8 @@ classdef manager < handle
                     mObj.InputList{ii,2} = dep_sig_r;
                     mObj.OutputList{ii,1} = sig_l;
                     mObj.OutputList{ii,2} = sig_r;
-                    mObj.Processors{ii,1}.Dependencies = dep_proc_l;
-                    mObj.Processors{ii,2}.Dependencies = dep_proc_r;
+                    mObj.Processors{ii,1}.Dependencies = {dep_proc_l};
+                    mObj.Processors{ii,2}.Dependencies = {dep_proc_r};
                     dep_sig_l = sig_l;
                     dep_sig_r = sig_r;
                     dep_proc_l = mObj.Processors{ii,1};
@@ -603,6 +603,71 @@ classdef manager < handle
             % Provide the user with a pointer to the requested signal
             if nargout>0
                 out = mObj.OutputList{n_proc+n_new_proc,1};
+            end
+            
+        end
+        
+        function hProc = findInitProc(mObj,request,p)
+            %findInitProc   Find an initial compatible processor for a new
+            %               request
+            %
+            %USAGE:
+            %    mObj.findInitProc(request,p)
+            %
+            %INPUT PARAMETERS
+            %    mObj : Manager instance
+            % request : Requested signal name
+            %       p : Parameter structure associated to the request
+            %
+            %OUTPUT PARAMETERS
+            %   hProc : Handle to the highest processor in the processing 
+            %           chain that is compatible with the provided
+            %           parameters
+        
+            % Input parameter checking
+            if nargin<3 || isempty(p)
+                % Initialize parameter structure
+                p = struct;
+            end
+            if ~isfield(p,'fs')
+                % Add sampling frequency to the parameter structure
+                p.fs = mObj.Data.signal{1}.FsHz;
+            end
+            % Add default values for parameters not explicitly defined in p
+            p = parseParameters(p);
+        
+            % Try/Catch to check that the request is valid
+            try
+                getDependencies(request);
+            catch err
+                % Buid a list of available signals for display
+                list = getDependencies('available');
+                str = [];
+                for ii = 1:size(list,2)-1
+                    str = [str list{ii} ', '];
+                end
+                % Return the list
+                error(['The requested signal, %s is unknown. '...
+                    'Valid names are as follows: %s'],request,str)
+            end
+            
+            % Get the list of dependencies corresponding to the request
+            dep_list = getDependencies(request);
+            
+            % Initialization of while loop
+            ii = 1;
+            dep = signal2procName(dep_list{ii});
+            hProc = mObj.hasProcessor(dep,p);
+            
+            % Looping until we find a suitable processor in the list of
+            % dependency
+            while hProc == 0
+               
+                % Then move on to next level of dependency
+                ii = ii + 1;
+                dep = signal2procName(dep_list{ii});
+                hProc = mObj.hasProcessor(dep,p);
+                
             end
             
         end
