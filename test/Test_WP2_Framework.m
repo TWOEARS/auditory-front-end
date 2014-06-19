@@ -16,14 +16,14 @@ close all
 clc
 
 % Add working directories to path
-addpath Tools
-addpath AuditoryModel
-addpath HRTF_WP1
+addpath ../src/Tools
+addpath ../src/AuditoryModel
+addpath ../src/HRTF_WP1
 
-addpath WP2_Framework
-addpath WP2_Signals
-addpath WP2_Cues
-addpath WP2_Features
+addpath ../src/WP2_Framework
+addpath ../src/WP2_Signals
+addpath ../src/WP2_Cues
+addpath ../src/WP2_Features
 
 
 %% ALGORITHM SETTINGS
@@ -117,7 +117,9 @@ end
 azRange = (-90:1:90)';
 
 % Audio path
-pathAudio = [pwd,filesep,'Audio',filesep];
+pathDemo = fileparts(mfilename('fullpath'));
+pathAudio = [pathDemo filesep '..' filesep 'src' filesep 'Audio'];
+% pathAudio = [pwd,filesep,'Audio',filesep];
 
 % Scan for audio files
 audioFiles = listFiles(pathAudio,'*.wav');

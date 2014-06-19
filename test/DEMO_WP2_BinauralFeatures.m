@@ -16,14 +16,15 @@ close all
 clc
 
 % Add working directories to path
-addpath Tools
-addpath AuditoryModel
-addpath HRTF_WP1
+addpath ../src/Tools
+addpath ../src/AuditoryModel
+addpath ../src/HRTF_WP1
 
-addpath WP2_Framework
-addpath WP2_Signals
-addpath WP2_Cues
-addpath WP2_Features
+addpath ../src/WP2_Framework
+addpath ../src/WP2_Signals
+addpath ../src/WP2_Cues
+addpath ../src/WP2_Features
+addpath ../src/WP2_Data
 
 
 %% ALGORITHM SETTINGS
@@ -75,7 +76,7 @@ end
 % 
 % 
 % Load 'earSignals' and 'fsHz'
-load([pwd,filesep,'WP2_Data',filesep,'TestBinauralCues']);
+load('TestBinauralCues');
 
 
 %% INITIALIZE WP2 PROCESSING
