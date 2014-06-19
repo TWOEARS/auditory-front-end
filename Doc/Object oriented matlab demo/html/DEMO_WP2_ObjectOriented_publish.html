@@ -1,0 +1,271 @@
+
+<!DOCTYPE html
+  PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html><head>
+      <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+   <!--
+This HTML was auto-generated from MATLAB code.
+To make changes, update the MATLAB code and republish this document.
+      --><title>Object-oriented implementation of WP2 bottom-up processing</title><meta name="generator" content="MATLAB 8.3"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="DC.date" content="2014-06-19"><meta name="DC.source" content="DEMO_WP2_ObjectOriented_publish.m"><style type="text/css">
+html,body,div,span,applet,object,iframe,h1,h2,h3,h4,h5,h6,p,blockquote,pre,a,abbr,acronym,address,big,cite,code,del,dfn,em,font,img,ins,kbd,q,s,samp,small,strike,strong,sub,sup,tt,var,b,u,i,center,dl,dt,dd,ol,ul,li,fieldset,form,label,legend,table,caption,tbody,tfoot,thead,tr,th,td{margin:0;padding:0;border:0;outline:0;font-size:100%;vertical-align:baseline;background:transparent}body{line-height:1}ol,ul{list-style:none}blockquote,q{quotes:none}blockquote:before,blockquote:after,q:before,q:after{content:'';content:none}:focus{outine:0}ins{text-decoration:none}del{text-decoration:line-through}table{border-collapse:collapse;border-spacing:0}
+
+html { min-height:100%; margin-bottom:1px; }
+html body { height:100%; margin:0px; font-family:Arial, Helvetica, sans-serif; font-size:10px; color:#000; line-height:140%; background:#fff none; overflow-y:scroll; }
+html body td { vertical-align:top; text-align:left; }
+
+h1 { padding:0px; margin:0px 0px 25px; font-family:Arial, Helvetica, sans-serif; font-size:1.5em; color:#d55000; line-height:100%; font-weight:normal; }
+h2 { padding:0px; margin:0px 0px 8px; font-family:Arial, Helvetica, sans-serif; font-size:1.2em; color:#000; font-weight:bold; line-height:140%; border-bottom:1px solid #d6d4d4; display:block; }
+h3 { padding:0px; margin:0px 0px 5px; font-family:Arial, Helvetica, sans-serif; font-size:1.1em; color:#000; font-weight:bold; line-height:140%; }
+
+a { color:#005fce; text-decoration:none; }
+a:hover { color:#005fce; text-decoration:underline; }
+a:visited { color:#004aa0; text-decoration:none; }
+
+p { padding:0px; margin:0px 0px 20px; }
+img { padding:0px; margin:0px 0px 20px; border:none; }
+p img, pre img, tt img, li img, h1 img, h2 img { margin-bottom:0px; } 
+
+ul { padding:0px; margin:0px 0px 20px 23px; list-style:square; }
+ul li { padding:0px; margin:0px 0px 7px 0px; }
+ul li ul { padding:5px 0px 0px; margin:0px 0px 7px 23px; }
+ul li ol li { list-style:decimal; }
+ol { padding:0px; margin:0px 0px 20px 0px; list-style:decimal; }
+ol li { padding:0px; margin:0px 0px 7px 23px; list-style-type:decimal; }
+ol li ol { padding:5px 0px 0px; margin:0px 0px 7px 0px; }
+ol li ol li { list-style-type:lower-alpha; }
+ol li ul { padding-top:7px; }
+ol li ul li { list-style:square; }
+
+.content { font-size:1.2em; line-height:140%; padding: 20px; }
+
+pre, code { font-size:12px; }
+tt { font-size: 1.2em; }
+pre { margin:0px 0px 20px; }
+pre.codeinput { padding:10px; border:1px solid #d3d3d3; background:#f7f7f7; }
+pre.codeoutput { padding:10px 11px; margin:0px 0px 20px; color:#4c4c4c; }
+pre.error { color:red; }
+
+@media print { pre.codeinput, pre.codeoutput { word-wrap:break-word; width:100%; } }
+
+span.keyword { color:#0000FF }
+span.comment { color:#228B22 }
+span.string { color:#A020F0 }
+span.untermstring { color:#B20000 }
+span.syscmd { color:#B28C00 }
+
+.footer { width:auto; padding:10px 0px; margin:25px 0px 0px; border-top:1px dotted #878787; font-size:0.8em; line-height:140%; font-style:italic; color:#878787; text-align:left; float:none; }
+.footer p { margin:0px; }
+.footer a { color:#878787; }
+.footer a:hover { color:#878787; text-decoration:underline; }
+.footer a:visited { color:#878787; }
+
+table th { padding:7px 5px; text-align:left; vertical-align:middle; border: 1px solid #d6d4d4; font-weight:bold; }
+table td { padding:7px 5px; text-align:left; vertical-align:top; border:1px solid #d6d4d4; }
+
+
+
+
+
+  </style></head><body><div class="content"><h1>Object-oriented implementation of WP2 bottom-up processing</h1><!--introduction--><!--/introduction--><h2>Contents</h2><div><ul><li><a href="#2">Currently supported features</a></li><li><a href="#3">Coming-up features:</a></li><li><a href="#5">1- Basic advantages of object-oriented approach: Extraction of inner hair-cell envelope for a single audio channel</a></li><li><a href="#12">2- Complex scenario:</a></li></ul></div><p>This Demo scripts presents the object-oriented implementation of the WP2 bottom-up cue/feature extraction. It is intended as a demo at that stage, and not a working copy, as important feature are not implemented fully yet.</p><h2>Currently supported features<a name="2"></a></h2><div><ul><li>Mono &amp; Stereo input signals</li><li>Block-processing (real-time) compatibility</li><li>Following representations:</li></ul></div><pre class="codeinput">getDependencies(<span class="string">'available'</span>)
+</pre><pre class="codeoutput">
+ans = 
+
+  Columns 1 through 4
+
+    'time'    'gammatone'    'innerhaircell'    'crosscorrelation'
+
+  Columns 5 through 8
+
+    'autocorrelation'    'ratemap_magnitude'    'ratemap_power'    'ild'
+
+  Columns 9 through 10
+
+    'itd_xcorr'    'ic_xcorr'
+
+</pre><h2>Coming-up features:<a name="3"></a></h2><div><ul><li>User-provided parameter handling</li><li>Multiple requests at startup</li><li>Feedback handling</li></ul></div><p>Initialize and load a signal</p><pre class="codeinput">clear <span class="string">all</span>,close <span class="string">all</span>
+load(<span class="string">'TestBinauralCues'</span>);
+</pre><h2>1- Basic advantages of object-oriented approach: Extraction of inner hair-cell envelope for a single audio channel<a name="5"></a></h2><pre class="codeinput">request = <span class="string">'innerhaircell'</span>;
+
+<span class="comment">% Select one channel of the audio signal</span>
+data = earSignals(:,2);
+</pre><p>Initialization is done in two steps:</p><pre class="codeinput">dObj = dataObject(data,fsHz); <span class="comment">% Create a data object based on this signal</span>
+mObj = manager(dObj,request); <span class="comment">% Instantiate a manager</span>
+</pre><p>Everything is now ready for processing:</p><pre class="codeinput">mObj.processSignal
+</pre><p>Results are stored in the data object:</p><pre class="codeinput">dObj.innerhaircell{1}.plot;
+</pre><img vspace="5" hspace="5" src="DEMO_WP2_ObjectOriented_publish_01.png" alt=""> <p>The object dObj contains all the signals computed in the process as objects, each having specific methods, e.g.:</p><pre class="codeinput">fprintf(<span class="string">'%s for %s signal was computed for %i frequency channels.\n'</span>,<span class="keyword">...</span>
+    dObj.innerhaircell{1}.Label,<span class="keyword">...</span>
+    dObj.innerhaircell{1}.Canal,<span class="keyword">...</span>
+    size(dObj.innerhaircell{1}.cfHz,2))
+</pre><pre class="codeoutput">Inner hair-cell envelope for mono signal was computed for 31 frequency channels.
+</pre><p>Most objects are inheriting from the "handle" super-class, which allows to call them "by reference" instead of Matlab typical "by value", limiting memory usage from duplicates and allowing for using pointers to objects instances instead of duplicates. For example, the input and output lists properties of the manager class (used for routing inputs and outputs) are pointers to the actual input/output signals in the data object:</p><pre class="codeinput">mObj.OutputList{1}.plot;
+mObj.InputList{1}.play
+</pre><img vspace="5" hspace="5" src="DEMO_WP2_ObjectOriented_publish_02.png" alt=""> <pre class="codeinput">clear <span class="string">dObj</span> <span class="string">mObj</span> <span class="string">data</span>
+</pre><h2>2- Complex scenario:<a name="12"></a></h2><p>Chunk-based extraction of a frame-based binaural cue (ILD)</p><pre class="codeinput">request = <span class="string">'ild'</span>;
+chunkSize = 2000;   <span class="comment">% Chunk duration in samples</span>
+
+<span class="comment">% Use both ear signals</span>
+data = earSignals;
+</pre><p>Create an empty data object. It will be filled up as new ear signal chunks are "acquired".</p><pre class="codeinput">dObj = dataObject([],fsHz,1);   <span class="comment">% Last input (1) indicates a stereo signal</span>
+mObj = manager(dObj,request);   <span class="comment">% Instantiate a manager</span>
+</pre><p>From here on, simulating real-time chunk acquisition and processing request...</p><pre class="codeinput"><span class="comment">% Number of chunks in the signal</span>
+n_chunks = ceil(size(data,1)/chunkSize);
+
+<span class="comment">% Zero-pad the signal to an integer number of chunks (not necessary, but</span>
+<span class="comment">% but used for later comparison with signal-based processing)</span>
+data = [data;zeros(n_chunks*chunkSize-size(data,1),size(data,2))];
+
+<span class="comment">% Loop on all the chunks</span>
+<span class="keyword">for</span> ii = 1:n_chunks
+</pre><p>Each new chunk of signal is then read and processed by the manager</p><pre class="codeinput">    <span class="comment">% Read signal chunk</span>
+    chunk = data((ii-1)*chunkSize+1:ii*chunkSize,:);
+
+    <span class="comment">% Request processing for that chunk</span>
+    mObj.processChunk(chunk);
+</pre><pre class="codeinput"><span class="keyword">end</span>
+
+<span class="comment">% Plot the result</span>
+dObj.ild{1}.plot;
+</pre><img vspace="5" hspace="5" src="DEMO_WP2_ObjectOriented_publish_03.png" alt=""> <p>Extract the same cue but from the whole signal at once for comparison</p><pre class="codeinput">dObj2 = dataObject(data,fsHz);  <span class="comment">% Create a new data object</span>
+mObj2 = manager(dObj2,request); <span class="comment">% Create a new manager</span>
+mObj2.processSignal;            <span class="comment">% Do the processing</span>
+</pre><p>Compute and plot the difference between the two approaches</p><pre class="codeinput">delta_ild = TimeFrequencySignal(dObj.ild{1}.FsHz,<span class="string">'ild'</span>,dObj.ild{1}.cfHz,<span class="keyword">...</span>
+    <span class="string">'Difference in ILD, chunk vs. signal'</span>,<span class="keyword">...</span>
+    dObj.ild{1}.Data-dObj2.ild{1}.Data);
+delta_ild.plot;
+</pre><img vspace="5" hspace="5" src="DEMO_WP2_ObjectOriented_publish_04.png" alt=""> <p class="footer"><br><a href="http://www.mathworks.com/products/matlab/">Published with MATLAB&reg; R2014a</a><br></p></div><!--
+##### SOURCE BEGIN #####
+%% Object-oriented implementation of WP2 bottom-up processing
+%
+%%
+% This Demo scripts presents the object-oriented implementation of the WP2
+% bottom-up cue/feature extraction. It is intended as a demo at that stage,
+% and not a working copy, as important feature are not implemented fully
+% yet.
+%
+%% Currently supported features
+% * Mono & Stereo input signals
+% * Block-processing (real-time) compatibility
+% * Following representations:
+getDependencies('available')
+
+%% Coming-up features:
+% * User-provided parameter handling
+% * Multiple requests at startup
+% * Feedback handling
+%
+
+
+%%
+% Initialize and load a signal
+clear all,close all
+load('TestBinauralCues');
+
+ 
+
+%% 1- Basic advantages of object-oriented approach: Extraction of inner hair-cell envelope for a single audio channel
+
+request = 'innerhaircell';
+
+% Select one channel of the audio signal
+data = earSignals(:,2);    
+
+%% 
+% Initialization is done in two steps:
+dObj = dataObject(data,fsHz); % Create a data object based on this signal
+mObj = manager(dObj,request); % Instantiate a manager
+
+%%
+% Everything is now ready for processing:
+mObj.processSignal
+
+%%
+% Results are stored in the data object:
+dObj.innerhaircell{1}.plot;
+
+%%
+% The object dObj contains all the signals computed in the process as 
+% objects, each having specific methods, e.g.:
+fprintf('%s for %s signal was computed for %i frequency channels.\n',...
+    dObj.innerhaircell{1}.Label,...
+    dObj.innerhaircell{1}.Canal,...
+    size(dObj.innerhaircell{1}.cfHz,2))
+
+%%
+% Most objects are inheriting from the "handle" super-class, which allows
+% to call them "by reference" instead of Matlab typical "by value",
+% limiting memory usage from duplicates and allowing for using pointers to
+% objects instances instead of duplicates.
+% For example, the input and output lists properties of the manager class
+% (used for routing inputs and outputs) are pointers to the actual
+% input/output signals in the data object:
+mObj.OutputList{1}.plot;
+mObj.InputList{1}.play 
+
+%%
+clear dObj mObj data
+
+%% 2- Complex scenario:
+% Chunk-based extraction of a frame-based binaural cue (ILD)
+
+request = 'ild';
+chunkSize = 2000;   % Chunk duration in samples
+
+% Use both ear signals
+data = earSignals;
+
+%%
+% Create an empty data object. It will be filled up as new ear signal
+% chunks are "acquired". 
+dObj = dataObject([],fsHz,1);   % Last input (1) indicates a stereo signal
+mObj = manager(dObj,request);   % Instantiate a manager
+
+%%
+% From here on, simulating real-time chunk acquisition and processing
+% request...
+
+% Number of chunks in the signal
+n_chunks = ceil(size(data,1)/chunkSize);
+
+% Zero-pad the signal to an integer number of chunks (not necessary, but
+% but used for later comparison with signal-based processing)
+data = [data;zeros(n_chunks*chunkSize-size(data,1),size(data,2))];
+
+% Loop on all the chunks
+for ii = 1:n_chunks
+    
+    %%
+    % Each new chunk of signal is then read and processed by the manager
+    
+    % Read signal chunk
+    chunk = data((ii-1)*chunkSize+1:ii*chunkSize,:);
+    
+    % Request processing for that chunk
+    mObj.processChunk(chunk);
+    
+end
+
+% Plot the result
+dObj.ild{1}.plot;
+
+%%
+% Extract the same cue but from the whole signal at once for comparison
+dObj2 = dataObject(data,fsHz);  % Create a new data object
+mObj2 = manager(dObj2,request); % Create a new manager
+mObj2.processSignal;            % Do the processing
+
+%%
+% Compute and plot the difference between the two approaches
+delta_ild = TimeFrequencySignal(dObj.ild{1}.FsHz,'ild',dObj.ild{1}.cfHz,...
+    'Difference in ILD, chunk vs. signal',...
+    dObj.ild{1}.Data-dObj2.ild{1}.Data);
+delta_ild.plot;
+
+
+
+
+
+
+
+
+##### SOURCE END #####
+--></body></html>

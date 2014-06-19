@@ -3,10 +3,15 @@ close all
 clc
 
 % This script is for testing the behavior of the findInitProc method of the
-% manager class
+% manager class.
+
+
+% Add path
+path = fileparts(mfilename('fullpath')); 
+run([path filesep '..' filesep '..' filesep 'src' filesep 'startWP2.m'])
 
 % Load a signal
-load([pwd,filesep,'WP2_Data',filesep,'TestBinauralCues']);
+load('TestBinauralCues');
 
 % Original request with default parameters
 request = 'crosscorrelation';
@@ -17,7 +22,7 @@ mObj = manager(dObj,request);           % Instantiate a manager for the original
 % mObj = manager(dObj);                   % What happens with an empty manager?
 
 % Ask which processor should be taken as a starting point for different
-% scenarios:
+% scenarios (read outputs in command window as well as code):
 % 1- We change the frequency resolution of the filterbank
     new_request1 = 'innerhaircell';
     p1 = struct;

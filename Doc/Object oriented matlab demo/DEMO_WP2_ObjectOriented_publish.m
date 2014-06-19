@@ -22,7 +22,7 @@ getDependencies('available')
 %%
 % Initialize and load a signal
 clear all,close all
-load([pwd,filesep,'WP2_Data',filesep,'TestBinauralCues']);
+load('TestBinauralCues');
 
  
 
@@ -69,7 +69,7 @@ mObj.InputList{1}.play
 clear dObj mObj data
 
 %% 2- Complex scenario:
-%     Chunk-based extraction of a frame-based binaural cue (ILD)
+% Chunk-based extraction of a frame-based binaural cue (ILD)
 
 request = 'ild';
 chunkSize = 2000;   % Chunk duration in samples
@@ -90,8 +90,8 @@ mObj = manager(dObj,request);   % Instantiate a manager
 % Number of chunks in the signal
 n_chunks = ceil(size(data,1)/chunkSize);
 
-% Zero-pad the signal to an integer number of chunks (use for later
-% comparison with signal-based processing)
+% Zero-pad the signal to an integer number of chunks (not necessary, but
+% but used for later comparison with signal-based processing)
 data = [data;zeros(n_chunks*chunkSize-size(data,1),size(data,2))];
 
 % Loop on all the chunks
@@ -119,7 +119,7 @@ mObj2.processSignal;            % Do the processing
 
 %%
 % Compute and plot the difference between the two approaches
-delta_ild = TimeFrequencySignal(fsHz,'ild',dObj.ild{1}.cfHz,...
+delta_ild = TimeFrequencySignal(dObj.ild{1}.FsHz,'ild',dObj.ild{1}.cfHz,...
     'Difference in ILD, chunk vs. signal',...
     dObj.ild{1}.Data-dObj2.ild{1}.Data);
 delta_ild.plot;
