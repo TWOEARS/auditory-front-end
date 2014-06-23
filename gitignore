@@ -1,1 +1,6 @@
 *.asv
+*.aux
+*.bbl
+*.blg
+*.out
+*.synctex

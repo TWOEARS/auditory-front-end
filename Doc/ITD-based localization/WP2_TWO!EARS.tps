@@ -11,8 +11,8 @@ MaxPos.x=-1
 MaxPos.y=-1
 NormalPos.left=4
 NormalPos.top=26
-NormalPos.right=783
-NormalPos.bottom=791
+NormalPos.right=1821
+NormalPos.bottom=660
 Class=LaTeXView
 Document=WP2_TWO!EARS.tex
 
@@ -29,8 +29,8 @@ MaxPos.x=-1
 MaxPos.y=-1
 NormalPos.left=4
 NormalPos.top=26
-NormalPos.right=783
-NormalPos.bottom=791
+NormalPos.right=1821
+NormalPos.bottom=660
 Class=BibTeXView
 Document=References.bib
 
