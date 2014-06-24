@@ -54,11 +54,11 @@ classdef dataObject < dynamicprops
             % TO DO: Do something with the label of this signal?
             if is_stereo
                 if ~isempty(s)
-                    sig_l = TimeDomainSignal(fs,'signal','Left-ear Signal',s(:,1));
-                    sig_r = TimeDomainSignal(fs,'signal','Right-ear Signal',s(:,2));
+                    sig_l = TimeDomainSignal(fs,'signal','Ear Signal',s(:,1));
+                    sig_r = TimeDomainSignal(fs,'signal','Ear Signal',s(:,2));
                 else
-                    sig_l = TimeDomainSignal(fs,'signal','Left-ear Signal',[]);
-                    sig_r = TimeDomainSignal(fs,'signal','Right-ear Signal',[]);
+                    sig_l = TimeDomainSignal(fs,'signal','Ear Signal',[]);
+                    sig_r = TimeDomainSignal(fs,'signal','Ear Signal',[]);
                 end
                 dObj.addSignal(sig_l);
                 dObj.addSignal(sig_r);

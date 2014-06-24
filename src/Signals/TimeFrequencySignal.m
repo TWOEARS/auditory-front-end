@@ -132,10 +132,17 @@ classdef TimeFrequencySignal < Signal
                 axis xy                 % Use Cartesian coordinates
                 colorbar                % Display a colorbar
 
+                % Set up a title
+                if ~strcmp(sObj.Canal,'mono')
+                    pTitle = [sObj.Label ' - ' sObj.Canal];
+                else
+                    pTitle = sObj.Label;
+                end
+                
                 % Set up axes labels
                 xlabel('Time (s)','fontsize',p.fsize_label,'fontname',p.ftype)
                 ylabel('Frequency (Hz)','fontsize',p.fsize_label,'fontname',p.ftype)
-                title(sObj.Label,'fontsize',p.fsize_title,'fontname',p.ftype)
+                title(pTitle,'fontsize',p.fsize_title,'fontname',p.ftype)
 
                 % Set up plot properties
                 set(gca,'YTick',ticks_pos,...
@@ -149,7 +156,7 @@ classdef TimeFrequencySignal < Signal
                         set(gca,'CLim',[m-p.dynrange m])
 
                     case {'gammatone','ild','itc_xcorr'}
-                        m = max(abs(data(:)));
+                        m = max(abs(data(:)))+eps;
                         set(gca,'CLim',[-m m])
 
                     case 'ic_xcorr'
@@ -160,12 +167,6 @@ classdef TimeFrequencySignal < Signal
                 warning('This is an empty signal, cannot be plotted')
             end
                 
-                
-                
-                
-                
-            
-            
             
         end
     end

@@ -96,11 +96,18 @@ classdef TimeDomainSignal < Signal
                 % Generate a time axis
                 t = 0:1/sObj.FsHz:(length(sObj.Data)-1)/sObj.FsHz;
 
+                % Set up a title (include channel in the title)
+                if ~strcmp(sObj.Canal,'mono')
+                    pTitle = [sObj.Label ' - ' sObj.Canal];
+                else
+                    pTitle = sObj.Label;
+                end
+                
                 % Plot
                 plot(t,sObj.Data,'color',p.color,'linewidth',p.linewidth_s)
                 xlabel('Time (s)','fontsize',p.fsize_label,'fontname',p.ftype)
                 ylabel('Amplitude','fontsize',p.fsize_label,'fontname',p.ftype)
-                title(sObj.Label,'fontsize',p.fsize_title,'fontname',p.ftype)
+                title(pTitle,'fontsize',p.fsize_title,'fontname',p.ftype)
                 set(gca,'fontsize',p.fsize_axes,'fontname',p.ftype)
             
             else

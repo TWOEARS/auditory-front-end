@@ -349,16 +349,9 @@ classdef manager < handle
                 error(['One of the requested signal, cue, or feature '...
                     'name is unknown. Valid names are as follows: %s'],str)
             end
+
             
-%             %/OLD Get the full dependency list
-%             if ~strcmp(request,'time')
-%                 dep_list = [request getDependencies(request)];
-%             else
-%                 % Time is a special case and is listed as its dependency
-%                 dep_list = getDependencies(request);
-%             end
-            
-            %/NEW Find most suitable initial processor for that request
+            % Find most suitable initial processor for that request
             [initProc,dep_list] = mObj.findInitProc(request,p);
             
             % The processing order is the reversed list of dependencies
@@ -385,18 +378,7 @@ classdef manager < handle
             end
             
             
-%             %/OLD Initialize pointer to dependency 
-%             if mObj.Data.isStereo
-%                 dep_sig_l = mObj.Data.signal{1};
-%                 dep_sig_r = mObj.Data.signal{2};
-%                 dep_proc_l = [];
-%                 dep_proc_r = [];
-%             else
-%                 dep_sig = mObj.Data.signal{1};
-%                 dep_proc = [];
-%             end
-            
-            %/NEW Initialize pointer to dependency 
+            % Initialize pointer to dependency 
             if size(initProc,2)==2
                 % Need to refer to left and right chanel initial processors
                 % and signals
@@ -671,10 +653,7 @@ classdef manager < handle
                     % request was invalid, exit the for loop
                     break
                 end
-                
 
-                % TEMPORARY DEBUG
-                mObj.Processors
                 
                 % Clear temporary handles to ensure no inconsistencies 
                 clear sig sig_l sig_r
@@ -686,9 +665,6 @@ classdef manager < handle
             
             % Provide the user with a pointer to the requested signal
             if nargout>0
-                %/OLD
-%                 out = mObj.OutputList{n_proc+n_new_proc,1};
-                %/NEW
                 if isempty(mObj.Processors{n_proc+n_new_proc,2})
                     out = mObj.Processors{n_proc+n_new_proc,1}.Output;
                 else
