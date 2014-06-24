@@ -5,14 +5,14 @@ close all
 % cue
 
 % Add path
-path = fileparts(mfilename('fullpath')); 
-run([path filesep '..' filesep '..' filesep 'src' filesep 'startWP2.m'])
+% path = fileparts(mfilename('fullpath')); 
+% run([path filesep '..' filesep '..' filesep 'src' filesep 'startWP2.m'])
 
 % Load a binaural signal
 load('TestBinauralCues');
 
 % Parameters
-request = 'itd_xcorr';
+request = 'ic_xcorr';
 
 % Create a data object
 dObj = dataObject(earSignals,fsHz);
@@ -21,7 +21,7 @@ dObj = dataObject(earSignals,fsHz);
 mObj = manager(dObj);
 
 % Add the request
-sOut = mObj.addProcessor2(request);
+sOut = mObj.addProcessor(request);
 
 % Request processing
 mObj.processSignal;
