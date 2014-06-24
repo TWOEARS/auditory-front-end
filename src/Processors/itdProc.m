@@ -35,7 +35,7 @@ classdef itdProc < Processor
             
             % Populate properties
             pObj.populateProperties('Type','ITD extractor',...
-                'FsHzIn',fs,'FsHzOut',fs)
+                'FsHzIn',fs,'FsHzOut',fs);
             
             pObj.frameFsHz = p.fs;
                 

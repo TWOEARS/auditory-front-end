@@ -2,10 +2,8 @@ classdef Processor < handle
     
     properties
         Type            % Describes the processing performed
-%         DimensionsIn    % Description of the dimensions of the input signal
-%         DimensionsOut   % Description of the dimensions of the output signal
-%         LabelIn         % Description of the input signal
-%         LabelOut        % Description of the output signal
+        Input           % Handle to input signal
+        Output          % Handle to output signal
         FsHzIn          % Sampling frequency of input, prior to processing
         FsHzOut         % Sampling frequency of output, resulting from processing
         Dependencies    % Cell array listing the dependencies to other signals

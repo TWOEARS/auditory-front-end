@@ -204,38 +204,59 @@ classdef manager < handle
             end
         end
         
-        function hProc = hasProcessor(mObj,name,p)
+        function hProc = hasProcessor(mObj,name,p,channel)
             %hasProcessor       Determines if a processor (including its
             %                   dependencies) already exists
             %
             %USAGE
-            %  hProc = mObj.hasProcessor(name,p)
+            %   hProc = mObj.hasProcessor(name,p)
+            %   hProc = mObj.hasProcessor(name,p,channel)
             %
             %INPUT ARGUMENTS
-            %   mObj : Instance of manager object
-            %   name : Name of processor
-            %      p : Complete structure of parameters for that processor
+            %    mObj : Instance of manager object
+            %    name : Name of processor
+            %       p : Complete structure of parameters for that processor
+            % channel : Channel the sought processor should be acting on
+            %           ('left', 'right', or 'mono'). If unspecified, any
+            %           processor with matching parameter will be returned.
             %
             %OUTPUT ARGUMENT
-            %  hProc : Handle to an existing processor, if any, 0 else
+            %   hProc : Handle to an existing processor, if any, 0 else
             
-            % TO DO: This function needs to recursively look into dependent
-            % processors
-            % - Will have to be adjusted when introducing features with
-            % multiple dependencies
+            
+            ch_name = {'left','right','mono'};
+            
+            if nargin<4 %|| isempty(channel)
+                channel = ch_name;
+            elseif ~ismember(channel,ch_name)
+                error('Invalid tag for channel name. Valid tags are as follow: %s',strjoin(ch_name))
+            end
+            
+            if ~iscell(channel)
+                channel = {channel};
+            end
             
             % Initialize the output
             hProc = 0;
+            
+            % Look into corresponding ear depending on channel request.
+            % Left and mono are always in the first column of the
+            % processors cell array, right in the second.
+            if strcmp(channel,'right')
+                earIndex = 2;
+            else
+                earIndex = 1;
+            end
             
             % Loop over the processors to find the ones with suitable name
             for ii = 1:size(mObj.Processors,1)
                 
                 % Get a handle to that processor, for readability in the
                 % following
-                proc = mObj.Processors{ii,1};
+                proc = mObj.Processors{ii,earIndex};
                 
                 % Is the current processor one of the sought type?
-                if isa(proc,name)
+                if isa(proc,name) && ismember(proc.Output.Canal,channel)
                     
                     % Does it have the requested parameters?
                     if proc.hasParameters(p)
@@ -249,7 +270,7 @@ classdef manager < handle
                                 % list without finding a mismatch in
                                 % parameters. The original processor is a
                                 % solution:
-                                hProc = mObj.Processors{ii,1};
+                                hProc = mObj.Processors{ii,earIndex};
                                 return
                             end
                             
@@ -329,16 +350,21 @@ classdef manager < handle
                     'name is unknown. Valid names are as follows: %s'],str)
             end
             
-            % Get the full dependency list
-            if ~strcmp(request,'time')
-                dep_list = [request getDependencies(request)];
-            else
-                % Time is a special case and is listed as its dependency
-                dep_list = getDependencies(request);
-            end
+%             %/OLD Get the full dependency list
+%             if ~strcmp(request,'time')
+%                 dep_list = [request getDependencies(request)];
+%             else
+%                 % Time is a special case and is listed as its dependency
+%                 dep_list = getDependencies(request);
+%             end
+            
+            %/NEW Find most suitable initial processor for that request
+            [initProc,dep_list] = mObj.findInitProc(request,p);
             
             % The processing order is the reversed list of dependencies
             dep_list = fliplr(dep_list);
+
+            
             
             % Former number of processors
             n_proc = size(mObj.Processors,1);
@@ -359,22 +385,50 @@ classdef manager < handle
             end
             
             
-            % Initialize pointer to dependency (first processor is always
-            % timeProc)
-            % TO DO: Update this to a feedback scenario, first processor is
-            % the new processor with lowest dependency
-            if mObj.Data.isStereo
-                dep_sig_l = mObj.Data.signal{1};
-                dep_sig_r = mObj.Data.signal{2};
-                dep_proc_l = [];
-                dep_proc_r = [];
+%             %/OLD Initialize pointer to dependency 
+%             if mObj.Data.isStereo
+%                 dep_sig_l = mObj.Data.signal{1};
+%                 dep_sig_r = mObj.Data.signal{2};
+%                 dep_proc_l = [];
+%                 dep_proc_r = [];
+%             else
+%                 dep_sig = mObj.Data.signal{1};
+%                 dep_proc = [];
+%             end
+            
+            %/NEW Initialize pointer to dependency 
+            if size(initProc,2)==2
+                % Need to refer to left and right chanel initial processors
+                % and signals
+                dep_sig_l = initProc{1}.Output;
+                dep_sig_r = initProc{2}.Output;
+                dep_proc_l = initProc{1};
+                dep_proc_r = initProc{2};
+            elseif size(initProc,2)==1
+                % Only a single processor and signal (either mono, or
+                % already a binaural feature)
+                dep_sig = initProc.Output;
+                dep_proc = initProc;
             else
-                dep_sig = mObj.Data.signal{1};
-                dep_proc = [];
+                % Then processing starts from scratch, need to assess the
+                % number of channels
+                if mObj.Data.isStereo
+                    dep_sig_l = mObj.Data.signal{1};
+                    dep_sig_r = mObj.Data.signal{2};
+                    dep_proc_l = [];
+                    dep_proc_r = [];
+                else
+                    dep_sig = mObj.Data.signal{1};
+                    dep_proc = [];
+                end
             end
+                
             
             % Processors instantiation and data object property population
-            for ii = n_proc+1:n_proc+n_new_proc     
+            for ii = n_proc+1:n_proc+n_new_proc   
+                
+                proceed = 1;     % Initialize a flag to identify invalid requests
+                
                 switch dep_list{ii-n_proc}
                     
                     case 'time'
@@ -384,8 +438,8 @@ classdef manager < handle
                             mObj.Processors{ii,1} = identityProc(p.fs);
                             mObj.Processors{ii,2} = identityProc(p.fs);
                             % Generate new signals
-                            sig_l = TimeDomainSignal(mObj.Processors{ii}.FsHzOut,'time','Time',[],'left');
-                            sig_r = TimeDomainSignal(mObj.Processors{ii}.FsHzOut,'time','Time',[],'right');
+                            sig_l = TimeDomainSignal(mObj.Processors{ii,1}.FsHzOut,'time','Time',[],'left');
+                            sig_r = TimeDomainSignal(mObj.Processors{ii,2}.FsHzOut,'time','Time',[],'right');
                             % Add the signals to the data object
                             mObj.Data.addSignal(sig_l);
                             mObj.Data.addSignal(sig_r)
@@ -393,7 +447,7 @@ classdef manager < handle
                             % Instantiate a processor
                             mObj.Processors{ii} = identityProc(p.fs);
                             % Generate a new signal
-                            sig = TimeDomainSignal(mObj.Processors{ii}.FsHzOut,'time','Time');
+                            sig = TimeDomainSignal(mObj.Processors{ii,1}.FsHzOut,'time','Time');
                             % Add signal to the data object
                             mObj.Data.addSignal(sig);
                         end
@@ -404,16 +458,16 @@ classdef manager < handle
                             mObj.Processors{ii,1} = gammatoneProc(p.fs,p.f_low,p.f_high,p.IRtype,p.nERBs,p.bAlign,p.n_gamma,p.bwERBs,p.durSec);
                             mObj.Processors{ii,2} = gammatoneProc(p.fs,p.f_low,p.f_high,p.IRtype,p.nERBs,p.bAlign,p.n_gamma,p.bwERBs,p.durSec);
                             % Generate new signals
-                            sig_l = TimeFrequencySignal(mObj.Processors{ii}.FsHzOut,'gammatone',mObj.Processors{ii}.cfHz,'Gammatone filterbank output',[],'left');
-                            sig_r = TimeFrequencySignal(mObj.Processors{ii}.FsHzOut,'gammatone',mObj.Processors{ii}.cfHz,'Gammatone filterbank output',[],'right');
+                            sig_l = TimeFrequencySignal(mObj.Processors{ii,1}.FsHzOut,'gammatone',mObj.Processors{ii}.cfHz,'Gammatone filterbank output',[],'left');
+                            sig_r = TimeFrequencySignal(mObj.Processors{ii,2}.FsHzOut,'gammatone',mObj.Processors{ii}.cfHz,'Gammatone filterbank output',[],'right');
                             % Add the signals to the data object
                             mObj.Data.addSignal(sig_l);
                             mObj.Data.addSignal(sig_r)
                         else
                             % Instantiate a processor
-                            mObj.Processors{ii} = gammatoneProc(p.fs,p.f_low,p.f_high,p.IRtype,p.nERBs,p.bAlign,p.n_gamma,p.bwERBs,p.durSec);
+                            mObj.Processors{ii,1} = gammatoneProc(p.fs,p.f_low,p.f_high,p.IRtype,p.nERBs,p.bAlign,p.n_gamma,p.bwERBs,p.durSec);
                             % Generate a new signal
-                            sig = TimeFrequencySignal(mObj.Processors{ii}.FsHzOut,'gammatone',mObj.Processors{ii}.cfHz,'Gammatone filterbank output',[],'mono');
+                            sig = TimeFrequencySignal(mObj.Processors{ii,1}.FsHzOut,'gammatone',mObj.Processors{ii}.cfHz,'Gammatone filterbank output',[],'mono');
                             % Add signal to the data object
                             mObj.Data.addSignal(sig);
                         end
@@ -424,8 +478,8 @@ classdef manager < handle
                             mObj.Processors{ii,1} = IHCenvelopeProc(p.fs,p.IHCMethod);
                             mObj.Processors{ii,2} = IHCenvelopeProc(p.fs,p.IHCMethod);
                             % Generate new signals
-                            sig_l = TimeFrequencySignal(mObj.Processors{ii}.FsHzOut,'innerhaircell',p.cfHz,'Inner hair-cell envelope',[],'left');
-                            sig_r = TimeFrequencySignal(mObj.Processors{ii}.FsHzOut,'innerhaircell',p.cfHz,'Inner hair-cell envelope',[],'right');
+                            sig_l = TimeFrequencySignal(mObj.Processors{ii,1}.FsHzOut,'innerhaircell',p.cfHz,'Inner hair-cell envelope',[],'left');
+                            sig_r = TimeFrequencySignal(mObj.Processors{ii,2}.FsHzOut,'innerhaircell',p.cfHz,'Inner hair-cell envelope',[],'right');
                             % Add the signals to the data object
                             mObj.Data.addSignal(sig_l);
                             mObj.Data.addSignal(sig_r)
@@ -433,7 +487,7 @@ classdef manager < handle
                             % Instantiate a processor
                             mObj.Processors{ii} = IHCenvelopeProc(p.fs,p.IHCMethod);
                             % Generate a new signal
-                            sig = TimeFrequencySignal(mObj.Processors{ii}.FsHzOut,'innerhaircell',p.cfHz,'Inner hair-cell envelope',[],'mono');
+                            sig = TimeFrequencySignal(mObj.Processors{ii,1}.FsHzOut,'innerhaircell',p.cfHz,'Inner hair-cell envelope',[],'mono');
                             % Add signal to the data object
                             mObj.Data.addSignal(sig);
                         end
@@ -445,17 +499,17 @@ classdef manager < handle
                             mObj.Processors{ii,2} = autocorrelationProc(p.fs,p);
                             % Generate new signals
                             lags = 0:1/p.fs:mObj.Processors{ii,1}.wSizeSec-1/p.fs;   % Vector of lags
-                            sig_l = CorrelationSignal(mObj.Processors{ii}.FsHzOut,'autocorrelation',p.cfHz,lags,'Auto-correlation',[],'left');
-                            sig_r = CorrelationSignal(mObj.Processors{ii}.FsHzOut,'autocorrelation',p.cfHz,lags,'Auto-correlation',[],'right');
+                            sig_l = CorrelationSignal(mObj.Processors{ii,1}.FsHzOut,'autocorrelation',p.cfHz,lags,'Auto-correlation',[],'left');
+                            sig_r = CorrelationSignal(mObj.Processors{ii,2}.FsHzOut,'autocorrelation',p.cfHz,lags,'Auto-correlation',[],'right');
                             % Add the signals to the data object
                             mObj.Data.addSignal(sig_l);
                             mObj.Data.addSignal(sig_r)
                         else
                             % Instantiate a processor
-                            mObj.Processors{ii} = autocorrelationProc(p.fs,p);
+                            mObj.Processors{ii,1} = autocorrelationProc(p.fs,p);
                             % Generate a new signal
                             lags = 0:1/p.fs:mObj.Processors{ii,1}.wSizeSec-1/p.fs;   % Vector of lags
-                            sig = CorrelationSignal(mObj.Processors{ii}.FsHzOut,'autocorrelation',p.cfHz,lags,'Auto-correlation',[],'mono');
+                            sig = CorrelationSignal(mObj.Processors{ii,1}.FsHzOut,'autocorrelation',p.cfHz,lags,'Auto-correlation',[],'mono');
                             % Add signal to the data object
                             mObj.Data.addSignal(sig);
                         end
@@ -466,10 +520,10 @@ classdef manager < handle
                         if ~mObj.Data.isStereo
                             warning('Manager cannot instantiate a binaural cue extractor for a single-channel signal')
                         else
-                            mObj.Processors{ii} = crosscorrelationProc(p.fs,p);
-                            maxLag = ceil(mObj.Processors{ii}.maxDelaySec*p.fs);
+                            mObj.Processors{ii,1} = crosscorrelationProc(p.fs,p);
+                            maxLag = ceil(mObj.Processors{ii,1}.maxDelaySec*p.fs);
                             lags = (-maxLag:maxLag)/p.fs;
-                            sig = CorrelationSignal(mObj.Processors{ii}.FsHzOut,'crosscorrelation',p.cfHz,lags,'Cross-correlation',[],'mono');
+                            sig = CorrelationSignal(mObj.Processors{ii,1}.FsHzOut,'crosscorrelation',p.cfHz,lags,'Cross-correlation',[],'mono');
                             mObj.Data.addSignal(sig);
                             clear maxLag lags
                         end
@@ -480,16 +534,16 @@ classdef manager < handle
                             mObj.Processors{ii,1} = ratemapProc(p.fs,p,'magnitude');
                             mObj.Processors{ii,2} = ratemapProc(p.fs,p,'magnitude');
                             % Generate new signals
-                            sig_l = TimeFrequencySignal(mObj.Processors{ii}.FsHzOut,'ratemap_magnitude',p.cfHz,'Ratemap (magnitude)',[],'left');
-                            sig_r = TimeFrequencySignal(mObj.Processors{ii}.FsHzOut,'ratemap_magnitude',p.cfHz,'Ratemap (magnitude)',[],'right');
+                            sig_l = TimeFrequencySignal(mObj.Processors{ii,1}.FsHzOut,'ratemap_magnitude',p.cfHz,'Ratemap (magnitude)',[],'left');
+                            sig_r = TimeFrequencySignal(mObj.Processors{ii,2}.FsHzOut,'ratemap_magnitude',p.cfHz,'Ratemap (magnitude)',[],'right');
                             % Add the signals to the data object
                             mObj.Data.addSignal(sig_l);
                             mObj.Data.addSignal(sig_r)
                         else
                             % Instantiate a processor
-                            mObj.Processors{ii} = ratemapProc(p.fs,p,'magnitude');
+                            mObj.Processors{ii,1} = ratemapProc(p.fs,p,'magnitude');
                             % Generate a new signal
-                            sig = TimeFrequencySignal(mObj.Processors{ii}.FsHzOut,'ratemap_magnitude',p.cfHz,'Ratemap (magnitude)',[],'mono');
+                            sig = TimeFrequencySignal(mObj.Processors{ii,1}.FsHzOut,'ratemap_magnitude',p.cfHz,'Ratemap (magnitude)',[],'mono');
                             % Add signal to the data object
                             mObj.Data.addSignal(sig);
                         end
@@ -500,16 +554,16 @@ classdef manager < handle
                             mObj.Processors{ii,1} = ratemapProc(p.fs,p,'power');
                             mObj.Processors{ii,2} = ratemapProc(p.fs,p,'power');
                             % Generate new signals
-                            sig_l = TimeFrequencySignal(mObj.Processors{ii}.FsHzOut,'ratemap_power',p.cfHz,'Ratemap (power)',[],'left');
-                            sig_r = TimeFrequencySignal(mObj.Processors{ii}.FsHzOut,'ratemap_power',p.cfHz,'Ratemap (power)',[],'right');
+                            sig_l = TimeFrequencySignal(mObj.Processors{ii,1}.FsHzOut,'ratemap_power',p.cfHz,'Ratemap (power)',[],'left');
+                            sig_r = TimeFrequencySignal(mObj.Processors{ii,2}.FsHzOut,'ratemap_power',p.cfHz,'Ratemap (power)',[],'right');
                             % Add the signals to the data object
                             mObj.Data.addSignal(sig_l);
                             mObj.Data.addSignal(sig_r)
                         else
                             % Instantiate a processor
-                            mObj.Processors{ii} = ratemapProc(p.fs,p,'power');
+                            mObj.Processors{ii,1} = ratemapProc(p.fs,p,'power');
                             % Generate a new signal
-                            sig = TimeFrequencySignal(mObj.Processors{ii}.FsHzOut,'ratemap_power',p.cfHz,'Ratemap (power)',[],'mono');
+                            sig = TimeFrequencySignal(mObj.Processors{ii,1}.FsHzOut,'ratemap_power',p.cfHz,'Ratemap (power)',[],'mono');
                             % Add signal to the data object
                             mObj.Data.addSignal(sig);
                         end
@@ -519,8 +573,8 @@ classdef manager < handle
                         if ~mObj.Data.isStereo
                             warning('Manager cannot instantiate a binaural cue extractor for a single-channel signal')
                         else
-                            mObj.Processors{ii} = ildProc(p.fs,p);
-                            sig = TimeFrequencySignal(mObj.Processors{ii}.FsHzOut,'ild',p.cfHz,'Interaural Level Difference',[],'mono');
+                            mObj.Processors{ii,1} = ildProc(p.fs,p);
+                            sig = TimeFrequencySignal(mObj.Processors{ii,1}.FsHzOut,'ild',p.cfHz,'Interaural Level Difference',[],'mono');
                             mObj.Data.addSignal(sig);
                         end
                         
@@ -528,8 +582,8 @@ classdef manager < handle
                         if ~mObj.Data.isStereo
                             warning('Manager cannot instantiate a binaural cue extractor for a single-channel signal')
                         else
-                            mObj.Processors{ii} = icProc(dep_proc_l.FsHzOut,p);
-                            sig = TimeFrequencySignal(mObj.Processors{ii}.FsHzOut,'ic_xcorr',p.cfHz,'Interaural correlation',[],'mono');
+                            mObj.Processors{ii,1} = icProc(dep_proc_l.FsHzOut,p);
+                            sig = TimeFrequencySignal(mObj.Processors{ii,1}.FsHzOut,'ic_xcorr',p.cfHz,'Interaural correlation',[],'mono');
                             mObj.Data.addSignal(sig);
                         end
                         
@@ -537,8 +591,8 @@ classdef manager < handle
                         if ~mObj.Data.isStereo
                             warning('Manager cannot instantiate a binaural cue extractor for a single-channel signal')
                         else
-                            mObj.Processors{ii} = itdProc(dep_proc_l.FsHzOut,p);
-                            sig = TimeFrequencySignal(mObj.Processors{ii}.FsHzOut,'itd_xcorr',p.cfHz,'Interaural Time Difference',[],'mono');
+                            mObj.Processors{ii,1} = itdProc(dep_proc_l.FsHzOut,p);
+                            sig = TimeFrequencySignal(mObj.Processors{ii,1}.FsHzOut,'itd_xcorr',p.cfHz,'Interaural Time Difference',[],'mono');
                             mObj.Data.addSignal(sig);
                         end
                         
@@ -551,47 +605,77 @@ classdef manager < handle
                             dep_list{ii+1});
                 end
                 
+                if ~isempty(mObj.Processors{ii})
                 
-                % Add input/output pointers, dependencies, and update dependencies.
-                % Three possible scenarios:
-                
-                if isprop(mObj.Processors{ii},'isBinaural')
-                    
-                    % 1-Then there are two inputs (left&right) and one output
-                    mObj.InputList{ii,1} = dep_sig_l;
-                    mObj.InputList{ii,2} = dep_sig_r;
-                    mObj.OutputList{ii,1} = sig;
-                    mObj.OutputList{ii,2} = [];
-                    mObj.Processors{ii,1}.Dependencies = {dep_proc_l,dep_proc_r};
-                    dep_sig = sig;
-                    dep_proc = mObj.Processors{ii};
-                    
-                elseif exist('sig','var')&&strcmp(sig.Canal,'mono')
-                    
-                    % 2-Then there is a single input and single output
-                    mObj.InputList{ii,1} = dep_sig;
-                    mObj.OutputList{ii,1} = sig;
-                    mObj.Processors{ii}.Dependencies = {dep_proc};
-                    dep_sig = sig;
-                    dep_proc = mObj.Processors{ii};
+                    % Add input/output pointers, dependencies, and update dependencies.
+                    % Three possible scenarios:
+
+                    if isprop(mObj.Processors{ii},'isBinaural')
+
+                        % 1-Then there are two inputs (left&right) and one output
+                        mObj.InputList{ii,1} = dep_sig_l;
+                        mObj.InputList{ii,2} = dep_sig_r;
+                        mObj.OutputList{ii,1} = sig;
+                        mObj.OutputList{ii,2} = [];
+
+                        mObj.Processors{ii}.Input{1} = dep_sig_l;
+                        mObj.Processors{ii}.Input{2} = dep_sig_r;
+                        mObj.Processors{ii}.Output = sig;
+
+                        mObj.Processors{ii,1}.Dependencies = {dep_proc_l,dep_proc_r};
+                        dep_sig = sig;
+                        dep_proc = mObj.Processors{ii};
+
+                    elseif exist('sig','var')&&strcmp(sig.Canal,'mono') && proceed
+
+                        % 2-Then there is a single input and single output
+                        mObj.InputList{ii,1} = dep_sig;
+                        mObj.OutputList{ii,1} = sig;
+
+                        mObj.Processors{ii}.Input = dep_sig;
+                        mObj.Processors{ii}.Output = sig;
+
+                        mObj.Processors{ii}.Dependencies = {dep_proc};
+                        dep_sig = sig;
+                        dep_proc = mObj.Processors{ii};
+
+                    elseif ~proceed
+
+                        % Do nothing, this request is invalid and should be
+                        % skipped
+
+                    else
+
+                        % 3-Else there are two inputs and two outputs
+                        mObj.InputList{ii,1} = dep_sig_l;
+                        mObj.InputList{ii,2} = dep_sig_r;
+                        mObj.OutputList{ii,1} = sig_l;
+                        mObj.OutputList{ii,2} = sig_r;
+
+                        mObj.Processors{ii,1}.Input = dep_sig_l;
+                        mObj.Processors{ii,2}.Input = dep_sig_r;
+                        mObj.Processors{ii,1}.Output = sig_l;
+                        mObj.Processors{ii,2}.Output = sig_r;
+
+                        mObj.Processors{ii,1}.Dependencies = {dep_proc_l};
+                        mObj.Processors{ii,2}.Dependencies = {dep_proc_r};
+                        dep_sig_l = sig_l;
+                        dep_sig_r = sig_r;
+                        dep_proc_l = mObj.Processors{ii,1};
+                        dep_proc_r = mObj.Processors{ii,2};
+
+                    end
                     
                 else
-                    
-                    % 3-Else there are two inputs and two outputs
-                    mObj.InputList{ii,1} = dep_sig_l;
-                    mObj.InputList{ii,2} = dep_sig_r;
-                    mObj.OutputList{ii,1} = sig_l;
-                    mObj.OutputList{ii,2} = sig_r;
-                    mObj.Processors{ii,1}.Dependencies = {dep_proc_l};
-                    mObj.Processors{ii,2}.Dependencies = {dep_proc_r};
-                    dep_sig_l = sig_l;
-                    dep_sig_r = sig_r;
-                    dep_proc_l = mObj.Processors{ii,1};
-                    dep_proc_r = mObj.Processors{ii,2};
-                    
+                    % Then the processor was not instantiated as the
+                    % request was invalid, exit the for loop
+                    break
                 end
                 
 
+                % TEMPORARY DEBUG
+                mObj.Processors
+                
                 % Clear temporary handles to ensure no inconsistencies 
                 clear sig sig_l sig_r
                 
@@ -602,7 +686,15 @@ classdef manager < handle
             
             % Provide the user with a pointer to the requested signal
             if nargout>0
-                out = mObj.OutputList{n_proc+n_new_proc,1};
+                %/OLD
+%                 out = mObj.OutputList{n_proc+n_new_proc,1};
+                %/NEW
+                if isempty(mObj.Processors{n_proc+n_new_proc,2})
+                    out = mObj.Processors{n_proc+n_new_proc,1}.Output;
+                else
+                    out{1,1} = mObj.Processors{n_proc+n_new_proc,1}.Output;
+                    out{1,2} = mObj.Processors{n_proc+n_new_proc,2}.Output;
+                end
             end
             
         end
@@ -623,7 +715,9 @@ classdef manager < handle
             %OUTPUT PARAMETERS
             %   hProc : Handle to the highest processor in the processing 
             %           chain that is compatible with the provided
-            %           parameters
+            %           parameters. In case two instances exist for the
+            %           processor for a stereo signal, hProc is a cell
+            %           array of the form {'leftEarProc','rightEarProc'}
             %    list : List of signal names that need to be computed,
             %           starting from the output of hProc, to obtain the
             %           request
@@ -663,6 +757,7 @@ classdef manager < handle
                 dep_list = getDependencies(request);
             end
             
+            
             % Initialization of while loop
             ii = 1;
             dep = signal2procName(dep_list{ii});
@@ -686,6 +781,50 @@ classdef manager < handle
             if hProc == 0
                 % Then all the signals need recomputation, including time
                 list = [list dep_list{end}];
+                
+                % Return a empty handle
+                hProc = [];
+            end
+            
+            % If the processor found operates on the left channel of a stereo
+            % signal, we need to find its twin processor in charge of the
+            % right channel
+            if ~isempty(hProc) && strcmp(hProc.Output.Canal,'left')
+                
+                % Then repeat the same loop, but specifying the "other"
+                % channel
+                canal = 'right';
+                
+                % Initialization of while loop
+                ii = 1;
+                dep = signal2procName(dep_list{ii});
+                hProc2 = mObj.hasProcessor(dep,p,canal);
+                list = {};
+
+                % Looping until we find a suitable processor in the list of
+                % dependency
+                while hProc2 == 0 && ii<size(dep_list,2)
+
+                    % Then we will need to re-compute that signal
+                    list = [list dep_list{ii}];
+
+                    % Move on to next level of dependency
+                    ii = ii + 1;
+                    dep = signal2procName(dep_list{ii});
+                    hProc2 = mObj.hasProcessor(dep,p,canal);
+
+                end
+                
+                % Quick check that both found processor have the same task
+                % (else there was probably an issue somewhere in channel
+                % attribution)
+%                 if ~strcmp(class(hProc),class(hProc2))
+%                     error('Found different processors for left and right channels.')
+%                 end
+                
+                % Put results in a cell array
+                hProc = {hProc hProc2};
+                
             end
             
         end
