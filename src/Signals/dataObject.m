@@ -27,8 +27,6 @@ classdef dataObject < dynamicprops
             %OUTPUT ARGUMENTS
             %       dObj : Data object
             
-            % TO DO: Adapt to binaural signals
-            
             if nargin==1
                 error('The sampling frequency needs to be provided') 
             end
@@ -54,16 +52,14 @@ classdef dataObject < dynamicprops
             % TO DO: Do something with the label of this signal?
             if is_stereo
                 if ~isempty(s)
-                    sig_l = TimeDomainSignal(fs,'signal','Ear Signal',s(:,1));
-                    sig_r = TimeDomainSignal(fs,'signal','Ear Signal',s(:,2));
+                    sig_l = TimeDomainSignal(fs,'signal','Ear Signal',s(:,1),'left');
+                    sig_r = TimeDomainSignal(fs,'signal','Ear Signal',s(:,2),'right');
                 else
-                    sig_l = TimeDomainSignal(fs,'signal','Ear Signal',[]);
-                    sig_r = TimeDomainSignal(fs,'signal','Ear Signal',[]);
+                    sig_l = TimeDomainSignal(fs,'signal','Ear Signal',[],'left');
+                    sig_r = TimeDomainSignal(fs,'signal','Ear Signal',[],'right');
                 end
                 dObj.addSignal(sig_l);
                 dObj.addSignal(sig_r);
-                dObj.signal{1}.Canal = 'left';
-                dObj.signal{2}.Canal = 'right';
             else
                 if ~isempty(s)
                     sig = TimeDomainSignal(fs,'signal','Ear signal (mono)',s);
@@ -71,7 +67,6 @@ classdef dataObject < dynamicprops
                     sig = TimeDomainSignal(fs,'signal','Ear signal (mono)',[]);
                 end
                 dObj.addSignal(sig);
-                dObj.signal{1}.Canal = 'mono';
             end          
         end
         
@@ -91,14 +86,21 @@ classdef dataObject < dynamicprops
             %will then contain the signal sObj as a new property, named 
             %after sObj.Name
             
-            % TO DO: Decide if the field checking (to avoid duplicates and
-            % manage multiple instances of same s/c/f) goes into this 
-            % method or in an individual method. So far, no checking!
+            % N.B.: Left/right channel handling works here only because
+            % left channel is always instantiated first. Might want to
+            % check if that is a limitation.
+            
+            % Which channel (left, right, mono) is this signal
+            if strcmp(sObj.Canal,'right')
+                jj = 2;
+            else
+                jj = 1;
+            end
             
             % Check if a signal with this name already exist
             if isprop(dObj,sObj.Name)
-                ii = size(dObj.(sObj.Name),2)+1;
-                dObj.(sObj.Name){1,ii} = sObj;
+                ii = size(dObj.(sObj.Name),1)+2-jj;
+                dObj.(sObj.Name){ii,jj} = sObj;
             else
                 dObj.addprop(sObj.Name);
                 dObj.(sObj.Name) = {sObj};

@@ -18,7 +18,18 @@ clear earSignals fsHz
 
 %% Instantiate manager and data object
 
-requests = {'ild','itd_xcorr','ratemap_magnitude','ratemap_power'};
+request1 = 'ild';
+
+request2 = 'ild';
+p2 = struct;
+p2.fs = fs;
+p2.nERBs = 1/3;
+
+request3 = 'ild';
+p3 = struct;
+p3.fs = fs;
+p3.ild_wSizeSec = 50E-3;
+p3.ild_hSizeSec = 25E-3;
 
 % Create a data object
 dObj = dataObject(data,fs);
@@ -27,12 +38,9 @@ dObj = dataObject(data,fs);
 mObj = manager(dObj);
 
 % Add requested processors
-out = cell(size(requests));
-
-for ii = 1:size(requests,2)
-    out{ii} = mObj.addProcessor(requests{ii});
-end
-
+out1 = mObj.addProcessor(request1);
+out2 = mObj.addProcessor(request2,p2);
+out3 = mObj.addProcessor(request3,p3);
 
 %% Start processing
 
@@ -40,11 +48,8 @@ end
 mObj.processSignal();
 
 %% Plot results
-for ii = 1:size(out,2)
-    if size(out{ii},2) == 1
-        out{ii}.plot
-    elseif size(out{ii},2) == 2
-        % Plot only left channel
-        out{ii}{1}.plot
-    end
-end
+out1.plot;
+out2.plot;
+out3.plot;
+
+mObj.Processors
