@@ -59,7 +59,7 @@ clear pInfo
 
 
 % Plotting:
-    addParameterInfo('plotting','ftype','Helvetica','Plots font name','Plot default properties')
+    addParameterInfo('plotting','ftype','Helvetica','Plots font name','Plot properties')
     addParameterInfo('plotting','fsize_label',12,'Labels font size')
     addParameterInfo('plotting','fsize_title',14,'Titles font size')
     addParameterInfo('plotting','fsize_axes',10,'Axes font size')
