@@ -16,15 +16,7 @@ close all
 clc
 
 % Add working directories to path
-addpath ../src/Tools
-addpath ../src/AuditoryModel
-addpath ../src/HRTF_WP1
-
-addpath ../src/WP2_Framework
-addpath ../src/WP2_Signals
-addpath ../src/WP2_Cues
-addpath ../src/WP2_Features
-addpath ../src/WP2_Data
+addpath(genpath([pwd,filesep,'..',filesep,'src',filesep]))
 
 
 %% ALGORITHM SETTINGS
@@ -44,6 +36,7 @@ switch(lower(preset))
         % Input signal
         SET.fsHz       = fsHz;
         SET.bNormRMS   = false;
+        SET.bRemoveDC  = false;
         
         % Auditory periphery
         SET.nErbs      = 1;          % ERB spacing of gammatone filters
@@ -69,7 +62,6 @@ switch(lower(preset))
     otherwise
         error('Preset is not supported');
 end
-
 
 
 %% LOAD ACOUSTIC SIGNAL

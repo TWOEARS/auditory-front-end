@@ -60,7 +60,7 @@ end
 % 
 % Compute framing parameters
 wSize = 2 * round(SET.wSizeSec * fsHz / 2);
-hSize = 2 * round(SET.hSizeSec * fsHz / 2);
+hSize = round(SET.hSizeSec * fsHz);
 win   = window(SET.winType,wSize);
 
 % Determine size of input

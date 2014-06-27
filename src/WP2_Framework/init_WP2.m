@@ -102,6 +102,7 @@ ihcMethod = SET.ihcMethod;
 % Framing parameters
 wSizeSec = SET.winSizeSec;
 hSizeSec = SET.hopSizeSec;
+winType  = SET.winType;
 
 
 %% CONFIGURE SIGNAL EXTRACTION  
@@ -133,8 +134,8 @@ for ii = 1 : nSignals
             S.dim           = {'nSamples x [left right]'};
             S.fsHz          = fsHz;
             
-            S.set.bRemoveDC = true;
-            S.set.bNormRMS  = true;
+            S.set.bRemoveDC = SET.bRemoveDC;
+            S.set.bNormRMS  = SET.bNormRMS;
                         
         case 'gammatone'
             S.fHandle       = 'process_Gammatone';
@@ -157,7 +158,7 @@ for ii = 1 : nSignals
     
             S.set.wSizeSec  = wSizeSec;
             S.set.hSizeSec  = hSizeSec;
-            S.set.winType   = 'rectwin';
+            S.set.winType   = winType;
             
             S.set.maxDelaySec = SET.maxDelaySec;
 
@@ -168,7 +169,7 @@ for ii = 1 : nSignals
             
             S.set.wSizeSec  = wSizeSec;
             S.set.hSizeSec  = hSizeSec;
-            S.set.winType   = 'rectwin';
+            S.set.winType   = winType;
             
             S.set.bBandpass   = true;
             S.set.K           = 2;
@@ -221,7 +222,7 @@ for ii = 1 : nCues
             S.set.bBinaural = true;
             S.set.wSizeSec  = wSizeSec;
             S.set.hSizeSec  = hSizeSec;
-            S.set.winType   = 'hann';
+            S.set.winType   = winType;
             
         case 'synchrony'
             % Autocorrelogram
@@ -234,7 +235,7 @@ for ii = 1 : nCues
                         
             S.set.wSize    = wSizeSec;
             S.set.hSize    = hSizeSec;
-            S.set.winType  = 'rectwin';
+            S.set.winType  = winType;
 
             % Get gammatone center frequencies 
             S.set.fHz      = STATES.signals(strcmp([STATES.signals.domain],'gammatone')).set.paramGT.cfHz;
@@ -259,7 +260,7 @@ for ii = 1 : nCues
             S.set.scaling  = 'magnitude';
             S.set.wSizeSec = wSizeSec;
             S.set.hSizeSec = hSizeSec;
-            S.set.winType  = 'rectwin';
+            S.set.winType  = winType;
             
             % Get gammatone center frequencies 
             S.set.fHz      = STATES.signals(strcmp([STATES.signals.domain],'gammatone')).set.paramGT.cfHz;
@@ -278,7 +279,7 @@ for ii = 1 : nCues
             S.set.scaling  = 'power';
             S.set.wSizeSec = wSizeSec;
             S.set.hSizeSec = hSizeSec;
-            S.set.winType  = 'rectwin';
+            S.set.winType  = winType;
             
             % Get gammatone center frequencies 
             S.set.fHz      = STATES.signals(strcmp([STATES.signals.domain],'gammatone')).set.paramGT.cfHz;
@@ -294,7 +295,7 @@ for ii = 1 : nCues
             S.set.decaySec   = 8E-3;
             S.set.wSizeSec   = wSizeSec;
             S.set.hSizeSec   = hSizeSec;
-            S.set.winType    = 'rectwin';
+            S.set.winType    = winType;
 
             if S.set.bBinaural
                 S.dim = {'nFilter x nFrames x [left right]'};
@@ -313,7 +314,7 @@ for ii = 1 : nCues
             S.set.decaySec    = 8E-3;
             S.set.wSizeSec    = wSizeSec;
             S.set.hSizeSec    = hSizeSec;
-            S.set.winType     = 'rectwin';
+            S.set.winType     = winType;
                         
             if S.set.bBinaural
                 S.dim = {'nFilter x nFrames x [left right]'};
@@ -343,7 +344,7 @@ for ii = 1 : nCues
             
             S.set.wSizeSec = wSizeSec;
             S.set.hSizeSec = hSizeSec;
-            S.set.winType  = 'rectwin';
+            S.set.winType  = winType;
             
         case 'average_deviation'
             % Average deviation
@@ -353,7 +354,7 @@ for ii = 1 : nCues
             S.set.bBinaural = true;
             S.set.wSizeSec  = wSizeSec;
             S.set.hSizeSec  = hSizeSec;
-            S.set.winType   = 'rectwin';
+            S.set.winType   = winType;
                         
             if S.set.bBinaural
                 S.dim = {'nFilter x nFrames x [left right]'};

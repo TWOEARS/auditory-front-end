@@ -30,7 +30,7 @@ if G.bAlign
     out = zeros(nSamples,G.nFilter);
     
     % Align channels
-    for ii = 1:nFilter
+    for ii = 1:G.nFilter
         out(:,ii) = bm(G.delay(ii)+1:end-(maxDelay-G.delay(ii)),ii);
     end
 else
