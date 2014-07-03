@@ -18,11 +18,11 @@ classdef gammatoneProc < Processor
             %                   the "processor" class
             %
             %USAGE
-            % -Minimal usage, either:
-            %   pObj = gammatoneProc(fs,flow,fhigh)
-            %   pObj = gammatoneProc(fs,flow,fhigh,nERBs)
-            %   pObj = gammatoneProc(fs,flow,fhigh,[],nChan)
+            % -Minimal usage, either (in order of priority)
             %   pObj = gammatoneProc(fs,[],[],[],[],cfHz)
+            %   pObj = gammatoneProc(fs,flow,fhigh,[],nChan)
+            %   pObj = gammatoneProc(fs,flow,fhigh,nERBs)
+            %   pObj = gammatoneProc(fs,flow,fhigh)
             %
             % -Additional arguments:
             %   pObj = gammatoneProc(...,irType,bAlign,n,bw,dur)
@@ -71,16 +71,39 @@ classdef gammatoneProc < Processor
             
             % Parse mandatory arguments: three scenarios
             
-            % 1- Frequency range and distance between channels is provided
-            if nargin < 4 || isempty(nERBs);  nERBs  = 1;     end
+            if ~isempty(cfHz)
+                % 3- A vector of channels center frequencies is provided
+                
+                % Do nothing, we already have a vector of center
+                % frequencies in Hz
+                % Warn the user though
+                warning('%s: Gammatone filterbank is being generated from a provided vector of center frequencies',mfilename('class'))
+                
+            elseif ~isempty(flow)&&~isempty(fhigh)&&~isempty(nChan)
+                % 2- Frequency range and number of channels is provided
+                
+                % Get vector of center frequencies
+                ERBS = linspace(freq2erb(flow),freq2erb(fhigh),nChan);  % In ERBS
+                cfHz = erb2freq(ERBS);                                  % In Hz
+                
+                % Warn the user
+                warning('%s: Gammatone filterbank is being generated from a provided frequency range and number of channels',mfilename('class'))
+                
+            elseif ~isempty(flow)&&~isempty(fhigh)&&isempty(nChan)&&isempty(cfHz)
+                % 3- Frequency range and distance between channels is provided
+                
+                % Set distance between to channel to default is unspecified
+                if nargin < 4 || isempty(nERBs);  nERBs  = 1;     end
+                
+                % Get vector of center frequencies
+                ERBS = freq2erb(flow):double(nERBs):freq2erb(fhigh);    % In ERBS
+                cfHz = erb2freq(ERBS);                                  % In Hz
+                
+            else
+                % Else, something is missing in the input
+                error('Not enough or incoherent input arguments.')
+            end
             
-            % 2- Frequency range
-            
-            % ERBs vector, with a spacing of nERBs
-            ERBS = freq2erb(flow):double(nERBs):freq2erb(fhigh);
-            
-            % Conversion from ERB to Hz
-            cfHz = erb2freq(ERBS);
             
             % Number of gammatone filters
             nFilter = numel(cfHz); 

@@ -329,6 +329,20 @@ classdef manager < handle
                 p.fs = mObj.Data.signal{1}.FsHz;
             end
             
+            % Find out about the Gammatone definition
+            if isfield(p,'cfHz')
+                % Generated from provided center frequencies
+                gamma_init = 'cfHz';
+            elseif isfield(p,'nChannels')
+                % Generate from upper/lower frequencies and number of
+                % channels
+                gamma_init = 'nChannels';
+            else
+                % Generate from upper/lower freqs. and distance between
+                % channels
+                gamma_init ='standard';
+            end
+            
             % Add default values for parameters not explicitly defined in p
             p = parseParameters(p);
             
@@ -435,8 +449,17 @@ classdef manager < handle
                     case 'gammatone'
                         if mObj.Data.isStereo
                             % Instantiate left and right ear processors
-                            mObj.Processors{ii,1} = gammatoneProc(p.fs,p.f_low,p.f_high,p.IRtype,p.nERBs,p.bAlign,p.n_gamma,p.bwERBs,p.durSec);
-                            mObj.Processors{ii,2} = gammatoneProc(p.fs,p.f_low,p.f_high,p.IRtype,p.nERBs,p.bAlign,p.n_gamma,p.bwERBs,p.durSec);
+                            switch gamma_init
+                                case 'cfHz'
+                                    mObj.Processors{ii,1} = gammatoneProc(p.fs,p.f_low,p.f_high,[],[],p.cfHz,p.IRtype,p.bAlign,p.n_gamma,p.bwERBs,p.durSec);
+                                    mObj.Processors{ii,2} = gammatoneProc(p.fs,p.f_low,p.f_high,[],[],p.cfHz,p.IRtype,p.bAlign,p.n_gamma,p.bwERBs,p.durSec);
+                                case 'nChannels'
+                                    mObj.Processors{ii,1} = gammatoneProc(p.fs,p.f_low,p.f_high,[],p.nChannels,[],p.IRtype,p.bAlign,p.n_gamma,p.bwERBs,p.durSec);
+                                    mObj.Processors{ii,2} = gammatoneProc(p.fs,p.f_low,p.f_high,[],p.nChannels,[],p.IRtype,p.bAlign,p.n_gamma,p.bwERBs,p.durSec);
+                                case 'standard'
+                                    mObj.Processors{ii,1} = gammatoneProc(p.fs,p.f_low,p.f_high,p.nERBs,[],[],p.IRtype,p.bAlign,p.n_gamma,p.bwERBs,p.durSec);
+                                    mObj.Processors{ii,2} = gammatoneProc(p.fs,p.f_low,p.f_high,p.nERBs,[],[],p.IRtype,p.bAlign,p.n_gamma,p.bwERBs,p.durSec);
+                            end
                             % Generate new signals
                             sig_l = TimeFrequencySignal(mObj.Processors{ii,1}.FsHzOut,'gammatone',mObj.Processors{ii}.cfHz,'Gammatone filterbank output',[],'left');
                             sig_r = TimeFrequencySignal(mObj.Processors{ii,2}.FsHzOut,'gammatone',mObj.Processors{ii}.cfHz,'Gammatone filterbank output',[],'right');

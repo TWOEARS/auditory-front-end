@@ -20,8 +20,10 @@ clear pInfo
     % Gammatone filterbank
     addParameterInfo('gammatone','f_low',80,'Lowest center frequency (Hz)','Gammatone filterbank')
     addParameterInfo('gammatone','f_high',8000,'Highest center frequency (Hz)')
-    addParameterInfo('gammatone','IRtype','IIR','Gammatone filter impulse response type (''IIR'' or ''FIR'')')
     addParameterInfo('gammatone','nERBs',1,'Distance between neighbor filters in ERBs')
+    addParameterInfo('gammatone','nChannels',[],'Number of channels')
+    addParameterInfo('gammatone','cfHz',[],'Vector of channels'' center frequencies in Hz')
+    addParameterInfo('gammatone','IRtype','IIR','Gammatone filter impulse response type (''IIR'' or ''FIR'')')
     addParameterInfo('gammatone','n_gamma',4,'Gammatone rising slope order')
     addParameterInfo('gammatone','bwERBs',1.018,'Bandwidth of the filters (ERBs)')
     % addParameterInfo('gammatone','fb_decimation',1,'Decimation ratio of the filterbank')

@@ -30,9 +30,9 @@ p_full = getDefaultParameters(p.fs);
 
 % Overwrite each non-default values
 for ii = 1:n_param
-    if isfield(p_full,names{ii})
+%     if isfield(p_full,names{ii})
         p_full.(names{ii}) = p.(names{ii});
-    else
-        warning('Ignored the unknown parameter name %s in the input parameter structure',names{ii})
-    end
+%     else
+%         warning('Ignored the unknown parameter name %s in the input parameter structure',names{ii})
+%     end
 end
