@@ -36,6 +36,52 @@ classdef Processor < handle
             
     end
     
+    methods
+        function  parValue = getDependentParameter(pObj,parName)
+            %getDependentProperty    Finds the value of a parameter in the
+            %                        list of dependent processors
+            %
+            %USAGE:
+            %  parValue = pObj.getDependentParameter(parName)
+            %
+            %INPUT PARAMETERS:
+            %      pObj : Processor instance
+            %   parName : Parameter name
+            %
+            %OUTPUT PARAMETERS:
+            %  parValue : Value for that parameter. Returns an empty output
+            %             if no parameter with the provided name was 
+            %             found in the list of dependent processors.
+            
+            %TODO: Will have to be changed for processors with multiple
+            %dependencies
+            
+            if nargin<2 || isempty(parName)
+                warning('%s: No parameter name was specified',mfilename)
+                parValue = [];
+                return
+            end
+            
+            % Initialization
+            parValue = [];
+            proc = pObj;
+            
+            while isempty(parValue)&&~isempty(proc.Dependencies{1})
+                
+                % Check if current processor has such a parameter
+                if isprop(proc,parName)
+                    % Then get the corresponding value
+                    parValue = proc.(parName);
+                else
+                    % Else move on to the next dependent processor
+                    proc = proc.Dependencies{1};
+                end
+                
+            end
+            
+        end
+    end
+    
     methods (Access=protected)
         function pObj = populateProperties(pObj,varargin)
             

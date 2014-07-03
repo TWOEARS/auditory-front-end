@@ -313,10 +313,8 @@ classdef manager < handle
             %OUTPUT ARGUMENTS
             %     out : Handle for the requested signal
             %
-            % TO DO:
+            % TODO:
             %   - Add support for multiple requests
-            %   - Add support for feedback (ie, no overwrite of existing
-            %   processors.
             %   - Current bug in .cfHz property of signals. This cannot be
             %   taken from p.cfHz but needs to be fetch from dependent
             %   processors. Only affects labeling of the channels.
@@ -460,8 +458,9 @@ classdef manager < handle
                             mObj.Processors{ii,1} = IHCenvelopeProc(p.fs,p.IHCMethod);
                             mObj.Processors{ii,2} = IHCenvelopeProc(p.fs,p.IHCMethod);
                             % Generate new signals
-                            sig_l = TimeFrequencySignal(mObj.Processors{ii,1}.FsHzOut,'innerhaircell',p.cfHz,'Inner hair-cell envelope',[],'left');
-                            sig_r = TimeFrequencySignal(mObj.Processors{ii,2}.FsHzOut,'innerhaircell',p.cfHz,'Inner hair-cell envelope',[],'right');
+                            cfHz = dep_proc_l.getDependentParameter('cfHz');    % Get the center frequencies from dependencies
+                            sig_l = TimeFrequencySignal(mObj.Processors{ii,1}.FsHzOut,'innerhaircell',cfHz,'Inner hair-cell envelope',[],'left');
+                            sig_r = TimeFrequencySignal(mObj.Processors{ii,2}.FsHzOut,'innerhaircell',cfHz,'Inner hair-cell envelope',[],'right');
                             % Add the signals to the data object
                             mObj.Data.addSignal(sig_l);
                             mObj.Data.addSignal(sig_r)
@@ -469,7 +468,8 @@ classdef manager < handle
                             % Instantiate a processor
                             mObj.Processors{ii} = IHCenvelopeProc(p.fs,p.IHCMethod);
                             % Generate a new signal
-                            sig = TimeFrequencySignal(mObj.Processors{ii,1}.FsHzOut,'innerhaircell',p.cfHz,'Inner hair-cell envelope',[],'mono');
+                            cfHz = dep_proc.getDependentParameter('cfHz');    % Get the center frequencies from dependencies
+                            sig = TimeFrequencySignal(mObj.Processors{ii,1}.FsHzOut,'innerhaircell',cfHz,'Inner hair-cell envelope',[],'mono');
                             % Add signal to the data object
                             mObj.Data.addSignal(sig);
                         end
@@ -481,8 +481,9 @@ classdef manager < handle
                             mObj.Processors{ii,2} = autocorrelationProc(p.fs,p);
                             % Generate new signals
                             lags = 0:1/p.fs:mObj.Processors{ii,1}.wSizeSec-1/p.fs;   % Vector of lags
-                            sig_l = CorrelationSignal(mObj.Processors{ii,1}.FsHzOut,'autocorrelation',p.cfHz,lags,'Auto-correlation',[],'left');
-                            sig_r = CorrelationSignal(mObj.Processors{ii,2}.FsHzOut,'autocorrelation',p.cfHz,lags,'Auto-correlation',[],'right');
+                            cfHz = dep_proc_l.getDependentParameter('cfHz');         % Vector of center frequencies
+                            sig_l = CorrelationSignal(mObj.Processors{ii,1}.FsHzOut,'autocorrelation',cfHz,lags,'Auto-correlation',[],'left');
+                            sig_r = CorrelationSignal(mObj.Processors{ii,2}.FsHzOut,'autocorrelation',cfHz,lags,'Auto-correlation',[],'right');
                             % Add the signals to the data object
                             mObj.Data.addSignal(sig_l);
                             mObj.Data.addSignal(sig_r)
@@ -491,7 +492,8 @@ classdef manager < handle
                             mObj.Processors{ii,1} = autocorrelationProc(p.fs,p);
                             % Generate a new signal
                             lags = 0:1/p.fs:mObj.Processors{ii,1}.wSizeSec-1/p.fs;   % Vector of lags
-                            sig = CorrelationSignal(mObj.Processors{ii,1}.FsHzOut,'autocorrelation',p.cfHz,lags,'Auto-correlation',[],'mono');
+                            cfHz = dep_proc.getDependentParameter('cfHz');         % Vector of center frequencies
+                            sig = CorrelationSignal(mObj.Processors{ii,1}.FsHzOut,'autocorrelation',cfHz,lags,'Auto-correlation',[],'mono');
                             % Add signal to the data object
                             mObj.Data.addSignal(sig);
                         end
@@ -504,8 +506,9 @@ classdef manager < handle
                         else
                             mObj.Processors{ii,1} = crosscorrelationProc(p.fs,p);
                             maxLag = ceil(mObj.Processors{ii,1}.maxDelaySec*p.fs);
-                            lags = (-maxLag:maxLag)/p.fs;
-                            sig = CorrelationSignal(mObj.Processors{ii,1}.FsHzOut,'crosscorrelation',p.cfHz,lags,'Cross-correlation',[],'mono');
+                            lags = (-maxLag:maxLag)/p.fs;                           % Lags
+                            cfHz = dep_proc_l.getDependentParameter('cfHz');        % Center frequencies 
+                            sig = CorrelationSignal(mObj.Processors{ii,1}.FsHzOut,'crosscorrelation',cfHz,lags,'Cross-correlation',[],'mono');
                             mObj.Data.addSignal(sig);
                             clear maxLag lags
                         end
@@ -516,8 +519,9 @@ classdef manager < handle
                             mObj.Processors{ii,1} = ratemapProc(p.fs,p,'magnitude');
                             mObj.Processors{ii,2} = ratemapProc(p.fs,p,'magnitude');
                             % Generate new signals
-                            sig_l = TimeFrequencySignal(mObj.Processors{ii,1}.FsHzOut,'ratemap_magnitude',p.cfHz,'Ratemap (magnitude)',[],'left');
-                            sig_r = TimeFrequencySignal(mObj.Processors{ii,2}.FsHzOut,'ratemap_magnitude',p.cfHz,'Ratemap (magnitude)',[],'right');
+                            cfHz = dep_proc_l.getDependentParameter('cfHz');    % Center frequencies
+                            sig_l = TimeFrequencySignal(mObj.Processors{ii,1}.FsHzOut,'ratemap_magnitude',cfHz,'Ratemap (magnitude)',[],'left');
+                            sig_r = TimeFrequencySignal(mObj.Processors{ii,2}.FsHzOut,'ratemap_magnitude',cfHz,'Ratemap (magnitude)',[],'right');
                             % Add the signals to the data object
                             mObj.Data.addSignal(sig_l);
                             mObj.Data.addSignal(sig_r)
@@ -525,7 +529,8 @@ classdef manager < handle
                             % Instantiate a processor
                             mObj.Processors{ii,1} = ratemapProc(p.fs,p,'magnitude');
                             % Generate a new signal
-                            sig = TimeFrequencySignal(mObj.Processors{ii,1}.FsHzOut,'ratemap_magnitude',p.cfHz,'Ratemap (magnitude)',[],'mono');
+                            cfHz = dep_proc.getDependentParameter('cfHz');    % Center frequencies
+                            sig = TimeFrequencySignal(mObj.Processors{ii,1}.FsHzOut,'ratemap_magnitude',cfHz,'Ratemap (magnitude)',[],'mono');
                             % Add signal to the data object
                             mObj.Data.addSignal(sig);
                         end
@@ -536,8 +541,9 @@ classdef manager < handle
                             mObj.Processors{ii,1} = ratemapProc(p.fs,p,'power');
                             mObj.Processors{ii,2} = ratemapProc(p.fs,p,'power');
                             % Generate new signals
-                            sig_l = TimeFrequencySignal(mObj.Processors{ii,1}.FsHzOut,'ratemap_power',p.cfHz,'Ratemap (power)',[],'left');
-                            sig_r = TimeFrequencySignal(mObj.Processors{ii,2}.FsHzOut,'ratemap_power',p.cfHz,'Ratemap (power)',[],'right');
+                            cfHz = dep_proc_l.getDependentParameter('cfHz');    % Center frequencies
+                            sig_l = TimeFrequencySignal(mObj.Processors{ii,1}.FsHzOut,'ratemap_power',cfHz,'Ratemap (power)',[],'left');
+                            sig_r = TimeFrequencySignal(mObj.Processors{ii,2}.FsHzOut,'ratemap_power',cfHz,'Ratemap (power)',[],'right');
                             % Add the signals to the data object
                             mObj.Data.addSignal(sig_l);
                             mObj.Data.addSignal(sig_r)
@@ -545,7 +551,8 @@ classdef manager < handle
                             % Instantiate a processor
                             mObj.Processors{ii,1} = ratemapProc(p.fs,p,'power');
                             % Generate a new signal
-                            sig = TimeFrequencySignal(mObj.Processors{ii,1}.FsHzOut,'ratemap_power',p.cfHz,'Ratemap (power)',[],'mono');
+                            cfHz = dep_proc.getDependentParameter('cfHz');    % Center frequencies
+                            sig = TimeFrequencySignal(mObj.Processors{ii,1}.FsHzOut,'ratemap_power',cfHz,'Ratemap (power)',[],'mono');
                             % Add signal to the data object
                             mObj.Data.addSignal(sig);
                         end
@@ -556,7 +563,8 @@ classdef manager < handle
                             warning('Manager cannot instantiate a binaural cue extractor for a single-channel signal')
                         else
                             mObj.Processors{ii,1} = ildProc(p.fs,p);
-                            sig = TimeFrequencySignal(mObj.Processors{ii,1}.FsHzOut,'ild',p.cfHz,'Interaural Level Difference',[],'mono');
+                            cfHz = dep_proc_l.getDependentParameter('cfHz');    % Center frequencies
+                            sig = TimeFrequencySignal(mObj.Processors{ii,1}.FsHzOut,'ild',cfHz,'Interaural Level Difference',[],'mono');
                             mObj.Data.addSignal(sig);
                         end
                         
@@ -565,7 +573,8 @@ classdef manager < handle
                             warning('Manager cannot instantiate a binaural cue extractor for a single-channel signal')
                         else
                             mObj.Processors{ii,1} = icProc(dep_proc_l.FsHzOut,p);
-                            sig = TimeFrequencySignal(mObj.Processors{ii,1}.FsHzOut,'ic_xcorr',p.cfHz,'Interaural correlation',[],'mono');
+                            cfHz = dep_proc_l.getDependentParameter('cfHz');    % Center frequencies
+                            sig = TimeFrequencySignal(mObj.Processors{ii,1}.FsHzOut,'ic_xcorr',cfHz,'Interaural correlation',[],'mono');
                             mObj.Data.addSignal(sig);
                         end
                         
@@ -574,7 +583,8 @@ classdef manager < handle
                             warning('Manager cannot instantiate a binaural cue extractor for a single-channel signal')
                         else
                             mObj.Processors{ii,1} = itdProc(dep_proc_l.FsHzOut,p);
-                            sig = TimeFrequencySignal(mObj.Processors{ii,1}.FsHzOut,'itd_xcorr',p.cfHz,'Interaural Time Difference',[],'mono');
+                            cfHz = dep_proc_l.getDependentParameter('cfHz');    % Center frequencies
+                            sig = TimeFrequencySignal(mObj.Processors{ii,1}.FsHzOut,'itd_xcorr',cfHz,'Interaural Time Difference',[],'mono');
                             mObj.Data.addSignal(sig);
                         end
                         
