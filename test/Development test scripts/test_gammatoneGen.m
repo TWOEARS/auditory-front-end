@@ -33,7 +33,7 @@ out3 = mObj.addProcessor(request,p3);
 mObj.processSignal();
 
 %% Display output signal properties
-fprintf('First filterbank has center frequencies: %s\n',mat2str(out1{1}.cfHz))
+% fprintf('First filterbank has center frequencies: %s\n',mat2str(out1{1}.cfHz))
 fprintf('Second filterbank has center frequencies: %s\n',mat2str(out2{1}.cfHz))
 fprintf('Third filterbank has center frequencies: %s\n',mat2str(out3{1}.cfHz))
 
