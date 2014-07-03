@@ -12,24 +12,32 @@ classdef gammatoneProc < Processor
     end
         
     methods
-        function pObj = gammatoneProc(fs,flow,fhigh,irType,nERBs,bAlign,...
+        function pObj = gammatoneProc(fs,flow,fhigh,nERBs,nChan,cfHz,irType,bAlign,...
                                         n,bw,durSec)
             %gammatoneProc      Construct a gammatone filterbank inheriting
             %                   the "processor" class
             %
             %USAGE
+            % -Minimal usage, either:
             %   pObj = gammatoneProc(fs,flow,fhigh)
-            %   pObj = gammatoneProc(fs,flow,fhigh,irType,nERBs,bAlign)
-            %   pObj = gammatoneProc(fs,flow,fhigh,irType,nERBs,bAlign,n,bw,dur)
+            %   pObj = gammatoneProc(fs,flow,fhigh,nERBs)
+            %   pObj = gammatoneProc(fs,flow,fhigh,[],nChan)
+            %   pObj = gammatoneProc(fs,[],[],[],[],cfHz)
+            %
+            % -Additional arguments:
+            %   pObj = gammatoneProc(...,irType,bAlign,n,bw,dur)
             %
             %INPUT ARGUMENTS
             %     fs : Sampling frequency (Hz)
             %   flow : Lowest center frequency for the filterbank (in Hz)
             %  fhigh : Highest center frequency for the filterbank (in Hz)
-            % irType : 'FIR' to generate finite impulse response Gammatone
-            %          filters or 'IIR' for infinite (default: 'FIR')
             %  nERBs : Distance in ERBS between neighboring center
             %          frequencies (default: nERBS = 1)
+            %  nChan : Number of channels
+            %   cfHz : Vector of channels center frequencies
+            %
+            % irType : 'FIR' to generate finite impulse response Gammatone
+            %          filters or 'IIR' for infinite (default: 'FIR')
             % bAlign : Set to true for phase correction and time alignment
             %          between channels (default: bAlign = false)
             %      n : Filter order (default: n = 4)
@@ -40,25 +48,33 @@ classdef gammatoneProc < Processor
             %
             %OUTPUT ARGUMENTS
             %   pObj : Processor object
-            %
-            % TO DO: Implement solution to allow for different impulse
-            % response durations for different filters (if necessary)
+            
+            % TODO: 
+            %  - Implement solution to allow for different impulse response
+            %    durations for different filters (if necessary)
+            %  - Implement bAlign option
             
             if nargin>0  % Failsafe for constructor calls without arguments
             
             % Checking input arguments
-            if nargin < 3 || nargin > 9
+            if nargin < 3 || nargin > 11
                 help(mfilename);
                 error('Wrong number of input arguments!')
             end
             
-            % Set default parameter
-            if nargin < 9 || isempty(durSec); durSec = 0.128; end
-            if nargin < 8 || isempty(bw); bw = 1.08; end
-            if nargin < 7 || isempty(n); n = 4; end
-            if nargin < 6 || isempty(bAlign); bAlign = false; end
-            if nargin < 5 || isempty(nERBs);  nERBs  = 1;     end
-            if nargin < 4 || isempty(irType); irType = 'FIR'; end
+            % Set default optional parameter
+            if nargin < 11 || isempty(durSec); durSec = 0.128; end
+            if nargin < 10 || isempty(bw); bw = 1.08; end
+            if nargin < 9 || isempty(n); n = 4; end
+            if nargin < 8 || isempty(bAlign); bAlign = false; end
+            if nargin < 7 || isempty(irType); irType = 'FIR'; end
+            
+            % Parse mandatory arguments: three scenarios
+            
+            % 1- Frequency range and distance between channels is provided
+            if nargin < 4 || isempty(nERBs);  nERBs  = 1;     end
+            
+            % 2- Frequency range
             
             % ERBs vector, with a spacing of nERBs
             ERBS = freq2erb(flow):double(nERBs):freq2erb(fhigh);
