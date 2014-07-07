@@ -84,15 +84,6 @@ else
         for ii = 1:size(names,1)
             % Display on command window
             fprintf(['  %-' int2str(name_size+2) 's  %-' int2str(val_size+1) 's  %-s\n'],names{ii},value{ii},pInfo.(cat).(names{ii}).description)
-%             
-%             if ~ischar(pInfo.(cat).(names{ii}).value)
-%                 fprintf(['  %-' int2str(name_size+2) 's  %-' int2str(val_size+1) 's  %-s\n'],names{ii},num2str(pInfo.(cat).(names{ii}).value),pInfo.(cat).(names{ii}).description)
-%             elseif iscell(pInfo.(cat).(names{ii}).value)
-%                 fprintf(['  %-' int2str(name_size+2) 's  %-' int2str(val_size+1) 's  %-s\n'],names{ii},num2str(pInfo.(cat).(names{ii}).value),pInfo.(cat).(names{ii}).description)
-%             else 
-%                 fprintf(['  %-' int2str(name_size+2) 's  %-' int2str(val_size+1) 's  %-s\n'],names{ii},['''' pInfo.(cat).(names{ii}).value ''''],pInfo.(cat).(names{ii}).description)
-%             end
-%             fprintf(['%7s %s %s\n'],names{ii},num2str(pInfo.(cat).(names{ii}).value),pInfo.(cat).(names{ii}).description)
         end
         fprintf('\n')
     end

@@ -21,17 +21,17 @@ classdef manager < handle
             %
             %INPUT ARGUMENTS
             %     data : Handle of an existing data structure
-            %  request : Cell array of requested signals, cues or features
-            %            e.g., request = {'azimuth','rms'}
-            %        p : Set of parameters
+            %  request : Single request as a string (e.g., 'ild'), OR
+            %            cell array of requested signals, cues or features
+            %            (e.g., request = {'ild','itd_xcorr'})
+            %        p : Single parameter structure, if all requests share
+            %            the same parameters, OR cell array of individual
+            %            parameter structures corresponding to the request.
             %
             %OUTPUT ARGUMENTS
             %     mObj : Manager instance
-            
-            % TODO:
-            %  - Expand this h1 line as the implementation progresses
-            %  - Add support for multiple requests
-
+            %
+            %SEE ALSO: dataObject.m requestList.m genParStruct.m
             
             if nargin>0     % Failproof for Matlab empty calls
             
@@ -50,11 +50,29 @@ classdef manager < handle
             mObj.Data = data;
             
             % Instantiate the requested processors
-            % TO DO: HERE GOES SUPPORT FOR MULTIPLE REQUESTS
             if ~isempty(request)
-                mObj.addProcessor(request,p);
+                if iscell(request)
+                    % Then we have a multiple request...
+                    if iscell(p)
+                        %... with individual parameters
+                        if size(request,2)~=size(p,2)
+                            error('Number of requests and number of provided parameters do not match')
+                        else
+                            for ii = 1:size(request,2)
+                                mObj.addProcessor(request{ii},p{ii});
+                            end
+                        end
+                    else
+                        %... all with the same set of parameters
+                        for ii = 1:size(request,2)
+                            mObj.addProcessor(request{ii},p);
+                        end
+                    end
+                else
+                    % Then it is a single request
+                     mObj.addProcessor(request,p);
+                end
             end
-            
             end
         end
         
@@ -296,7 +314,7 @@ classdef manager < handle
             
         end
         
-        function out = addProcessor(mObj,request,p)
+        function [out,varargout] = addProcessor(mObj,request,p)
             %addProcessor       Add new processor needed to compute a
             %                   single request. Optionally returns a handle
             %                   for the requested signal for convenience.
@@ -322,6 +340,30 @@ classdef manager < handle
             if nargin<3 || isempty(p)
                 % Initialize parameter structure
                 p = struct;
+            end
+            
+            % Deal with multiple requests via pseudo-recursion
+            if iscell(request)
+                
+                if ~iscell(p)
+                    % All the requests have the same parameters, replicate
+                    % them
+                    p = repmat({p},size(request));
+                end
+                
+                if size(p,2)~=size(request,2)
+                    error(['Provided number of parameter structures'...
+                        ' does not match the number of requests made'])
+                end
+                
+                % Call addProcessor method for each individual request
+                varargout = cell(1,size(request,2)-1);
+                out = mObj.addProcessor(request{1},p{1});
+                for ii = 2:size(request,2)
+                    varargout{ii-1} = mObj.addProcessor(request{ii},p{ii});
+                end
+                return
+                
             end
             
             if ~isfield(p,'fs')

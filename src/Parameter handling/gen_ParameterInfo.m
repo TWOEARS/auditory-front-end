@@ -54,7 +54,7 @@ clear pInfo
     addParameterInfo('ac','ac_K',2,'Exponent in auto-correlation')
 
     % Cross-correlation
-    addParameterInfo('cc','cc_wname','rectwin','Window name','Cross-correlation')
+    addParameterInfo('cc','cc_wname','hann','Window name','Cross-correlation')
     addParameterInfo('cc','cc_wSizeSec',20E-3,'Window duration (s)')
     addParameterInfo('cc','cc_hSizeSec',10E-3,'Window step size (s)')
     addParameterInfo('cc','cc_maxDelaySec',1.1E-3,'Maximum delay in cross-correlation computation (s)')

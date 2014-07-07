@@ -1,6 +1,4 @@
 classdef dataObject < dynamicprops
-    % The data Object class inherits the dynamicprops class, allowing for
-    % dynamic property definition.
 
     properties
         isStereo   % Flag indicating if the data structure will be based
