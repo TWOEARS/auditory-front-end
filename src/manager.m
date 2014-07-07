@@ -28,7 +28,7 @@ classdef manager < handle
             %OUTPUT ARGUMENTS
             %     mObj : Manager instance
             
-            % TO DO:
+            % TODO:
             %  - Expand this h1 line as the implementation progresses
             %  - Add support for multiple requests
 
@@ -468,7 +468,14 @@ classdef manager < handle
                             mObj.Data.addSignal(sig_r)
                         else
                             % Instantiate a processor
-                            mObj.Processors{ii,1} = gammatoneProc(p.fs,p.f_low,p.f_high,p.IRtype,p.nERBs,p.bAlign,p.n_gamma,p.bwERBs,p.durSec);
+                            switch gamma_init
+                                case 'cfHz'
+                                    mObj.Processors{ii,1} = gammatoneProc(p.fs,p.f_low,p.f_high,[],[],p.cfHz,p.IRtype,p.bAlign,p.n_gamma,p.bwERBs,p.durSec);
+                                case 'nChannels'
+                                    mObj.Processors{ii,1} = gammatoneProc(p.fs,p.f_low,p.f_high,[],p.nChannels,[],p.IRtype,p.bAlign,p.n_gamma,p.bwERBs,p.durSec);
+                                case 'standard'
+                                    mObj.Processors{ii,1} = gammatoneProc(p.fs,p.f_low,p.f_high,p.nERBs,[],[],p.IRtype,p.bAlign,p.n_gamma,p.bwERBs,p.durSec);
+                            end
                             % Generate a new signal
                             sig = TimeFrequencySignal(mObj.Processors{ii,1}.FsHzOut,'gammatone',mObj.Processors{ii}.cfHz,'Gammatone filterbank output',[],'mono');
                             % Add signal to the data object
@@ -698,11 +705,22 @@ classdef manager < handle
             
             % Provide the user with a pointer to the requested signal
             if nargout>0
-                if isempty(mObj.Processors{n_proc+n_new_proc,2})
-                    out = mObj.Processors{n_proc+n_new_proc,1}.Output;
+                if ~isempty(dep_list)
+                    if isempty(mObj.Processors{n_proc+n_new_proc,2})
+                        out = mObj.Processors{n_proc+n_new_proc,1}.Output;
+                    else
+                        out{1,1} = mObj.Processors{n_proc+n_new_proc,1}.Output;
+                        out{1,2} = mObj.Processors{n_proc+n_new_proc,2}.Output;
+                    end
                 else
-                    out{1,1} = mObj.Processors{n_proc+n_new_proc,1}.Output;
-                    out{1,2} = mObj.Processors{n_proc+n_new_proc,2}.Output;
+                    % Else no new processor was added as the requested one
+                    % already existed
+                    if size(initProc,2)==2
+                        out{1,1} = dep_sig_l;
+                        out{1,2} = dep_sig_r;
+                    else
+                        out = dep_sig;
+                    end
                 end
             end
             
