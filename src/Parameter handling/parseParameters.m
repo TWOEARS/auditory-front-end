@@ -10,9 +10,6 @@ function p_full = parseParameters(p)
 %
 %OUTPUT ARGUMENTS
 %  p_full : Complete parameter structure (completed with default values)
-%
-%SEE ALSO:
-%
 
 
 if isempty(p)||~isfield(p,'fs')
