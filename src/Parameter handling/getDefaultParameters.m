@@ -33,7 +33,7 @@ names = fieldnames(pInfo);
 if nargin<2 || isempty(varargin)
     % Return all existing parameters if not specified otherwise
     cat = names;
-elseif strcmp(varargin,'processing')
+elseif strcmp(varargin,'processing')||strcmp(varargin,'no_gammatone')
     % If asked for 'processing', then return all categories but plotting
     cat = names(~ismember(names,'plotting'));
 else
@@ -41,30 +41,46 @@ else
     cat = varargin;
 end
 
+
 % Initialize output
 p = struct;
 
 % Loop on the categories
 for ii = 1:size(cat,1)
     
-    % Check that the category name is valid
-    if ~isfield(pInfo,cat{ii})
-        error('The name %s provided as argument is an invalid category name',cat{ii})
+    if ~strcmp(cat{ii},'no_gammatone')  % This is just used as a flag, not a category name
+    
+        % Check that the category name is valid
+        if ~isfield(pInfo,cat{ii})
+            error('The name %s provided as argument is an invalid category name',cat{ii})
+        end
+
+        % Then fetch all parameters for that category
+        sub_names = fieldnames(pInfo.(cat{ii}));             % Parameter names
+        sub_names = sub_names(~ismember(sub_names,'label')); % Remove category label
+
+        % Loop on the parameters for this category
+        for jj = 1:size(sub_names,1)
+            p.(sub_names{jj}) = pInfo.(cat{ii}).(sub_names{jj}).value;
+        end
+    
     end
-    
-    % Then fetch all parameters for that category
-    sub_names = fieldnames(pInfo.(cat{ii}));             % Parameter names
-    sub_names = sub_names(~ismember(sub_names,'label')); % Remove category label
-    
-    % Loop on the parameters for this category
-    for jj = 1:size(sub_names,1)
-        p.(sub_names{jj}) = pInfo.(cat{ii}).(sub_names{jj}).value;
-    end
-    
+        
 end
 
 % Add sampling frequency
 p.fs = fs;
+
+% Special case for the gammatone filterbank
+if ismember('no_gammatone',varargin)
+    
+    % Then remove the default parameters connected to the gammatone
+    % filterbank
+    p = rmfield(p,'f_low');
+    p = rmfield(p,'f_high');
+    p = rmfield(p,'nERBs');
+    
+end
 
 % Add dependent parameters:
 % - Vector of channels center frequencies

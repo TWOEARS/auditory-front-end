@@ -77,8 +77,25 @@ classdef gammatoneProc < Processor
                 % Do nothing, we already have a vector of center
                 % frequencies in Hz
                 
+                % Give a warning to the user though if he specified other
+                % conflicting properties
+%                 if ~isempty(flow)||~isempty(fhigh)||~isempty(nChan)||~isempty(nERBs)
+%                     warning(['Conflicting parameters were provided for '...
+%                         'the Gammatone filterbank instantiation. The '...
+%                         'filterbank will be generated from the provided'...
+%                         ' list of center frequencies.'])
+%                 end
+                
             elseif ~isempty(flow)&&~isempty(fhigh)&&~isempty(nChan)
                 % 2- Frequency range and number of channels is provided
+                
+                % Give a warning if conflicting properties were specified
+%                 if ~isempty(nERBs)
+%                     warning(['Conflicting parameters were provided for '...
+%                         'the Gammatone filterbank instantiation. The '...
+%                         'filterbank will be generated from the provided'...
+%                         ' frequency range and number of channels.']) 
+%                 end
                 
                 % Get vector of center frequencies
                 ERBS = linspace(freq2erb(flow),freq2erb(fhigh),nChan);  % In ERBS

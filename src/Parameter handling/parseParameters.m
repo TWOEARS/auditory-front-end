@@ -25,14 +25,25 @@ names = fieldnames(p);
 % How many non-default parameters are specified in p?
 n_param = size(names,1);
 
-% Get all default parameters
-p_full = getDefaultParameters(p.fs);
+% Get all default parameters, with special care for the gammatone
+% filterbank
+if isfield(p,'cfHz')
+    if ~isempty(p.cfHz)
+        p_full = getDefaultParameters(p.fs,'no_gammatone'); 
+    else
+        p_full = getDefaultParameters(p.fs);
+    end
+elseif isfield(p,'nChannels')
+    if ~isempty(p.nChannels)
+        p_full = getDefaultParameters(p.fs,'no_gammatone'); 
+    else
+        p_full = getDefaultParameters(p.fs);
+    end
+else
+    p_full = getDefaultParameters(p.fs);
+end
 
 % Overwrite each non-default values
 for ii = 1:n_param
-%     if isfield(p_full,names{ii})
-        p_full.(names{ii}) = p.(names{ii});
-%     else
-%         warning('Ignored the unknown parameter name %s in the input parameter structure',names{ii})
-%     end
+    p_full.(names{ii}) = p.(names{ii});
 end
