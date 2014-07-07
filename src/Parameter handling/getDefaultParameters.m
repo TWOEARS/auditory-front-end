@@ -68,8 +68,8 @@ p.fs = fs;
 
 % Add dependent parameters:
 % - Vector of channels center frequencies
-if isfield(p,'f_low') && isfield(p,'f_high') && isfield(p,'nERBs')
-    p.cfHz = erb2freq(freq2erb(p.f_low):double(p.nERBs):freq2erb(p.f_high));
-end
+% if isfield(p,'f_low') && isfield(p,'f_high') && isfield(p,'nERBs')
+%     p.cfHz = erb2freq(freq2erb(p.f_low):double(p.nERBs):freq2erb(p.f_high));
+% end
 
 

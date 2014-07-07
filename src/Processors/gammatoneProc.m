@@ -12,24 +12,32 @@ classdef gammatoneProc < Processor
     end
         
     methods
-        function pObj = gammatoneProc(fs,flow,fhigh,irType,nERBs,bAlign,...
+        function pObj = gammatoneProc(fs,flow,fhigh,nERBs,nChan,cfHz,irType,bAlign,...
                                         n,bw,durSec)
             %gammatoneProc      Construct a gammatone filterbank inheriting
             %                   the "processor" class
             %
             %USAGE
+            % -Minimal usage, either (in order of priority)
+            %   pObj = gammatoneProc(fs,[],[],[],[],cfHz)
+            %   pObj = gammatoneProc(fs,flow,fhigh,[],nChan)
+            %   pObj = gammatoneProc(fs,flow,fhigh,nERBs)
             %   pObj = gammatoneProc(fs,flow,fhigh)
-            %   pObj = gammatoneProc(fs,flow,fhigh,irType,nERBs,bAlign)
-            %   pObj = gammatoneProc(fs,flow,fhigh,irType,nERBs,bAlign,n,bw,dur)
+            %
+            % -Additional arguments:
+            %   pObj = gammatoneProc(...,irType,bAlign,n,bw,dur)
             %
             %INPUT ARGUMENTS
             %     fs : Sampling frequency (Hz)
             %   flow : Lowest center frequency for the filterbank (in Hz)
             %  fhigh : Highest center frequency for the filterbank (in Hz)
-            % irType : 'FIR' to generate finite impulse response Gammatone
-            %          filters or 'IIR' for infinite (default: 'FIR')
             %  nERBs : Distance in ERBS between neighboring center
             %          frequencies (default: nERBS = 1)
+            %  nChan : Number of channels
+            %   cfHz : Vector of channels center frequencies
+            %
+            % irType : 'FIR' to generate finite impulse response Gammatone
+            %          filters or 'IIR' for infinite (default: 'FIR')
             % bAlign : Set to true for phase correction and time alignment
             %          between channels (default: bAlign = false)
             %      n : Filter order (default: n = 4)
@@ -40,31 +48,57 @@ classdef gammatoneProc < Processor
             %
             %OUTPUT ARGUMENTS
             %   pObj : Processor object
-            %
-            % TO DO: Implement solution to allow for different impulse
-            % response durations for different filters (if necessary)
+            
+            % TODO: 
+            %  - Implement solution to allow for different impulse response
+            %    durations for different filters (if necessary)
+            %  - Implement bAlign option
             
             if nargin>0  % Failsafe for constructor calls without arguments
             
             % Checking input arguments
-            if nargin < 3 || nargin > 9
+            if nargin < 3 || nargin > 11
                 help(mfilename);
                 error('Wrong number of input arguments!')
             end
             
-            % Set default parameter
-            if nargin < 9 || isempty(durSec); durSec = 0.128; end
-            if nargin < 8 || isempty(bw); bw = 1.08; end
-            if nargin < 7 || isempty(n); n = 4; end
-            if nargin < 6 || isempty(bAlign); bAlign = false; end
-            if nargin < 5 || isempty(nERBs);  nERBs  = 1;     end
-            if nargin < 4 || isempty(irType); irType = 'FIR'; end
+            % Set default optional parameter
+            if nargin < 11 || isempty(durSec); durSec = 0.128; end
+            if nargin < 10 || isempty(bw); bw = 1.08; end
+            if nargin < 9 || isempty(n); n = 4; end
+            if nargin < 8 || isempty(bAlign); bAlign = false; end
+            if nargin < 7 || isempty(irType); irType = 'FIR'; end
             
-            % ERBs vector, with a spacing of nERBs
-            ERBS = freq2erb(flow):double(nERBs):freq2erb(fhigh);
+            % Parse mandatory arguments: three scenarios
             
-            % Conversion from ERB to Hz
-            cfHz = erb2freq(ERBS);
+            if ~isempty(cfHz)
+                % 3- A vector of channels center frequencies is provided
+                
+                % Do nothing, we already have a vector of center
+                % frequencies in Hz
+                
+            elseif ~isempty(flow)&&~isempty(fhigh)&&~isempty(nChan)
+                % 2- Frequency range and number of channels is provided
+                
+                % Get vector of center frequencies
+                ERBS = linspace(freq2erb(flow),freq2erb(fhigh),nChan);  % In ERBS
+                cfHz = erb2freq(ERBS);                                  % In Hz
+                
+            elseif ~isempty(flow)&&~isempty(fhigh)&&isempty(nChan)&&isempty(cfHz)
+                % 3- Frequency range and distance between channels is provided
+                
+                % Set distance between two channel to default is unspecified
+                if nargin < 4 || isempty(nERBs);  nERBs  = 1;     end
+                
+                % Get vector of center frequencies
+                ERBS = freq2erb(flow):double(nERBs):freq2erb(fhigh);    % In ERBS
+                cfHz = erb2freq(ERBS);                                  % In Hz
+                
+            else
+                % Else, something is missing in the input
+                error('Not enough or incoherent input arguments.')
+            end
+            
             
             % Number of gammatone filters
             nFilter = numel(cfHz); 
@@ -169,11 +203,23 @@ classdef gammatoneProc < Processor
             
             %NB: Could be moved to private
             
-            % The gammatone processor has the following parameters to be
-            % checked: f_low, f_high, nERBs, n, bwERBs, FsHzIn, FsHzOut
+            % There are three ways to initialize a gammatone filterbank, of
+            % which only the center frequencies of the channel is in
+            % common. Hence only this parameter is checked regarding
+            % channel positionning.
             
-            p_list = {'f_low','f_high','nERBs','n_gamma','bwERBs'};%,...
-                %'fb_decimation'};
+            p_list = {'cfHz','n_gamma','bwERBs'};
+            
+            % The center frequency position needs to be computed for
+            % scenario where it is not explicitely provided
+            if isempty(p.cfHz)&&~isempty(p.nChannels)
+                ERBS = linspace(freq2erb(p.f_low),freq2erb(p.f_high),p.nChannels);    % In ERBS
+                p.cfHz = erb2freq(ERBS);                                              % In Hz
+            elseif isempty(p.cfHz)&&isempty(p.nChannels)
+                ERBS = freq2erb(p.f_low):double(p.nERBs):freq2erb(p.f_high);   % In ERBS
+                p.cfHz = erb2freq(ERBS);                                       % In Hz
+            end
+            
             
             % Initialization of a parameters difference vector
             delta = zeros(size(p_list,2),1);
@@ -181,7 +227,11 @@ classdef gammatoneProc < Processor
             % Loop on the list of parameters
             for ii = 1:size(p_list,2)
                 try
-                    delta(ii) = abs(pObj.(p_list{ii}) - p.(p_list{ii}));
+                    if size(pObj.(p_list{ii}))==size(p.(p_list{ii}))
+                        delta(ii) = max(abs(pObj.(p_list{ii}) - p.(p_list{ii})));
+                    else
+                        delta(ii) = 1;
+                    end
                     
                 catch err
                     % Warning: something is missing
