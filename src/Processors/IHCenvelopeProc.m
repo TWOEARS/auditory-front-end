@@ -37,7 +37,7 @@ classdef IHCenvelopeProc < Processor
                          'joergensen',...
                          'dau',...
                          'breebart',...
-                         'berstein'};
+                         'bernstein'};
              
              % Check method name
              if ~ismember(method,validMeth)
@@ -53,7 +53,7 @@ classdef IHCenvelopeProc < Processor
              pObj.IHCMethod = method;
              
              % Set up a flag if filters are needed
-             if ismember(method,{'joergensen','dau','breebart','berstein'})
+             if ismember(method,{'joergensen','dau','breebart','bernstein'})
                  pObj.IHCFilters = 1;
              else
                  pObj.IHCFilters = [];

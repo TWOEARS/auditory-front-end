@@ -762,11 +762,15 @@ classdef manager < handle
             % Provide the user with a pointer to the requested signal
             if nargout>0
                 if ~isempty(dep_list)
-                    if isempty(mObj.Processors{n_proc+n_new_proc,2})
-                        out = mObj.Processors{n_proc+n_new_proc,1}.Output;
+                    if size(mObj.Processors,2)==2
+                        if isempty(mObj.Processors{n_proc+n_new_proc,2})
+                            out = mObj.Processors{n_proc+n_new_proc,1}.Output;
+                        else
+                            out{1,1} = mObj.Processors{n_proc+n_new_proc,1}.Output;
+                            out{1,2} = mObj.Processors{n_proc+n_new_proc,2}.Output;
+                        end
                     else
-                        out{1,1} = mObj.Processors{n_proc+n_new_proc,1}.Output;
-                        out{1,2} = mObj.Processors{n_proc+n_new_proc,2}.Output;
+                        out = mObj.Processors{n_proc+n_new_proc,1}.Output;
                     end
                 else
                     % Else no new processor was added as the requested one
