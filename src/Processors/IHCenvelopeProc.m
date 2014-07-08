@@ -6,7 +6,7 @@ classdef IHCenvelopeProc < Processor
      end
      
      properties (GetAccess = private)
-         IHCFilters     % Filters involved in the extraction, if any
+         IHCFilter     % Filter involved in the extraction, if any
      end
      
      methods
@@ -37,7 +37,7 @@ classdef IHCenvelopeProc < Processor
                          'joergensen',...
                          'dau',...
                          'breebart',...
-                         'berstein'};
+                         'bernstein'};
              
              % Check method name
              if ~ismember(method,validMeth)
@@ -53,10 +53,10 @@ classdef IHCenvelopeProc < Processor
              pObj.IHCMethod = method;
              
              % Set up a flag if filters are needed
-             if ismember(method,{'joergensen','dau','breebart','berstein'})
-                 pObj.IHCFilters = 1;
+             if ismember(method,{'joergensen','dau','breebart','bernstein'})
+                 pObj.IHCFilter = 1;
              else
-                 pObj.IHCFilters = [];
+                 pObj.IHCFilter = [];
              end
             
          end
@@ -67,54 +67,112 @@ classdef IHCenvelopeProc < Processor
             nChannels = size(in,2);
             
             % Check if filters are needed
-            if ~isempty(pObj.IHCFilters)
-                % Check if enough instances exist
-                if size(pObj.IHCFilters,2)~=nChannels
-                    % Then instantiate the filters
-                    pObj.IHCFilters = pObj.populateFilters(nChannels,pObj.IHCMethod);
+            if ~isempty(pObj.IHCFilter)
+                
+                % Then instantiate the correct filter
+                switch pObj.IHCMethod
+                     case 'joergensen'
+                         % First order butterworth filter @ 150Hz
+                         pObj.IHCFilter = bwFilter(pObj.FsHzIn,1,150);
+
+                     case 'dau'
+                         % Second order butterworth filter @ 1000Hz
+                         pObj.IHCFilter = bwFilter(pObj.FsHzIn,2,1000);
+
+                     case 'breebart'
+                         % First order butterworth filter @ 2000Hz
+                         pObj.IHCFilter = bwFilter(pObj.FsHzIn,5,2000);
+                         % TO DO: CAN'T SERIES THE FILTERS ATM
+
+                     case 'bernstein'
+                         % Second order butterworth filter @ 425Hz
+                         pObj.IHCFilter = bwFilter(pObj.FsHzIn,2,425);
+
                 end
+%                 % Check if enough instances exist
+%                 if size(pObj.IHCFilters,2)~=nChannels
+%                     % Then instantiate the filters
+%                     pObj.IHCFilters = pObj.populateFilters(nChannels,pObj.IHCMethod);
+%                 end
             end
             
             % Initialize output
             out = zeros(size(in));
             
-            % Do the processing for each channel
-            for ii = 1:nChannels
-                switch pObj.IHCMethod
-                    case 'none'
-                        out(:,ii) = in(:,ii);
+            % Carry out the processing for the chosen IHC method
+            switch pObj.IHCMethod
+                case 'none'
+                    out = in;
 
-                    case 'halfwave'
-                        % Half-wave rectification
-                        out(:,ii) = max(in(:,ii),0);
+                case 'halfwave'
+                    % Half-wave rectification
+                    out = max(in,0);
 
-                    case 'fullwave'
-                        % Full-wave rectification
-                        out(:,ii) = abs(in(:,ii));
+                case 'fullwave'
+                    % Full-wave rectification
+                    out = abs(in);
 
-                    case 'square'
-                        out(:,ii) = abs(in(:,ii)).^2;
+                case 'square'
+                    out = abs(in).^2;
 
-                    case 'hilbert'
-                        out(:,ii) = abs(hilbert(in(:,ii)));
+                case 'hilbert'
+                    out = abs(hilbert(in));
 
-                    case 'joergensen'
-                        out(:,ii) = pObj.IHCFilters(ii).filter(abs(hilbert(in(:,ii))));
+                case 'joergensen'
+                    out = pObj.IHCFilter.filter(abs(hilbert(in)));
 
-                    case 'dau'
-                        out(:,ii) = pObj.IHCFilters(ii).filter(max(in(:,ii),0));
-                        
-                    case 'breebart'
-                        out(:,ii) = pObj.IHCFilters(ii).filter(max(in(:,ii),0));
-                        
-                    case 'bernstein'
-                        env = max(abs(hilbert(in(:,ii))).^(-.77).*in(:,ii),0).^2;
-                        out(:,ii) = pObj.IHCFilters(ii).filter(env);
-                        
-                    otherwise
-                        error('%s: Method is not supported!',upper(mfilename))
-                end
+                case 'dau'
+                    out = pObj.IHCFilter.filter(max(in,0));
+
+                case 'breebart'
+                    out = pObj.IHCFilter.filter(max(in,0));
+
+                case 'bernstein'
+                    env = max(abs(hilbert(in)).^(-.77).*in,0).^2;
+                    out = pObj.IHCFilter.filter(env);
+
+                otherwise
+                    error('%s: Method ''%s'' is not supported!',upper(mfilename),pObj.IHCMethod)
             end
+            
+            
+            % Do the processing for each channel
+%             for ii = 1:nChannels
+%                 switch pObj.IHCMethod
+%                     case 'none'
+%                         out(:,ii) = in(:,ii);
+% 
+%                     case 'halfwave'
+%                         % Half-wave rectification
+%                         out(:,ii) = max(in(:,ii),0);
+% 
+%                     case 'fullwave'
+%                         % Full-wave rectification
+%                         out(:,ii) = abs(in(:,ii));
+% 
+%                     case 'square'
+%                         out(:,ii) = abs(in(:,ii)).^2;
+% 
+%                     case 'hilbert'
+%                         out(:,ii) = abs(hilbert(in(:,ii)));
+% 
+%                     case 'joergensen'
+%                         out(:,ii) = pObj.IHCFilters(ii).filter(abs(hilbert(in(:,ii))));
+% 
+%                     case 'dau'
+%                         out(:,ii) = pObj.IHCFilters(ii).filter(max(in(:,ii),0));
+%                         
+%                     case 'breebart'
+%                         out(:,ii) = pObj.IHCFilters(ii).filter(max(in(:,ii),0));
+%                         
+%                     case 'bernstein'
+%                         env = max(abs(hilbert(in(:,ii))).^(-.77).*in(:,ii),0).^2;
+%                         out(:,ii) = pObj.IHCFilters(ii).filter(env);
+%                         
+%                     otherwise
+%                         error('%s: Method is not supported!',upper(mfilename))
+%                 end
+%             end
                  
              
          end

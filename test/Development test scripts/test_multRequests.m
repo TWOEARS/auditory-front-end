@@ -6,7 +6,7 @@ close all
 clc
 
 % Which demo(s) to run:
-demo = [1 2 3 4];
+demo = [1];
 
 %% Load a signal
 
