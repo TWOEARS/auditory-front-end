@@ -176,7 +176,7 @@ classdef gammatoneProc < Processor
             nFilter = size(pObj.Filters,2);
             
             % Pre-allocate memory
-%             out = zeros(nFilter,floor(size(in,2)*pObj.FsHzOut/pObj.FsHzIn));
+            out = zeros(length(in),nFilter);
             
             % Loop on the filters
             for ii = 1:nFilter

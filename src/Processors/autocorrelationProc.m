@@ -117,33 +117,35 @@ classdef autocorrelationProc < Processor
                         % Extract current frame
                         frame = pObj.win.*in(n_start:n_end,jj);
 
-                        % Apply center clipping
-                        switch pObj.clipMethod
-                            case 'clc'
-                                % Get threshold for this frame
-                                maxVal = max(frame)*pObj.alpha;
-
-                                % Clip and compress
-                                frame = max(frame-maxVal,0);
-
-                            case 'clp'
-                                % Get threshold for this frame
-                                maxVal = max(frame)*pObj.alpha;
-
-                                % Simple center clipping, keep what is above
-                                % threshold...
-                                frame(frame>=maxVal) = frame(frame>=maxVal);
-                                % ... and set the rest to zero
-                                frame(frame<maxVal) = 0;
-
-                            case 'sgn'
-                                % Infinite clipping
-                                frame(frame>=maxVal) = 1;
-                                frame(frame<maxVal) = 0;
-
-                            otherwise
-                                error('Incorrect center clipping method for auto-correlation')
-                        end
+                        frame = applyCenterClipping(frame,pObj.clipMethod,pObj.alpha);
+                        
+%                         % Apply center clipping
+%                         switch pObj.clipMethod
+%                             case 'clc'
+%                                 % Get threshold for this frame
+%                                 maxVal = max(frame)*pObj.alpha;
+% 
+%                                 % Clip and compress
+%                                 frame = max(frame-maxVal,0);
+% 
+%                             case 'clp'
+%                                 % Get threshold for this frame
+%                                 maxVal = max(frame)*pObj.alpha;
+% 
+%                                 % Simple center clipping, keep what is above
+%                                 % threshold...
+%                                 frame(frame>=maxVal) = frame(frame>=maxVal);
+%                                 % ... and set the rest to zero
+%                                 frame(frame<maxVal) = 0;
+% 
+%                             case 'sgn'
+%                                 % Infinite clipping
+%                                 frame(frame>=maxVal) = 1;
+%                                 frame(frame<maxVal) = 0;
+% 
+%                             otherwise
+%                                 error('Incorrect center clipping method for auto-correlation')
+%                         end
 
                         % Compute auto-correlation:
 
@@ -178,10 +180,13 @@ classdef autocorrelationProc < Processor
                     % Auto-correlation analysis
                     acf = calcACorr(frames,[],'coeff',pObj.K);
                     
-                    % Store results for positive lags only
-                    for ii = 1:nFrames
-                        out(ii,jj,:) = acf(maxLag+1:end,ii);
-                    end
+                    % No for-loop required 
+                    out(:,jj,:) = permute(acf(maxLag+1:end,:),[2 3 1]);
+                    
+                    % Store results for positive lags only                    
+%                     for ii = 1:nFrames
+%                         out(ii,jj,:) = acf(maxLag+1:end,ii);
+%                     end
                     
                 end
             end

@@ -64,7 +64,7 @@ classdef IHCenvelopeProc < Processor
          function out = processChunk(pObj,in)
                         
             % Number of channels in input
-            nChannels = size(in,2);
+%             nChannels = size(in,2); % (NOT NECESSARY)
             
             % Check if filters are needed
             if ~isempty(pObj.IHCFilter)
@@ -96,8 +96,8 @@ classdef IHCenvelopeProc < Processor
 %                 end
             end
             
-            % Initialize output
-            out = zeros(size(in));
+            % Initialize output 
+%             out = zeros(size(in)); % (NOT NECESSARY)
             
             % Carry out the processing for the chosen IHC method
             switch pObj.IHCMethod
