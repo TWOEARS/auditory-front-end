@@ -1,5 +1,6 @@
 clear all
 close all
+clc
 
 % This script tests the capability of the manager to extract a specific
 % cue

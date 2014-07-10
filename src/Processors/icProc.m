@@ -32,7 +32,7 @@ classdef icProc < Processor
             
             % Populate properties
             pObj.populateProperties('Type','Interaural correlation extractor',...
-                'FsHzIn',fs,'FsHzOut',fs)
+                'FsHzIn',fs,'FsHzOut',fs);
                 
             end
         end
