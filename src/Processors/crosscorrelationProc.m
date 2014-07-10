@@ -6,6 +6,8 @@ classdef crosscorrelationProc < Processor
         hSizeSec    % Step size between windows in seconds
         maxDelaySec % Maximum delay in cross-correlation computation (s)
         isBinaural  % Flag indicating the need for two channels
+        
+        do_mex      % Temporary flag indicating the use of the Tobias' mex code (1)
     end
     
     properties (GetAccess = private)
