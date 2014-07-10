@@ -8,19 +8,28 @@ close all
 load('TestBinauralCues');
 
 % Parameters
-request = 'crosscorrelation';
+% request = 'crosscorrelation';
+request = 'autocorrelation';
+request_ref = 'innerhaircell';    % Will remove computation time for dependent representation
 
 % Create two identical data objects
 dObj1 = dataObject(earSignals,fsHz);
 dObj2 = dataObject(earSignals,fsHz);
 
+% Plus a third as a reference
+dObj_ref = dataObject(earSignals,fsHz);
+
 % Create empty manager (with mex)
 mObj_mex = manager(dObj1);
-mObj_nomex = manager(dObj2,[],0);
+mObj_nomex = manager(dObj2,[],[],0);
+
+% Create reference manager 
+mObj_ref = manager(dObj_ref);
 
 % Add the request
-sOut_mex = mObj_mex.addProcessor(request);
-sOut_nomex = mObj_nomex.addProcessor(request);
+mObj_mex.addProcessor(request);
+mObj_nomex.addProcessor(request);
+mObj_ref.addProcessor(request_ref);
 
 % Request and time processing
 tic;
@@ -29,6 +38,14 @@ t_mex = toc;
 tic;
 mObj_nomex.processSignal;
 t_nomex = toc;
+tic;
+mObj_ref.processSignal;
+t_ref = toc;
 
-fprintf('Elapsed time: %fs (with mex), %fs (without mex).\n',t_mex,t_nomex)
+fprintf('Elapsed time (approximate) for computation of %s: %fs (with mex), %fs (without mex).\n',request,t_mex-t_ref,t_nomex-t_ref)
 
+% Check that both representations are similar
+% m = max(max(max(abs(dObj1.crosscorrelation{1,1}.Data-dObj2.crosscorrelation{1,1}.Data))));
+m = max(max(max(abs(dObj1.autocorrelation{1,1}.Data-dObj2.autocorrelation{1,1}.Data))));
+
+fprintf('Maximum absolute sample-by-sample difference: %f\n',m)

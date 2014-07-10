@@ -14,10 +14,11 @@ classdef autocorrelationProc < Processor
         hSize       % Step size between windows in samples
         win         % Window vector
         buffer      % Buffered input signals for framing
+        do_mex      % Flag indicating the use of the Tobias' mex code
     end
     
     methods
-        function pObj = autocorrelationProc(fs,p)
+        function pObj = autocorrelationProc(fs,p,do_mex)
             %autocorrelationProc    Constructs an auto-correlation
             %                       processor
             %
@@ -36,6 +37,7 @@ classdef autocorrelationProc < Processor
             if nargin>0 % Safeguard for Matlab empty calls
                
             % Checking input parameters
+            if nargin<3||isempty(do_mex);do_mex = 1;end
             if nargin<2||isempty(p)
                 p = getDefaultParameters(fs,'processing');
             end
@@ -57,6 +59,7 @@ classdef autocorrelationProc < Processor
             pObj.Type = 'Auto-correlation extractor';
             pObj.FsHzIn = fs;
             pObj.FsHzOut = 1/(pObj.hSizeSec);
+            pObj.do_mex = do_mex;
             
             % Initialize buffer
             pObj.buffer = [];
@@ -96,67 +99,93 @@ classdef autocorrelationProc < Processor
             % Pre-allocate output
             out = zeros(nFrames,nChannels,pObj.wSize);
             
-            % Loop on the frames
-            for ii = 1:nFrames
-                % Get start and end indexes for the current frame
-                n_start = (ii-1)*pObj.hSize+1;
-                n_end = (ii-1)*pObj.hSize+pObj.wSize;
-                
-                % Loop on the channel
-                for jj = 1:nChannels
-                    
-                    % Extract current frame
-                    frame = pObj.win.*in(n_start:n_end,jj);
-                    
-                    % Apply center clipping
-                    switch pObj.clipMethod
-                        case 'clc'
-                            % Get threshold for this frame
-                            maxVal = max(frame)*pObj.alpha;
-                            
-                            % Clip and compress
-                            frame = max(frame-maxVal,0);
-                            
-                        case 'clp'
-                            % Get threshold for this frame
-                            maxVal = max(frame)*pObj.alpha;
-                            
-                            % Simple center clipping, keep what is above
-                            % threshold...
-                            frame(frame>=maxVal) = frame(frame>=maxVal);
-                            % ... and set the rest to zero
-                            frame(frame<maxVal) = 0;
-                            
-                        case 'sgn'
-                            % Infinite clipping
-                            frame(frame>=maxVal) = 1;
-                            frame(frame<maxVal) = 0;
-                            
-                        otherwise
-                            error('Incorrect center clipping method for auto-correlation')
+            % Determine maximum lag
+            M = pObj.wSize;     % Frame size in samples
+            maxLag = M-1;      % Maximum lag in computation
+            
+            
+            if ~pObj.do_mex
+                % Loop on the frames
+                for ii = 1:nFrames
+                    % Get start and end indexes for the current frame
+                    n_start = (ii-1)*pObj.hSize+1;
+                    n_end = (ii-1)*pObj.hSize+pObj.wSize;
+
+                    % Loop on the channel
+                    for jj = 1:nChannels
+
+                        % Extract current frame
+                        frame = pObj.win.*in(n_start:n_end,jj);
+
+                        % Apply center clipping
+                        switch pObj.clipMethod
+                            case 'clc'
+                                % Get threshold for this frame
+                                maxVal = max(frame)*pObj.alpha;
+
+                                % Clip and compress
+                                frame = max(frame-maxVal,0);
+
+                            case 'clp'
+                                % Get threshold for this frame
+                                maxVal = max(frame)*pObj.alpha;
+
+                                % Simple center clipping, keep what is above
+                                % threshold...
+                                frame(frame>=maxVal) = frame(frame>=maxVal);
+                                % ... and set the rest to zero
+                                frame(frame<maxVal) = 0;
+
+                            case 'sgn'
+                                % Infinite clipping
+                                frame(frame>=maxVal) = 1;
+                                frame(frame<maxVal) = 0;
+
+                            otherwise
+                                error('Incorrect center clipping method for auto-correlation')
+                        end
+
+                        % Compute auto-correlation:
+
+                        % Get the frame in the Fourier domain
+                        XX = abs(fft(frame,2^nextpow2(2*M-1))).^pObj.K;
+
+                        % Back to time domain
+                        x = real(ifft(XX));
+
+                        % Normalize by auto-correlation at lag zero
+                        x = x/x(1);
+
+                        % Store results for positive lags only
+                        out(ii,jj,:) = x(1:M);
+
                     end
-                    
-                    % Compute auto-correlation:
-                    
-                    M = pObj.wSize;     % Frame size in samples
-                    maxLag = M-1;      % Maximum lag in computation
-                    
-                    % Get the frame in the Fourier domain
-                    XX = abs(fft(frame,2^nextpow2(2*M-1))).^pObj.K;
-                    
-                    % Back to time domain
-                    x = real(ifft(XX));
-                    
-                    % Normalize by auto-correlation at lag zero
-                    x = x/x(1);
-                    
-                    % Store results for positive lags only
-                    out(ii,jj,:) = x(1:M);
-                    
+
                 end
                 
+            else
+                % Use Tobias previous code
+                
+                % Loop on the auditory channels
+                for jj = 1:nChannels
+                    
+                    % Framing
+                    frames = frameData(in(:,jj),pObj.wSize,pObj.hSize,pObj.win,false);
+                    
+                    % Perform center clipping
+                    frames = applyCenterClipping(frames,pObj.clipMethod,pObj.alpha);
+                    
+                    % Auto-correlation analysis
+                    acf = calcACorr(frames,[],'coeff',pObj.K);
+                    
+                    % Store results for positive lags only
+                    for ii = 1:nFrames
+                        out(ii,jj,:) = acf(maxLag+1:end,ii);
+                    end
+                    
+                end
             end
-            
+
             
         end
         

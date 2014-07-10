@@ -572,8 +572,8 @@ classdef manager < handle
                     case 'autocorrelation'
                         if mObj.Data.isStereo
                             % Instantiate left and right ear processors
-                            mObj.Processors{ii,1} = autocorrelationProc(p.fs,p);
-                            mObj.Processors{ii,2} = autocorrelationProc(p.fs,p);
+                            mObj.Processors{ii,1} = autocorrelationProc(p.fs,p,mObj.use_mex);
+                            mObj.Processors{ii,2} = autocorrelationProc(p.fs,p,mObj.use_mex);
                             % Generate new signals
                             lags = 0:1/p.fs:mObj.Processors{ii,1}.wSizeSec-1/p.fs;   % Vector of lags
                             cfHz = dep_proc_l.getDependentParameter('cfHz');         % Vector of center frequencies
@@ -584,7 +584,7 @@ classdef manager < handle
                             mObj.Data.addSignal(sig_r)
                         else
                             % Instantiate a processor
-                            mObj.Processors{ii,1} = autocorrelationProc(p.fs,p);
+                            mObj.Processors{ii,1} = autocorrelationProc(p.fs,p,mObj.use_mex);
                             % Generate a new signal
                             lags = 0:1/p.fs:mObj.Processors{ii,1}.wSizeSec-1/p.fs;   % Vector of lags
                             cfHz = dep_proc.getDependentParameter('cfHz');         % Vector of center frequencies
