@@ -170,9 +170,12 @@ classdef crosscorrelationProc < Processor
                     % TODO: Maybe we can shave off some computational time by
                     % redesigning calcXCorr.m to return a correctly formated
                     % output.
-                    for ii = 1:nFrames
-                        out(ii,jj,:) = output(:,ii);
-                    end
+                    % That's no required ... :P
+                    out(:,jj,:) = permute(output,[2 3 1]);
+                    
+%                     for ii = 1:nFrames
+%                         out(ii,jj,:) = output(:,ii);
+%                     end
                 end
             end
             
