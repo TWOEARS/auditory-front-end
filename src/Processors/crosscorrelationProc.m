@@ -7,7 +7,7 @@ classdef crosscorrelationProc < Processor
         maxDelaySec % Maximum delay in cross-correlation computation (s)
         isBinaural  % Flag indicating the need for two channels
         
-        do_mex      % Temporary flag indicating the use of the Tobias' mex code (1)
+        do_mex      % TEMP flag indicating the use of the Tobias' mex code (1)
     end
     
     properties (GetAccess = private)
@@ -21,7 +21,7 @@ classdef crosscorrelationProc < Processor
         
     methods
         
-        function pObj = crosscorrelationProc(fs,p)
+        function pObj = crosscorrelationProc(fs,p,do_mex)
             %crosscorrelationProc    Constructs a cross-correlation
             %                        processor
             %
@@ -57,6 +57,9 @@ classdef crosscorrelationProc < Processor
             pObj.FsHzIn = fs;
             pObj.FsHzOut = 1/(pObj.hSizeSec);
             pObj.maxDelaySec = p.cc_maxDelaySec;
+            
+            % TEMP:
+            pObj.do_mex = do_mex;
             
             % Initialize buffer
             pObj.buffer_l = [];
