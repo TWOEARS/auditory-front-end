@@ -9,10 +9,16 @@ classdef manager < handle
                         % the processors array when new processors are
                         % added.
         Data            % Pointer to the data object
+        
+    end
+    
+    properties (GetAccess = protected)
+        use_mex         % Flag for using mex files to speed up computation 
+                        % when available
     end
     
     methods
-        function mObj = manager(data,request,p)
+        function mObj = manager(data,request,p,use_mex)
             %manager        Constructs a manager object
             %
             %USAGE
@@ -36,6 +42,7 @@ classdef manager < handle
             if nargin>0     % Failproof for Matlab empty calls
             
             % Input check
+            if nargin<4||isempty(use_mex);use_mex=1;end
             if nargin<3||isempty(p);p=[];end
             if nargin<2
                 request = [];
@@ -45,6 +52,8 @@ classdef manager < handle
                     'an existing data Object'])
             end
             
+            % Add use_mex property for the manager
+            mObj.use_mex = use_mex;
             
             % Add pointer to the data structure
             mObj.Data = data;
@@ -589,8 +598,13 @@ classdef manager < handle
                         % Check that two channels are available
                         if ~mObj.Data.isStereo
                             warning('Manager cannot instantiate a binaural cue extractor for a single-channel signal')
+                            proceed = 0;
                         else
-                            mObj.Processors{ii,1} = crosscorrelationProc(p.fs,p);
+%                             mObj.Processors{ii,1} = crosscorrelationProc(p.fs,p);
+                                
+                            % TEMP:
+                            mObj.Processors{ii,1} = crosscorrelationProc(p.fs,p,mObj.use_mex);
+
                             maxLag = ceil(mObj.Processors{ii,1}.maxDelaySec*p.fs);
                             lags = (-maxLag:maxLag)/p.fs;                           % Lags
                             cfHz = dep_proc_l.getDependentParameter('cfHz');        % Center frequencies 
@@ -647,6 +661,7 @@ classdef manager < handle
                         % Check that two channels are available
                         if ~mObj.Data.isStereo
                             warning('Manager cannot instantiate a binaural cue extractor for a single-channel signal')
+                            proceed = 0;
                         else
                             mObj.Processors{ii,1} = ildProc(p.fs,p);
                             cfHz = dep_proc_l.getDependentParameter('cfHz');    % Center frequencies
@@ -657,6 +672,7 @@ classdef manager < handle
                     case 'ic_xcorr'
                         if ~mObj.Data.isStereo
                             warning('Manager cannot instantiate a binaural cue extractor for a single-channel signal')
+                            proceed = 0;
                         else
                             mObj.Processors{ii,1} = icProc(dep_proc.FsHzOut,p);
                             cfHz = dep_proc.getDependentParameter('cfHz');    % Center frequencies
@@ -667,6 +683,7 @@ classdef manager < handle
                     case 'itd_xcorr'
                         if ~mObj.Data.isStereo
                             warning('Manager cannot instantiate a binaural cue extractor for a single-channel signal')
+                            proceed = 0;
                         else
                             mObj.Processors{ii,1} = itdProc(dep_proc.FsHzOut,p);
                             cfHz = dep_proc.getDependentParameter('cfHz');    % Center frequencies
@@ -760,7 +777,7 @@ classdef manager < handle
             mObj.Map(n_proc+1:n_proc+n_new_proc) = n_proc+1:n_proc+n_new_proc;
             
             % Provide the user with a pointer to the requested signal
-            if nargout>0
+            if nargout>0 && proceed
                 if ~isempty(dep_list)
                     if size(mObj.Processors,2)==2
                         if isempty(mObj.Processors{n_proc+n_new_proc,2})
@@ -782,6 +799,9 @@ classdef manager < handle
                         out = dep_sig;
                     end
                 end
+            elseif ~proceed
+                warning('The request was invalid, returning an empty handle')
+                out = [];
             end
             
         end

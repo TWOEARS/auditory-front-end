@@ -104,7 +104,10 @@ classdef crosscorrelationProc < Processor
             
             % Pre-allocate output
             out = zeros(nFrames,nChannels,maxLag*2+1);
-                         
+            
+            % TEMP: Flag for using Tobias mex code
+            
+            if ~pObj.do_mex
             % Loop on the time frame
             for ii = 1:nFrames
                 % Get start and end indexes for the current frame
@@ -152,22 +155,27 @@ classdef crosscorrelationProc < Processor
                 
             end
 
-            % DEBUG: Using Tobias code
-%             for jj = 1:nChannels
-%                 
-%                 % Framing
-%                 frames_L = frameData(in_l(:,jj),pObj.wSize,pObj.hSize,pObj.win,false);
-%                 frames_R = frameData(in_r(:,jj),pObj.wSize,pObj.hSize,pObj.win,false);
-%                 
-%                 % Cross-correlation analysis
-%                 output = calcXCorr(frames_L,frames_R,maxLag,'coeff');
-%                 
-%                 % Store output
-%                 for ii = 1:nFrames
-%                     out(ii,jj,:) = output(:,ii);
-%                 end
-%                 
-%             end
+            else
+            % TEMP: Using Tobias code
+            for jj = 1:nChannels
+                
+                % Framing
+                frames_L = frameData(in_l(:,jj),pObj.wSize,pObj.hSize,pObj.win,false);
+                frames_R = frameData(in_r(:,jj),pObj.wSize,pObj.hSize,pObj.win,false);
+                
+                % Cross-correlation analysis
+                output = calcXCorr(frames_L,frames_R,maxLag,'coeff');
+                
+                % Store output
+                % TODO: Maybe we can shave off some computational time by
+                % redesigning calcXCorr.m to return a correctly formated
+                % output.
+                for ii = 1:nFrames
+                    out(ii,jj,:) = output(:,ii);
+                end
+                
+            end
+            end
             
             % Update the buffer: the input that was not extracted as a
             % frame should be stored
