@@ -4,3 +4,4 @@
 *.blg
 *.out
 *.synctex
+.DS_Store
