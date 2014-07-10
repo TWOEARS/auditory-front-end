@@ -658,8 +658,8 @@ classdef manager < handle
                         if ~mObj.Data.isStereo
                             warning('Manager cannot instantiate a binaural cue extractor for a single-channel signal')
                         else
-                            mObj.Processors{ii,1} = icProc(dep_proc_l.FsHzOut,p);
-                            cfHz = dep_proc_l.getDependentParameter('cfHz');    % Center frequencies
+                            mObj.Processors{ii,1} = icProc(dep_proc.FsHzOut,p);
+                            cfHz = dep_proc.getDependentParameter('cfHz');    % Center frequencies
                             sig = TimeFrequencySignal(mObj.Processors{ii,1}.FsHzOut,'ic_xcorr',cfHz,'Interaural correlation',[],'mono');
                             mObj.Data.addSignal(sig);
                         end
@@ -668,8 +668,8 @@ classdef manager < handle
                         if ~mObj.Data.isStereo
                             warning('Manager cannot instantiate a binaural cue extractor for a single-channel signal')
                         else
-                            mObj.Processors{ii,1} = itdProc(dep_proc_l.FsHzOut,p);
-                            cfHz = dep_proc_l.getDependentParameter('cfHz');    % Center frequencies
+                            mObj.Processors{ii,1} = itdProc(dep_proc.FsHzOut,p);
+                            cfHz = dep_proc.getDependentParameter('cfHz');    % Center frequencies
                             sig = TimeFrequencySignal(mObj.Processors{ii,1}.FsHzOut,'itd_xcorr',cfHz,'Interaural Time Difference',[],'mono');
                             mObj.Data.addSignal(sig);
                         end
