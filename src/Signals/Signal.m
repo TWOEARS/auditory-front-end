@@ -56,6 +56,19 @@ classdef Signal < handle
             sObj.LastChunk = [start start+size(data,1)-1];
                         
         end
+        
+        function clearData(sObj)
+            %clearData  Clears the data in a signal object without changing
+            %           its other properties
+            %
+            %USAGE
+            %   sObj.clearData
+            
+            sObj.Data = [];
+            
+        end
+            
+        
     end
     
     methods (Access = protected)

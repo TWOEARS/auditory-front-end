@@ -82,7 +82,7 @@ data = earSignals;
 
 % Create an empty data object. It will be filled up as new ear signal
 % chunks are "acquired". 
-dObj = dataObject([],fsHz,1);   % Last input (1) indicates a stereo signal
+dObj = dataObject([],fsHz,1);     % Last input (1) indicates a stereo signal
 mObj = manager(dObj,request);   % Instantiate a manager
 
 % From here on, simulating real-time chunk acquisition and processing
@@ -102,7 +102,7 @@ for ii = 1:n_chunks
     chunk = data((ii-1)*chunkSize+1:ii*chunkSize,:);
     
     % Request processing for that chunk
-    mObj.processChunk(chunk);
+    mObj.processChunk(chunk,1);
     
 end
 
