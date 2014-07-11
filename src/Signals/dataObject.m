@@ -105,7 +105,40 @@ classdef dataObject < dynamicprops
             end
             
         end
+        
+        function clearData(dObj)
+            %clearData  Clear data of all signals in the data structure
+            %
+            %USAGE:
+            %    dObj.clearData
             
+            % Get a list of the signals contained in the data object
+            sig_list = fieldnames(dObj);
+            
+            % Remove the "isStereo" property from the list
+            sig_list = sig_list(2:end);
+            
+            % Loop over all the signals
+            for ii = 1:size(sig_list,1)
+                
+                % There should always be a left or mono channel
+                dObj.(sig_list{ii}){1}.clearData;
+                
+                % Check if there is a right channels
+                if size(dObj.(sig_list{ii}),2)>1
+                    
+                    % It could still be empty (e.g. for "mix" signals)
+                    if isa(dObj.(sig_list{ii}){2},'Signal')
+                        dObj.(sig_list{ii}){2}.clearData;
+                    end
+                    
+                end
+                
+            end
+           
+            
+        end
+        
         function play(dObj)
             %play       Playback the audio from the ear signal in the data
             %           object

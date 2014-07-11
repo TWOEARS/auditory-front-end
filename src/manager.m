@@ -86,6 +86,12 @@ classdef manager < handle
             %
             %INPUT ARGUMENT
             %   mObj : Manager object
+            %
+            %NB: As opposed to the method processChunk, this method will
+            %reset the internal states of the processors prior to
+            %processing, assuming a completely new signal.
+            %
+            %SEE ALSO: processChunk
             
             % Check that there is an available signal
             if isempty(mObj.Data.signal)
@@ -122,16 +128,29 @@ classdef manager < handle
             end
         end
         
-        function processChunk(mObj,sig_chunk)
+        function processChunk(mObj,sig_chunk,do_append)
             %processChunk   Update the signal with a new chunk of data and
             %               calls the processing chain for this new chunk
             %
             %USAGE
             %   mObj.processChunk(sig_chunk)
+            %   mObj.processChunk(sig_chunk,append)
             %
             %INPUT ARGUMENTS
             %      mObj : Manager object
             % sig_chunk : New signal chunk
+            %    append : Flag indicating if the newly generated output
+            %             should be appended (append = 1) to previous
+            %             output or should overwrite it (append = 0,
+            %             default)
+            %
+            %NB: Even if the previous output is overwritten, the
+            %processChunk method allows for real-time processing by keeping
+            %track of the processors' internal states between chunks.
+            %
+            %SEE ALSO: processSignal
+            
+            if nargin<3||isempty(do_append);do_append = 0;end
             
             % Check that the signal chunk has correct number of channels
             if size(sig_chunk,2) ~= mObj.Data.isStereo+1
@@ -139,6 +158,12 @@ classdef manager < handle
                 error(['The dimensionality of the provided signal chunk'...
                     'is incompatible with previous chunks'])
             end
+            
+            % Delete previous output if necessary
+            if ~do_append
+                mObj.Data.clearData;
+            end
+            
             
             % Append the signal chunk
             if mObj.Data.isStereo
