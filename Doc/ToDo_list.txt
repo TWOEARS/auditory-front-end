@@ -1,0 +1,14 @@
+This file sums up some of the content that needs to be added to the WP2 implementation.
+Lines come (loosely) in priority order, feel free to rearrange them.
+
+Last modified: 17-07-2014
+
+To do:
+
+- ratemapProc: Change implementation to use only a single filter object that operates on a matrix (should be faster)
+- applyCenterClipping: Surprisingly long execution time, investigate if it can be optimized.
+- WP2parameterHelper: Add an hyperlink also to processors that do not have extra parameters (e.g., itd_xcorr)
+- WP2parameterHelper: Expand the h1 line before the hyperlinks, mention getDefaultParameters and other relevant functions for parameter handling
+- Parameter handling: Use substructures in parameter structure, kind of in the way of pInfo
+- Parameter handling: Make a parameter summary function to keep track of parameters (including some that are computed, e.g., cfHz) with the possibility of saving it to a log file
+

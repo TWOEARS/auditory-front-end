@@ -6,6 +6,8 @@ classdef crosscorrelationProc < Processor
         hSizeSec    % Step size between windows in seconds
         maxDelaySec % Maximum delay in cross-correlation computation (s)
         isBinaural  % Flag indicating the need for two channels
+        
+        do_mex      % TEMP flag indicating the use of the Tobias' mex code (1)
     end
     
     properties (GetAccess = private)
@@ -19,7 +21,7 @@ classdef crosscorrelationProc < Processor
         
     methods
         
-        function pObj = crosscorrelationProc(fs,p)
+        function pObj = crosscorrelationProc(fs,p,do_mex)
             %crosscorrelationProc    Constructs a cross-correlation
             %                        processor
             %
@@ -55,6 +57,9 @@ classdef crosscorrelationProc < Processor
             pObj.FsHzIn = fs;
             pObj.FsHzOut = 1/(pObj.hSizeSec);
             pObj.maxDelaySec = p.cc_maxDelaySec;
+            
+            % TEMP:
+            pObj.do_mex = do_mex;
             
             % Initialize buffer
             pObj.buffer_l = [];
@@ -99,7 +104,8 @@ classdef crosscorrelationProc < Processor
             
             % Pre-allocate output
             out = zeros(nFrames,nChannels,maxLag*2+1);
-                         
+            
+            if ~pObj.do_mex
             % Loop on the time frame
             for ii = 1:nFrames
                 % Get start and end indexes for the current frame
@@ -147,22 +153,29 @@ classdef crosscorrelationProc < Processor
                 
             end
 
-            % DEBUG: Using Tobias code
-%             for jj = 1:nChannels
-%                 
-%                 % Framing
-%                 frames_L = frameData(in_l(:,jj),pObj.wSize,pObj.hSize,pObj.win,false);
-%                 frames_R = frameData(in_r(:,jj),pObj.wSize,pObj.hSize,pObj.win,false);
-%                 
-%                 % Cross-correlation analysis
-%                 output = calcXCorr(frames_L,frames_R,maxLag,'coeff');
-%                 
-%                 % Store output
-%                 for ii = 1:nFrames
-%                     out(ii,jj,:) = output(:,ii);
-%                 end
-%                 
-%             end
+            else
+                % Use Tobias mex code for framing
+                for jj = 1:nChannels
+
+                    % Framing
+                    frames_L = frameData(in_l(:,jj),pObj.wSize,pObj.hSize,pObj.win,false);
+                    frames_R = frameData(in_r(:,jj),pObj.wSize,pObj.hSize,pObj.win,false);
+
+                    % Cross-correlation analysis
+                    output = calcXCorr(frames_L,frames_R,maxLag,'coeff');
+
+                    % Store output
+                    % TODO: Maybe we can shave off some computational time by
+                    % redesigning calcXCorr.m to return a correctly formated
+                    % output.
+                    % That's no required ... :P
+                    out(:,jj,:) = permute(output,[2 3 1]);
+                    
+%                     for ii = 1:nFrames
+%                         out(ii,jj,:) = output(:,ii);
+%                     end
+                end
+            end
             
             % Update the buffer: the input that was not extracted as a
             % frame should be stored

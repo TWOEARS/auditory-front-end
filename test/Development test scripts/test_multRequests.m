@@ -1,12 +1,12 @@
 % This script demonstrates the different approaches to requesting multiple
 % representations at a time in the WP2 processing framework.
 
-clear all
+% clear all
 close all
 clc
 
 % Which demo(s) to run:
-demo = [1 2 3 4];
+demo = [1];
 
 %% Load a signal
 
@@ -27,7 +27,9 @@ clear earSignals fsHz
 
 if ismember(1,demo)
     
-requests = {'ild','itd_xcorr','ratemap_magnitude'};
+% requests = {'ild','itd_xcorr','ratemap_magnitude'};
+requests = {'ild' 'itd_xcorr' 'ic_xcorr'};
+% requests = {'ic_xcorr'}
 
 % Create a data object
 dObj = dataObject(data,fs);
@@ -41,7 +43,7 @@ mObj.processSignal();
 % Plot the results
 h1 = dObj.ild{1}.plot;
 h2 = dObj.itd_xcorr{1}.plot;
-h3 = dObj.ratemap_magnitude{1}.plot;
+h3 = dObj.ic_xcorr{1}.plot;
 
 % Position the figures
 set(h1,'Units','normalized','Position',[0.1 0.1 0.25 0.3])

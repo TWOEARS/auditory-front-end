@@ -1,22 +1,31 @@
-clear all
-close all
-clc
-
 % This script tests the capability of the manager to extract a specific
 % cue
+
+clear all
+close all
 
 % Add path
 % path = fileparts(mfilename('fullpath')); 
 % run([path filesep '..' filesep '..' filesep 'src' filesep 'startWP2.m'])
 
-% Load a binaural signal
+% Test on monoral or binaural signal
+do_stereo = 1;
+
+% Load a signal
 load('TestBinauralCues');
 
+if ~do_stereo
+    data = earSignals(:,2);     % Right channel has higher energy
+else
+    data = earSignals;
+end
+clear earSignals
+
 % Parameters
-request = 'ic_xcorr';
+request = 'crosscorrelation';
 
 % Create a data object
-dObj = dataObject(earSignals,fsHz);
+dObj = dataObject(data,fsHz);
 
 % Create empty manager
 mObj = manager(dObj);
