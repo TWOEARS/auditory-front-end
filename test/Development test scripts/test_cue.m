@@ -22,7 +22,7 @@ end
 clear earSignals
 
 % Parameters
-request = 'crosscorrelation';
+request = 'innerhaircell';
 
 % Create a data object
 dObj = dataObject(data,fsHz);
@@ -36,4 +36,4 @@ sOut = mObj.addProcessor(request);
 % Request processing
 mObj.processSignal;
 
-sOut.plot;
+sOut{1}.plot;

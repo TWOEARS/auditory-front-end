@@ -89,15 +89,9 @@ classdef IHCenvelopeProc < Processor
                          pObj.IHCFilter = bwFilter(pObj.FsHzIn,2,425);
 
                 end
-%                 % Check if enough instances exist
-%                 if size(pObj.IHCFilters,2)~=nChannels
-%                     % Then instantiate the filters
-%                     pObj.IHCFilters = pObj.populateFilters(nChannels,pObj.IHCMethod);
-%                 end
+                
             end
             
-            % Initialize output 
-%             out = zeros(size(in)); % (NOT NECESSARY)
             
             % Carry out the processing for the chosen IHC method
             switch pObj.IHCMethod
@@ -135,46 +129,6 @@ classdef IHCenvelopeProc < Processor
                     error('%s: Method ''%s'' is not supported!',upper(mfilename),pObj.IHCMethod)
             end
             
-            
-            % Do the processing for each channel
-%             for ii = 1:nChannels
-%                 switch pObj.IHCMethod
-%                     case 'none'
-%                         out(:,ii) = in(:,ii);
-% 
-%                     case 'halfwave'
-%                         % Half-wave rectification
-%                         out(:,ii) = max(in(:,ii),0);
-% 
-%                     case 'fullwave'
-%                         % Full-wave rectification
-%                         out(:,ii) = abs(in(:,ii));
-% 
-%                     case 'square'
-%                         out(:,ii) = abs(in(:,ii)).^2;
-% 
-%                     case 'hilbert'
-%                         out(:,ii) = abs(hilbert(in(:,ii)));
-% 
-%                     case 'joergensen'
-%                         out(:,ii) = pObj.IHCFilters(ii).filter(abs(hilbert(in(:,ii))));
-% 
-%                     case 'dau'
-%                         out(:,ii) = pObj.IHCFilters(ii).filter(max(in(:,ii),0));
-%                         
-%                     case 'breebart'
-%                         out(:,ii) = pObj.IHCFilters(ii).filter(max(in(:,ii),0));
-%                         
-%                     case 'bernstein'
-%                         env = max(abs(hilbert(in(:,ii))).^(-.77).*in(:,ii),0).^2;
-%                         out(:,ii) = pObj.IHCFilters(ii).filter(env);
-%                         
-%                     otherwise
-%                         error('%s: Method is not supported!',upper(mfilename))
-%                 end
-%             end
-                 
-             
          end
          
          function reset(pObj)
@@ -188,10 +142,8 @@ classdef IHCenvelopeProc < Processor
              %  pObj : Inner haircell envelope extractor processor instance
              
              % A reset is needed only if the extractor involves filters
-             if ~isempty(pObj.IHCFilters)
-                 for ii = 1:size(pObj.IHCFilters,2)
-                     pObj.IHCFilters(ii).reset
-                 end
+             if ~isempty(pObj.IHCFilter)
+                 pObj.IHCFilter.reset
              end
          end
          
@@ -262,7 +214,7 @@ classdef IHCenvelopeProc < Processor
                      case 'breebart'
                          % First order butterworth filter @ 2000Hz
                          obj(1,ii) = bwFilter(pObj.FsHzIn,5,2000);
-                         % TO DO: CAN'T SERIES THE FILTERS ATM
+                         % TODO: CAN'T SERIES THE FILTERS ATM
 
                      case 'bernstein'
                          % Second order butterworth filter @ 425Hz

@@ -106,6 +106,9 @@ classdef manager < handle
             if isempty(mObj.Data.signal)
                 warning('No signal available for processing')
             else            
+                % Reset the processors internal states
+                mObj.reset;
+                
                 % Number of processors
                 n_proc = size(mObj.Processors,1);
 
@@ -960,6 +963,45 @@ classdef manager < handle
             end
             
         end
+        
+        function reset(mObj)
+            %reset  Reset the internal states of all instantiated
+            %processors
+            %
+            %USAGE:
+            %  mObj.reset
+            %
+            %INPUT ARGUMENTS
+            %  mObj : Manager instance
+            
+            % Is the manager working on a binaural signal?
+            if size(mObj.Processors,2)==2
+                
+                % Then loop over the processors
+                for ii = 1:size(mObj.Processors,1)
+                   
+                    % There should always be a processor for left/mono
+                    mObj.Processors{ii,1}.reset;
+                    
+                    % Though there might not be a right-channel processor
+                    if isa(mObj.Processors{ii,2},'Processor')
+                        mObj.Processors{ii,2}.reset;
+                    end
+                        
+                end
+                
+            else
+            
+                % Loop over the processors
+                for ii = 1:size(mObj.Processors,1)
+                    
+                    mObj.Processors{ii,1}.reset;
+                        
+                end
+            end
+            
+        end
+        
         
     end
     
