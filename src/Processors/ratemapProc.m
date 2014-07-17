@@ -13,7 +13,7 @@ classdef ratemapProc < Processor
         hSize       % Step size between windows in samples
         win         % Window vector
         buffer      % Buffered input signals
-        rmFilters   % Leaky integrator filters
+        rmFilter    % Leaky integrator filters
     end
         
     
@@ -56,10 +56,10 @@ classdef ratemapProc < Processor
             pObj.scaling = p.rm_scaling;
             pObj.decaySec = p.rm_decaySec;
                 
-            % N.B: the filters are instantiated at a later stage, as this
-            % requires knowledge of the number of channels
-            pObj.rmFilters = [];
-                
+            % Instantiate the filter
+            % TODO: Do we test for decaySec = 0 to avoid filtering then?
+            pObj.rmFilter = leakyIntegratorFilter(fs,pObj.decaySec);
+            
             pObj.Type = 'Ratemap extractor';
             pObj.FsHzIn = fs;
             pObj.FsHzOut = 1/(pObj.hSizeSec);
@@ -90,22 +90,23 @@ classdef ratemapProc < Processor
             %validity of the input is the responsibility of the user!
             
             % Number of channels in input
-            nChannels = size(in,2);
+%             nChannels = size(in,2);
             
             % Check if filters are instantiated
-            if isempty(pObj.rmFilters)
-                pObj.rmFilters = pObj.populateFilters(nChannels,pObj.FsHzIn);
-            elseif size(pObj.rmFilters,2)~=nChannels
-                % Then something went wrong, re-instantiate filters
-                warning('There was a change in number of channels for the ratemap extractor. Resetting filters states...')
-                pObj.rmFilters = pObj.populateFilters(nChannels,pObj.FsHzIn);
-            end
+%             if isempty(pObj.rmFilters)
+%                 pObj.rmFilters = pObj.populateFilters(nChannels,pObj.FsHzIn);
+%             elseif size(pObj.rmFilters,2)~=nChannels
+%                 % Then something went wrong, re-instantiate filters
+%                 warning('There was a change in number of channels for the ratemap extractor. Resetting filters states...')
+%                 pObj.rmFilters = pObj.populateFilters(nChannels,pObj.FsHzIn);
+%             end
             
             % Filter input
-            for ii = 1:nChannels
-                in(:,ii)=pObj.rmFilters(ii).filter(in(:,ii));
-            end
+%             for ii = 1:nChannels
+%                 in(:,ii)=pObj.rmFilters(ii).filter(in(:,ii));
+%             end
             
+            in = pObj.rmFilter.filter(in);
             
             % Append filtered input to the buffer
             if ~isempty(pObj.buffer)
