@@ -1,5 +1,4 @@
-% This script reports the differences in computation time when using mex
-% files or not (for framing only at the moment).
+% This script reports the differences in computation time when using mex files or not (for framing only at the moment).
 
 clear
 close all
@@ -8,9 +7,10 @@ close all
 load('TestBinauralCues');
 
 % Parameters
-% request = 'crosscorrelation';
-request = 'autocorrelation';
-request_ref = 'innerhaircell';    % Will remove computation time for dependent representation
+request = 'crosscorrelation';
+% request = 'autocorrelation';
+
+request_ref = 'innerhaircell';    % Will remove computation time of dependent representation
 
 % Create two identical data objects
 dObj1 = dataObject(earSignals,fsHz);
@@ -45,7 +45,6 @@ t_ref = toc;
 fprintf('Elapsed time (approximate) for computation of %s: %fs (with mex), %fs (without mex).\n',request,t_mex-t_ref,t_nomex-t_ref)
 
 % Check that both representations are similar
-% m = max(max(max(abs(dObj1.crosscorrelation{1,1}.Data-dObj2.crosscorrelation{1,1}.Data))));
-m = max(max(max(abs(dObj1.autocorrelation{1,1}.Data-dObj2.autocorrelation{1,1}.Data))));
+m = max(max(max(abs(dObj1.(request){1,1}.Data-dObj2.(request){1,1}.Data))));
 
 fprintf('Maximum absolute sample-by-sample difference: %f\n',m)

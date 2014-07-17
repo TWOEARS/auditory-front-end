@@ -105,8 +105,6 @@ classdef crosscorrelationProc < Processor
             % Pre-allocate output
             out = zeros(nFrames,nChannels,maxLag*2+1);
             
-            % TEMP: Flag for using Tobias mex code
-            
             if ~pObj.do_mex
             % Loop on the time frame
             for ii = 1:nFrames
