@@ -644,8 +644,8 @@ classdef manager < handle
                     case 'ratemap_magnitude'
                         if mObj.Data.isStereo
                             % Instantiate left and right ear processors
-                            mObj.Processors{ii,1} = ratemapProc(p.fs,p,'magnitude');
-                            mObj.Processors{ii,2} = ratemapProc(p.fs,p,'magnitude');
+                            mObj.Processors{ii,1} = ratemapProc(p.fs,p,'magnitude',mObj.use_mex);
+                            mObj.Processors{ii,2} = ratemapProc(p.fs,p,'magnitude',mObj.use_mex);
                             % Generate new signals
                             cfHz = dep_proc_l.getDependentParameter('cfHz');    % Center frequencies
                             sig_l = TimeFrequencySignal(mObj.Processors{ii,1}.FsHzOut,'ratemap_magnitude',cfHz,'Ratemap (magnitude)',[],'left');
@@ -655,7 +655,7 @@ classdef manager < handle
                             mObj.Data.addSignal(sig_r)
                         else
                             % Instantiate a processor
-                            mObj.Processors{ii,1} = ratemapProc(p.fs,p,'magnitude');
+                            mObj.Processors{ii,1} = ratemapProc(p.fs,p,'magnitude',mObj.use_mex);
                             % Generate a new signal
                             cfHz = dep_proc.getDependentParameter('cfHz');    % Center frequencies
                             sig = TimeFrequencySignal(mObj.Processors{ii,1}.FsHzOut,'ratemap_magnitude',cfHz,'Ratemap (magnitude)',[],'mono');
@@ -666,8 +666,8 @@ classdef manager < handle
                     case 'ratemap_power'
                         if mObj.Data.isStereo
                             % Instantiate left and right ear processors
-                            mObj.Processors{ii,1} = ratemapProc(p.fs,p,'power');
-                            mObj.Processors{ii,2} = ratemapProc(p.fs,p,'power');
+                            mObj.Processors{ii,1} = ratemapProc(p.fs,p,'power',mObj.use_mex);
+                            mObj.Processors{ii,2} = ratemapProc(p.fs,p,'power',mObj.use_mex);
                             % Generate new signals
                             cfHz = dep_proc_l.getDependentParameter('cfHz');    % Center frequencies
                             sig_l = TimeFrequencySignal(mObj.Processors{ii,1}.FsHzOut,'ratemap_power',cfHz,'Ratemap (power)',[],'left');
@@ -677,7 +677,7 @@ classdef manager < handle
                             mObj.Data.addSignal(sig_r)
                         else
                             % Instantiate a processor
-                            mObj.Processors{ii,1} = ratemapProc(p.fs,p,'power');
+                            mObj.Processors{ii,1} = ratemapProc(p.fs,p,'power',mObj.use_mex);
                             % Generate a new signal
                             cfHz = dep_proc.getDependentParameter('cfHz');    % Center frequencies
                             sig = TimeFrequencySignal(mObj.Processors{ii,1}.FsHzOut,'ratemap_power',cfHz,'Ratemap (power)',[],'mono');

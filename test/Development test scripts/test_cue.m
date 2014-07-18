@@ -23,6 +23,7 @@ clear earSignals
 
 % Parameters
 request = 'innerhaircell';
+p = genParStruct('f_low',80,'f_high',8000,'nChannels',30);
 
 % Create a data object
 dObj = dataObject(data,fsHz);
@@ -31,7 +32,7 @@ dObj = dataObject(data,fsHz);
 mObj = manager(dObj);
 
 % Add the request
-sOut = mObj.addProcessor(request);
+sOut = mObj.addProcessor(request,p);
 
 % Request processing
 mObj.processSignal;

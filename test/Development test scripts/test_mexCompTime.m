@@ -7,8 +7,9 @@ close all
 load('TestBinauralCues');
 
 % Parameters
-request = 'crosscorrelation';
-% request = 'autocorrelation';
+request = 'ratemap_magnitude';
+% N.B: The requests affected by framing (hence use of mex) are ratemaps,
+% auto- and cross-correlation.
 
 request_ref = 'innerhaircell';    % Will remove computation time of dependent representation
 

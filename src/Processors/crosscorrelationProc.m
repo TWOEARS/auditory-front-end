@@ -165,15 +165,8 @@ classdef crosscorrelationProc < Processor
                     output = calcXCorr(frames_L,frames_R,maxLag,'coeff');
 
                     % Store output
-                    % TODO: Maybe we can shave off some computational time by
-                    % redesigning calcXCorr.m to return a correctly formated
-                    % output.
-                    % That's no required ... :P
                     out(:,jj,:) = permute(output,[2 3 1]);
                     
-%                     for ii = 1:nFrames
-%                         out(ii,jj,:) = output(:,ii);
-%                     end
                 end
             end
             
