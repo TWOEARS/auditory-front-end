@@ -22,8 +22,8 @@ end
 clear earSignals
 
 % Parameters
-request = 'innerhaircell';
-p = genParStruct('f_low',80,'f_high',8000,'nChannels',30);
+request = 'ratemap_power';
+p = []; %genParStruct('f_low',80,'f_high',8000,'nChannels',30);
 
 % Create a data object
 dObj = dataObject(data,fsHz);

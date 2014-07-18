@@ -15,7 +15,7 @@ classdef ratemapProc < Processor
         hSize       % Step size between windows in samples
         win         % Window vector
         buffer      % Buffered input signals
-        rmFilter    % Leaky integrator filters
+        rmFilter    % Leaky integrator filter
     end
         
     
@@ -94,22 +94,6 @@ classdef ratemapProc < Processor
             %provided input. If called outside of a manager instance,
             %validity of the input is the responsibility of the user!
             
-            % Number of channels in input
-%             nChannels = size(in,2);
-            
-            % Check if filters are instantiated
-%             if isempty(pObj.rmFilters)
-%                 pObj.rmFilters = pObj.populateFilters(nChannels,pObj.FsHzIn);
-%             elseif size(pObj.rmFilters,2)~=nChannels
-%                 % Then something went wrong, re-instantiate filters
-%                 warning('There was a change in number of channels for the ratemap extractor. Resetting filters states...')
-%                 pObj.rmFilters = pObj.populateFilters(nChannels,pObj.FsHzIn);
-%             end
-            
-            % Filter input
-%             for ii = 1:nChannels
-%                 in(:,ii)=pObj.rmFilters(ii).filter(in(:,ii));
-%             end
             
             % Filter the input
             in = pObj.rmFilter.filter(in);
@@ -195,10 +179,8 @@ classdef ratemapProc < Processor
             %  pObj : Ratemap processor instance
             
             % Reset the leaky integrators
-            if ~isempty(pObj.rmFilters)
-                for ii = 1:size(pObj.rmFilters)
-                    pObj.rmFilters(ii).reset;
-                end
+            if ~isempty(pObj.rmFilter)
+                pObj.rmFilter.reset;
             end
             
             % Empty the buffer
