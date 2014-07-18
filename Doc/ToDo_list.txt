@@ -5,7 +5,9 @@ Last modified: 17-07-2014
 
 To do:
 
+- Ratemap processor: Implement option for decimation instead of framing.
 - Chunk-based processing of frame-based representations: First chunk always contains one fewer frame than the following chunks, dues to no-overlap in the first half-frame. Investigate if this is an issue for subsequent WPs and find a solution if it is.
+- manager.addProcessor(): Ning suggested an additional input argument being a cell array of requested handles that the method should return as outputs. Investigate feasibility.
 - ratemapProc: Change implementation to use only a single filter object that operates on a matrix (should be faster)
 - applyCenterClipping: Surprisingly long execution time, investigate if it can be optimized.
 - WP2parameterHelper: Add an hyperlink also to processors that do not have extra parameters (e.g., itd_xcorr)

@@ -6,6 +6,8 @@ classdef ratemapProc < Processor
         hSizeSec    % Step size between windows in seconds
         scaling     % Flag specifying 'magnitude' or 'power'
         decaySec    % Integration time constant (seconds)
+        
+        do_mex      % Flag indicating use of mex code for framing
     end
     
     properties (GetAccess = private)
@@ -18,7 +20,7 @@ classdef ratemapProc < Processor
         
     
     methods
-        function pObj = ratemapProc(fs,p,scaling)
+        function pObj = ratemapProc(fs,p,scaling,do_mex)
             %ratemapProc    Constructs a ratemap processor
             %
             %USAGE
@@ -36,6 +38,7 @@ classdef ratemapProc < Processor
             if nargin>0 % Safeguard for Matlab empty calls
                 
             % Checking input parameters
+            if nargin<4||isempty(do_mex);do_mex = 1; end
             if nargin<2||isempty(p)
                 p = getDefaultParameters(fs,'processing');
             end
@@ -55,6 +58,8 @@ classdef ratemapProc < Processor
             pObj.win = window(pObj.wname,pObj.wSize);
             pObj.scaling = p.rm_scaling;
             pObj.decaySec = p.rm_decaySec;
+            
+            pObj.do_mex = do_mex;
                 
             % Instantiate the filter
             % TODO: Do we test for decaySec = 0 to avoid filtering then?
@@ -106,6 +111,7 @@ classdef ratemapProc < Processor
 %                 in(:,ii)=pObj.rmFilters(ii).filter(in(:,ii));
 %             end
             
+            % Filter the input
             in = pObj.rmFilter.filter(in);
             
             % Append filtered input to the buffer
@@ -113,36 +119,62 @@ classdef ratemapProc < Processor
                 in = [pObj.buffer;in];
             end
 
-            
             [nSamples,nChannels] = size(in);
             
             % How many frames are in the buffered input?
             nFrames = max(floor((nSamples-(pObj.wSize-pObj.hSize))/pObj.hSize),1);
-            
+
             % Pre-allocate output
             out = zeros(nFrames,nChannels);
             
-            % Loop on the time frame
-            for ii = 1:nFrames
-                % Get start and end indexes for the current frame
-                n_start = (ii-1)*pObj.hSize+1;
-                n_end = (ii-1)*pObj.hSize+pObj.wSize;
+            if ~pObj.do_mex
                 
-                % Loop on the channel
+                % Loop on the time frame
+                for ii = 1:nFrames
+                    % Get start and end indexes for the current frame
+                    n_start = (ii-1)*pObj.hSize+1;
+                    n_end = (ii-1)*pObj.hSize+pObj.wSize;
+
+                    % Loop on the channel
+                    for jj = 1:nChannels
+
+                        switch pObj.scaling
+                            case 'magnitude'
+                                % Averaged magnitude in the windowed frame 
+                                out(ii,jj) = mean(pObj.win.*in(n_start:n_end,jj));
+                            case 'power'
+                                % Averaged energy in the windowed frame for left 
+                                out(ii,jj) = mean(power(pObj.win.*in(n_start:n_end,jj),2));
+                            otherwise
+                                error('Incorrect scaling method for ratemap')
+                        end
+                    end
+
+
+                end
+
+            else
+                
+                % Loop over the auditory channels
                 for jj = 1:nChannels
                     
+                    % Frame the data in that channel
+                    frames = frameData(in(:,jj),pObj.wSize,pObj.hSize,pObj.win,false);
+                    
+                    % Average the samples in the frame
                     switch pObj.scaling
+                        
                         case 'magnitude'
-                            % Averaged magnitude in the windowed frame 
-                            out(ii,jj) = mean(pObj.win.*in(n_start:n_end,jj));
+                            % Average magnitude in the frame
+                            out(:,jj) = mean(frames,1);
+                            
                         case 'power'
-                            % Averaged energy in the windowed frame for left 
-                            out(ii,jj) = mean(power(pObj.win.*in(n_start:n_end,jj),2));
-                        otherwise
-                            error('Incorrect scaling method for ratemap')
+                            % Average energy in the frame
+                            out(:,jj) = mean(frames.^2,1);
+                            
                     end
+                    
                 end
-                
                 
             end
             
