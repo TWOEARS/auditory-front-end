@@ -1,6 +1,6 @@
 % This script reports the differences in computation time when using mex files or not (for framing only at the moment).
 
-clear
+clear all
 close all
 
 % Load a signal

@@ -2,7 +2,6 @@ classdef IHCenvelopeProc < Processor
     
      properties
          IHCMethod      % Label for the IHC model used
-%          nChannels      % Number of channels
      end
      
      properties (GetAccess = private)
@@ -52,47 +51,34 @@ classdef IHCenvelopeProc < Processor
              % 2- Specific properties
              pObj.IHCMethod = method;
              
-             % Set up a flag if filters are needed
-             if ismember(method,{'joergensen','dau','breebart','bernstein'})
-                 pObj.IHCFilter = 1;
-             else
-                 pObj.IHCFilter = [];
+             % Instantiate a low-pass filter if needed
+             switch pObj.IHCMethod
+                 
+                 case 'joergensen'
+                     % First order butterworth filter @ 150Hz
+                     pObj.IHCFilter = bwFilter(pObj.FsHzIn,1,150);
+
+                 case 'dau'
+                     % Second order butterworth filter @ 1000Hz
+                     pObj.IHCFilter = bwFilter(pObj.FsHzIn,2,1000);
+
+                 case 'breebart'
+                     % First order butterworth filter @ 2000Hz
+                     pObj.IHCFilter = bwFilter(pObj.FsHzIn,5,2000);
+                     % TO DO: CAN'T SERIES THE FILTERS ATM
+
+                 case 'bernstein'
+                     % Second order butterworth filter @ 425Hz
+                     pObj.IHCFilter = bwFilter(pObj.FsHzIn,2,425);
+
+                 otherwise
+                     pObj.IHCFilter = [];
              end
             
          end
          
          function out = processChunk(pObj,in)
                         
-            % Number of channels in input
-%             nChannels = size(in,2); % (NOT NECESSARY)
-            
-            % Check if filters are needed
-            if ~isempty(pObj.IHCFilter)
-                
-                % Then instantiate the correct filter
-                switch pObj.IHCMethod
-                     case 'joergensen'
-                         % First order butterworth filter @ 150Hz
-                         pObj.IHCFilter = bwFilter(pObj.FsHzIn,1,150);
-
-                     case 'dau'
-                         % Second order butterworth filter @ 1000Hz
-                         pObj.IHCFilter = bwFilter(pObj.FsHzIn,2,1000);
-
-                     case 'breebart'
-                         % First order butterworth filter @ 2000Hz
-                         pObj.IHCFilter = bwFilter(pObj.FsHzIn,5,2000);
-                         % TO DO: CAN'T SERIES THE FILTERS ATM
-
-                     case 'bernstein'
-                         % Second order butterworth filter @ 425Hz
-                         pObj.IHCFilter = bwFilter(pObj.FsHzIn,2,425);
-
-                end
-                
-            end
-            
-            
             % Carry out the processing for the chosen IHC method
             switch pObj.IHCMethod
                 case 'none'
