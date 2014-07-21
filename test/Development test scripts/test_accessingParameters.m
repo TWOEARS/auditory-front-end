@@ -31,4 +31,4 @@ mObj.processSignal;                     % Request processing
 mObj.Processors{5,1}.getCurrentParameters
 
 % ... or directly from the signal handle (coming soon)
-
+sOut.getParameters(mObj)

@@ -23,6 +23,7 @@ classdef Signal < handle
     end
     
     methods
+        
         function appendChunk(sObj,data)
             %appendChunk   This method appends the chunk in data to the
             %               signal object
@@ -68,6 +69,71 @@ classdef Signal < handle
             
         end
             
+        function pObj = findProcessor(sObj,mObj)
+            %findProcessor   Returns a handle to the processor instance
+            %that generated this signal.
+            %
+            %USAGE:
+            %    pObj = sObj.findProcessor(mObj)
+            %
+            %INPUT ARGUMENTS:
+            %    sObj : Signal instance
+            %    mObj : Manager instance containing the sought processor
+            %
+            %OUTPUT ARGUMENTS:
+            %    pObj : Handle to the processor instance which computed the
+            %           signal (empty if none found)
+            
+            % NB: This brute force approach could be made more subtle by
+            % looking into the type of signal sObj is. However it shouldn't
+            % be necessary.
+            
+            % Number of instantiated processors
+            n = numel(mObj.Processors);
+            
+            % Initialize output
+            pObj = [];
+            
+            % Loop over all of them
+            for ii = 1:n
+                % Check that it is actually a processors
+                if isa(mObj.Processors{ii},'Processor')
+                    % Check if it outputs the signal of interest
+                    if sObj == mObj.Processors{ii}.Output
+                        pObj = mObj.Processors{ii};
+                    end
+                end
+            end 
+        end
+        
+        function parStruct = getParameters(sObj,mObj)
+            %getParameters  This methods returns a list of parameter
+            %values used to compute a given signal.
+            %
+            %USAGE:
+            %   parStruct = sObj.getParameters(mObj)
+            %
+            %INPUT PARAMETERS:
+            %   sObj : Signal object instance
+            %   mObj : Manager instance containing the processor responsible
+            %   for computing the signal of interest
+            %
+            %OUTPUT PARAMETERS:
+            %   parStruct : Parameter structure
+            
+            % Find the processor that computed sObj
+            proc = sObj.findProcessor(mObj);
+            
+            % Get the parameters under which this processor was running
+            if ~isempty(proc)
+                parStruct = proc.getCurrentParameters;
+            else
+                % Couldn't find the processor in charge
+                parStruct = struct;
+                warning('Could not find the processor that computed this signal.')
+            end
+            
+        end
         
     end
     
