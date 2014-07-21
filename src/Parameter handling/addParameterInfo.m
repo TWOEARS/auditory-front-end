@@ -34,23 +34,28 @@ if ~isfield(pInfo.(cat),'label')
     pInfo.(cat).label = catLabel;
 end
 
-% Check if parameter already exists
-if ~isfield(pInfo.(cat),name)
-    fprintf('Adding new parameter %s with ',name)
-    pInfo.(cat).(name)=struct;
+if ~isempty(name)
+    % Check if parameter already exists
+    if ~isfield(pInfo.(cat),name)
+        fprintf('Adding new parameter %s with ',name)
+        pInfo.(cat).(name)=struct;
+    else
+        fprintf('Changing parameter %s to ',name)
+    end
+
+    % Add the default value
+    try
+        fprintf('default value %s : ',num2str(default))
+    end
+    pInfo.(cat).(name).value = default;
+
+    % And the parameter's description
+    fprintf('%s\n',description)
+    pInfo.(cat).(name).description = description;
 else
-    fprintf('Changing parameter %s to ',name)
+    % Else we are just adding a category with no parameters
+    
 end
-
-% Add the default value
-try
-    fprintf('default value %s : ',num2str(default))
-end
-pInfo.(cat).(name).value = default;
-
-% And the parameter's description
-fprintf('%s\n',description)
-pInfo.(cat).(name).description = description;
 
 % Save the modified structure
 save([path filesep filename],'pInfo')

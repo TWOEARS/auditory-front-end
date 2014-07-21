@@ -2,13 +2,16 @@ classdef gammatoneProc < Processor
     
     properties
         cfHz            % Filters center frequencies
-        Filters         % Array of filter objects
         nERBs           % Distance between neighboring filters in ERBs
         n_gamma         % Gammatone order of the filters
         bwERBs          % Bandwidth of the filters in ERBs
         f_low           % Lowest center frequency used at instantiation
         f_high          % Highest center frequency used at instantiation
         fb_decimation   % Decimation ratio of the filterbank
+    end
+    
+    properties (GetAccess = private)
+        Filters         % Array of filter objects
     end
         
     methods
