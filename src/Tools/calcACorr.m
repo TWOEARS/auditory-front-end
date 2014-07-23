@@ -28,7 +28,7 @@ function [acorr,lags] = calcACorr(sig,maxLags,scale,K)
 % 
 %REFERENCES
 %   [1] M. Karjalainen and T. Tolonen (1999), "Multi-pitch and periodicity
-%       analysis model for sound separation andauditory scene analysis",
+%       analysis model for sound separation and auditory scene analysis",
 %       IEEE ICASSP.
 
 %   Developed with Matlab 8.2.0.701 (R2013b). Please send bug reports to:
@@ -86,7 +86,7 @@ if nargin < 2 || isempty(maxLags);  maxLags = M - 1; end
 % Transform both input signals
 X = fft(sig,2^nextpow2(2*M-1));
 
-% Compute cross-power spectrum
+% Compute auto-power spectrum
 XY = abs(X).^K;
 
 
