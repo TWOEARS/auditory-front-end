@@ -22,7 +22,7 @@ end
 clear earSignals
 
 % Parameters
-request = 'ratemap_power';
+request = 'itd_xcorr';
 p = []; %genParStruct('f_low',80,'f_high',8000,'nChannels',30);
 
 % Create a data object
@@ -37,4 +37,4 @@ sOut = mObj.addProcessor(request,p);
 % Request processing
 mObj.processSignal;
 
-sOut{1}.plot;
+sOut.plot;

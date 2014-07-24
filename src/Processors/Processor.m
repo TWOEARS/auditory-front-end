@@ -80,6 +80,77 @@ classdef Processor < handle
             end
             
         end
+        
+        function parStruct = getCurrentParameters(pObj,full_list)
+            %getCurrentParameters  This methods returns a list of parameter
+            %values used by a given processor.
+            %
+            %USAGE:
+            %   parStruct = pObj.getCurrentParameters
+            %   parStruct = pObj.getCurrentParameters(full_list)
+            %
+            %INPUT PARAMETERS:
+            %        pObj : Processor object instance
+            %   full_list : Set to true to return also the parameter values
+            %               used by parent processors.
+            %
+            %OUTPUT PARAMETERS:
+            %   parStruct : Parameter structure
+            
+            % TODO: Will have to be modified when introducing processors
+            % with multiple parents.
+            
+            % Note: The parameters of interest are stored as properties of
+            % the processor object. However we are not interested in the
+            % general properties contained in this Processor parent class:
+            discard_list = properties('Processor');
+            
+            % Full properties list of the processor instance
+            prop_list = properties(pObj);
+            
+            % Get the list of "interesting" properties
+            list = setdiff(prop_list,discard_list);
+            
+            % Some parameters have same name across different processors
+            % and are differenciated by a prefix.
+            switch class(pObj)
+                case 'ildProc'
+                    prefix = 'ild_';
+                case 'ratemapProc'
+                    prefix = 'rm_';
+                case 'autocorrelationProc'
+                    prefix = 'ac_';
+                case 'crosscorrelationProc'
+                    prefix = 'cc_';
+                otherwise 
+                    prefix = '';
+            end
+            
+            % Initialize the parameter structure
+            parStruct = struct;
+            
+            % Store the properties values
+            for ii = 1:size(list,1)
+                parStruct.([prefix list{ii}]) = pObj.(list{ii});
+            end
+            
+            % Get the property values of its parent processor
+            if ~isempty(pObj.Dependencies{1})
+                parParent = pObj.Dependencies{1}.getCurrentParameters;
+            else
+                % Break the recursion
+                parParent = struct;     % Empty structure
+            end
+            
+            % Merge the two structures
+            par_list = fieldnames(parParent);
+            for ii = 1:size(par_list,1)
+                parStruct.(par_list{ii}) = parParent.(par_list{ii});
+            end
+            
+            
+        end
+        
     end
     
     methods (Access=protected)

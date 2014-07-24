@@ -59,7 +59,12 @@ clear pInfo
     addParameterInfo('cc','cc_hSizeSec',10E-3,'Window step size (s)')
     addParameterInfo('cc','cc_maxDelaySec',1.1E-3,'Maximum delay in cross-correlation computation (s)')
 
-
+    % Interaural coherence
+    addParameterInfo('ic',[],[],[],'Interaural coherence')
+    
+    % Interaural time difference
+    addParameterInfo('itd',[],[],[],'Interaural Time Difference')
+    
 % Plotting:
     addParameterInfo('plotting','ftype','Helvetica','Plots font name','Plot properties')
     addParameterInfo('plotting','fsize_label',12,'Labels font size')

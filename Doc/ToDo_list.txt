@@ -10,8 +10,9 @@ To do:
 - manager.addProcessor(): Ning suggested an additional input argument being a cell array of requested handles that the method should return as outputs. Investigate feasibility.
 - ratemapProc: Change implementation to use only a single filter object that operates on a matrix (should be faster)
 - applyCenterClipping: Surprisingly long execution time, investigate if it can be optimized.
-- WP2parameterHelper: Add an hyperlink also to processors that do not have extra parameters (e.g., itd_xcorr)
-- WP2parameterHelper: Expand the h1 line before the hyperlinks, mention getDefaultParameters and other relevant functions for parameter handling
 - Parameter handling: Use substructures in parameter structure, kind of in the way of pInfo
 - Parameter handling: Make a parameter summary function to keep track of parameters (including some that are computed, e.g., cfHz) with the possibility of saving it to a log file
 
+Notes from Tobias phone call 21/07/2014:
+1- Generate a processor method that provides the list of parameter values it is using.
+2- Implement a signal method that finds which processor generated it.

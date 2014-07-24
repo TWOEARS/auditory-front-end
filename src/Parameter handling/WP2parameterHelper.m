@@ -1,6 +1,5 @@
 function  WP2parameterHelper(cat)
-%WP2parameterHelper     Extensive and user friendly listing of parameters
-%                       involved in WP2 processing.
+%WP2parameterHelper     Extensive and user friendly listing of parameters involved in WP2 processing.
 %
 %USAGE:
 %    WP2parameterHelper
@@ -16,7 +15,15 @@ cats = fieldnames(pInfo);
 
 if nargin == 0
     % Display header
-    fprintf(['\nParameters are organized in different categories:\n'])
+    fprintf('\nParameter handling in WP2')
+    fprintf('\n-------------------------\n')
+    fprintf(['The extraction of various auditory representations '...
+        'performed by the WP2 software involves many parameters.\n'])
+    fprintf('Each parameter is given a unique name and a default value. ')
+    fprintf(['When placing a request for WP2 processing that\n'...
+        'uses one or more non-default parameters, a specific structure of non-default parameters needs to be provided as input.\n'])
+    fprintf('Such structure can be generated from <a href="matlab: help genParStruct">genParStruct</a>, using pairs of parameter name and chosen value as inputs.\n' )
+    fprintf('\nParameters names for each processors are listed below:\n')
 
     % Display the categories
     for ii = 1:size(cats,1)
@@ -27,14 +34,18 @@ if nargin == 0
     fprintf('\n')
 else
     if isfield(pInfo,cat)
-        % Display the category
-        fprintf(['\n' pInfo.(cat).label ' parameters:\n\n'])
         
         % Get the parameter names for this category
         names = fieldnames(pInfo.(cat));
         
         % Remove the category label
         names = names(2:end);   
+        
+        % Make names an empty array if it is an empty cell (for processors
+        % with no parameters)
+        if isempty(names)
+            names = [];
+        end
         
         % Find appropriate columns widths
         name_size = 4;  % Size of string 'Name'
@@ -43,7 +54,14 @@ else
             name_size = max(name_size,size(names{ii},2));
         end
         
-       
+        % Display the category name and label
+        if ~isempty(names)
+            fprintf(['\n' pInfo.(cat).label ' parameters:\n\n'])
+        else
+            fprintf(['\n' pInfo.(cat).label ' processors have no parameters of their own.\n\n'])
+        end
+        
+        
         % Display a list of parameters for this category
         
         % Text formatting for the parameter default value
@@ -78,8 +96,10 @@ else
         end
            
         % Display a header
-        fprintf(['  %-' int2str(name_size+2) 's  %-' int2str(val_size+1) 's  %-s\n'],'Name','Default','Description')
-        fprintf(['  %-' int2str(name_size+2) 's  %-' int2str(val_size+1) 's  %-s\n'],'----','-------','-----------')
+        if ~isempty(names)
+            fprintf(['  %-' int2str(name_size+2) 's  %-' int2str(val_size+1) 's  %-s\n'],'Name','Default','Description')
+            fprintf(['  %-' int2str(name_size+2) 's  %-' int2str(val_size+1) 's  %-s\n'],'----','-------','-----------')
+        end
         
         for ii = 1:size(names,1)
             % Display on command window
