@@ -139,6 +139,53 @@ classdef dataObject < dynamicprops
             
         end
         
+        function p = getParameterSummary(dObj,mObj)
+            %getParameterSummary  Returns a structure parameters used for
+            %computing each signal in the data object.
+            %
+            %USAGE:
+            %   dObj.getParameterSummary(mObj)
+            %
+            %INPUT ARGUMENTS: 
+            %   dObj : Data object instance
+            %   mObj : Manager instance associated to the data
+            %
+            %OUTPUT ARGUMENTS:
+            %      p : Structure of used parameter values
+            
+            % Get a list of instantiated signals
+            prop_list = properties(dObj);
+            sig_list = setdiff(prop_list,{'isStereo'});
+            
+            % Initialize the output
+            p = struct;
+            
+            % Loop on each signal
+            for ii = 1:size(sig_list,1)
+                
+                % Test if multiple representations exist 
+                if size(dObj.(sig_list{ii}),1)>1
+                    % There are multiple representations with this name
+                    
+                    % Use a cell array
+                    p.(sig_list{ii}) = cell(size(dObj.(sig_list{ii}),1),1);
+                    
+                    % Get the parameters
+                    for jj = 1:size(dObj.(sig_list{ii}),1)
+                        p.(sig_list{ii}){jj} = dObj.(sig_list{ii}){jj,1}.getParameters(mObj);
+                    end
+                    
+                else
+                    % There is only one such representation
+                    p.(sig_list{ii}) = dObj.(sig_list{ii}){1,1}.getParameters(mObj);
+                end
+                    
+                
+            end
+            
+            
+        end
+        
         function play(dObj)
             %play       Playback the audio from the ear signal in the data
             %           object
