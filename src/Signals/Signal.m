@@ -130,7 +130,10 @@ classdef Signal < handle
             else
                 % Couldn't find the processor in charge
                 parStruct = struct;
-                warning('Could not find the processor that computed this signal.')
+                % Return a warning, unless sObj is the original ear signal
+                if ~strcmp(sObj.Name,'signal')
+                    warning('Could not find the processor that computed the signal ''%s.''',sObj.Name)
+                end
             end
             
         end

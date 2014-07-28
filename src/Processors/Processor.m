@@ -100,6 +100,10 @@ classdef Processor < handle
             % TODO: Will have to be modified when introducing processors
             % with multiple parents.
             
+            if nargin<2||isempty(full_list)
+                full_list = 1;
+            end
+            
             % Note: The parameters of interest are stored as properties of
             % the processor object. However we are not interested in the
             % general properties contained in this Processor parent class:
@@ -113,19 +117,23 @@ classdef Processor < handle
             
             % Some parameters have same name across different processors
             % and are differenciated by a prefix.
-            switch class(pObj)
-                case 'ildProc'
-                    prefix = 'ild_';
-                case 'ratemapProc'
-                    prefix = 'rm_';
-                case 'autocorrelationProc'
-                    prefix = 'ac_';
-                case 'crosscorrelationProc'
-                    prefix = 'cc_';
-                otherwise 
-                    prefix = '';
+            if full_list
+                switch class(pObj)
+                    case 'ildProc'
+                        prefix = 'ild_';
+                    case 'ratemapProc'
+                        prefix = 'rm_';
+                    case 'autocorrelationProc'
+                        prefix = 'ac_';
+                    case 'crosscorrelationProc'
+                        prefix = 'cc_';
+                    otherwise 
+                        prefix = '';
+                end
+            else
+                prefix = '';
             end
-            
+                
             % Initialize the parameter structure
             parStruct = struct;
             
@@ -134,20 +142,22 @@ classdef Processor < handle
                 parStruct.([prefix list{ii}]) = pObj.(list{ii});
             end
             
-            % Get the property values of its parent processor
-            if ~isempty(pObj.Dependencies{1})
-                parParent = pObj.Dependencies{1}.getCurrentParameters;
-            else
-                % Break the recursion
-                parParent = struct;     % Empty structure
-            end
-            
-            % Merge the two structures
-            par_list = fieldnames(parParent);
-            for ii = 1:size(par_list,1)
-                parStruct.(par_list{ii}) = parParent.(par_list{ii});
-            end
-            
+            % Access recursively to the properties of parent processors
+            if full_list
+                % Get the property values of its parent processor
+                if ~isempty(pObj.Dependencies{1})
+                    parParent = pObj.Dependencies{1}.getCurrentParameters;
+                else
+                    % Break the recursion
+                    parParent = struct;     % Empty structure
+                end
+
+                % Merge the two structures
+                par_list = fieldnames(parParent);
+                for ii = 1:size(par_list,1)
+                    parStruct.(par_list{ii}) = parParent.(par_list{ii});
+                end
+            end            
             
         end
         
