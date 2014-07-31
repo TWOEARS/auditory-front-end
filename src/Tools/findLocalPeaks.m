@@ -47,8 +47,13 @@ if nargin < 2 || isempty(method);            method            = 'peaks'; end
 
 % Ensure that peak detection is carried out along the first dimenion
 if size(data,1) == 1
-    % Remove singleton dimensions
-    data = squeeze(data);
+    if isvector(data)
+        % Transpose
+        data = transpose(data);
+    else
+        % Remove singleton dimensions
+        data = squeeze(data);
+    end
 end
 
 % Determine input size
