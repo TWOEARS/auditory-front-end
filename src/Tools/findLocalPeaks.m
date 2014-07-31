@@ -44,6 +44,12 @@ end
 if nargin < 3 || isempty(bRejectBoundaries); bRejectBoundaries = false;   end
 if nargin < 2 || isempty(method);            method            = 'peaks'; end
 
+% Ensure that peak detection is carried out along the first dimenion
+if size(data,1) == 1
+    % Remove singleton dimensions
+    data = squeeze(data);
+end
+
 % Determine input size
 [nSamples,nChannels,dim] = size(data);
 
