@@ -28,6 +28,7 @@ function [peakIdx,I,J] = findLocalPeaks(data,method,bRejectBoundaries)
 %   v.0.1   2014/02/21
 %   v.0.2   2014/03/05 added 2D peak detection
 %   v.0.3   2014/03/06 added column subscripts to output parameters
+%   v.0.4   2014/07/31 ensure that row vectors are supported
 %   ***********************************************************************
 
 
@@ -53,7 +54,7 @@ end
 % Determine input size
 [nSamples,nChannels,dim] = size(data);
 
-% Check if input is of not larger than 2D
+% Check if input is not larger than 2D
 if dim > 1
     error('Only 2D matrices are supported.')
 end
