@@ -74,6 +74,9 @@ switch sig
         dep = {'autocorrelation'};
         
     % Features
+    case 'crosscorrelation_feature'
+        dep = {'crosscorrelation'};
+    
     case 'ratemap_feature'
         dep = {'ratemap_magnitude'};
         
@@ -100,7 +103,7 @@ switch sig
     case 'available'    % Lists all currently implemented processors
          dep = {'time' 'gammatone' 'innerhaircell' 'crosscorrelation' ...
              'autocorrelation' 'ratemap_magnitude' 'ratemap_power' 'ild' ...
-             'itd_xcorr' 'ic_xcorr'};
+             'itd_xcorr' 'ic_xcorr' 'crosscorrelation_feature'};
         
     % Otherwise it's not in the list, generate a list of valid names
     otherwise

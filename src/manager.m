@@ -641,6 +641,32 @@ classdef manager < handle
                             clear maxLag lags
                         end
                         
+                    case 'crosscorrelation_feature'
+                        % Check that two channels are available
+                        if ~mObj.Data.isStereo
+                            warning('Manager cannot instantiate a binaural cue extractor for a single-channel signal')
+                            proceed = 0;
+                        else
+                            mObj.Processors{ii,1} = ccFeatureProc(dep_proc.FsHzOut,p.ccf_factor);
+
+                            % Previous lag vector
+                            lags = dep_sig.lags;
+                            n_lags = size(lags,2);
+                            
+                            % Downsample this vector
+                            origin = (n_lags+1)/2;
+                            n_lags_ds = floor((origin-1)/p.ccf_factor);
+                            lags_ds = lags(origin-n_lags_ds*p.ccf_factor:p.ccf_factor:origin+n_lags_ds*p.ccf_factor);
+                            
+                            % Center frequencies
+                            cfHz = dep_proc_l.getDependentParameter('cfHz');        % Center frequencies 
+                            
+                            % Instantiate a new signal
+                            sig = CorrelationSignal(mObj.Processors{ii,1}.FsHzOut,'crosscorrelation_feature',cfHz,lags_ds,'Cross-correlation feature',[],'mono');
+                            mObj.Data.addSignal(sig);
+                            clear lags n_lags origin n_lags_ds lags_ds
+                        end
+                        
                     case 'ratemap_magnitude'
                         if mObj.Data.isStereo
                             % Instantiate left and right ear processors

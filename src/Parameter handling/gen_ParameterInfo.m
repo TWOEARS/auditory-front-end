@@ -59,6 +59,9 @@ clear pInfo
     addParameterInfo('cc','cc_hSizeSec',10E-3,'Window step size (s)')
     addParameterInfo('cc','cc_maxDelaySec',1.1E-3,'Maximum delay in cross-correlation computation (s)')
 
+    % Cross-correlation feature
+    addParameterInfo('ccf','ccf_factor',3,'Downsampling factor for the lag vector (positive integer)','Cross-correlation feature')
+    
     % Interaural coherence
     addParameterInfo('ic',[],[],[],'Interaural coherence')
     
