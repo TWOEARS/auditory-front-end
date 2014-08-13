@@ -5,4 +5,4 @@
 
 path = fileparts(mfilename('fullpath'));
 addpath(genpath(path),genpath([path filesep '..' filesep 'test']))
-cd([path filesep '..'])
+clear path
