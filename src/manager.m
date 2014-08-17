@@ -497,10 +497,11 @@ classdef manager < handle
             end
                 
             
+            proceed = 1;     % Initialize a flag to identify invalid requests
+
             % Processors instantiation and data object property population
             for ii = n_proc+1:n_proc+n_new_proc   
                 
-                proceed = 1;     % Initialize a flag to identify invalid requests
                 
                 switch dep_list{ii-n_proc}
                     
