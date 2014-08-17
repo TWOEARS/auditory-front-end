@@ -68,6 +68,33 @@ classdef Signal < handle
             sObj.Data = [];
             
         end
+        
+        function sb = getSignalBlock(sObj,blocksize_s)
+            %getSignalBlock   Returns this Signal object's signal data
+            %truncated to the last blocksize_s seconds. In case of too
+            %little data, the block gets filled with zeros from beginning.
+            %
+            %USAGE:
+            %    sb = sObj.getSignalBlock(blocksize_s)
+            %
+            %INPUT ARGUMENTS:
+            %    sObj : Signal instance
+            %    blocksize_s : length of the required data block in seconds
+            %
+            %OUTPUT ARGUMENTS:
+            %    sb : signal data block
+            
+            blocksize_samples = sObj.FsHz * blocksize_s;
+            % TODO: this assumes that time is on dimension 1. Verify!
+            blockStart = max( 1, size( sObj.Data, 1 ) - blocksize_samples + 1 );
+            % TODO: this assumes that sObj.Data only has two dimensions.
+            % Verify!
+            sb = sObj.Data(blockStart:end,:);
+            if size( sb, 1 ) < blocksize_samples
+                sb = [zeros( blocksize_samples - size(sb,1), size(sb,2) ); sb];
+            end
+            
+        end
             
         function pObj = findProcessor(sObj,mObj)
             %findProcessor   Returns a handle to the processor instance
