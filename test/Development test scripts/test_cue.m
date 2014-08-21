@@ -9,7 +9,7 @@ close all
 % run([path filesep '..' filesep '..' filesep 'src' filesep 'startWP2.m'])
 
 % Test on monoral or binaural signal
-do_stereo = 1;
+do_stereo = 0;
 
 % Load a signal
 load('TestBinauralCues');
@@ -22,7 +22,7 @@ end
 clear earSignals
 
 % Parameters
-request = 'itd_xcorr';
+request = 'ild';
 p = []; %genParStruct('f_low',80,'f_high',8000,'nChannels',30);
 
 % Create a data object
