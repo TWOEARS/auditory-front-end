@@ -445,6 +445,12 @@ classdef manager < handle
             % Find most suitable initial processor for that request
             [initProc,dep_list] = mObj.findInitProc(request,p);
             
+            % Algorithm should proceed further even if the requested
+            % processor already exists
+            if isempty(dep_list)
+                proceed = 1;
+            end
+            
             % The processing order is the reversed list of dependencies
             dep_list = fliplr(dep_list);
 
@@ -495,12 +501,11 @@ classdef manager < handle
                     dep_proc = [];
                 end
             end
-                
             
             % Processors instantiation and data object property population
             for ii = n_proc+1:n_proc+n_new_proc   
                 
-                proceed = 1;     % Initialize a flag to identify invalid requests
+                proceed = 1;     % Initialize a flag to identify invalid requests (binaural representation requested on a mono signal)
                 
                 switch dep_list{ii-n_proc}
                     
