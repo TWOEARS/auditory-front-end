@@ -46,16 +46,16 @@ echo on
 h = mObj.hasProcessor('IHCenvelopeProc',p2full);
 
 
-% There are two IHC Processors (3 & 6), both have the same IHC parameters:
+% There are two IHC Processors (3 & 5), both have the same IHC parameters:
 
 mObj.Processors{3}
-mObj.Processors{6}
+mObj.Processors{5}
 
 
 % But only one has its dependencies with the right set of parameters:
 
 h == mObj.Processors{3}
-h == mObj.Processors{6}
+h == mObj.Processors{5}
 
 echo off
 
