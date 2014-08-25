@@ -9,7 +9,7 @@ close all
 % run([path filesep '..' filesep '..' filesep 'src' filesep 'startWP2.m'])
 
 % Test on monoral or binaural signal
-do_stereo = 0;
+do_stereo = 1;
 
 % Load a signal
 load('TestBinauralCues');
