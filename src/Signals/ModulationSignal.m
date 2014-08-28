@@ -144,7 +144,8 @@ classdef ModulationSignal < Signal
             %OUTPUT ARGUMENTS
             %     h : Handle to the figure
             %
-            %TODO: Clean and improve
+            %TODO: - Clean up and use plot properties. 
+            %      - Add other plot options (given audio frequency?)
             
             % Interleave audio and modulation frequencies for a simple, 2D
             % plot
