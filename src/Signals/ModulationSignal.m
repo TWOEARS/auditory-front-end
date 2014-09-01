@@ -158,6 +158,9 @@ classdef ModulationSignal < Signal
             h = figure;
             imagesc(20*log10(abs(data.')))
             axis xy
+            title([sObj.Label ' (w.i.p.)'])
+            xlabel('Time (samples)')
+            ylabel('Audio/modulation frequencies')
         end
         
     end

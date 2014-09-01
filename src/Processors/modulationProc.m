@@ -3,28 +3,22 @@ classdef modulationProc < Processor
     properties
         modCfHz         % Modulation filters center frequencies
         type            % 'fft' vs. 'filter'
-        
-        win             % Window
-        overlap         % Overlap
-        blockSize       % Block size
-        nfft            % fft size
-        
-        
-        
-%         P.mod.fbType      = 'fft';
-%         P.mod.fbDesign    = 'lin';
-%         P.mod.window      = 'hamming';
-%         P.mod.fftFactor   = 2;
-%         P.mod.nFilter     = 15;
-%         P.mod.fRangeHz    = [0 400];
-%         P.mod.bDown2DC    = false;
-%         P.mod.bUp2Nyquist = false;
-        
+        rangeHz         % Modulation frequency range
+        dsRatio         % Down-sampling ratio
         
     end
     
     properties (GetAccess = public)     % TODO: change to private once ok
         buffer          % Buffered input (for fft-based)
+        
+        % Downsampling
+        dsProc          % Downsampling processor
+        
+        % For fft-based filtering
+        win             % Window
+        overlap         % Overlap
+        blockSize       % Block size
+        nfft            % FFT size
         
         wts             % Sparse matrix for spectrogram mixing
         modCf           % Modulation frequency bins
@@ -34,28 +28,57 @@ classdef modulationProc < Processor
     end
     
     methods
-        function pObj = modulationProc(fs,nFilters,fLow,fHigh,nfft,win,blockSize,overlap)
+        function pObj = modulationProc(fs,nFilters,range,win,blockSize,overlap,type,downSamplingRatio)
             % TODO:
             % - write h1
             % - expand to filter-based modulation extraction
             % - clean up
             % - make standalone? (currently uses melbankm.m)
+            % - integrate in manager (implies changing getDependencies,
+            %                           etc...)
             
             
             % Check inputs
+            % NB: Check that downSampleRatio is a positive integer
             
+            % Check for requested type
+            if strcmp(type,'filter')
+                warning('Filter-based modulation filterbank is not implemented at the moment, switching to fft-based.')
+                type = 'fft';
+            end
+            
+            if ~strcmp(type,'fft')
+                warning('%s is an invalid argument for modulation filterbank instantiation, switching to ''fft''.')
+                type = 'fft';
+            end
+            
+            % Instantiate a down-sampler if needed
+            if downSamplingRatio > 1
+                pObj.dsProc = downSamplerProc(fs,downSamplingRatio,1);
+            end
+            
+            % FFT-size
+            fftFactor = 2;  % TODO: Hard-coded here, should this be a parameter?
+            pObj.nfft = pow2(nextpow2(fftFactor*blockSize));
+            
+            % Generate a window
+            pObj.win = window(win,blockSize);
             
             % Normalized lower and upper frequencies of the mod. filterbank
-            fLow = fLow/fs;
-            fHigh = fHigh/fs;
+            fLow = range(1)/fs;
+            fHigh = range(2)/fs;
             
             % Get fft-based filterbank properties
-            [pObj.wts,pObj.modCfHz,pObj.mn,pObj.mx] = melbankm(nFilters,nfft,fs,fLow,fHigh,'fs');
+            [pObj.wts,pObj.modCfHz,pObj.mn,pObj.mx] = melbankm(nFilters,pObj.nfft,fs,fLow,fHigh,'fs');
             
-            % Populate properties
-            pObj.win = win;
+            % Populate additional properties
+            pObj.FsHzIn = fs;
+            pObj.FsHzOut = fs/downSamplingRatio;
+            pObj.type = type;
+            pObj.rangeHz = range;
             pObj.blockSize = blockSize;
             pObj.overlap = overlap;
+            pObj.dsRatio = downSamplingRatio;
             
             % Initialize buffer
             pObj.buffer = [];
@@ -66,6 +89,10 @@ classdef modulationProc < Processor
             % TODO:
             % - Write h1
             
+            % Down-sample the input if needed
+            if pObj.dsRatio > 1
+                in = pObj.dsProc.processChunk(in);
+            end
             
             % 1- Append the buffer to the input
             in = [pObj.buffer;in];  % Time spans the first dimension

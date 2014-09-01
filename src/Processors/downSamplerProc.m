@@ -6,7 +6,7 @@ classdef downSamplerProc < Processor
     end
     
     properties (GetAccess = private)
-        buffer          % Buffered input signal (necessary if non-integer ratio)
+        bStart          % Starting index for next block (acts as a buffer)
     end
     
     methods
@@ -38,6 +38,11 @@ classdef downSamplerProc < Processor
                     'and downsampling ratio to be instantiated.'])
             end
             
+            % The down-sampling ratio should be a positive integer
+            if mod(ratio,1)~=0
+                error('Downsampling ratio should be a positive integer')
+            end
+            
             % Populate properties
             pObj.Type = 'Down-sampler';
             pObj.FsHzIn = fs;
@@ -52,8 +57,15 @@ classdef downSamplerProc < Processor
             pObj.WorkingDim = dim;
             pObj.Ratio = ratio;
                 
-            % Empty the buffer
-            pObj.buffer = [];
+            % Initialize block shift:
+            % This processor uses the downsample.m script from Matlab. It
+            % simply picks every N sample, where N is the downsampling
+            % ratio, starting always with the first sample. Hence there is
+            % no need to store a buffer, but only the index (or shift of
+            % index) at which the next block should pick the first sample
+            % of the downsampled signal, to be consistent with the previous
+            % block.
+            pObj.bStart = 1;   
             
             end
             
@@ -73,22 +85,25 @@ classdef downSamplerProc < Processor
             %   out : Output (down-sampled) signal
             
             % Append provided input to the buffer
-            if ~isempty(pObj.buffer)
-                
-                % This operation is dimension-dependent!
-                in = cat(pObj.WorkingDim,pObj.buffer,in);
-                
-            end
+%             if ~isempty(pObj.buffer)
+%                 
+%                 % This operation is dimension-dependent!
+%                 in = cat(pObj.WorkingDim,pObj.buffer,in);
+%                 
+%             end
             
-            % TODO: Do nothing and return a warning if input has fewer
+            % Do nothing and return a warning if input has fewer
             % dimensions than pObj.WorkingDim
+            if size(size(in),2)<pObj.WorkingDim
+                warning(['Working dimension of the downsampler is not a'...
+                    ' valid dimension of the input']) 
+            else
             
             % Get buffered input dimensions
             dim = size(in);
             
             % We want to move the dimension along which the downsampling
             % occurs to be the first dimension if needed:
-            
             if pObj.WorkingDim~=1
                 %  - Generate a permutation order vector
                 order = 1:size(dim,2);
@@ -102,25 +117,25 @@ classdef downSamplerProc < Processor
                 dim = size(in);
             end
             
-            % Get rational fraction approximation of the resampling ratio
-            [p,q]=rat(pObj.Ratio);
-            
-            % Matlab's embedded resample function cannot operate on
-            % representations with more than 2 dimensions
-            
+            % Matlab's downsample.m function can operate on max 2
+            % dimensions. Need to reshape the input if it is 3D or more
             if size(dim,2)>2
                 % Then additional dimensions are squeezed into one
                 in = reshape(in,[dim(1) prod(dim(2:end))]);
                 
-                % Perform resampling colum-wise 
-%                 out = resample(in,p,q);
-                out = decimate(in,q/p);
+                % Perform resampling colum-wise, starting from the block
+                % index
+                out = downsample(in(pObj.bStart:end,:),pObj.Ratio);
                 
                 % Re-organize data
                 out = reshape(out,[size(out,1) dim(2:end)]);
             else
-                % Perform resampling colum-wise 
-                out = resample(in,p,q);
+                if size(dim,2)==1
+                    out = downsample(in(pObj.bStart:end),pObj.Ratio);
+                else
+                    % Perform resampling colum-wise
+                    out = downsample(in(pObj.bStart:end,:),pObj.Ratio);
+                end
             end
             
             % Reorganize the dimensions of the output if they were modified
@@ -128,6 +143,13 @@ classdef downSamplerProc < Processor
                 out = permute(out,order);
             end
             
+            % Length of the actual input
+            L = size(in,pObj.WorkingDim)-pObj.bStart+1;
+            
+            % Update the starting index for next block
+            pObj.bStart = mod(pObj.Ratio-rem(L,pObj.Ratio),pObj.Ratio)+1;
+            
+            end
             
         end
             
@@ -142,7 +164,7 @@ classdef downSamplerProc < Processor
             %  pObj : Processor instance
             %     p : Structure containing parameters to test
             
-            % TODO: Find a way to implement this...
+            % TODO: Find a way to implement this if needed (probably not)
             
             hp = 1;
             warning('Method hasParameters() not implemented yet for class downSamplerProc!')

@@ -33,6 +33,15 @@ clear pInfo
     % Inner hair-cell envelope extraction
     addParameterInfo('ihc','IHCMethod','dau','Inner hair-cell envelope extraction method (''none'', ''halfwave'', ''fullwave'', ''square'', ''hilbert'', ''joergensen'', ''dau'', ''breebart'', ''berstein'')','Inner hair-cell envelope extraction')
 
+    % Amplitude modulation filterbank
+    addParameterInfo('am','am_nFilters',15,'Requested number of filters (integer)','Amplitude modulation filterbank')
+    addParameterInfo('am','am_range',[0 400],'Modulation frequency range (Hz)')
+    addParameterInfo('am','am_win','hamming','Window type')
+    addParameterInfo('am','am_bSize',512,'STFT block size')
+    addParameterInfo('am','am_olap',256,'STFT overlap')
+    addParameterInfo('am','am_type','fft','Filterbank type (''fft'' or ''filter'')')
+    addParameterInfo('am','am_dsRatio',4,'Downsampling ratio')
+    
     % Interaural Level Difference (ILD)
     addParameterInfo('ild','ild_wname','hann','Window name','Interaural Level Difference')
     addParameterInfo('ild','ild_wSizeSec',20E-3,'Window duration (s)')

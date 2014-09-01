@@ -28,6 +28,9 @@ switch signal
     case 'innerhaircell'
         procName = 'IHCenvelopeProc';
         
+    case 'modulation'
+        procName = 'modulationProc';
+        
     case 'crosscorrelation'
         procName = 'crosscorrelationProc';
      
