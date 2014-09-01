@@ -2,13 +2,13 @@ classdef modulationProc < Processor
     
     properties
         modCfHz         % Modulation filters center frequencies
-        type            % 'fft' vs. 'filter'
+        filterType      % 'fft' vs. 'filter'
         rangeHz         % Modulation frequency range
         dsRatio         % Down-sampling ratio
         
     end
     
-    properties (GetAccess = public)     % TODO: change to private once ok
+    properties (GetAccess = private)     % TODO: change to private once ok
         buffer          % Buffered input (for fft-based)
         
         % Downsampling
@@ -21,14 +21,13 @@ classdef modulationProc < Processor
         nfft            % FFT size
         
         wts             % Sparse matrix for spectrogram mixing
-        modCf           % Modulation frequency bins
         mn              % Index of lowest bin
         mx              % Index of higher bin
         
     end
     
     methods
-        function pObj = modulationProc(fs,nFilters,range,win,blockSize,overlap,type,downSamplingRatio)
+        function pObj = modulationProc(fs,nFilters,range,win,blockSize,overlap,filterType,downSamplingRatio)
             % TODO:
             % - write h1
             % - expand to filter-based modulation extraction
@@ -42,20 +41,24 @@ classdef modulationProc < Processor
             % NB: Check that downSampleRatio is a positive integer
             
             % Check for requested type
-            if strcmp(type,'filter')
+            if strcmp(filterType,'filter')
                 warning('Filter-based modulation filterbank is not implemented at the moment, switching to fft-based.')
-                type = 'fft';
+                filterType = 'fft';
             end
             
-            if ~strcmp(type,'fft')
+            if ~strcmp(filterType,'fft')
                 warning('%s is an invalid argument for modulation filterbank instantiation, switching to ''fft''.')
-                type = 'fft';
+                filterType = 'fft';
             end
             
             % Instantiate a down-sampler if needed
             if downSamplingRatio > 1
                 pObj.dsProc = downSamplerProc(fs,downSamplingRatio,1);
             end
+            
+            % Input/output sampling frequencies
+            pObj.FsHzIn = fs;
+            pObj.FsHzOut = fs/downSamplingRatio;
             
             % FFT-size
             fftFactor = 2;  % TODO: Hard-coded here, should this be a parameter?
@@ -65,16 +68,15 @@ classdef modulationProc < Processor
             pObj.win = window(win,blockSize);
             
             % Normalized lower and upper frequencies of the mod. filterbank
-            fLow = range(1)/fs;
-            fHigh = range(2)/fs;
+            fLow = range(1)/pObj.FsHzOut;
+            fHigh = range(2)/pObj.FsHzOut;
             
             % Get fft-based filterbank properties
-            [pObj.wts,pObj.modCfHz,pObj.mn,pObj.mx] = melbankm(nFilters,pObj.nfft,fs,fLow,fHigh,'fs');
+            [pObj.wts,pObj.modCfHz,pObj.mn,pObj.mx] = melbankm(nFilters,pObj.nfft,pObj.FsHzOut,fLow,fHigh,'fs');
             
             % Populate additional properties
-            pObj.FsHzIn = fs;
-            pObj.FsHzOut = fs/downSamplingRatio;
-            pObj.type = type;
+            pObj.Type = 'Amplitude modulation extraction';
+            pObj.filterType = filterType;
             pObj.rangeHz = range;
             pObj.blockSize = blockSize;
             pObj.overlap = overlap;
