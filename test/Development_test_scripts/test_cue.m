@@ -22,7 +22,7 @@ end
 clear earSignals
 
 % Parameters
-request = 'modulation';
+request = {'ild'};
 p = [];
 
 % Create a data object
@@ -35,7 +35,10 @@ mObj = manager(dObj);
 sOut = mObj.addProcessor(request,p);
 
 % Request processing
+tic
 mObj.processSignal;
+t = toc;
+fprintf('Computation time to signal duration ratio : %d\n',t/(size(data,1)/fsHz))
 
 % Plot output
 if iscell(sOut)
