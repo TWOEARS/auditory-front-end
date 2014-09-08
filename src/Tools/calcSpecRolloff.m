@@ -60,30 +60,41 @@ end
 %% **************************  COMPUTE FEATURE  ***************************
 % 
 % 
+% Flag to select interpolation method
+bUseInterp = true;
+
 % Allocate memory
 out = zeros(nFrames,1);
 
-% Spectral energy across frequencies
-spec_sum    = thresPerc * sum(spec,2);
-spec_cumsum = cumsum(spec,2);
+% Ensure that cumsum(spec) increases monotonically
+epsilon = 1E-10;
+
+% Spectral energy across frequencies multiplied by threshold parameter
+spec_sum_thres = thresPerc * sum(spec,2);
+% Cumulative sum (+ epsilon ensure that cumsum increases monotonically)
+spec_cumsum = cumsum(spec + epsilon,2);
 
 % Loop over number of frames
 for ii = 1 : nFrames
    
     % Use interpolation
-    if spec_sum(ii) > 0
-        out(ii) = interp1(spec_cumsum(ii,:),fHz,spec_sum(ii),'linear');
+    if bUseInterp
+        if spec_sum_thres(ii) > 0
+            % Detect spectral roll-off
+            out(ii) = interp1(spec_cumsum(ii,:),fHz,spec_sum_thres(ii),'linear','extrap');
+        end
+    else
+        % The feature range of this code is limited to the vector fHz.
+        
+        % Detect spectral roll-off
+        r = find(spec_cumsum(ii,:) > spec_sum_thres(ii),1);
+        
+        % If roll-off is found ...
+        if ~isempty(r)
+            % Get frequency bin
+            out(ii) = fHz(r(1));
+        end
     end
-
-%     % The feature range of this code is limited to fHz.
-%     % Spectral roll-off
-%     r = find(cumsum(spec(ii,:)) > (thresPerc * sum(spec(ii,:))),1);
-% 
-%     % If roll-off is found ...
-%     if ~isempty(r)
-%         % Get frequency bin
-%         out(ii) = fHz(r(1));
-%     end
 end
 
 

@@ -93,6 +93,7 @@ spec_hfc = calcSpecHFC(rMap,fHz);
 % 
 spec_entropy = calcSpecEntropy(rMap);
 
+
 %% Spectral flatness
 % 
 % 

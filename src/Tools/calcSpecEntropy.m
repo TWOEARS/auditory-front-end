@@ -38,11 +38,17 @@ nFreqReal = size(spec,2);
 %% **************************  COMPUTE FEATURE  ***************************
 % 
 %
+% Energy across frequencies
+spec_sum = sum(spec,2);
+
 % Normalize spectrum
-specN = spec ./ repmat(sum(spec,2),[1 nFreqReal]);
+specN = spec ./ repmat(spec_sum,[1 nFreqReal]);
 
 % Compute entropy
 out = -sum(specN .* log(specN),2)./log(nFreqReal);
+
+% Avoid NaNs for silent frames
+out(spec_sum == 0) = 0;
 
 
 %   ***********************************************************************
