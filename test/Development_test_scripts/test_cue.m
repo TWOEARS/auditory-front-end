@@ -22,7 +22,7 @@ end
 clear earSignals
 
 % Parameters
-request = 'itd_xcorr';
+request = 'ild';
 p = []; %genParStruct('f_low',80,'f_high',8000,'nChannels',30);
 
 % Create a data object
