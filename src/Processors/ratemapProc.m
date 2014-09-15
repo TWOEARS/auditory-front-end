@@ -106,7 +106,7 @@ classdef ratemapProc < Processor
             [nSamples,nChannels] = size(in);
             
             % How many frames are in the buffered input?
-            nFrames = max(floor((nSamples-(pObj.wSize-pObj.hSize))/pObj.hSize),1);
+            nFrames = floor((nSamples-(pObj.wSize-pObj.hSize))/pObj.hSize);
 
             % Pre-allocate output
             out = zeros(nFrames,nChannels);
