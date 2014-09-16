@@ -103,9 +103,10 @@ classdef crosscorrelationProc < Processor
             maxLag = ceil(pObj.maxDelaySec*pObj.FsHzIn);
             
             % Pre-allocate output
-            out = zeros(nFrames,nChannels,maxLag*2+1);
             
             if ~pObj.do_mex
+
+            out = zeros(nFrames,nChannels,maxLag*2+1);
             % Loop on the time frame
             for ii = 1:nFrames
                 % Get start and end indexes for the current frame
@@ -154,6 +155,7 @@ classdef crosscorrelationProc < Processor
             end
 
             else
+            out = zeros(max(1,nFrames),nChannels,maxLag*2+1);
                 % Use Tobias mex code for framing
                 for jj = 1:nChannels
 
