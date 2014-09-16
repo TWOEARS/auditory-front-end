@@ -14,7 +14,7 @@ classdef TimeFrequencySignal < Signal
     end
     
     methods 
-        function sObj = TimeFrequencySignal(fs,name,cfHz,label,data,canal)
+        function sObj = TimeFrequencySignal(fs,bufferSize_s,name,cfHz,label,data,canal)
             %TimeFrequencySignal    Constructor for the "time-frequency
             %                       representation" children signal class
             %
@@ -38,6 +38,8 @@ classdef TimeFrequencySignal < Signal
             %     sObj : Time-frequency representation signal object 
             %            inheriting the signal class
              
+            sObj = sObj@Signal( fs, bufferSize_s, length(cfHz) );
+            
             if nargin>0     % Safeguard for Matlab empty calls
             
             % Check input arguments
@@ -65,9 +67,9 @@ classdef TimeFrequencySignal < Signal
             
             % Populate object properties
             populateProperties(sObj,'Label',label,'Name',name,...
-                'Dimensions','nSamples x nFilters','FsHz',fs);
+                'Dimensions','nSamples x nFilters');
             sObj.cfHz = cfHz;
-            sObj.Data = data;
+            sObj.setData( data );
             sObj.Canal = canal;
             
             end
@@ -87,17 +89,15 @@ classdef TimeFrequencySignal < Signal
                     warning('Cannot plot this object')
             end
             
-            if ~isempty(sObj.Data)
+            if sObj.isempty()
             
                 % Get plotting parameters
                 p = getDefaultParameters([],'plotting');
 
+                data = sObj.buffer.dat(sObj.buffer.fst:sObj.buffer.lst).';
                 if do_dB
                     % Get the data in dB
-                    data = 20*log10(abs(sObj.Data.'));
-                else
-                    % Keep linear amplitude
-                    data = sObj.Data.';
+                    data = 20*log10(abs(data));
                 end
 
                 % Get a time vector

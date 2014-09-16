@@ -9,7 +9,7 @@ classdef CorrelationSignal < Signal
     
     methods
         
-        function sObj = CorrelationSignal(fs,name,cfHz,lags,label,data,canal)
+        function sObj = CorrelationSignal(fs,bufferSize_s,name,cfHz,lags,label,data,canal)
             %CorrelationSignal  Constructor for the correlation children
             %                   signal class
             %
@@ -32,6 +32,8 @@ classdef CorrelationSignal < Signal
             %            (default: canal = 'mono')
             %OUTPUT ARGUMENT
             %     sObj : Correlation signal object inheriting the signal class
+            
+            sObj = sObj@Signal( fs, bufferSize_s, [length(cfHz), length(lags)] );
             
             if nargin>0     % Safeguard for Matlab empty calls
                 
@@ -60,9 +62,9 @@ classdef CorrelationSignal < Signal
             
             % Populate object properties
             populateProperties(sObj,'Label',label,'Name',name,...
-                'Dimensions','nSample x nFilters x nLags','FsHz',fs);
+                'Dimensions','nSample x nFilters x nLags');
             sObj.cfHz = cfHz;
-            sObj.Data = data;
+            sObj.setData( data );
             sObj.Canal = canal;
             sObj.lags = lags;
                 
