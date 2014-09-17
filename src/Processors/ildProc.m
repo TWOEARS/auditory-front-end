@@ -4,7 +4,6 @@ classdef ildProc < Processor
         wname       % Window shape descriptor (see window.m)
         wSizeSec    % Window duration in seconds
         hSizeSec    % Step size between windows in seconds
-        isBinaural  % Flag indicating the need for two channels
     end
     
     properties (GetAccess = private)
@@ -52,6 +51,7 @@ classdef ildProc < Processor
             pObj.Type = 'ILD extractor';
             pObj.FsHzIn = fs;
             pObj.FsHzOut = 1/(pObj.hSizeSec);
+            pObj.isBinaural = true;
             
             % Initialize buffer
             pObj.buffer_l = [];

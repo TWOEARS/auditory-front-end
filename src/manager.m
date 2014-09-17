@@ -117,7 +117,7 @@ classdef manager < handle
                     % Get index of current processor
                     jj = mObj.Map(ii);
 
-                    if ~isprop(mObj.Processors{jj,1},'isBinaural')
+                    if ~mObj.Processors{jj,1}.isBinaural
                         % Apply processing for left channel (or mono if
                         % interaural cue/feature)
                         mObj.OutputList{jj,1}.setData(...
@@ -201,7 +201,7 @@ classdef manager < handle
                 % Get index of current processor
                 jj = mObj.Map(ii);
                 
-                if ~isprop(mObj.Processors{jj,1},'isBinaural')
+                if ~mObj.Processors{jj,1}.isBinaural
                     % Apply processing for left channel (or mono if
                     % interaural cue/feature):
 
@@ -746,7 +746,7 @@ classdef manager < handle
                     % Add input/output pointers, dependencies, and update dependencies.
                     % Three possible scenarios:
 
-                    if isprop(mObj.Processors{ii},'isBinaural')
+                    if mObj.Processors{ii}.isBinaural
 
                         % 1-Then there are two inputs (left&right) and one output
                         mObj.InputList{ii,1} = dep_sig_l;

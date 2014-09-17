@@ -4,6 +4,7 @@ classdef Processor < handle
         Type            % Describes the processing performed
         Input           % Handle to input signal
         Output          % Handle to output signal
+        isBinaural = false;  % Flag indicating the need for two channels
         FsHzIn          % Sampling frequency of input, prior to processing
         FsHzOut         % Sampling frequency of output, resulting from processing
         Dependencies    % Cell array listing the dependencies to other signals

@@ -5,8 +5,6 @@ classdef crosscorrelationProc < Processor
         wSizeSec    % Window duration in seconds
         hSizeSec    % Step size between windows in seconds
         maxDelaySec % Maximum delay in cross-correlation computation (s)
-        isBinaural  % Flag indicating the need for two channels
-        
         do_mex      % TEMP flag indicating the use of the Tobias' mex code (1)
     end
     
@@ -57,6 +55,7 @@ classdef crosscorrelationProc < Processor
             pObj.FsHzIn = fs;
             pObj.FsHzOut = 1/(pObj.hSizeSec);
             pObj.maxDelaySec = p.cc_maxDelaySec;
+            pObj.isBinaural = true;
             
             % TEMP:
             pObj.do_mex = do_mex;
