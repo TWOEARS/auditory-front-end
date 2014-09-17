@@ -89,12 +89,12 @@ classdef TimeFrequencySignal < Signal
                     warning('Cannot plot this object')
             end
             
-            if sObj.isempty()
+            if ~isempty(sObj.Data)
             
                 % Get plotting parameters
                 p = getDefaultParameters([],'plotting');
 
-                data = sObj.buffer.dat(sObj.buffer.fst:sObj.buffer.lst).';
+                data = sObj.Data(:).';
                 if do_dB
                     % Get the data in dB
                     data = 20*log10(abs(data));

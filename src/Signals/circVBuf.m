@@ -31,28 +31,7 @@ classdef circVBuf < handle
     %       f------------l
     %                    n
     
-    % View on buffer while appending new vetors
-    % -----------------------------------------
-    % 1. append 9 vectors => fill first time:
-    %     |aaaaaaaaa.....AAAAAAAAA.....| 
-    %                    f-------l
-    %                    n
-    % 2.  |aaaaaaaaaaaaaaAAAAAAAAAAAAAA| append 5 vectors => almost cycle, no old vectors (a/A) overwritten yet
-    %                    f---------|--l                      l-f stays constant from now on until buffer cleared
-    %                              n   
-    % 3.  |BaaaaaaaaaaaaabAAAAAAAAAAAAA| append 1 vector  => switch to left copy
-    %       f------------l                                   first time a vector gets overwritten (b/B overwrites a/A)
-    %                    n
-    % 4.  |BBBBBBaaaaaaaabbbbbbAAAAAAAA| append 5 vectors => valid buffer moves from left to right
-    %            f--------|---l
-    %                     n 
-    % 5.  |BBBBBBBBBBBBBBbbbbbbbbbbbbbb| append 8 vectors => almost cycle
-    %                    f-----|------l                      vectors from first fill (a/A) completely overwritten.
-    %                          n
-    % 6.  |cBBBBBBBBBBBBBCbbbbbbbbbbbbb| append 1 vector  => c/C overwrites b/B
-    %       f------------l
-    %                    n    
-    
+
     %
     % Spezials :
     % ---------------------------------------------
@@ -97,8 +76,7 @@ classdef circVBuf < handle
     % Copyright 2014 Jens Henrik Goebbert <jens.henrik.goebbert@rwth-aachen.de>
     %#codegen
     
-    % changes by Ivo Trowitzsch, 2014/09/15: use matrices instead of
-    % vectors.
+    % changes by Ivo Trowitzsch, 2014/09
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     %% properties
 
@@ -113,6 +91,8 @@ classdef circVBuf < handle
         lst@int64   = int64(nan) %  last index == position of newest/last value in circular buffer
         
         newCnt@int64= int64(0)   % number of new values added lately (last append call).
+        
+        LastChunk
         
         AppendType = 0
         append % function pointer to append0,1,2 or 3        
@@ -136,6 +116,11 @@ classdef circVBuf < handle
         %% ----------------------------------------------------------------        
         function delete(obj)
             obj.dat = []; % FIXME: probably not required ?
+        end
+        
+        %%
+        function lc = get.LastChunk( obj )
+            lc = [obj.new - obj.fst + 1, obj.lst - obj.fst + 1];
         end
         
     end
@@ -198,12 +183,87 @@ classdef circVBuf < handle
             obj.newCnt = int64(0);               
         end        
         
-        %% ----------------------------------------------------------------
-        function num = getNumElements( obj )
-            num = max( obj.lst - obj.fst, 0 );
+    %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    % -------------- array-like interface ----------------------
+        function varargout = subsref( obj, S )
+            if length(S) > 1
+                if nargout == 0
+                    builtin( 'subsref', obj, S );
+                else
+                    varargout{1:nargout} = builtin( 'subsref', obj, S );
+                end
+            else
+                switch S(1).type
+                    case '()'
+                        idxs = S.subs{1,1};
+                        if isa( idxs, 'char' ) % then it is ':'
+                            S.subs{1,1} = obj.fst:obj.lst;
+                        else % it is indexes (1-based)
+                            S.subs{1,1} = int64(idxs) + obj.fst - int64(1);
+                        end
+                        for k = length(S.subs)+1:ndims(obj.dat)
+                            S.subs{1,k} = ':';
+                        end
+                        if nargout == 0
+                            builtin( 'subsref', obj.dat, S );
+                        else
+                            varargout{1:nargout} = builtin( 'subsref', obj.dat, S );
+                        end
+                    otherwise
+                        if nargout == 0
+                            builtin( 'subsref', obj, S );
+                        else
+                            varargout{1:nargout} = builtin( 'subsref', obj, S );
+                        end
+                end
+            end
+        end
+        
+        function obj = subsasgn( obj, S, val )
+            if (length(S) == 1) && strcmp(S(1).type,'()')
+                error( 'Indexed assignment into buffer is not supported at the moment!' );
+%                 idxs = S.subs{1,1};
+%                 if isa( idxs, 'char' ) % then it is ':'
+%                     S.subs{1,1} = obj.fst:obj.lst;
+%                 else % it is indexes (1-based)
+%                     S.subs{1,1} = int64(idxs) + obj.fst - int64(1);
+%                 end
+%                 for k = length(S.subs)+1:ndims(obj.dat)
+%                     S.subs{1,k} = ':';
+%                 end
+%                 obj = builtin( 'subsasgn', obj.dat, S, val );
+            else
+                obj = builtin( 'subsasgn', obj, S, val );
+            end
+        end
+        
+        function l = length( obj )
+            l = max( 0, obj.lst - obj.fst + 1 );
         end
             
-        %% ----------------------------------------------------------------
+        function s = size( obj )
+            s = size(obj.dat);
+            s(1) = length(obj);
+        end
+        
+        function n = numel( obj )
+            n = prod(size(obj));
+        end
+        
+        function ind = end( obj, k, n )
+            if k == 1
+                ind = length(obj);
+            else
+                ind = builtin( 'end', obj.dat, k, ndims(obj.dat) );
+            end
+        end
+        
+        function ie = isempty( obj )
+            ie = (obj.lst < obj.fst);
+        end
+        
+    %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+        % ----------------------------------------------------------------
         function cpSz = append0(obj,vec)
             %assert(isa(vec,'double')) % disabled because it consumes time   
             

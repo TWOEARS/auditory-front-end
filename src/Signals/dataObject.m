@@ -204,16 +204,15 @@ classdef dataObject < dynamicprops
             %   dObj : Data object
             
             if ~isprop(dObj,'signal')||isempty(dObj.signal)||...
-                    dObj.signal{1}.isempty()
+                    isempty(dObj.signal{1}.Data)
                 warning('There is no audio in the data object to playback')
             else
                 if size(dObj.signal,2)==1
                     % Then mono playback
-                    sound(dObj.signal{1}.buffer.dat(dObj.signal{1}.buffer.fst:dObj.signal{1}.buffer.lst,:,:),dObj.signal{1}.FsHz)
+                    sound(dObj.signal{1}.Data(:),dObj.signal{1}.FsHz)
                 else
                     % Stereo playback
-                    temp_snd = [dObj.signal{1}.buffer.dat(dObj.signal{1}.buffer.fst:dObj.signal{1}.buffer.lst,:,:)...
-                        dObj.signal{2}.buffer.dat(dObj.signal{2}.buffer.fst:dObj.signal{2}.buffer.lst,:,:)];
+                    temp_snd = [dObj.signal{1}.Data(:) dObj.signal{2}.Data(:)];
                     sound(temp_snd,dObj.signal{1}.FsHz)
                 end
             end

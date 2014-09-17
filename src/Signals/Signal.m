@@ -5,13 +5,12 @@ classdef Signal < handle
         Name            % Used as an instance name in Matlab
         Dimensions      % String describing the dimensions of the signal
         FsHz            % Sampling frequency
-        LastChunk       % Time indexes of beginning and end of latest chunk
         Canal           % Flag keeping track of the channel: 'mono', 'left'
                         %   or 'right'
     end
     
     properties (SetAccess = protected)
-        buffer;
+        Data;
     end
 
 
@@ -29,7 +28,7 @@ classdef Signal < handle
         function sObj = Signal( fs, bufferSize_s, bufferElemSize )
             sObj.FsHz = fs;
             bufferSizeSamples = ceil( bufferSize_s * sObj.FsHz );
-            sObj.buffer = circVBuf( bufferSizeSamples, bufferElemSize );
+            sObj.Data = circVBuf( bufferSizeSamples, bufferElemSize );
         end
         
         function appendChunk(sObj,data)
@@ -49,22 +48,12 @@ classdef Signal < handle
             %dimensionality) to improve efficiency. Although for practical
             %reason it remains public, it should not be called "manually"
             %by a user.
-            %
-            %TO DO: There is no pre-allocation of the Data property of a
-            %signal. This causes substantial increase in computation time.
-                        
-            % Append the signal
-%             sObj.Data = [sObj.Data; data];
-%            sObj.Data = cat(1,sObj.Data,data);
-            sObj.buffer.append( data );
             
-            % Update LastChunk property
-            sObj.LastChunk = [sObj.buffer.new sObj.buffer.lst];
-                        
+            sObj.Data.append( data );
         end
 
         function setData(sObj, data)
-            sObj.buffer.clear();
+            sObj.Data.clear();
             sObj.appendChunk(data);
         end
         
@@ -75,18 +64,8 @@ classdef Signal < handle
             %USAGE
             %   sObj.clearData
             
-            sObj.buffer.clear();
-            sObj.LastChunk = [];
+            sObj.Data.clear();
         end
-
-        function empty = isempty( sObj )
-            empty = (sObj.buffer.fst > sObj.buffer.lst);
-        end
-        
-%         function cmpltIdxs = allDataIdx( sObj )
-%             cmpltIdxs = [sObj.buffer.fst:sObj.buffer.lst,1:sObj.buffer.matSz(1)];
-%         end
-%         
         
         function sb = getSignalBlock(sObj,blocksize_s)
             %getSignalBlock   Returns this Signal object's signal data
@@ -105,8 +84,8 @@ classdef Signal < handle
             
             blocksize_samples = ceil( sObj.FsHz * blocksize_s );
             % TODO: this assumes that time is on dimension 1. Verify!
-            blockStart = max( sObj.buffer.fst, sObj.buffer.lst - blocksize_samples + 1 );
-            sb = sObj.buffer.dat(blockStart:sObj.buffer.lst,:,:);
+            blockStart = max( 1, length( sObj.Data ) - blocksize_samples + 1 );
+            sb = sObj.Data(blockStart:end,:,:,:,:);
             if size( sb, 1 ) < blocksize_samples
                 sb = [zeros( blocksize_samples - size(sb,1), size(sb,2) ); sb];
             end
@@ -214,9 +193,6 @@ classdef Signal < handle
                 % Then add the property value
                 sObj.(varargin{ii})=varargin{ii+1};
             end
-            
-            % Latest chunk is empty at instantiation
-            sObj.LastChunk = [];
             
         end
     end

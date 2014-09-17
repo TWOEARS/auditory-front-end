@@ -120,28 +120,22 @@ classdef manager < handle
                     if ~mObj.Processors{jj,1}.isBinaural
                         % Apply processing for left channel (or mono if
                         % interaural cue/feature)
-                        mObj.OutputList{jj,1}.setData(...
-                            mObj.Processors{jj,1}.processChunk(...
-                            mObj.InputList{jj,1}.buffer.dat(mObj.InputList{jj,1}.buffer.fst:mObj.InputList{jj,1}.buffer.lst,:,:)...
-                            )...
-                            );
+                        mObj.OutputList{jj,1}.setData( ...
+                            mObj.Processors{jj,1}.processChunk(mObj.InputList{jj,1}.Data(:)) );
 
                         % Apply for right channel if stereo cue/feature
                         if mObj.Data.isStereo && ~isempty(mObj.Processors{jj,2})
                             mObj.OutputList{jj,2}.setData(...
-                                mObj.Processors{jj,2}.processChunk(...
-                                mObj.InputList{jj,2}.buffer.dat(mObj.InputList{jj,2}.buffer.fst:mObj.InputList{jj,2}.buffer.lst,:,:)...
-                                )...
+                                mObj.Processors{jj,2}.processChunk(mObj.InputList{jj,2}.Data(:))...
                                 );
                         end
                     else
                         % If the processor extracts a binaural cue, inputs
                         % from left and right channel should be routed
                         mObj.OutputList{jj,1}.setData( ...
-                            mObj.Processors{jj,1}.processChunk(...
-                            mObj.InputList{jj,1}.buffer.dat(mObj.InputList{jj,1}.buffer.fst:mObj.InputList{jj,1}.buffer.lst,:,:),...
-                            mObj.InputList{jj,2}.buffer.dat(mObj.InputList{jj,2}.buffer.fst:mObj.InputList{jj,2}.buffer.lst,:,:)...
-                            ) );
+                            mObj.Processors{jj,1}.processChunk(mObj.InputList{jj,1}.Data(:),...
+                            mObj.InputList{jj,2}.Data(:))...
+                            );
 
                     end
                 end
@@ -209,11 +203,11 @@ classdef manager < handle
                     in = mObj.InputList{jj,1};
 
                     % Indexes for last chunk position in input
-                    s = in.LastChunk(1);
-                    e = in.LastChunk(2);
+                    s = in.Data.LastChunk(1);
+                    e = in.Data.LastChunk(2);
 
                     % Perform the processing
-                    out = mObj.Processors{jj,1}.processChunk(in.buffer.dat(s:e,:,:));
+                    out = mObj.Processors{jj,1}.processChunk(in.Data(s:e,:,:));
 
                     % Store the result
                     mObj.OutputList{jj,1}.appendChunk(out);
@@ -221,9 +215,9 @@ classdef manager < handle
                     % Apply similarly for right channel if binaural cue/feature
                     if mObj.Data.isStereo && ~isempty(mObj.Processors{jj,2})
                         in = mObj.InputList{jj,2};
-                        s = in.LastChunk(1);
-                        e = in.LastChunk(2);
-                        out = mObj.Processors{jj,2}.processChunk(in.buffer.dat(s:e,:,:));
+                        s = in.Data.LastChunk(1);
+                        e = in.Data.LastChunk(2);
+                        out = mObj.Processors{jj,2}.processChunk(in.Data(s:e,:,:));
                         mObj.OutputList{jj,2}.appendChunk(out);
                     end
                     
@@ -236,15 +230,15 @@ classdef manager < handle
                     in_r = mObj.InputList{jj,2};
                     
                     % Indexes for last chunk position in input
-                    s_l = in_l.LastChunk(1);
-                    e_l = in_l.LastChunk(2);
-                    s_r = in_r.LastChunk(1);
-                    e_r = in_r.LastChunk(2);
+                    s_l = in_l.Data.LastChunk(1);
+                    e_l = in_l.Data.LastChunk(2);
+                    s_r = in_r.Data.LastChunk(1);
+                    e_r = in_r.Data.LastChunk(2);
                     
                     % Perform the processing
                     out = mObj.Processors{jj,1}.processChunk(...
-                        in_l.buffer.dat(s_l:e_l,:,:),...
-                        in_r.buffer.dat(s_r:e_r,:,:));
+                        in_l.Data(s_l:e_l,:,:),...
+                        in_r.Data(s_r:e_r,:,:));
                     
                     % Store the result
                     mObj.OutputList{jj,1}.appendChunk(out);
@@ -255,11 +249,11 @@ classdef manager < handle
 %                 in = mObj.InputList{jj};
 %                 
 %                 % Indexes for last chunk position in input
-%                 s = in.LastChunk(1);
-%                 e = in.LastChunk(2);
+%                 s = in.Data.LastChunk(1);
+%                 e = in.Data.LastChunk(2);
 %                 
 %                 % Perform the processing
-%                 out = mObj.Processors{jj}.processChunk(in.buffer.dat(s:e,:,:));
+%                 out = mObj.Processors{jj}.processChunk(in.Data(s:e,:,:));
 %                 
 %                 % Store the result
 %                 mObj.OutputList{jj}.appendChunk(out);
