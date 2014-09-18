@@ -13,6 +13,9 @@ classdef Signal < handle
         Data;
     end
 
+    properties (Access = protected)
+        Buf;
+    end
 
     methods (Abstract = true)
         h = plot(sObj,h_prev)
@@ -28,7 +31,8 @@ classdef Signal < handle
         function sObj = Signal( fs, bufferSize_s, bufferElemSize )
             sObj.FsHz = fs;
             bufferSizeSamples = ceil( bufferSize_s * sObj.FsHz );
-            sObj.Data = circVBuf( bufferSizeSamples, bufferElemSize );
+            sObj.Buf = circVBuf( bufferSizeSamples, bufferElemSize );
+            sObj.Data = circVBufArrayInterface( sObj.Buf );
         end
         
         function appendChunk(sObj,data)
@@ -49,12 +53,12 @@ classdef Signal < handle
             %reason it remains public, it should not be called "manually"
             %by a user.
             
-            sObj.Data.append( data );
+            sObj.Buf.append( data );
         end
 
         function setData(sObj, data)
-            sObj.Data.clear();
-            sObj.appendChunk(data);
+            sObj.Buf.clear();
+            sObj.Buf.append( data );
         end
         
         function clearData(sObj)
@@ -64,7 +68,7 @@ classdef Signal < handle
             %USAGE
             %   sObj.clearData
             
-            sObj.Data.clear();
+            sObj.Buf.clear();
         end
         
         function sb = getSignalBlock(sObj,blocksize_s)

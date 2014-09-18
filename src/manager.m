@@ -202,12 +202,8 @@ classdef manager < handle
                     % Getting input signal handle (for code readability)
                     in = mObj.InputList{jj,1};
 
-                    % Indexes for last chunk position in input
-                    s = in.Data.LastChunk(1);
-                    e = in.Data.LastChunk(2);
-
                     % Perform the processing
-                    out = mObj.Processors{jj,1}.processChunk(in.Data(s:e,:,:));
+                    out = mObj.Processors{jj,1}.processChunk(in.Data('new'));
 
                     % Store the result
                     mObj.OutputList{jj,1}.appendChunk(out);
@@ -215,9 +211,7 @@ classdef manager < handle
                     % Apply similarly for right channel if binaural cue/feature
                     if mObj.Data.isStereo && ~isempty(mObj.Processors{jj,2})
                         in = mObj.InputList{jj,2};
-                        s = in.Data.LastChunk(1);
-                        e = in.Data.LastChunk(2);
-                        out = mObj.Processors{jj,2}.processChunk(in.Data(s:e,:,:));
+                        out = mObj.Processors{jj,2}.processChunk(in.Data('new'));
                         mObj.OutputList{jj,2}.appendChunk(out);
                     end
                     
@@ -229,16 +223,10 @@ classdef manager < handle
                     in_l = mObj.InputList{jj,1};
                     in_r = mObj.InputList{jj,2};
                     
-                    % Indexes for last chunk position in input
-                    s_l = in_l.Data.LastChunk(1);
-                    e_l = in_l.Data.LastChunk(2);
-                    s_r = in_r.Data.LastChunk(1);
-                    e_r = in_r.Data.LastChunk(2);
-                    
                     % Perform the processing
                     out = mObj.Processors{jj,1}.processChunk(...
-                        in_l.Data(s_l:e_l,:,:),...
-                        in_r.Data(s_r:e_r,:,:));
+                        in_l.Data('new'),...
+                        in_r.Data('new'));
                     
                     % Store the result
                     mObj.OutputList{jj,1}.appendChunk(out);
@@ -248,12 +236,8 @@ classdef manager < handle
 %                 % Getting input signal handle (for code readability)
 %                 in = mObj.InputList{jj};
 %                 
-%                 % Indexes for last chunk position in input
-%                 s = in.Data.LastChunk(1);
-%                 e = in.Data.LastChunk(2);
-%                 
 %                 % Perform the processing
-%                 out = mObj.Processors{jj}.processChunk(in.Data(s:e,:,:));
+%                 out = mObj.Processors{jj}.processChunk(in.Data('new'));
 %                 
 %                 % Store the result
 %                 mObj.OutputList{jj}.appendChunk(out);
