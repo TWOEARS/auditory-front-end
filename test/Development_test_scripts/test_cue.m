@@ -1,7 +1,7 @@
 % This script tests the capability of the manager to extract a specific
 % cue
 
-clear all
+clear
 close all
 
 % Add path
@@ -22,7 +22,7 @@ end
 clear earSignals
 
 % Parameters
-request = 'ild';
+request = 'spec_features';
 p = []; %genParStruct('f_low',80,'f_high',8000,'nChannels',30);
 
 % Create a data object
@@ -37,4 +37,4 @@ sOut = mObj.addProcessor(request,p);
 % Request processing
 mObj.processSignal;
 
-sOut.plot;
+% sOut.plot;

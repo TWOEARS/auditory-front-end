@@ -136,10 +136,10 @@ classdef spectralFeaturesProc < Processor
             n_feat = size(pObj.requestList,2);
             
             % Output initialization
-            out = struct;
+            out = zeros(size(in,1),n_feat);
             
             % Size of input chunk
-            [nFrames, nFreq] = size(spec);
+            [nFrames, nFreq] = size(in);
                        
             % Main loop on all the features
             for ii = 1:n_feat
@@ -149,11 +149,11 @@ classdef spectralFeaturesProc < Processor
                     
                     case 'centroid'     % Spectral centroid
                         % Spectral center of gravity of the spectrum
-                        out.centroid = sum(repmat(pObj.cfHz,[nFrames 1]).*in,2)./(sum(in,2)+pObj.eps);
+                        out(:,ii) = sum(repmat(pObj.cfHz,[nFrames 1]).*in,2)./(sum(in,2)+pObj.eps);
                         
                     case 'crest'        % Spectral crest
                         % Ratio of maximum to average in every frame
-                        out.crest = max(spec,[],2)./(mean(spec,2)+pObj.eps);
+                        out(:,ii) = max(in,[],2)./(mean(in,2)+pObj.eps);
                         
                     case 'decrease'     % Spectral decrease
                         
@@ -161,7 +161,7 @@ classdef spectralFeaturesProc < Processor
                         kinv = 1./[1 ;(1:nFreq-1)'];
                         
                         % Spectral decrease
-                        out.decrease = ((in-repmat(in(:,1),[1 nFreq]))*kinv)./(sum(in(:,2:end),2)+pObj.eps);
+                        out(:,ii) = ((in-repmat(in(:,1),[1 nFreq]))*kinv)./(sum(in(:,2:end),2)+pObj.eps);
                         
                     case 'spread'       % Spectral spread (bandwidth)
                         % Average deviation to the centroid weigthed by
@@ -174,29 +174,29 @@ classdef spectralFeaturesProc < Processor
                         nom = (repmat(pObj.cfHz,[nFrames 1]) - repmat(centroid,[1 nFreq])).^2 .* in;
                         
                         % Spectrum bandwidth
-                        out.spread = sqrt(sum(nom,2)./(sum(in,2)+pObj.eps));
+                        out(:,ii) = sqrt(sum(nom,2)./(sum(in,2)+pObj.eps));
                         
                     case 'brightness'   % Spectral brightness
                         % Ratio of energy above cutoff to total energy in
                         % each frame
-                        out.brightness = sum(in(:,pObj.cfHz>pObj.br_cf),2)./(sum(in,2)+pObj.eps);
+                        out(:,ii) = sum(in(:,pObj.cfHz>pObj.br_cf),2)./(sum(in,2)+pObj.eps);
                         
                     case 'hfc'          % Spectral high frequency content
                         % Ratio of energy above cutoff to total energy in
                         % each frame (higher cutoff than brightness)
-                        out.hfc = sum(in(:,pObj.cfHz>pObj.hfc_cf),2)./(sum(in,2)+pObj.eps);
+                        out(:,ii) = sum(in(:,pObj.cfHz>pObj.hfc_cf),2)./(sum(in,2)+pObj.eps);
                         
                     case 'entropy'      % Spectral entropy
                         
                         % Normalized spectrum
                         specN = in./(repmat(sum(in,2),[1 nFreq])+pObj.eps);
                         % Entropy
-                        out.entropy = -sum(specN .* log(specN+pObj.eps),2)./log(nFreq);
+                        out(:,ii) = -sum(specN .* log(specN+pObj.eps),2)./log(nFreq);
                         
                     case 'flatness'     % Spectral flatness (SFM)
                         % Ratio of geometric mean to arithmetic mean across
                         % frequencies
-                        out.flatness = exp(mean(log(in),2))./(mean(in,2)+pObj.eps);
+                        out(:,ii) = exp(mean(log(in),2))./(mean(in,2)+pObj.eps);
                         
                     case 'flux'         % Spectral flux
                         
@@ -213,7 +213,7 @@ classdef spectralFeaturesProc < Processor
                         deltaSpec = diff([pObj.flux_buffer; pSpec],1,1);
                         
                         % Take the norm across frequency
-                        out.flux = sqrt(mean(power(deltaSpec,2),2));
+                        out(:,ii) = sqrt(mean(power(deltaSpec,2),2));
                         
                         % Update the buffer
                         pObj.flux_buffer = pSpec(end,:);
@@ -225,10 +225,10 @@ classdef spectralFeaturesProc < Processor
                         std_x = std(abs(in),0,2);
                         
                         % Remove mean from input
-                        X = in - repmat(mu_x,[1 nFreqReal]);
+                        X = in - repmat(mu_x,[1 nFreq]);
                         
                         % Kurtosis
-                        out.kurtosis = mean((X.^4)./(repmat(std_x + pObj.eps, [1 nFreq]).^4),2);
+                        out(:,ii) = mean((X.^4)./(repmat(std_x + pObj.eps, [1 nFreq]).^4),2);
                         
                     case 'skewness'
                         
@@ -237,10 +237,10 @@ classdef spectralFeaturesProc < Processor
                         std_x = std(abs(in),0,2);
                         
                         % Remove mean from input
-                        X = in - repmat(mu_x,[1 nFreqReal]);
+                        X = in - repmat(mu_x,[1 nFreq]);
                         
                         % Kurtosis
-                        out.kurtosis = mean((X.^3)./(repmat(std_x + pObj.eps, [1 nFreq]).^3),2);
+                        out(:,ii) = mean((X.^3)./(repmat(std_x + pObj.eps, [1 nFreq]).^3),2);
                         
                     case 'irregularity'
                         
@@ -248,7 +248,7 @@ classdef spectralFeaturesProc < Processor
                         pSpec = 10*log10(in+pObj.eps);
                         
                         % 2-Norm of spectrum difference across frequency
-                        out.irregularity = sqrt(mean(power(diff(pSpec,1,2),2),2));
+                        out(:,ii) = sqrt(mean(power(diff(pSpec,1,2),2),2));
                         
                     case 'rolloff'
                         % Extrapolated frequency threshold at each frame
@@ -267,7 +267,7 @@ classdef spectralFeaturesProc < Processor
                             if pObj.bUseInterp
                                 if spec_sum_thres(jj) > 0
                                     % Detect spectral roll-off
-                                    out.rolloff(jj) = interp1(spec_cumsum(jj,:),fHz,spec_sum_thres(jj),'linear','extrap');
+                                    out(jj,ii) = interp1(spec_cumsum(jj,:),pObj.cfHz,spec_sum_thres(jj),'linear','extrap');
                                 end
                             else
                                 % The feature range of this code is limited to the vector fHz.
@@ -278,7 +278,7 @@ classdef spectralFeaturesProc < Processor
                                 % If roll-off is found ...
                                 if ~isempty(r)
                                     % Get frequency bin
-                                    out.rolloff(jj) = fHz(r(1));
+                                    out(jj,ii) = pObj.cfHz(r(1));
                                 end
                             end
                         end
@@ -299,7 +299,7 @@ classdef spectralFeaturesProc < Processor
                         aprod = sqrt(sum(in.^2,2)) .* sqrt(sum(past_spec.^2,2));
                         
                         % Noralized cross-correlation
-                        out.variation = 1-(xprod./(aprod+pObj.eps));
+                        out(:,ii) = 1-(xprod./(aprod+pObj.eps));
                         
                         % Update the buffer
                         pObj.var_buffer = in(end,:);
@@ -339,10 +339,13 @@ classdef spectralFeaturesProc < Processor
             %INPUT ARGUMENTS
             %  pObj : Processor instance
             %     p : Structure containing parameters to test
-        
+            %
+            %TODO: Find a good way to implement this method, taking into
+            %account the requests
+            
             % Temporary
             hp = 1;
-%             p_list_proc
+            warning('The method hasParameters() of spectral features processor is not implemented yet. Returning TRUE')
             
             
         end
