@@ -530,6 +530,26 @@ classdef manager < handle
                             mObj.Data.addSignal(sig);
                         end
                                      
+                    case 'framedSignal'
+                        if mObj.Data.isStereo
+                            % Instantiate left and right ear processors
+                            mObj.Processors{ii,1} = framingProc(p.fs,p.fr_wname,p.fr_wSize,p.fr_hSize);
+                            mObj.Processors{ii,2} = framingProc(p.fs,p.fr_wname,p.fr_wSize,p.fr_hSize);
+                            % Generate new signals
+                            sig_l = FramedSignal(mObj.Processors{ii,1}.FsHzOut,mObj.Processors{ii,1}.FsHzIn,'framedSignal','Framed signal','left');
+                            sig_r = FramedSignal(mObj.Processors{ii,2}.FsHzOut,mObj.Processors{ii,1}.FsHzIn,'framedSignal','Framed signal','right');
+                            % Add the signals to the data object
+                            mObj.Data.addSignal(sig_l);
+                            mObj.Data.addSignal(sig_r)
+                        else
+                            % Instantiate a processor
+                            mObj.Processors{ii} = framingProc(p.fs,p.fr_wname,p.fr_wSize,p.fr_hSize);
+                            % Generate a new signal
+                            sig = FramedSignal(mObj.Processors{ii,1}.FsHzOut,mObj.Processors{ii,1}.FsHzIn,'framedSignal','Framed signal','mono');
+                            % Add signal to the data object
+                            mObj.Data.addSignal(sig);
+                        end
+                        
                     case 'gammatone'
                         if mObj.Data.isStereo
                             % Instantiate left and right ear processors

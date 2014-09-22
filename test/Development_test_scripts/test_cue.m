@@ -22,7 +22,7 @@ end
 clear earSignals
 
 % Parameters
-request = {'ild'};
+request = {'framedSignal'};
 p = [];
 
 % Create a data object
