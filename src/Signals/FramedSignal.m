@@ -26,7 +26,7 @@ classdef FramedSignal < Signal
             if nargin>0
                 
             if nargin<5||isempty(canal);canal='mono';end
-            if nargin<3||isempty(name);name='framed_signal';end
+            if nargin<3||isempty(name);name='framedSignal';end
             if nargin<4||isempty(label);label=name;end
             
             if nargin<2
@@ -36,8 +36,8 @@ classdef FramedSignal < Signal
             % Populate signal properties
             populateProperties(sObj,'Label',label,'Name',name,...
                 'Dimensions','nFrames x frameSize','FsHz',fs);
-            sObj.frameHz = frameFs;
-                
+            sObj.frameFsHz = frameFs;
+            sObj.Canal = canal;
                 
             end
             

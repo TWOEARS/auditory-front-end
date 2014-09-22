@@ -16,6 +16,10 @@ clear pInfo
 % Add all parameters
 
 % Processing:
+    % Time-domain framing processor
+    addParameterInfo('fr','fr_wname','hamming','Window name descriptor (see window.m)','Time-domain signal framing processor')
+    addParameterInfo('fr','fr_wSize',1024,'Window duration in samples')
+    addParameterInfo('fr','fr_hSize',512,'Step size between windows in samples')
 
     % Gammatone filterbank
     addParameterInfo('gammatone','f_low',80,'Lowest center frequency (Hz)','Gammatone filterbank')

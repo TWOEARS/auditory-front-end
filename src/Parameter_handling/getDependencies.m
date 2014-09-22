@@ -27,6 +27,9 @@ switch sig
     case 'time'
         dep = {'time'};
         
+    case 'framedSignal'
+        dep = {'time'};
+        
     case 'gammatone'
         dep = {'time'};
         

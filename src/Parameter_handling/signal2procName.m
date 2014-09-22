@@ -22,6 +22,9 @@ switch signal
     case 'time'
         procName = 'identityProc';  % To be changed!
         
+    case 'framedSignal'
+        procName = 'framingProc';
+        
     case 'gammatone'
         procName = 'gammatoneProc';
         
