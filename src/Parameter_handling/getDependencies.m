@@ -82,6 +82,9 @@ switch sig
     % Features
     case 'crosscorrelation_feature'
         dep = {'crosscorrelation'};
+
+    case 'spec_features'
+        dep = {'ratemap_power'};
     
     case 'ratemap_feature'
         dep = {'ratemap_magnitude'};
@@ -103,13 +106,17 @@ switch sig
             'crosscorrelation' 'autocorrelation' 'rms' 'ratemap_magnitude' ...
             'ratemap_power' 'itd_xcorr' 'ic_xcorr' 'ild' 'average_deviation' ...
             'onset_strength' 'offset_strength' 'synchrony' 'sacf' ...
-            'ratemap_feature' 'azimuth' 'azimuth_hist' 'source_position'...
-            'pitch'};
+            'spec_features' 'ratemap_feature' 'azimuth' 'azimuth_hist' ...
+            'source_position' 'pitch'};
         
     case 'available'    % Lists all currently implemented processors
          dep = {'time' 'gammatone' 'innerhaircell' 'modulation' 'crosscorrelation' ...
              'autocorrelation' 'ratemap_magnitude' 'ratemap_power' 'ild' ...
+<<<<<<< HEAD
              'itd_xcorr' 'ic_xcorr' 'crosscorrelation_feature'};
+=======
+             'itd_xcorr' 'ic_xcorr' 'spec_features'};
+>>>>>>> SpectralFeatures
         
     % Otherwise it's not in the list, generate a list of valid names
     otherwise
