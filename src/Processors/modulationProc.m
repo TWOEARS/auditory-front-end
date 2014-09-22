@@ -58,7 +58,7 @@ classdef modulationProc < Processor
             
             % Input/output sampling frequencies
             pObj.FsHzIn = fs;
-            pObj.FsHzOut = fs/downSamplingRatio;
+            fs_ds = fs/downSamplingRatio;
             
             % FFT-size
             fftFactor = 2;  % TODO: Hard-coded here, should this be a parameter?
@@ -68,11 +68,14 @@ classdef modulationProc < Processor
             pObj.win = window(win,blockSize);
             
             % Normalized lower and upper frequencies of the mod. filterbank
-            fLow = range(1)/pObj.FsHzOut;
-            fHigh = range(2)/pObj.FsHzOut;
+            fLow = range(1)/fs_ds;
+            fHigh = range(2)/fs_ds;
             
             % Get fft-based filterbank properties
-            [pObj.wts,pObj.modCfHz,pObj.mn,pObj.mx] = melbankm(nFilters,pObj.nfft,pObj.FsHzOut,fLow,fHigh,'fs');
+            [pObj.wts,pObj.modCfHz,pObj.mn,pObj.mx] = melbankm(nFilters,pObj.nfft,fs_ds,fLow,fHigh,'fs');
+            
+            % Output sampling frequency
+            pObj.FsHzOut = fs_ds/(blockSize-overlap);
             
             % Populate additional properties
             pObj.Type = 'Amplitude modulation extraction';
