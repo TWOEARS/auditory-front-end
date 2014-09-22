@@ -50,7 +50,7 @@ switch signal
         procName = 'ildProc';
         
     case 'spec_features'
-        procName = 'SpectralFeaturesProc';
+        procName = 'spectralFeaturesProc';
         
     otherwise
         procName = '';

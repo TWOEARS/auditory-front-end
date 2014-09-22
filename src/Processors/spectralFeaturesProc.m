@@ -339,14 +339,39 @@ classdef spectralFeaturesProc < Processor
             %INPUT ARGUMENTS
             %  pObj : Processor instance
             %     p : Structure containing parameters to test
-            %
-            %TODO: Find a good way to implement this method, taking into
-            %account the requests
             
-            % Temporary
-            hp = 1;
-            warning('The method hasParameters() of spectral features processor is not implemented yet. Returning TRUE')
             
+            % If the requests in p is 'all', list all possible requests
+            if strcmp(p.sf_requests,'all')
+                requests = {'centroid' 'crest' 'spread' 'entropy' ...
+                'brightness' 'hfc' 'decrease' 'flatness' 'flux' ... 
+                'kurtosis' 'skewness' 'irregularity' 'rolloff' ...
+                'variation'};
+            else
+                requests = p.sf_requests;
+            end
+            
+            % Check for the same request list, disregard order
+            hp = isempty(setdiff(pObj.requestList,requests));
+            
+            % Check that the optional parameters have the same value
+%             try
+                if ismember('brightness',requests) && hp
+                    hp = isequal(pObj.br_cf,p.sf_br_cf);
+                end
+
+                if ismember('hfc',requests) && hp
+                    hp = isequal(pObj.hfc_cf,p.sf_hfc_cf);
+                end
+
+                if ismember('rolloff',requests) && hp
+                    hp = isequal(pObj.ro_thres,p.sf_ro_thres);
+                end
+            
+%             catch err
+%                 warning('hasParameters: a parameter is missing in the parameter list')
+%             
+%             end
             
         end
     end
