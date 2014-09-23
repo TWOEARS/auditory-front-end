@@ -23,7 +23,7 @@ clear earSignals
 
 % Parameters
 request = {'modulation'};
-p = [];
+p = genParStruct('am_type','filter');
 
 % Create a data object
 dObj = dataObject(data,fsHz);

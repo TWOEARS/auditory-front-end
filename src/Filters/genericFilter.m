@@ -30,11 +30,6 @@ classdef genericFilter < filterObj
                 obj = populateProperties(obj,'Type','Generic Filter',...
                     'Structure',struct,'FsHz',fs,...
                     'b',b,'a',a);
-    %             obj.Type = 'Generic Filter';
-    %             obj.Structure = struct;
-    %             obj.FsHz = fs;
-    %             obj.b = b;
-    %             obj.a = a;
             end
         end
     end

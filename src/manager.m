@@ -624,23 +624,23 @@ classdef manager < handle
                         
                     case 'modulation'
                         if mObj.Data.isStereo
+                            cfHz = dep_proc_l.getDependentParameter('cfHz');    % Vector of center audio frequencies
                             % Instantiate left and right ear processors
-                            mObj.Processors{ii,1} = modulationProc(p.fs,p.am_nFilters,p.am_range,p.am_win,p.am_bSize,p.am_olap,p.am_type,p.am_dsRatio);
-                            mObj.Processors{ii,2} = modulationProc(p.fs,p.am_nFilters,p.am_range,p.am_win,p.am_bSize,p.am_olap,p.am_type,p.am_dsRatio);
+                            mObj.Processors{ii,1} = modulationProc(p.fs,numel(cfHz),p.am_nFilters,p.am_range,p.am_win,p.am_bSize,p.am_olap,p.am_type,p.am_dsRatio);
+                            mObj.Processors{ii,2} = modulationProc(p.fs,numel(cfHz),p.am_nFilters,p.am_range,p.am_win,p.am_bSize,p.am_olap,p.am_type,p.am_dsRatio);
                             % Generate new signals
                             modCfHz = mObj.Processors{ii,1}.modCfHz;            % Vector of center modulation frequencies
-                            cfHz = dep_proc_l.getDependentParameter('cfHz');    % Vector of center audio frequencies
                             sig_l = ModulationSignal(mObj.Processors{ii,1}.FsHzOut,'modulation',cfHz,modCfHz,'Amplitude modulation',[],'left');
                             sig_r = ModulationSignal(mObj.Processors{ii,2}.FsHzOut,'modulation',cfHz,modCfHz,'Amplitude modulation',[],'right');
                             % Add the signals to the data object
                             mObj.Data.addSignal(sig_l);
                             mObj.Data.addSignal(sig_r)
                         else
+                            cfHz = dep_proc_l.getDependentParameter('cfHz');    % Vector of center audio frequencies
                             % Instantiate a processor
-                            mObj.Processors{ii,1} = modulationProc(p.fs,p.am_nFilters,p.am_range,p.am_win,p.am_bSize,p.am_olap,p.am_type,p.am_dsRatio);
+                            mObj.Processors{ii,1} = modulationProc(p.fs,numel(cfHz),p.am_nFilters,p.am_range,p.am_win,p.am_bSize,p.am_olap,p.am_type,p.am_dsRatio);
                             % Generate a new signal
                             modCfHz = mObj.Processors{ii,1}.modCfHz;            % Vector of center modulation frequencies
-                            cfHz = dep_proc_l.getDependentParameter('cfHz');    % Vector of center audio frequencies
                             sig = ModulationSignal(mObj.Processors{ii,1}.FsHzOut,'modulation',cfHz,modCfHz,'Amplitude modulation',[],'mono');
                             % Add signal to the data object
                             mObj.Data.addSignal(sig);
