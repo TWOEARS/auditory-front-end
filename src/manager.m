@@ -676,6 +676,32 @@ classdef manager < handle
                             mObj.Data.addSignal(sig);
                         end
                         
+                    case 'spec_features'
+                        if mObj.Data.isStereo
+                            % Get the center frequencies from dependent processors
+                            cfHz = dep_proc_l.getDependentParameter('cfHz');
+                            % Instantiate left and right ear processors
+                            mObj.Processors{ii,1} = spectralFeaturesProc(dep_proc_l.FsHzOut,cfHz,p.sf_requests,p.sf_br_cf,p.sf_hfc_cf,p.sf_ro_thres);
+                            mObj.Processors{ii,2} = spectralFeaturesProc(dep_proc_r.FsHzOut,cfHz,p.sf_requests,p.sf_br_cf,p.sf_hfc_cf,p.sf_ro_thres);
+                            % Generate new signals
+                            sig_l = SpectralFeaturesSignal(mObj.Processors{ii,1}.FsHzOut,mObj.Processors{ii,1}.requestList,mObj.Data.bufferSize_s,'spec_features','Spectral Features','left');
+                            sig_r = SpectralFeaturesSignal(mObj.Processors{ii,2}.FsHzOut,mObj.Processors{ii,2}.requestList,mObj.Data.bufferSize_s,'spec_features','Spectral Features','right');
+                            % Add the signals to the data object
+                            mObj.Data.addSignal(sig_l);
+                            mObj.Data.addSignal(sig_r)
+                        else
+                            % Get the center frequencies from dependent processors
+                            cfHz = dep_proc.getDependentParameter('cfHz');
+                            % Instantiate a processor
+                            mObj.Processors{ii,1} = spectralFeaturesProc(dep_proc_l.FsHzOut,cfHz,p.sf_requests,p.sf_br_cf,p.sf_hfc_cf,p.p.sf_ro_thres);
+                            % Generate a new signal
+                            sig = SpectralFeaturesSignal(mObj.Processors{ii,1}.FsHzOut,mObj.Processors{ii,1}.requestList,mObj.Data.bufferSize_s,'spec_features','Spectral Features','mono');
+                            % Add signal to the data object
+                            mObj.Data.addSignal(sig);
+                        end
+                        
+                        
+                        
                     case 'ild'
                         % Check that two channels are available
                         if ~mObj.Data.isStereo
