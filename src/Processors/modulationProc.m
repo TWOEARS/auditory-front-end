@@ -139,17 +139,19 @@ classdef modulationProc < Processor
                 in = pObj.dsProc.processChunk(in);
             end
             
-            % 1- Append the buffer to the input
-            in = [pObj.buffer;in];  % Time spans the first dimension
             
-            % 2- Initialize the output
-            nbins = floor((size(in,1)-pObj.overlap)/(pObj.blockSize-pObj.overlap));
-            out = zeros(nbins,size(in,2),size(pObj.modCfHz,2));
-            
-            % 3- Process each frequency channel and store remaining buffer
             
             if strcmp(pObj.filterType,'fft')
             
+                % 1- Append the buffer to the input
+                in = [pObj.buffer;in];  % Time spans the first dimension
+
+                % 2- Initialize the output
+                nbins = floor((size(in,1)-pObj.overlap)/(pObj.blockSize-pObj.overlap));
+                out = zeros(nbins,size(in,2),size(pObj.modCfHz,2));
+
+                % 3- Process each frequency channel and store remaining buffer
+                
                 for ii = 1:size(in,2)
 
                     % Calculate the modulation pattern for this filter
@@ -182,9 +184,17 @@ classdef modulationProc < Processor
 
                 % 4- Update the buffer from buffers collected in step 3
                 pObj.buffer = temp_buffer;
+                
+                % TODO following is for debugging, remove!
+                disp(size(pObj.buffer,1))
             
             elseif strcmp(pObj.filterType,'filter')
                 
+                % Initialize the output
+                nbins = floor(((size(in,1)+size(pObj.buffer,1))-pObj.overlap)/(pObj.blockSize-pObj.overlap));
+                out = zeros(nbins,size(in,2),size(pObj.modCfHz,2));
+
+                % Process each frequency channel
                 for ii = 1:size(in,2)
                     
                     % Calculate the modulation pattern for this audio filter
@@ -193,16 +203,35 @@ classdef modulationProc < Processor
 
                         % Calculate AMS pattern of jj-th filter
                         currAMS = pObj.Filters((ii-1)*numel(pObj.modCfHz)+jj).filter(in(:,ii));
-
-                        % Frame-based analysis
+                            
+                        % Append the buffer to the ams (TODO: might want to
+                        % move the test out of the loops)
+                        if ~isempty(pObj.buffer)
+                            currAMS = [pObj.buffer(:,(ii-1)*numel(pObj.modCfHz)+jj);currAMS];
+                        end
+                        
+                        % Frame-based analysis...
                         out(:,ii,jj) = sum(abs(frameData(currAMS,pObj.blockSize,pObj.blockSize-pObj.overlap,pObj.win,false)));
 
+                        % Initialize a temporary buffer
+                        if (ii==1) && (jj==1)
+                            bstart = size(out,1)*(length(pObj.win)-pObj.overlap)+1;
+                            bend = size(currAMS,1);
+                            temp_buffer = zeros(bend-bstart+1,size(in,2)*numel(pObj.modCfHz));
+                        end
+                        
+                        % Update the buffer for this audio and modulation
+                        % frequencies
+                        temp_buffer(:,(ii-1)*numel(pObj.modCfHz)+jj)=currAMS(bstart:bend);
                     end
                     
                 end
                 
                 % Store the buffer
-                pObj.buffer = in(size(out,1)*(pObj.blockSize-pObj.overlap)+1:end,:);
+                pObj.buffer = temp_buffer;
+                
+                % TODO following is for debugging, remove!
+                disp(size(pObj.buffer,1))
                 
             end
                 
@@ -213,8 +242,15 @@ classdef modulationProc < Processor
             % TODO: 
             % - write h1
             
-            % Only need to reset the buffer
+            % Reset the buffer
             pObj.buffer = [];
+            
+            % Reset the filters states if needed
+            if strcmp(pObj.filterType,'filter')
+                for ii = 1:size(pObj.Filters)
+                    pObj.Filters(ii).reset;
+                end
+            end
             
         end
         

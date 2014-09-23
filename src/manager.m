@@ -636,7 +636,7 @@ classdef manager < handle
                             mObj.Data.addSignal(sig_l);
                             mObj.Data.addSignal(sig_r)
                         else
-                            cfHz = dep_proc_l.getDependentParameter('cfHz');    % Vector of center audio frequencies
+                            cfHz = dep_proc.getDependentParameter('cfHz');    % Vector of center audio frequencies
                             % Instantiate a processor
                             mObj.Processors{ii,1} = modulationProc(p.fs,numel(cfHz),p.am_nFilters,p.am_range,p.am_win,p.am_bSize,p.am_olap,p.am_type,p.am_dsRatio);
                             % Generate a new signal
