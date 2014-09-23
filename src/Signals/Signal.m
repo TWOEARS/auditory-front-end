@@ -71,7 +71,7 @@ classdef Signal < handle
             sObj.Buf.clear();
         end
         
-        function sb = getSignalBlock(sObj,blocksize_s)
+        function sb = getSignalBlock(sObj,blocksize_s,backOffset_s)
             %getSignalBlock   Returns this Signal object's signal data
             %truncated to the last blocksize_s seconds. In case of too
             %little data, the block gets filled with zeros from beginning.
@@ -82,14 +82,22 @@ classdef Signal < handle
             %INPUT ARGUMENTS:
             %    sObj : Signal instance
             %    blocksize_s : length of the required data block in seconds
+            %    [backOffset_s] : offset from the end of the signal to the 
+            %                       requested block's end in seconds
             %
             %OUTPUT ARGUMENTS:
             %    sb : signal data block
             
             blocksize_samples = ceil( sObj.FsHz * blocksize_s );
-            % TODO: this assumes that time is on dimension 1. Verify!
-            blockStart = max( 1, length( sObj.Data ) - blocksize_samples + 1 );
-            sb = sObj.Data(blockStart:end,:,:,:,:);
+            if nargin < 3, backOffset_s = 0; end;
+            offset_samples = ceil( sObj.FsHz * backOffset_s );
+            if offset_samples >= length(sObj.Data)
+                warning( ['You are requesting a block that is not in the ',...
+                    'buffer anymore.'] );
+            end
+            blockStart = max( 1, length( sObj.Data ) - ...
+                blocksize_samples - offset_samples + 1 );
+            sb = sObj.Data(blockStart:end-offset_samples);
             if size( sb, 1 ) < blocksize_samples
                 sb = [zeros( blocksize_samples - size(sb,1), size(sb,2) ); sb];
             end
