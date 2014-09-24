@@ -4,9 +4,11 @@ classdef modulationProc < Processor
         modCfHz         % Modulation filters center frequencies
         filterType      % 'fft' vs. 'filter'
         rangeHz         % Modulation frequency range
+        winName         % Window
+        overlap         % Overlap
+        blockSize       % Block size
         dsRatio         % Down-sampling ratio
         nAudioChan      % Number of audio frequency channels
-        
     end
     
     properties (GetAccess = private)     % TODO: change to private once ok
@@ -17,10 +19,8 @@ classdef modulationProc < Processor
         fs_ds           % Input sampling frequency after downsampling
         
         % For fft-based processing and framing in filter-based processing
-        win             % Window
-        overlap         % Overlap
-        blockSize       % Block size
         nfft            % FFT size
+        win             % Window vector
         
         % For fft-based processing
         wts             % Sparse matrix for spectrogram mixing
@@ -36,6 +36,7 @@ classdef modulationProc < Processor
     end
     
     methods
+        
         function pObj = modulationProc(fs,nChan,nFilters,range,win,blockSize,overlap,filterType,downSamplingRatio)
             % TODO:
             % - write h1
@@ -48,13 +49,9 @@ classdef modulationProc < Processor
             
             
             % Check inputs
-            % NB: Check that downSampleRatio is a positive integer
-            
-            % Check for requested type
-%             if strcmp(filterType,'filter')
-%                 warning('Filter-based modulation filterbank is not implemented at the moment, switching to fft-based.')
-%                 filterType = 'fft';
-%             end
+            if mod(downSamplingRatio,1)~=0 || downSamplingRatio < 1
+                error('The down sampling ratio should be a positive integer')
+            end
             
             if ~strcmp(filterType,'fft') && ~strcmp(filterType,'filter')
                 warning('%s is an invalid argument for modulation filterbank instantiation, switching to ''fft''.')
@@ -72,6 +69,7 @@ classdef modulationProc < Processor
             
             
             % Generate a window
+            pObj.winName = win;
             pObj.win = window(win,blockSize);
             
             
@@ -131,15 +129,24 @@ classdef modulationProc < Processor
         end
         
         function out = processChunk(pObj,in)
-            % TODO:
-            % - Write h1
+            %processChunk       Requests the processing for a new chunk of
+            %                   signal
+            %
+            %USAGE:
+            %    out = processChunk(in)
+            %
+            %INPUT ARGUMENTS:
+            %   pObj : Processor instance
+            %     in : Input chunk
+            %
+            %OUTPUT ARGUMENT:
+            %    out : Processor output for that chunk
+            
             
             % Down-sample the input if needed
             if pObj.dsRatio > 1
                 in = pObj.dsProc.processChunk(in);
             end
-            
-            
             
             if strcmp(pObj.filterType,'fft')
             
@@ -147,46 +154,53 @@ classdef modulationProc < Processor
                 in = [pObj.buffer;in];  % Time spans the first dimension
 
                 % 2- Initialize the output
-                nbins = floor((size(in,1)-pObj.overlap)/(pObj.blockSize-pObj.overlap));
+                nbins = max(floor((size(in,1)-pObj.overlap)/(pObj.blockSize-pObj.overlap)),0);
                 out = zeros(nbins,size(in,2),size(pObj.modCfHz,2));
 
                 % 3- Process each frequency channel and store remaining buffer
                 
-                for ii = 1:size(in,2)
+                % Process if the input is long enough (spectrogram returns
+                % an error if the input is shorter than one window)
+                if nbins > 0
 
-                    % Calculate the modulation pattern for this filter
-                    ams = spectrogram(in(:,ii),pObj.win,pObj.overlap,pObj.nfft);
+                    for ii = 1:size(in,2)
 
-                    % Restrain the pattern to the required mod. frequency bins
-                    output = pObj.wts*abs(ams(pObj.mn:pObj.mx,:));
+                        % Calculate the modulation pattern for this filter
+                        ams = spectrogram(in(:,ii),pObj.win,pObj.overlap,pObj.nfft);
 
-                    % Store it appropriately in the output
-                    out(:,ii,:) = permute(output,[2 3 1]);
+                        % Restrain the pattern to the required mod. frequency bins
+                        output = pObj.wts*abs(ams(pObj.mn:pObj.mx,:));
 
-                    % Initialize a buffer for the first frequency channel
-                    if ii == 1
-                        % Initialize a temporary buffer for that chunk
-                        % Buffer size might change between chunks, hence need
-                        % to re-initialize it
+                        % Store it appropriately in the output
+                        out(:,ii,:) = permute(output,[2 3 1]);
 
-                        % Indexes in the input of buffer start and end
-                        bstart = size(output,2)*(length(pObj.win)-pObj.overlap)+1;
-                        bend = size(in,1);
+                        % Initialize a buffer for the first frequency channel
+                        if ii == 1
+                            % Initialize a temporary buffer for that chunk
+                            % Buffer size might change between chunks, hence need
+                            % to re-initialize it
 
-                        % Initialize a temporary buffer
-                        temp_buffer = zeros(bend-bstart+1,size(in,2));
+                            % Indexes in the input of buffer start and end
+                            bstart = size(output,2)*(length(pObj.win)-pObj.overlap)+1;
+                            bend = size(in,1);
+
+                            % Initialize a temporary buffer
+                            temp_buffer = zeros(bend-bstart+1,size(in,2));
+                        end
+
+                        % Store the buffered input for that channel
+                        temp_buffer(:,ii) = in(bstart:bend,ii);
+
                     end
 
-                    % Store the buffered input for that channel
-                    temp_buffer(:,ii) = in(bstart:bend,ii);
-
+                % If not, then buffer the all input signal    
+                else
+                    temp_buffer = in;
                 end
-
+                    
                 % 4- Update the buffer from buffers collected in step 3
                 pObj.buffer = temp_buffer;
                 
-                % TODO following is for debugging, remove!
-                disp(size(pObj.buffer,1))
             
             elseif strcmp(pObj.filterType,'filter')
                 
@@ -205,7 +219,7 @@ classdef modulationProc < Processor
                         currAMS = pObj.Filters((ii-1)*numel(pObj.modCfHz)+jj).filter(in(:,ii));
                             
                         % Append the buffer to the ams (TODO: might want to
-                        % move the test out of the loops)
+                        % move the isempty test out of the loops)
                         if ~isempty(pObj.buffer)
                             currAMS = [pObj.buffer(:,(ii-1)*numel(pObj.modCfHz)+jj);currAMS];
                         end
@@ -230,18 +244,19 @@ classdef modulationProc < Processor
                 % Store the buffer
                 pObj.buffer = temp_buffer;
                 
-                % TODO following is for debugging, remove!
-                disp(size(pObj.buffer,1))
-                
             end
                 
-            
         end
         
         function reset(pObj)
-            % TODO: 
-            % - write h1
-            
+            %reset      Resets the internal states of the processor
+            %
+            %USAGE:
+            %    pObj.reset
+            % 
+            %INPUT ARGUMENT:
+            %    pObj : Processor instance
+           
             % Reset the buffer
             pObj.buffer = [];
             
@@ -262,7 +277,6 @@ classdef modulationProc < Processor
             warning('Not implemented yet, returning true')
             hp = 1;
         end
-            
         
     end
     

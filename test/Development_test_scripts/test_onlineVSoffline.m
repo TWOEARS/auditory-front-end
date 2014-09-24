@@ -2,16 +2,17 @@
 % for a given feature
 
 clear 
-close all
+% close all
 
 % Request and parameters for feature extraction
 request = {'modulation'};
+% request = {'innerhaircell'};
 p = [];
-p = genParStruct('am_type','filter');%,'am_bSize',1,'am_olap',0);
+% p = genParStruct('am_type','filter');%,'am_win','rectwin');
 
 
 % Online processing parameters
-chunkSize = 10000;    % Chunk size in samples
+chunkSize = 1000;    % Chunk size in samples
 
 %% Signal
 % Load a signal
@@ -77,6 +78,10 @@ switch s_off.Name
     case 'modulation'
         delta = ModulationSignal(s_off.FsHz,'modulation',s_off.cfHz,s_off.modCfHz,['''' mObj_on.Processors{4,1}.filterType '''-based modulation: online vs offline'],s_off.Data-s_on.Data+eps);
         delta.plot;
+        colorbar
+        
+    case 'innerhaircell'
+        figure,imagesc(20*log10(abs(s_off.Data-s_on.Data+eps)).')
         colorbar
         
     otherwise
