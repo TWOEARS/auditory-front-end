@@ -13,6 +13,7 @@ classdef modulationProc < Processor
     
     properties (GetAccess = private)     % TODO: change to private once ok
         buffer          % Buffered input (for fft-based)
+        nModChan        % Number of modulation channels
         
         % Downsampling
         dsProc          % Downsampling processor
@@ -38,11 +39,30 @@ classdef modulationProc < Processor
     methods
         
         function pObj = modulationProc(fs,nChan,nFilters,range,win,blockSize,overlap,filterType,downSamplingRatio)
+            %modulationProc     Instantiate an amplitude modulation
+            %                   extractor
+            %
+            %USAGE:
+            %  pObj = modulationProc(fs,nChan,nFilters,range,win,bSize,olap,filterType,dsRatio)
+            %
+            %INPUT ARGUMENTS:
+            %         fs : Sampling frequency of the input (Hz)
+            %      nChan : Number of audio frequency channels
+            %   nFilters : Number of modulation frequency bins
+            %      range : Modulation frequency range of interest
+            %        win : Window shape descriptor for STFT, or framing
+            %      bSize : Block size used in the STFT or in the framing (samples)
+            %       olap : Overlap between windows in STFT or framing (samples)
+            % filterType : Type of modulation filtering to use, 'STFT' for
+            %              STFT-based, or 'filter' for filterbank implementation
+            %    dsRatio : Downsampling ratio 
+            %
+            %OUTPUT ARGUMENT:
+            %       pObj : Processor instance
+            
+            
             % TODO:
-            % - write h1
-            % - expand to filter-based modulation extraction
-            % - clean up
-            % - make standalone? (currently uses melbankm.m)
+            % - make standalone? (currently uses melbankm.m and createFB_Mod.m)
             % - signal normalization with long-term rms (how to integrate
             % it in online-processing?)
             % - envelope normalization?
@@ -117,6 +137,7 @@ classdef modulationProc < Processor
             pObj.blockSize = blockSize;
             pObj.overlap = overlap;
             pObj.dsRatio = downSamplingRatio;
+            pObj.nModChan = numel(pObj.modCfHz);
             
             % Instantiate the filters if needed
             if strcmp(pObj.filterType,'filter')
@@ -270,12 +291,54 @@ classdef modulationProc < Processor
         end
         
         function hp = hasParameters(pObj,p)
-            % TODO:
-            % - implement once parameters are clearly defined
-            % - h1
+            %hasParameters  This method compares the parameters of the
+            %               processor with the parameters given as input
+            %
+            %USAGE
+            %    hp = pObj.hasParameters(p)
+            %
+            %INPUT ARGUMENTS
+            %  pObj : Processor instance
+            %     p : Structure containing parameters to test
+           
             
-            warning('Not implemented yet, returning true')
-            hp = 1;
+            % Only the parameters needed to instantiate the processor need
+            % to be compared
+            p_list_proc = {'nModChan','rangeHz','filterType','winName','blockSize','overlap','dsRatio'};
+            p_list_par = {'am_nFilters','am_range','am_type','am_win','am_bSize','am_olap','am_dsRatio'};
+            
+            % Number of channels is irrelevant for 'filter'-based
+            % implementation, only the range matters
+            if strcmp(p.am_type,'filter')
+                p_list_proc = setdiff(p_list_proc,'nModChan','stable');
+                p_list_par = setdiff(p_list_par,'am_nFilters','stable');
+            end
+            
+            % Initialization of a parameters difference vector
+            delta = zeros(size(p_list_proc,2),1);
+            
+            % Loop on the list of parameters
+            for ii = 1:size(p_list_proc,2)
+                try
+                    delta(ii) = ~isequal(pObj.(p_list_proc{ii}),p.(p_list_par{ii}));
+                    
+                    
+                catch err
+                    % Warning: something is missing
+                    warning('Parameter %s is missing in input p.',p_list_par{ii})
+                    delta(ii) = 1;
+                end
+            end
+            
+            % Check if delta is a vector of zeros
+            if max(delta)>0
+                hp = false;
+            else
+                hp = true;
+            end
+            
+            
+            
         end
         
     end

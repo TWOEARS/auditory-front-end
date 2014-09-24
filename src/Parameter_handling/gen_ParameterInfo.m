@@ -40,9 +40,9 @@ clear pInfo
     % Amplitude modulation filterbank
     addParameterInfo('am','am_nFilters',15,'Requested number of filters (integer)','Amplitude modulation filterbank')
     addParameterInfo('am','am_range',[0 400],'Modulation frequency range (Hz)')
-    addParameterInfo('am','am_win','hamming','Window type')
-    addParameterInfo('am','am_bSize',512,'STFT block size')
-    addParameterInfo('am','am_olap',256,'STFT overlap')
+    addParameterInfo('am','am_win','rectwin','STFT/framing window type')
+    addParameterInfo('am','am_bSize',512,'STFT/framing block size')
+    addParameterInfo('am','am_olap',256,'STFT/framing overlap')
     addParameterInfo('am','am_type','fft','Filterbank type (''fft'' or ''filter'')')
     addParameterInfo('am','am_dsRatio',4,'Downsampling ratio')
     
