@@ -58,7 +58,7 @@ classdef Signal < handle
 
         function setData(sObj, data)
             sObj.Buf.clear();
-            sObj.Buf.append( data );
+            if ~isempty(data), sObj.Buf.append( data ); end;
         end
         
         function clearData(sObj)
