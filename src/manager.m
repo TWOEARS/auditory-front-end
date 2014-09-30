@@ -761,6 +761,50 @@ classdef manager < handle
                             mObj.Data.addSignal(sig);
                         end
                         
+                    case 'onset_strength'
+                        if mObj.Data.isStereo
+                            % Instantiate left and right ear processors
+                            mObj.Processors{ii,1} = onsetProc(dep_proc_l.FsHzOut,p.ons_maxOnsetdB);
+                            mObj.Processors{ii,2} = onsetProc(dep_proc_r.FsHzOut,p.ons_maxOnsetdB);
+                            % Generate new signals
+                            cfHz = dep_proc_l.getDependentParameter('cfHz');    % Center frequencies
+                            sig_l = TimeFrequencySignal(mObj.Processors{ii,1}.FsHzOut,'onset_strength',cfHz,'Onset strength',[],'left');
+                            sig_r = TimeFrequencySignal(mObj.Processors{ii,2}.FsHzOut,'onset_strength',cfHz,'Onset strength',[],'right');
+                            % Add the signals to the data object
+                            mObj.Data.addSignal(sig_l);
+                            mObj.Data.addSignal(sig_r)
+                        else
+                            % Instantiate a processor
+                            mObj.Processors{ii,1} = onsetProc(dep_proc.FsHzOut,p.ons_maxOnsetdB);
+                            % Generate a new signal
+                            cfHz = dep_proc.getDependentParameter('cfHz');    % Center frequencies
+                            sig = TimeFrequencySignal(mObj.Processors{ii,1}.FsHzOut,'onset_strength',cfHz,'Onset strength',[],'mono');
+                            % Add signal to the data object
+                            mObj.Data.addSignal(sig);
+                        end
+                        
+                    case 'offset_strength'
+                        if mObj.Data.isStereo
+                            % Instantiate left and right ear processors
+                            mObj.Processors{ii,1} = offsetProc(dep_proc_l.FsHzOut,p.ofs_maxOffsetdB);
+                            mObj.Processors{ii,2} = offsetProc(dep_proc_r.FsHzOut,p.ofs_maxOffsetdB);
+                            % Generate new signals
+                            cfHz = dep_proc_l.getDependentParameter('cfHz');    % Center frequencies
+                            sig_l = TimeFrequencySignal(mObj.Processors{ii,1}.FsHzOut,'offset_strength',cfHz,'Offset strength',[],'left');
+                            sig_r = TimeFrequencySignal(mObj.Processors{ii,2}.FsHzOut,'offset_strength',cfHz,'Offset strength',[],'right');
+                            % Add the signals to the data object
+                            mObj.Data.addSignal(sig_l);
+                            mObj.Data.addSignal(sig_r)
+                        else
+                            % Instantiate a processor
+                            mObj.Processors{ii,1} = offsetProc(dep_proc.FsHzOut,p.ons_maxOffsetdB);
+                            % Generate a new signal
+                            cfHz = dep_proc.getDependentParameter('cfHz');    % Center frequencies
+                            sig = TimeFrequencySignal(mObj.Processors{ii,1}.FsHzOut,'offset_strength',cfHz,'Offset strength',[],'mono');
+                            % Add signal to the data object
+                            mObj.Data.addSignal(sig);
+                        end
+                        
                     case 'spec_features'
                         if mObj.Data.isStereo
                             % Get the center frequencies from dependent processors
@@ -778,7 +822,7 @@ classdef manager < handle
                             % Get the center frequencies from dependent processors
                             cfHz = dep_proc.getDependentParameter('cfHz');
                             % Instantiate a processor
-                            mObj.Processors{ii,1} = spectralFeaturesProc(dep_proc_l.FsHzOut,cfHz,p.sf_requests,p.sf_br_cf,p.sf_hfc_cf,p.p.sf_ro_thres);
+                            mObj.Processors{ii,1} = spectralFeaturesProc(dep_proc.FsHzOut,cfHz,p.sf_requests,p.sf_br_cf,p.sf_hfc_cf,p.p.sf_ro_thres);
                             % Generate a new signal
                             sig = SpectralFeaturesSignal(mObj.Processors{ii,1}.FsHzOut,mObj.Processors{ii,1}.requestList,'spec_features','Spectral Features','mono');
                             % Add signal to the data object

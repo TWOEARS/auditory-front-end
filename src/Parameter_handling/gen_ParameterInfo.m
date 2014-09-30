@@ -58,6 +58,12 @@ clear pInfo
     addParameterInfo('rm','rm_scaling','power','Ratemap scaling (''power'' or ''magnitude'')')
     addParameterInfo('rm','rm_decaySec',8E-3,'Leaky integrator time constant (s)')
 
+    % Onset strength
+    addParameterInfo('ons','ons_maxOnsetdB',30,'Upper limit for onset value','Onset strength extraction')
+    
+     % Onset strength
+    addParameterInfo('ofs','ofs_maxOffsetdB',30,'Upper limit for offset value','Offset strength extraction')
+    
     % Auto-correlation
     addParameterInfo('ac','ac_wname','hann','Window name','Auto-correlation')
     addParameterInfo('ac','ac_wSizeSec',20E-3,'Window duration (s)')

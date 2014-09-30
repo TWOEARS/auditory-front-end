@@ -112,7 +112,8 @@ switch sig
     case 'available'    % Lists all currently implemented processors
          dep = {'time' 'gammatone' 'innerhaircell' 'modulation' 'crosscorrelation' ...
              'autocorrelation' 'ratemap_magnitude' 'ratemap_power' 'ild' ...
-             'itd_xcorr' 'ic_xcorr' 'spec_features' 'crosscorrelation_feature'};
+             'itd_xcorr' 'ic_xcorr' 'spec_features' 'crosscorrelation_feature' ...
+             'onset_strength' 'offset_strength'};
         
     % Otherwise it's not in the list, generate a list of valid names
     otherwise

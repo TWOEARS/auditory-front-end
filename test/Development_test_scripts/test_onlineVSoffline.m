@@ -2,17 +2,17 @@
 % for a given feature
 
 clear 
-% close all
+close all
 
 % Request and parameters for feature extraction
-request = {'modulation'};
-% request = {'innerhaircell'};
+% request = {'modulation'};
+request = {'onset_strength'};
 p = [];
-% p = genParStruct('am_type','filter');%,'am_win','rectwin');
+p = genParStruct('am_type','filter');%,'am_win','rectwin');
 
 
 % Online processing parameters
-chunkSize = 1000;    % Chunk size in samples
+chunkSize = 10000;    % Chunk size in samples
 
 %% Signal
 % Load a signal
@@ -81,6 +81,18 @@ switch s_off.Name
         colorbar
         
     case 'innerhaircell'
+        figure,imagesc(20*log10(abs(s_off.Data-s_on.Data+eps)).')
+        colorbar
+
+    case 'gammatone'
+        figure,imagesc(20*log10(abs(s_off.Data-s_on.Data+eps)).')
+        colorbar
+
+    case 'onset_strength'
+        figure,imagesc(20*log10(abs(s_off.Data-s_on.Data+eps)).')
+        colorbar
+        
+    case 'ratemap_magnitude'
         figure,imagesc(20*log10(abs(s_off.Data-s_on.Data+eps)).')
         colorbar
         

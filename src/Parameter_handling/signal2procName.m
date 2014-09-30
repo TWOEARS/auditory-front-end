@@ -46,6 +46,12 @@ switch signal
     case 'ratemap_power'
         procName = 'ratemapProc';
         
+    case 'onset_strength'
+        procName = 'onsetProc';
+        
+    case 'offset_strength'
+        procName = 'offsetProc';
+        
     case 'itd_xcorr'
         procName = 'itdProc';
         

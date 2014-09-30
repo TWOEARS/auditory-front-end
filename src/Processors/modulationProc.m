@@ -11,7 +11,7 @@ classdef modulationProc < Processor
         nAudioChan      % Number of audio frequency channels
     end
     
-    properties (GetAccess = private)     % TODO: change to private once ok
+    properties (GetAccess = private)
         buffer          % Buffered input (for fft-based)
         nModChan        % Number of modulation channels
         
