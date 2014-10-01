@@ -22,11 +22,17 @@ switch signal
     case 'time'
         procName = 'identityProc';  % To be changed!
         
+    case 'framedSignal'
+        procName = 'framingProc';
+        
     case 'gammatone'
         procName = 'gammatoneProc';
         
     case 'innerhaircell'
         procName = 'IHCenvelopeProc';
+        
+    case 'modulation'
+        procName = 'modulationProc';
         
     case 'crosscorrelation'
         procName = 'crosscorrelationProc';
@@ -40,6 +46,12 @@ switch signal
     case 'ratemap_power'
         procName = 'ratemapProc';
         
+    case 'onset_strength'
+        procName = 'onsetProc';
+        
+    case 'offset_strength'
+        procName = 'offsetProc';
+        
     case 'itd_xcorr'
         procName = 'itdProc';
         
@@ -48,6 +60,9 @@ switch signal
         
     case 'ild'
         procName = 'ildProc';
+        
+    case 'spec_features'
+        procName = 'spectralFeaturesProc';
         
     otherwise
         procName = '';
