@@ -2,13 +2,13 @@
 % for a given feature
 
 clear 
-close all
+% close all
 
 % Request and parameters for feature extraction
 % request = {'modulation'};
 request = {'onset_strength'};
 p = [];
-p = genParStruct('am_type','filter');%,'am_win','rectwin');
+p = genParStruct('IHC_method','fullwave');%,'am_win','rectwin');
 
 
 % Online processing parameters
@@ -80,21 +80,12 @@ switch s_off.Name
         delta.plot;
         colorbar
         
-    case 'innerhaircell'
-        figure,imagesc(20*log10(abs(s_off.Data-s_on.Data+eps)).')
-        colorbar
 
-    case 'gammatone'
-        figure,imagesc(20*log10(abs(s_off.Data-s_on.Data+eps)).')
+    case {'innerhaircell' 'gammatone' 'onset_strength' 'offset_strength' 'ratemap_magnitude' ...
+            'ratemap_power'}
+        figure,imagesc(20*log10(abs(s_off.Data-s_on.Data)).')
         colorbar
-
-    case 'onset_strength'
-        figure,imagesc(20*log10(abs(s_off.Data-s_on.Data+eps)).')
-        colorbar
-        
-    case 'ratemap_magnitude'
-        figure,imagesc(20*log10(abs(s_off.Data-s_on.Data+eps)).')
-        colorbar
+        title(['Chunk vs signal-based, ' s_off.Name])
         
     otherwise
         fprintf('\tCould not print the online vs. offline data difference\n')

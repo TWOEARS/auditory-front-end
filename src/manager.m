@@ -797,7 +797,7 @@ classdef manager < handle
                             mObj.Data.addSignal(sig_r)
                         else
                             % Instantiate a processor
-                            mObj.Processors{ii,1} = offsetProc(dep_proc.FsHzOut,p.ons_maxOffsetdB);
+                            mObj.Processors{ii,1} = offsetProc(dep_proc.FsHzOut,p.ofs_maxOffsetdB);
                             % Generate a new signal
                             cfHz = dep_proc.getDependentParameter('cfHz');    % Center frequencies
                             sig = TimeFrequencySignal(mObj.Processors{ii,1}.FsHzOut,'offset_strength',cfHz,'Offset strength',[],'mono');

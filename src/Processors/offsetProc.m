@@ -61,6 +61,9 @@ classdef offsetProc < Processor
             % Discard onsets and limit onset strength
             out = min(abs(min(offset,0)),abs(pObj.maxOffsetdB));
             
+            % Update the buffer
+            pObj.buffer = 10*log10(in(end,:));
+            
         end
         
         function reset(pObj)
