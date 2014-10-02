@@ -72,15 +72,15 @@ end
 p.fs = fs;
 
 % Special case for the gammatone filterbank
-if ismember('no_gammatone',varargin)
-    
-    % Then remove the default parameters connected to the gammatone
-    % filterbank
-    p = rmfield(p,'f_low');
-    p = rmfield(p,'f_high');
-    p = rmfield(p,'nERBs');
-    
-end
+% if ismember('no_gammatone',varargin)
+%     
+%     % Then remove the default parameters connected to the gammatone
+%     % filterbank
+%     p = rmfield(p,'f_low');
+%     p = rmfield(p,'f_high');
+%     p = rmfield(p,'nERBs');
+%     
+% end
 
 % Add dependent parameters:
 % - Vector of channels center frequencies

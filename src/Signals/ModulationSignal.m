@@ -8,7 +8,7 @@ classdef ModulationSignal < Signal
     
     methods
         
-        function sObj = ModulationSignal(fs,name,cfHz,modCfHz,label,data,canal)
+        function sObj = ModulationSignal(fs,bufferSize_s,name,cfHz,modCfHz,label,data,canal)
             %ModulationSignal   Constructor for the modulation signal class
             %
             %USAGE:
@@ -35,21 +35,23 @@ classdef ModulationSignal < Signal
             %OUTPUT ARGUMENT:
             %    sObj : Instance of modulation signal object
             
+            sObj = sObj@Signal(fs,bufferSize_s,[length(cfHz), length(modCfHz)]);
+            
             if nargin>0     % Safeguard for Matlab empty calls
                
             % Check input arguments
-            if nargin<2||isempty(name)
+            if nargin<3||isempty(name)
                 name = 'correlation';
                 warning(['A name tag should be assigned to the signal. '...
                     'The name %s was chosen by default'],name)
             end
-            if nargin<7; canal = 'mono'; end
-            if nargin<6||isempty(data); data = []; end
-            if nargin<5||isempty(label)
+            if nargin<8; canal = 'mono'; end
+            if nargin<7||isempty(data); data = []; end
+            if nargin<6||isempty(label)
                 label = name;
             end
-            if nargin<4||isempty(modCfHz); modCfHz = []; end
-            if nargin<3||isempty(cfHz); cfHz = []; end
+            if nargin<5||isempty(modCfHz); modCfHz = []; end
+            if nargin<4||isempty(cfHz); cfHz = []; end
             if nargin<1||isempty(fs)
                 fs = [];
             end
@@ -118,10 +120,9 @@ classdef ModulationSignal < Signal
             
             % Populate object properties
             populateProperties(sObj,'Label',label,'Name',name,...
-                'Dimensions','nSample x nFilters x nModulationFilters',...
-                'FsHz',fs);
+                'Dimensions','nSample x nFilters x nModulationFilters');
             sObj.cfHz = cfHz(:)';
-            sObj.Data = data;
+            sObj.setData(data);
             sObj.Canal = canal;
             sObj.modCfHz = modCfHz(:)';
                 
@@ -147,11 +148,15 @@ classdef ModulationSignal < Signal
             %TODO: - Clean up and use plot properties. 
             %      - Add other plot options (given audio frequency?)
             
+            
+            % Extract the data from the buffer
+            data = sObj.Data(:);
+            
+            s = size(data);
+            
             % Interleave audio and modulation frequencies for a simple, 2D
             % plot
-            
-            s = size(sObj.Data);
-            data = reshape(permute(sObj.Data,[1 3 2]),[s(1) s(2)*s(3)]);
+            data = reshape(permute(data,[1 3 2]),[s(1) s(2)*s(3)]);
             
             
             
