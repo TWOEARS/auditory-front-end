@@ -516,6 +516,26 @@ classdef manager < handle
                             mObj.Data.addSignal(sig);
                         end
                                      
+                    case 'framedSignal'
+                        if mObj.Data.isStereo
+                            % Instantiate left and right ear processors
+                            mObj.Processors{ii,1} = framingProc(p.fs,p.fr_wname,p.fr_wSize,p.fr_hSize);
+                            mObj.Processors{ii,2} = framingProc(p.fs,p.fr_wname,p.fr_wSize,p.fr_hSize);
+                            % Generate new signals
+                            sig_l = FramedSignal(mObj.Processors{ii,1}.FsHzOut,mObj.Processors{ii,1}.FsHzIn,'framedSignal','Framed signal','left');
+                            sig_r = FramedSignal(mObj.Processors{ii,2}.FsHzOut,mObj.Processors{ii,1}.FsHzIn,'framedSignal','Framed signal','right');
+                            % Add the signals to the data object
+                            mObj.Data.addSignal(sig_l);
+                            mObj.Data.addSignal(sig_r)
+                        else
+                            % Instantiate a processor
+                            mObj.Processors{ii} = framingProc(p.fs,p.fr_wname,p.fr_wSize,p.fr_hSize);
+                            % Generate a new signal
+                            sig = FramedSignal(mObj.Processors{ii,1}.FsHzOut,mObj.Processors{ii,1}.FsHzIn,'framedSignal','Framed signal','mono');
+                            % Add signal to the data object
+                            mObj.Data.addSignal(sig);
+                        end
+                        
                     case 'gammatone'
                         if mObj.Data.isStereo
                             % Instantiate left and right ear processors
@@ -588,6 +608,31 @@ classdef manager < handle
                             mObj.Data.addSignal(sig);
                         end
                         
+                    case 'modulation'
+                        if mObj.Data.isStereo
+                            cfHz = dep_proc_l.getDependentParameter('cfHz');    % Vector of center audio frequencies
+                            % Instantiate left and right ear processors
+                            mObj.Processors{ii,1} = modulationProc(p.fs,numel(cfHz),p.am_nFilters,p.am_range,p.am_win,p.am_bSize,p.am_olap,p.am_type,p.am_dsRatio);
+                            mObj.Processors{ii,2} = modulationProc(p.fs,numel(cfHz),p.am_nFilters,p.am_range,p.am_win,p.am_bSize,p.am_olap,p.am_type,p.am_dsRatio);
+                            % Generate new signals
+                            modCfHz = mObj.Processors{ii,1}.modCfHz;            % Vector of center modulation frequencies
+                            sig_l = ModulationSignal(mObj.Processors{ii,1}.FsHzOut,'modulation',cfHz,modCfHz,'Amplitude modulation',[],'left');
+                            sig_r = ModulationSignal(mObj.Processors{ii,2}.FsHzOut,'modulation',cfHz,modCfHz,'Amplitude modulation',[],'right');
+                            % Add the signals to the data object
+                            mObj.Data.addSignal(sig_l);
+                            mObj.Data.addSignal(sig_r)
+                        else
+                            cfHz = dep_proc.getDependentParameter('cfHz');    % Vector of center audio frequencies
+                            % Instantiate a processor
+                            mObj.Processors{ii,1} = modulationProc(p.fs,numel(cfHz),p.am_nFilters,p.am_range,p.am_win,p.am_bSize,p.am_olap,p.am_type,p.am_dsRatio);
+                            % Generate a new signal
+                            modCfHz = mObj.Processors{ii,1}.modCfHz;            % Vector of center modulation frequencies
+                            sig = ModulationSignal(mObj.Processors{ii,1}.FsHzOut,'modulation',cfHz,modCfHz,'Amplitude modulation',[],'mono');
+                            % Add signal to the data object
+                            mObj.Data.addSignal(sig);
+                        end
+                        clear modCfHz cfHz
+                        
                     case 'autocorrelation'
                         if mObj.Data.isStereo
                             % Instantiate left and right ear processors
@@ -630,6 +675,32 @@ classdef manager < handle
                             sig = CorrelationSignal(mObj.Processors{ii,1}.FsHzOut,mObj.Data.bufferSize_s,'crosscorrelation',cfHz,lags,'Cross-correlation',[],'mono');
                             mObj.Data.addSignal(sig);
                             clear maxLag lags
+                        end
+                        
+                    case 'crosscorrelation_feature'
+                        % Check that two channels are available
+                        if ~mObj.Data.isStereo
+                            warning('Manager cannot instantiate a binaural cue extractor for a single-channel signal')
+                            proceed = 0;
+                        else
+                            mObj.Processors{ii,1} = ccFeatureProc(dep_proc.FsHzOut,p.ccf_factor);
+
+                            % Previous lag vector
+                            lags = dep_sig.lags;
+                            n_lags = size(lags,2);
+                            
+                            % Downsample this vector
+                            origin = (n_lags+1)/2;
+                            n_lags_ds = floor((origin-1)/p.ccf_factor);
+                            lags_ds = lags(origin-n_lags_ds*p.ccf_factor:p.ccf_factor:origin+n_lags_ds*p.ccf_factor);
+                            
+                            % Center frequencies
+                            cfHz = dep_proc_l.getDependentParameter('cfHz');        % Center frequencies 
+                            
+                            % Instantiate a new signal
+                            sig = CorrelationSignal(mObj.Processors{ii,1}.FsHzOut,'crosscorrelation_feature',cfHz,lags_ds,'Cross-correlation feature',[],'mono');
+                            mObj.Data.addSignal(sig);
+                            clear lags n_lags origin n_lags_ds lags_ds
                         end
                         
                     case 'ratemap_magnitude'
@@ -676,6 +747,50 @@ classdef manager < handle
                             mObj.Data.addSignal(sig);
                         end
                         
+                    case 'onset_strength'
+                        if mObj.Data.isStereo
+                            % Instantiate left and right ear processors
+                            mObj.Processors{ii,1} = onsetProc(dep_proc_l.FsHzOut,p.ons_maxOnsetdB);
+                            mObj.Processors{ii,2} = onsetProc(dep_proc_r.FsHzOut,p.ons_maxOnsetdB);
+                            % Generate new signals
+                            cfHz = dep_proc_l.getDependentParameter('cfHz');    % Center frequencies
+                            sig_l = TimeFrequencySignal(mObj.Processors{ii,1}.FsHzOut,'onset_strength',cfHz,'Onset strength',[],'left');
+                            sig_r = TimeFrequencySignal(mObj.Processors{ii,2}.FsHzOut,'onset_strength',cfHz,'Onset strength',[],'right');
+                            % Add the signals to the data object
+                            mObj.Data.addSignal(sig_l);
+                            mObj.Data.addSignal(sig_r)
+                        else
+                            % Instantiate a processor
+                            mObj.Processors{ii,1} = onsetProc(dep_proc.FsHzOut,p.ons_maxOnsetdB);
+                            % Generate a new signal
+                            cfHz = dep_proc.getDependentParameter('cfHz');    % Center frequencies
+                            sig = TimeFrequencySignal(mObj.Processors{ii,1}.FsHzOut,'onset_strength',cfHz,'Onset strength',[],'mono');
+                            % Add signal to the data object
+                            mObj.Data.addSignal(sig);
+                        end
+                        
+                    case 'offset_strength'
+                        if mObj.Data.isStereo
+                            % Instantiate left and right ear processors
+                            mObj.Processors{ii,1} = offsetProc(dep_proc_l.FsHzOut,p.ofs_maxOffsetdB);
+                            mObj.Processors{ii,2} = offsetProc(dep_proc_r.FsHzOut,p.ofs_maxOffsetdB);
+                            % Generate new signals
+                            cfHz = dep_proc_l.getDependentParameter('cfHz');    % Center frequencies
+                            sig_l = TimeFrequencySignal(mObj.Processors{ii,1}.FsHzOut,'offset_strength',cfHz,'Offset strength',[],'left');
+                            sig_r = TimeFrequencySignal(mObj.Processors{ii,2}.FsHzOut,'offset_strength',cfHz,'Offset strength',[],'right');
+                            % Add the signals to the data object
+                            mObj.Data.addSignal(sig_l);
+                            mObj.Data.addSignal(sig_r)
+                        else
+                            % Instantiate a processor
+                            mObj.Processors{ii,1} = offsetProc(dep_proc.FsHzOut,p.ofs_maxOffsetdB);
+                            % Generate a new signal
+                            cfHz = dep_proc.getDependentParameter('cfHz');    % Center frequencies
+                            sig = TimeFrequencySignal(mObj.Processors{ii,1}.FsHzOut,'offset_strength',cfHz,'Offset strength',[],'mono');
+                            % Add signal to the data object
+                            mObj.Data.addSignal(sig);
+                        end
+                        
                     case 'spec_features'
                         if mObj.Data.isStereo
                             % Get the center frequencies from dependent processors
@@ -693,7 +808,7 @@ classdef manager < handle
                             % Get the center frequencies from dependent processors
                             cfHz = dep_proc.getDependentParameter('cfHz');
                             % Instantiate a processor
-                            mObj.Processors{ii,1} = spectralFeaturesProc(dep_proc_l.FsHzOut,cfHz,p.sf_requests,p.sf_br_cf,p.sf_hfc_cf,p.p.sf_ro_thres);
+                            mObj.Processors{ii,1} = spectralFeaturesProc(dep_proc.FsHzOut,cfHz,p.sf_requests,p.sf_br_cf,p.sf_hfc_cf,p.p.sf_ro_thres);
                             % Generate a new signal
                             sig = SpectralFeaturesSignal(mObj.Processors{ii,1}.FsHzOut,mObj.Processors{ii,1}.requestList,mObj.Data.bufferSize_s,'spec_features','Spectral Features','mono');
                             % Add signal to the data object

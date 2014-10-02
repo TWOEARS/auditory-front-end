@@ -14,12 +14,7 @@ classdef Processor < handle
     methods (Abstract = true)
         out = processChunk(pObj,in)
             % This method should implement the way the processing is
-            % handled in the children classes
-            % 
-            % TO DO: Need to devise a unified structure for in and out data
-            % independent of what the processing is. Only the data need to
-            % be considered at the moment. Might later be part of a data
-            % class. This will then be modified accordingly.
+            % handled in the children classes.
         
         reset(pObj)    
             % This method is called any time a change of parameter implying
