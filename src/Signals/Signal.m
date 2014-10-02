@@ -89,10 +89,10 @@ classdef Signal < handle
             
             % First: clear the buffer
             sObj.Buf.clear();
-            
+
             % Then append the provided data
-            sObj.Buf.append( data );
-            
+            if ~isempty(data), sObj.Buf.append( data ); end;
+
         end
         
         function clearData(sObj)
