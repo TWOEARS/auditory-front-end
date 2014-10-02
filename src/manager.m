@@ -522,8 +522,8 @@ classdef manager < handle
                             mObj.Processors{ii,1} = framingProc(p.fs,p.fr_wname,p.fr_wSize,p.fr_hSize);
                             mObj.Processors{ii,2} = framingProc(p.fs,p.fr_wname,p.fr_wSize,p.fr_hSize);
                             % Generate new signals
-                            sig_l = FramedSignal(mObj.Processors{ii,1}.FsHzOut,mObj.Processors{ii,1}.FsHzIn,'framedSignal','Framed signal','left');
-                            sig_r = FramedSignal(mObj.Processors{ii,2}.FsHzOut,mObj.Processors{ii,1}.FsHzIn,'framedSignal','Framed signal','right');
+                            sig_l = FramedSignal(mObj.Processors{ii,1}.FsHzOut,mObj.Data.bufferSize_s,p.fr_wSize,mObj.Processors{ii,1}.FsHzIn,'framedSignal','Framed signal','left');
+                            sig_r = FramedSignal(mObj.Processors{ii,2}.FsHzOut,mObj.Data.bufferSize_s,p.fr_wSize,mObj.Processors{ii,1}.FsHzIn,'framedSignal','Framed signal','right');
                             % Add the signals to the data object
                             mObj.Data.addSignal(sig_l);
                             mObj.Data.addSignal(sig_r)
@@ -531,7 +531,7 @@ classdef manager < handle
                             % Instantiate a processor
                             mObj.Processors{ii} = framingProc(p.fs,p.fr_wname,p.fr_wSize,p.fr_hSize);
                             % Generate a new signal
-                            sig = FramedSignal(mObj.Processors{ii,1}.FsHzOut,mObj.Processors{ii,1}.FsHzIn,'framedSignal','Framed signal','mono');
+                            sig = FramedSignal(mObj.Processors{ii,1}.FsHzOut,mObj.Data.bufferSize_s,p.fr_wSize,mObj.Processors{ii,1}.FsHzIn,'framedSignal','Framed signal','mono');
                             % Add signal to the data object
                             mObj.Data.addSignal(sig);
                         end
@@ -616,8 +616,8 @@ classdef manager < handle
                             mObj.Processors{ii,2} = modulationProc(p.fs,numel(cfHz),p.am_nFilters,p.am_range,p.am_win,p.am_bSize,p.am_olap,p.am_type,p.am_dsRatio);
                             % Generate new signals
                             modCfHz = mObj.Processors{ii,1}.modCfHz;            % Vector of center modulation frequencies
-                            sig_l = ModulationSignal(mObj.Processors{ii,1}.FsHzOut,'modulation',cfHz,modCfHz,'Amplitude modulation',[],'left');
-                            sig_r = ModulationSignal(mObj.Processors{ii,2}.FsHzOut,'modulation',cfHz,modCfHz,'Amplitude modulation',[],'right');
+                            sig_l = ModulationSignal(mObj.Processors{ii,1}.FsHzOut,mObj.Data.bufferSize_s,'modulation',cfHz,modCfHz,'Amplitude modulation',[],'left');
+                            sig_r = ModulationSignal(mObj.Processors{ii,2}.FsHzOut,mObj.Data.bufferSize_s,'modulation',cfHz,modCfHz,'Amplitude modulation',[],'right');
                             % Add the signals to the data object
                             mObj.Data.addSignal(sig_l);
                             mObj.Data.addSignal(sig_r)
@@ -627,7 +627,7 @@ classdef manager < handle
                             mObj.Processors{ii,1} = modulationProc(p.fs,numel(cfHz),p.am_nFilters,p.am_range,p.am_win,p.am_bSize,p.am_olap,p.am_type,p.am_dsRatio);
                             % Generate a new signal
                             modCfHz = mObj.Processors{ii,1}.modCfHz;            % Vector of center modulation frequencies
-                            sig = ModulationSignal(mObj.Processors{ii,1}.FsHzOut,'modulation',cfHz,modCfHz,'Amplitude modulation',[],'mono');
+                            sig = ModulationSignal(mObj.Processors{ii,1}.FsHzOut,mObj.Data.bufferSize_s,'modulation',cfHz,modCfHz,'Amplitude modulation',[],'mono');
                             % Add signal to the data object
                             mObj.Data.addSignal(sig);
                         end
@@ -698,7 +698,7 @@ classdef manager < handle
                             cfHz = dep_proc_l.getDependentParameter('cfHz');        % Center frequencies 
                             
                             % Instantiate a new signal
-                            sig = CorrelationSignal(mObj.Processors{ii,1}.FsHzOut,'crosscorrelation_feature',cfHz,lags_ds,'Cross-correlation feature',[],'mono');
+                            sig = CorrelationSignal(mObj.Processors{ii,1}.FsHzOut,mObj.Data.bufferSize_s,'crosscorrelation_feature',cfHz,lags_ds,'Cross-correlation feature',[],'mono');
                             mObj.Data.addSignal(sig);
                             clear lags n_lags origin n_lags_ds lags_ds
                         end
@@ -754,8 +754,8 @@ classdef manager < handle
                             mObj.Processors{ii,2} = onsetProc(dep_proc_r.FsHzOut,p.ons_maxOnsetdB);
                             % Generate new signals
                             cfHz = dep_proc_l.getDependentParameter('cfHz');    % Center frequencies
-                            sig_l = TimeFrequencySignal(mObj.Processors{ii,1}.FsHzOut,'onset_strength',cfHz,'Onset strength',[],'left');
-                            sig_r = TimeFrequencySignal(mObj.Processors{ii,2}.FsHzOut,'onset_strength',cfHz,'Onset strength',[],'right');
+                            sig_l = TimeFrequencySignal(mObj.Processors{ii,1}.FsHzOut,mObj.Data.bufferSize_s,'onset_strength',cfHz,'Onset strength',[],'left');
+                            sig_r = TimeFrequencySignal(mObj.Processors{ii,2}.FsHzOut,mObj.Data.bufferSize_s,'onset_strength',cfHz,'Onset strength',[],'right');
                             % Add the signals to the data object
                             mObj.Data.addSignal(sig_l);
                             mObj.Data.addSignal(sig_r)
@@ -764,7 +764,7 @@ classdef manager < handle
                             mObj.Processors{ii,1} = onsetProc(dep_proc.FsHzOut,p.ons_maxOnsetdB);
                             % Generate a new signal
                             cfHz = dep_proc.getDependentParameter('cfHz');    % Center frequencies
-                            sig = TimeFrequencySignal(mObj.Processors{ii,1}.FsHzOut,'onset_strength',cfHz,'Onset strength',[],'mono');
+                            sig = TimeFrequencySignal(mObj.Processors{ii,1}.FsHzOut,mObj.Data.bufferSize_s,'onset_strength',cfHz,'Onset strength',[],'mono');
                             % Add signal to the data object
                             mObj.Data.addSignal(sig);
                         end
@@ -776,8 +776,8 @@ classdef manager < handle
                             mObj.Processors{ii,2} = offsetProc(dep_proc_r.FsHzOut,p.ofs_maxOffsetdB);
                             % Generate new signals
                             cfHz = dep_proc_l.getDependentParameter('cfHz');    % Center frequencies
-                            sig_l = TimeFrequencySignal(mObj.Processors{ii,1}.FsHzOut,'offset_strength',cfHz,'Offset strength',[],'left');
-                            sig_r = TimeFrequencySignal(mObj.Processors{ii,2}.FsHzOut,'offset_strength',cfHz,'Offset strength',[],'right');
+                            sig_l = TimeFrequencySignal(mObj.Processors{ii,1}.FsHzOut,mObj.Data.bufferSize_s,'offset_strength',cfHz,'Offset strength',[],'left');
+                            sig_r = TimeFrequencySignal(mObj.Processors{ii,2}.FsHzOut,mObj.Data.bufferSize_s,'offset_strength',cfHz,'Offset strength',[],'right');
                             % Add the signals to the data object
                             mObj.Data.addSignal(sig_l);
                             mObj.Data.addSignal(sig_r)
@@ -786,7 +786,7 @@ classdef manager < handle
                             mObj.Processors{ii,1} = offsetProc(dep_proc.FsHzOut,p.ofs_maxOffsetdB);
                             % Generate a new signal
                             cfHz = dep_proc.getDependentParameter('cfHz');    % Center frequencies
-                            sig = TimeFrequencySignal(mObj.Processors{ii,1}.FsHzOut,'offset_strength',cfHz,'Offset strength',[],'mono');
+                            sig = TimeFrequencySignal(mObj.Processors{ii,1}.FsHzOut,mObj.Data.bufferSize_s,'offset_strength',cfHz,'Offset strength',[],'mono');
                             % Add signal to the data object
                             mObj.Data.addSignal(sig);
                         end

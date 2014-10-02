@@ -34,10 +34,10 @@ classdef TimeDomainSignal < Signal
             if nargin>0  % Failproof for Matlab empty calls
             
             % Check input arguments
-            if nargin<5; canal = 'mono'; end
-            if nargin<4; data = []; end
-            if nargin<3||isempty(label); label = 'Waveform'; end
-            if nargin<2||isempty(name); name = 'time'; end
+            if nargin<6; canal = 'mono'; end
+            if nargin<5; data = []; end
+            if nargin<4||isempty(label); label = 'Waveform'; end
+            if nargin<3||isempty(name); name = 'time'; end
             %if nargin<1; fs = []; end
             
             % Check dimensionality of data if it was provided
@@ -96,7 +96,7 @@ classdef TimeDomainSignal < Signal
                 p = getDefaultParameters([],'plotting');
 
                 % Generate a time axis
-                t = 0:1/sObj.FsHz:(length(sObj.Data)-1)/sObj.FsHz;
+                t = 0:1/sObj.FsHz:(length(sObj.Data(:))-1)/sObj.FsHz;
 
                 % Set up a title (include channel in the title)
                 if ~strcmp(sObj.Canal,'mono')

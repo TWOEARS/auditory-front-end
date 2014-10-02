@@ -29,10 +29,30 @@ classdef Signal < handle
     methods
         
         function sObj = Signal( fs, bufferSize_s, bufferElemSize )
+            %Signal     Super-constructor for the signal class
+            %
+            %USAGE:
+            %   sObj = Signal(fs,bufferSize_s,bufferElemSize)
+            %
+            %INPUT ARGUMENTS:
+            %             fs : Sampling frequency (Hz)
+            %   bufferSize_s : Buffer duration in s
+            % bufferElemSize : Additional dimensions of the buffer
+            %                  [dim2,dim3,...]
+            %
+            %OUTPUT ARGUMENT:
+            %           sObj : Signal instance
+            
+            % Set up sampling frequency
             sObj.FsHz = fs;
+            
+            % Get the buffer size in samples
             bufferSizeSamples = ceil( bufferSize_s * sObj.FsHz );
+            
+            % Instantiate a buffer, and an array interface
             sObj.Buf = circVBuf( bufferSizeSamples, bufferElemSize );
             sObj.Data = circVBufArrayInterface( sObj.Buf );
+            
         end
         
         function appendChunk(sObj,data)
@@ -54,11 +74,25 @@ classdef Signal < handle
             %by a user.
             
             sObj.Buf.append( data );
+            
         end
 
         function setData(sObj, data)
+            %setData    Initialize the cyclic buffer using provided data
+            %
+            %USAGE:
+            %   sObj.setData(data)
+            %
+            %INPUT ARGUMENTS:
+            %   sObj : Signal instance
+            %   data : Block of data to initialize the signal with
+            
+            % First: clear the buffer
             sObj.Buf.clear();
+            
+            % Then append the provided data
             sObj.Buf.append( data );
+            
         end
         
         function clearData(sObj)
@@ -77,27 +111,41 @@ classdef Signal < handle
             %little data, the block gets filled with zeros from beginning.
             %
             %USAGE:
-            %    sb = sObj.getSignalBlock(blocksize_s)
+            %   sb = sObj.getSignalBlock(blocksize_s)
+            %   sb = sObj.getSignalBlock(blocksize_s,backOffset_s)
             %
             %INPUT ARGUMENTS:
-            %    sObj : Signal instance
-            %    blocksize_s : length of the required data block in seconds
-            %    [backOffset_s] : offset from the end of the signal to the 
-            %                       requested block's end in seconds
+            %         sObj : Signal instance
+            %  blocksize_s : Length of the required data block in seconds
+            % backOffset_s : Offset from the end of the signal to the 
+            %                requested block's end in seconds (default: 0s)
             %
             %OUTPUT ARGUMENTS:
             %    sb : signal data block
             
+            % Get the block duration in samples
             blocksize_samples = ceil( sObj.FsHz * blocksize_s );
+            
+            % Set default value for backOffset_s
             if nargin < 3, backOffset_s = 0; end;
+            
+            % Get the offset in samples...
             offset_samples = ceil( sObj.FsHz * backOffset_s );
+            
+            % ... with a warning if the requested signal is "too old"
             if offset_samples >= length(sObj.Data)
                 warning( ['You are requesting a block that is not in the ',...
                     'buffer anymore.'] );
             end
+            
+            % Figure out the starting index in the buffer
             blockStart = max( 1, length( sObj.Data ) - ...
                 blocksize_samples - offset_samples + 1 );
+            
+            % Extract the data block
             sb = sObj.Data(blockStart:end-offset_samples);
+            
+            % Zero-pad the data if not enough samples are available
             if size( sb, 1 ) < blocksize_samples
                 sb = [zeros( blocksize_samples - size(sb,1), size(sb,2) ); sb];
             end

@@ -38,18 +38,18 @@ classdef CorrelationSignal < Signal
             if nargin>0     % Safeguard for Matlab empty calls
                 
             % Check input arguments
-            if nargin<2||isempty(name)
+            if nargin<3||isempty(name)
                 name = 'correlation';
                 warning(['A name tag should be assigned to the signal. '...
                     'The name %s was chosen by default'],name)
             end
-            if nargin<7; canal = 'mono'; end
-            if nargin<6||isempty(data); data = []; end
-            if nargin<5||isempty(label)
+            if nargin<8; canal = 'mono'; end
+            if nargin<7||isempty(data); data = []; end
+            if nargin<6||isempty(label)
                 label = name;
             end
-            if nargin<4||isempty(lags); lags = []; end
-            if nargin<3||isempty(cfHz); cfHz = []; end
+            if nargin<5||isempty(lags); lags = []; end
+            if nargin<4||isempty(cfHz); cfHz = []; end
             if nargin<1||isempty(fs)
 %                 error('The sampling frequency needs to be provided')
                 fs = [];

@@ -33,11 +33,11 @@ classdef SpectralFeaturesSignal < Signal
             if nargin>0     % Failsafe for Matlab empty calls
                 
             % Check input arguments
-            if nargin<5||isempty(canal);canal='mono';end
-            if nargin<3||isempty(name);name='spec_features';end
-            if nargin<4||isempty(label);label=name;end
+            if nargin<6||isempty(canal);canal='mono';end
+            if nargin<4||isempty(name);name='spec_features';end
+            if nargin<5||isempty(label);label=name;end
             
-            if nargin<2||isempty(fList)
+            if nargin<3||isempty(fList)
                 error('The list of features name has to be provided to instantiate a spectral features signal.')
             end
             

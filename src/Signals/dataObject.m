@@ -122,8 +122,8 @@ classdef dataObject < dynamicprops
             % Get a list of the signals contained in the data object
             sig_list = fieldnames(dObj);
             
-            % Remove the "isStereo" property from the list
-            sig_list = sig_list(2:end);
+            % Remove the "isStereo" and "bufferSize_s" properties from the list
+            sig_list = setdiff(sig_list,{'isStereo' 'bufferSize_s'});
             
             % Loop over all the signals
             for ii = 1:size(sig_list,1)
@@ -162,7 +162,7 @@ classdef dataObject < dynamicprops
             
             % Get a list of instantiated signals
             prop_list = properties(dObj);
-            sig_list = setdiff(prop_list,{'isStereo'});
+            sig_list = setdiff(prop_list,{'isStereo' 'bufferSize_s'});
             
             % Initialize the output
             p = struct;
