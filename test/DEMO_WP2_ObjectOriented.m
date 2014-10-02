@@ -82,7 +82,7 @@ data = earSignals;
 
 % Create an empty data object. It will be filled up as new ear signal
 % chunks are "acquired". 
-dObj = dataObject([],fsHz,1);     % Last input (1) indicates a stereo signal
+dObj = dataObject([],fsHz,10,1);     % Last input (1) indicates a stereo signal
 mObj = manager(dObj,request);   % Instantiate a manager
 
 % From here on, simulating real-time chunk acquisition and processing
@@ -115,9 +115,9 @@ mObj2 = manager(dObj2,request); % Create a new manager
 mObj2.processSignal;            % Do the processing
 
 % Compute and plot the difference between the two approaches
-delta_ild = TimeFrequencySignal(fsHz,'ild',dObj.ild{1}.cfHz,...
+delta_ild = TimeFrequencySignal(fsHz,dObj.bufferSize_s,'ild',dObj.ild{1}.cfHz,...
     'Difference in ILD, chunk vs. signal-based',...
-    dObj.ild{1}.Data-dObj2.ild{1}.Data);
+    dObj.ild{1}.Data(:)-dObj2.ild{1}.Data(:));
 delta_ild.plot;
 
 

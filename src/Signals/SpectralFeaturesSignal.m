@@ -7,7 +7,7 @@ classdef SpectralFeaturesSignal < Signal
     
     methods
         
-        function sObj = SpectralFeaturesSignal(fs,fList,name,label,canal)
+        function sObj = SpectralFeaturesSignal(fs,fList,bufferSize_s,name,label,canal)
             %SpectralFeaturesSignal     Constructor for the spectral
             %                           features signal class
             %
@@ -28,14 +28,16 @@ classdef SpectralFeaturesSignal < Signal
             %OUTPUT ARGUMENT:
             %   sObj : Instant of the signal object
             
+            sObj = sObj@Signal( fs, bufferSize_s, size(fList,2) );
+
             if nargin>0     % Failsafe for Matlab empty calls
                 
             % Check input arguments
-            if nargin<5||isempty(canal);canal='mono';end
-            if nargin<3||isempty(name);name='spec_features';end
-            if nargin<4||isempty(label);label=name;end
+            if nargin<6||isempty(canal);canal='mono';end
+            if nargin<4||isempty(name);name='spec_features';end
+            if nargin<5||isempty(label);label=name;end
             
-            if nargin<2||isempty(fList)
+            if nargin<3||isempty(fList)
                 error('The list of features name has to be provided to instantiate a spectral features signal.')
             end
             
@@ -47,9 +49,6 @@ classdef SpectralFeaturesSignal < Signal
             sObj.Label = label;
             sObj.Name = name;
             sObj.Dimensions = ['nSamples x ' num2str(size(fList,2)) 'features'];
-            sObj.FsHz = fs;
-            sObj.Data = [];
-            sObj.LastChunk = [];
             sObj.Canal = canal;
             sObj.fList = fList;
             

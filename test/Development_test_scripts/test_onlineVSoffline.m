@@ -8,7 +8,7 @@ clear
 % request = {'modulation'};
 request = {'onset_strength'};
 p = [];
-p = genParStruct('IHC_method','fullwave');%,'am_win','rectwin');
+p = genParStruct('IHCMethod','fullwave');%,'am_win','rectwin');
 
 
 % Online processing parameters
@@ -65,7 +65,7 @@ t_on = toc;
 %% Results comparison
 
 % Normalized RMS error
-RMS = 20*log10(norm(reshape(s_on.Data,[],1)-reshape(s_off.Data,[],1),2)/norm(reshape(s_off.Data,[],1),2));
+RMS = 20*log10(norm(reshape(s_on.Data(:),[],1)-reshape(s_off.Data(:),[],1),2)/norm(reshape(s_off.Data(:),[],1),2));
 fprintf('\tNormalized RMS error in offline vs. online processing: %d dB\n',round(RMS))
 
 % Timing
@@ -76,14 +76,14 @@ fprintf('\tComputation time for offline: %f s (%d%% of signal duration)\n',t_off
 % Try to add your own case to the loop if it is missing
 switch s_off.Name
     case 'modulation'
-        delta = ModulationSignal(s_off.FsHz,'modulation',s_off.cfHz,s_off.modCfHz,['''' mObj_on.Processors{4,1}.filterType '''-based modulation: online vs offline'],s_off.Data-s_on.Data+eps);
+        delta = ModulationSignal(s_off.FsHz,'modulation',s_off.cfHz,s_off.modCfHz,['''' mObj_on.Processors{4,1}.filterType '''-based modulation: online vs offline'],s_off.Data(:)-s_on.Data(:)+eps);
         delta.plot;
         colorbar
         
 
     case {'innerhaircell' 'gammatone' 'onset_strength' 'offset_strength' 'ratemap_magnitude' ...
             'ratemap_power'}
-        figure,imagesc(20*log10(abs(s_off.Data-s_on.Data)).')
+        figure,imagesc(20*log10(abs(s_off.Data(:)-s_on.Data(:))+eps).')
         colorbar
         title(['Chunk vs signal-based, ' s_off.Name])
         

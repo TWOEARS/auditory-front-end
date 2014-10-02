@@ -117,23 +117,25 @@ classdef manager < handle
                     % Get index of current processor
                     jj = mObj.Map(ii);
 
-                    if ~isprop(mObj.Processors{jj,1},'isBinaural')
+                    if ~mObj.Processors{jj,1}.isBinaural
                         % Apply processing for left channel (or mono if
                         % interaural cue/feature)
-                        mObj.OutputList{jj,1}.Data = ...
-                            mObj.Processors{jj,1}.processChunk(mObj.InputList{jj,1}.Data);
+                        mObj.OutputList{jj,1}.setData( ...
+                            mObj.Processors{jj,1}.processChunk(mObj.InputList{jj,1}.Data(:)) );
 
                         % Apply for right channel if stereo cue/feature
                         if mObj.Data.isStereo && ~isempty(mObj.Processors{jj,2})
-                            mObj.OutputList{jj,2}.Data = ...
-                                mObj.Processors{jj,2}.processChunk(mObj.InputList{jj,2}.Data);
+                            mObj.OutputList{jj,2}.setData(...
+                                mObj.Processors{jj,2}.processChunk(mObj.InputList{jj,2}.Data(:))...
+                                );
                         end
                     else
                         % If the processor extracts a binaural cue, inputs
                         % from left and right channel should be routed
-                        mObj.OutputList{jj,1}.Data = ...
-                            mObj.Processors{jj,1}.processChunk(mObj.InputList{jj,1}.Data,...
-                                mObj.InputList{jj,2}.Data);
+                        mObj.OutputList{jj,1}.setData( ...
+                            mObj.Processors{jj,1}.processChunk(mObj.InputList{jj,1}.Data(:),...
+                            mObj.InputList{jj,2}.Data(:))...
+                            );
 
                     end
                 end
@@ -193,19 +195,15 @@ classdef manager < handle
                 % Get index of current processor
                 jj = mObj.Map(ii);
                 
-                if ~isprop(mObj.Processors{jj,1},'isBinaural')
+                if ~mObj.Processors{jj,1}.isBinaural
                     % Apply processing for left channel (or mono if
                     % interaural cue/feature):
 
                     % Getting input signal handle (for code readability)
                     in = mObj.InputList{jj,1};
 
-                    % Indexes for last chunk position in input
-                    s = in.LastChunk(1);
-                    e = in.LastChunk(2);
-
                     % Perform the processing
-                    out = mObj.Processors{jj,1}.processChunk(in.Data(s:e,:,:));
+                    out = mObj.Processors{jj,1}.processChunk(in.Data('new'));
 
                     % Store the result
                     mObj.OutputList{jj,1}.appendChunk(out);
@@ -213,9 +211,7 @@ classdef manager < handle
                     % Apply similarly for right channel if binaural cue/feature
                     if mObj.Data.isStereo && ~isempty(mObj.Processors{jj,2})
                         in = mObj.InputList{jj,2};
-                        s = in.LastChunk(1);
-                        e = in.LastChunk(2);
-                        out = mObj.Processors{jj,2}.processChunk(in.Data(s:e,:,:));
+                        out = mObj.Processors{jj,2}.processChunk(in.Data('new'));
                         mObj.OutputList{jj,2}.appendChunk(out);
                     end
                     
@@ -227,16 +223,10 @@ classdef manager < handle
                     in_l = mObj.InputList{jj,1};
                     in_r = mObj.InputList{jj,2};
                     
-                    % Indexes for last chunk position in input
-                    s_l = in_l.LastChunk(1);
-                    e_l = in_l.LastChunk(2);
-                    s_r = in_r.LastChunk(1);
-                    e_r = in_r.LastChunk(2);
-                    
                     % Perform the processing
                     out = mObj.Processors{jj,1}.processChunk(...
-                        in_l.Data(s_l:e_l,:,:),...
-                        in_r.Data(s_r:e_r,:,:));
+                        in_l.Data('new'),...
+                        in_r.Data('new'));
                     
                     % Store the result
                     mObj.OutputList{jj,1}.appendChunk(out);
@@ -246,12 +236,8 @@ classdef manager < handle
 %                 % Getting input signal handle (for code readability)
 %                 in = mObj.InputList{jj};
 %                 
-%                 % Indexes for last chunk position in input
-%                 s = in.LastChunk(1);
-%                 e = in.LastChunk(2);
-%                 
 %                 % Perform the processing
-%                 out = mObj.Processors{jj}.processChunk(in.Data(s:e,:,:));
+%                 out = mObj.Processors{jj}.processChunk(in.Data('new'));
 %                 
 %                 % Store the result
 %                 mObj.OutputList{jj}.appendChunk(out);
@@ -501,7 +487,7 @@ classdef manager < handle
                     dep_proc = [];
                 end
             end
-            
+                
             % Processors instantiation and data object property population
             for ii = n_proc+1:n_proc+n_new_proc   
                 
@@ -516,8 +502,8 @@ classdef manager < handle
                             mObj.Processors{ii,1} = identityProc(p.fs);
                             mObj.Processors{ii,2} = identityProc(p.fs);
                             % Generate new signals
-                            sig_l = TimeDomainSignal(mObj.Processors{ii,1}.FsHzOut,'time','Time',[],'left');
-                            sig_r = TimeDomainSignal(mObj.Processors{ii,2}.FsHzOut,'time','Time',[],'right');
+                            sig_l = TimeDomainSignal(mObj.Processors{ii,1}.FsHzOut,mObj.Data.bufferSize_s,'time','Time',[],'left');
+                            sig_r = TimeDomainSignal(mObj.Processors{ii,2}.FsHzOut,mObj.Data.bufferSize_s,'time','Time',[],'right');
                             % Add the signals to the data object
                             mObj.Data.addSignal(sig_l);
                             mObj.Data.addSignal(sig_r)
@@ -525,7 +511,7 @@ classdef manager < handle
                             % Instantiate a processor
                             mObj.Processors{ii} = identityProc(p.fs);
                             % Generate a new signal
-                            sig = TimeDomainSignal(mObj.Processors{ii,1}.FsHzOut,'time','Time');
+                            sig = TimeDomainSignal(mObj.Processors{ii,1}.FsHzOut,mObj.Data.bufferSize_s,'time','Time');
                             % Add signal to the data object
                             mObj.Data.addSignal(sig);
                         end
@@ -536,8 +522,8 @@ classdef manager < handle
                             mObj.Processors{ii,1} = framingProc(p.fs,p.fr_wname,p.fr_wSize,p.fr_hSize);
                             mObj.Processors{ii,2} = framingProc(p.fs,p.fr_wname,p.fr_wSize,p.fr_hSize);
                             % Generate new signals
-                            sig_l = FramedSignal(mObj.Processors{ii,1}.FsHzOut,mObj.Processors{ii,1}.FsHzIn,'framedSignal','Framed signal','left');
-                            sig_r = FramedSignal(mObj.Processors{ii,2}.FsHzOut,mObj.Processors{ii,1}.FsHzIn,'framedSignal','Framed signal','right');
+                            sig_l = FramedSignal(mObj.Processors{ii,1}.FsHzOut,mObj.Data.bufferSize_s,p.fr_wSize,mObj.Processors{ii,1}.FsHzIn,'framedSignal','Framed signal','left');
+                            sig_r = FramedSignal(mObj.Processors{ii,2}.FsHzOut,mObj.Data.bufferSize_s,p.fr_wSize,mObj.Processors{ii,1}.FsHzIn,'framedSignal','Framed signal','right');
                             % Add the signals to the data object
                             mObj.Data.addSignal(sig_l);
                             mObj.Data.addSignal(sig_r)
@@ -545,7 +531,7 @@ classdef manager < handle
                             % Instantiate a processor
                             mObj.Processors{ii} = framingProc(p.fs,p.fr_wname,p.fr_wSize,p.fr_hSize);
                             % Generate a new signal
-                            sig = FramedSignal(mObj.Processors{ii,1}.FsHzOut,mObj.Processors{ii,1}.FsHzIn,'framedSignal','Framed signal','mono');
+                            sig = FramedSignal(mObj.Processors{ii,1}.FsHzOut,mObj.Data.bufferSize_s,p.fr_wSize,mObj.Processors{ii,1}.FsHzIn,'framedSignal','Framed signal','mono');
                             % Add signal to the data object
                             mObj.Data.addSignal(sig);
                         end
@@ -579,8 +565,8 @@ classdef manager < handle
                                     mObj.Processors{ii,2} = gammatoneProc(p.fs,p.f_low,p.f_high,p.nERBs,[],[],p.IRtype,p.bAlign,p.n_gamma,p.bwERBs,p.durSec);
                             end
                             % Generate new signals
-                            sig_l = TimeFrequencySignal(mObj.Processors{ii,1}.FsHzOut,'gammatone',mObj.Processors{ii}.cfHz,'Gammatone filterbank output',[],'left');
-                            sig_r = TimeFrequencySignal(mObj.Processors{ii,2}.FsHzOut,'gammatone',mObj.Processors{ii}.cfHz,'Gammatone filterbank output',[],'right');
+                            sig_l = TimeFrequencySignal(mObj.Processors{ii,1}.FsHzOut,mObj.Data.bufferSize_s,'gammatone',mObj.Processors{ii}.cfHz,'Gammatone filterbank output',[],'left');
+                            sig_r = TimeFrequencySignal(mObj.Processors{ii,2}.FsHzOut,mObj.Data.bufferSize_s,'gammatone',mObj.Processors{ii}.cfHz,'Gammatone filterbank output',[],'right');
                             % Add the signals to the data object
                             mObj.Data.addSignal(sig_l);
                             mObj.Data.addSignal(sig_r)
@@ -595,7 +581,7 @@ classdef manager < handle
                                     mObj.Processors{ii,1} = gammatoneProc(p.fs,p.f_low,p.f_high,p.nERBs,[],[],p.IRtype,p.bAlign,p.n_gamma,p.bwERBs,p.durSec);
                             end
                             % Generate a new signal
-                            sig = TimeFrequencySignal(mObj.Processors{ii,1}.FsHzOut,'gammatone',mObj.Processors{ii}.cfHz,'Gammatone filterbank output',[],'mono');
+                            sig = TimeFrequencySignal(mObj.Processors{ii,1}.FsHzOut,mObj.Data.bufferSize_s,'gammatone',mObj.Processors{ii}.cfHz,'Gammatone filterbank output',[],'mono');
                             % Add signal to the data object
                             mObj.Data.addSignal(sig);
                         end
@@ -607,8 +593,8 @@ classdef manager < handle
                             mObj.Processors{ii,2} = IHCenvelopeProc(p.fs,p.IHCMethod);
                             % Generate new signals
                             cfHz = dep_proc_l.getDependentParameter('cfHz');    % Get the center frequencies from dependencies
-                            sig_l = TimeFrequencySignal(mObj.Processors{ii,1}.FsHzOut,'innerhaircell',cfHz,'Inner hair-cell envelope',[],'left');
-                            sig_r = TimeFrequencySignal(mObj.Processors{ii,2}.FsHzOut,'innerhaircell',cfHz,'Inner hair-cell envelope',[],'right');
+                            sig_l = TimeFrequencySignal(mObj.Processors{ii,1}.FsHzOut,mObj.Data.bufferSize_s,'innerhaircell',cfHz,'Inner hair-cell envelope',[],'left');
+                            sig_r = TimeFrequencySignal(mObj.Processors{ii,2}.FsHzOut,mObj.Data.bufferSize_s,'innerhaircell',cfHz,'Inner hair-cell envelope',[],'right');
                             % Add the signals to the data object
                             mObj.Data.addSignal(sig_l);
                             mObj.Data.addSignal(sig_r)
@@ -617,7 +603,7 @@ classdef manager < handle
                             mObj.Processors{ii} = IHCenvelopeProc(p.fs,p.IHCMethod);
                             % Generate a new signal
                             cfHz = dep_proc.getDependentParameter('cfHz');    % Get the center frequencies from dependencies
-                            sig = TimeFrequencySignal(mObj.Processors{ii,1}.FsHzOut,'innerhaircell',cfHz,'Inner hair-cell envelope',[],'mono');
+                            sig = TimeFrequencySignal(mObj.Processors{ii,1}.FsHzOut,mObj.Data.bufferSize_s,'innerhaircell',cfHz,'Inner hair-cell envelope',[],'mono');
                             % Add signal to the data object
                             mObj.Data.addSignal(sig);
                         end
@@ -630,8 +616,8 @@ classdef manager < handle
                             mObj.Processors{ii,2} = modulationProc(p.fs,numel(cfHz),p.am_nFilters,p.am_range,p.am_win,p.am_bSize,p.am_olap,p.am_type,p.am_dsRatio);
                             % Generate new signals
                             modCfHz = mObj.Processors{ii,1}.modCfHz;            % Vector of center modulation frequencies
-                            sig_l = ModulationSignal(mObj.Processors{ii,1}.FsHzOut,'modulation',cfHz,modCfHz,'Amplitude modulation',[],'left');
-                            sig_r = ModulationSignal(mObj.Processors{ii,2}.FsHzOut,'modulation',cfHz,modCfHz,'Amplitude modulation',[],'right');
+                            sig_l = ModulationSignal(mObj.Processors{ii,1}.FsHzOut,mObj.Data.bufferSize_s,'modulation',cfHz,modCfHz,'Amplitude modulation',[],'left');
+                            sig_r = ModulationSignal(mObj.Processors{ii,2}.FsHzOut,mObj.Data.bufferSize_s,'modulation',cfHz,modCfHz,'Amplitude modulation',[],'right');
                             % Add the signals to the data object
                             mObj.Data.addSignal(sig_l);
                             mObj.Data.addSignal(sig_r)
@@ -641,7 +627,7 @@ classdef manager < handle
                             mObj.Processors{ii,1} = modulationProc(p.fs,numel(cfHz),p.am_nFilters,p.am_range,p.am_win,p.am_bSize,p.am_olap,p.am_type,p.am_dsRatio);
                             % Generate a new signal
                             modCfHz = mObj.Processors{ii,1}.modCfHz;            % Vector of center modulation frequencies
-                            sig = ModulationSignal(mObj.Processors{ii,1}.FsHzOut,'modulation',cfHz,modCfHz,'Amplitude modulation',[],'mono');
+                            sig = ModulationSignal(mObj.Processors{ii,1}.FsHzOut,mObj.Data.bufferSize_s,'modulation',cfHz,modCfHz,'Amplitude modulation',[],'mono');
                             % Add signal to the data object
                             mObj.Data.addSignal(sig);
                         end
@@ -655,8 +641,8 @@ classdef manager < handle
                             % Generate new signals
                             lags = 0:1/p.fs:mObj.Processors{ii,1}.wSizeSec-1/p.fs;   % Vector of lags
                             cfHz = dep_proc_l.getDependentParameter('cfHz');         % Vector of center frequencies
-                            sig_l = CorrelationSignal(mObj.Processors{ii,1}.FsHzOut,'autocorrelation',cfHz,lags,'Auto-correlation',[],'left');
-                            sig_r = CorrelationSignal(mObj.Processors{ii,2}.FsHzOut,'autocorrelation',cfHz,lags,'Auto-correlation',[],'right');
+                            sig_l = CorrelationSignal(mObj.Processors{ii,1}.FsHzOut,mObj.Data.bufferSize_s,'autocorrelation',cfHz,lags,'Auto-correlation',[],'left');
+                            sig_r = CorrelationSignal(mObj.Processors{ii,2}.FsHzOut,mObj.Data.bufferSize_s,'autocorrelation',cfHz,lags,'Auto-correlation',[],'right');
                             % Add the signals to the data object
                             mObj.Data.addSignal(sig_l);
                             mObj.Data.addSignal(sig_r)
@@ -666,7 +652,7 @@ classdef manager < handle
                             % Generate a new signal
                             lags = 0:1/p.fs:mObj.Processors{ii,1}.wSizeSec-1/p.fs;   % Vector of lags
                             cfHz = dep_proc.getDependentParameter('cfHz');         % Vector of center frequencies
-                            sig = CorrelationSignal(mObj.Processors{ii,1}.FsHzOut,'autocorrelation',cfHz,lags,'Auto-correlation',[],'mono');
+                            sig = CorrelationSignal(mObj.Processors{ii,1}.FsHzOut,mObj.Data.bufferSize_s,'autocorrelation',cfHz,lags,'Auto-correlation',[],'mono');
                             % Add signal to the data object
                             mObj.Data.addSignal(sig);
                         end
@@ -686,7 +672,7 @@ classdef manager < handle
                             maxLag = ceil(mObj.Processors{ii,1}.maxDelaySec*p.fs);
                             lags = (-maxLag:maxLag)/p.fs;                           % Lags
                             cfHz = dep_proc_l.getDependentParameter('cfHz');        % Center frequencies 
-                            sig = CorrelationSignal(mObj.Processors{ii,1}.FsHzOut,'crosscorrelation',cfHz,lags,'Cross-correlation',[],'mono');
+                            sig = CorrelationSignal(mObj.Processors{ii,1}.FsHzOut,mObj.Data.bufferSize_s,'crosscorrelation',cfHz,lags,'Cross-correlation',[],'mono');
                             mObj.Data.addSignal(sig);
                             clear maxLag lags
                         end
@@ -712,7 +698,7 @@ classdef manager < handle
                             cfHz = dep_proc_l.getDependentParameter('cfHz');        % Center frequencies 
                             
                             % Instantiate a new signal
-                            sig = CorrelationSignal(mObj.Processors{ii,1}.FsHzOut,'crosscorrelation_feature',cfHz,lags_ds,'Cross-correlation feature',[],'mono');
+                            sig = CorrelationSignal(mObj.Processors{ii,1}.FsHzOut,mObj.Data.bufferSize_s,'crosscorrelation_feature',cfHz,lags_ds,'Cross-correlation feature',[],'mono');
                             mObj.Data.addSignal(sig);
                             clear lags n_lags origin n_lags_ds lags_ds
                         end
@@ -724,8 +710,8 @@ classdef manager < handle
                             mObj.Processors{ii,2} = ratemapProc(p.fs,p,'magnitude',mObj.use_mex);
                             % Generate new signals
                             cfHz = dep_proc_l.getDependentParameter('cfHz');    % Center frequencies
-                            sig_l = TimeFrequencySignal(mObj.Processors{ii,1}.FsHzOut,'ratemap_magnitude',cfHz,'Ratemap (magnitude)',[],'left');
-                            sig_r = TimeFrequencySignal(mObj.Processors{ii,2}.FsHzOut,'ratemap_magnitude',cfHz,'Ratemap (magnitude)',[],'right');
+                            sig_l = TimeFrequencySignal(mObj.Processors{ii,1}.FsHzOut,mObj.Data.bufferSize_s,'ratemap_magnitude',cfHz,'Ratemap (magnitude)',[],'left');
+                            sig_r = TimeFrequencySignal(mObj.Processors{ii,2}.FsHzOut,mObj.Data.bufferSize_s,'ratemap_magnitude',cfHz,'Ratemap (magnitude)',[],'right');
                             % Add the signals to the data object
                             mObj.Data.addSignal(sig_l);
                             mObj.Data.addSignal(sig_r)
@@ -734,7 +720,7 @@ classdef manager < handle
                             mObj.Processors{ii,1} = ratemapProc(p.fs,p,'magnitude',mObj.use_mex);
                             % Generate a new signal
                             cfHz = dep_proc.getDependentParameter('cfHz');    % Center frequencies
-                            sig = TimeFrequencySignal(mObj.Processors{ii,1}.FsHzOut,'ratemap_magnitude',cfHz,'Ratemap (magnitude)',[],'mono');
+                            sig = TimeFrequencySignal(mObj.Processors{ii,1}.FsHzOut,mObj.Data.bufferSize_s,'ratemap_magnitude',cfHz,'Ratemap (magnitude)',[],'mono');
                             % Add signal to the data object
                             mObj.Data.addSignal(sig);
                         end
@@ -746,8 +732,8 @@ classdef manager < handle
                             mObj.Processors{ii,2} = ratemapProc(p.fs,p,'power',mObj.use_mex);
                             % Generate new signals
                             cfHz = dep_proc_l.getDependentParameter('cfHz');    % Center frequencies
-                            sig_l = TimeFrequencySignal(mObj.Processors{ii,1}.FsHzOut,'ratemap_power',cfHz,'Ratemap (power)',[],'left');
-                            sig_r = TimeFrequencySignal(mObj.Processors{ii,2}.FsHzOut,'ratemap_power',cfHz,'Ratemap (power)',[],'right');
+                            sig_l = TimeFrequencySignal(mObj.Processors{ii,1}.FsHzOut,mObj.Data.bufferSize_s,'ratemap_power',cfHz,'Ratemap (power)',[],'left');
+                            sig_r = TimeFrequencySignal(mObj.Processors{ii,2}.FsHzOut,mObj.Data.bufferSize_s,'ratemap_power',cfHz,'Ratemap (power)',[],'right');
                             % Add the signals to the data object
                             mObj.Data.addSignal(sig_l);
                             mObj.Data.addSignal(sig_r)
@@ -756,7 +742,7 @@ classdef manager < handle
                             mObj.Processors{ii,1} = ratemapProc(p.fs,p,'power',mObj.use_mex);
                             % Generate a new signal
                             cfHz = dep_proc.getDependentParameter('cfHz');    % Center frequencies
-                            sig = TimeFrequencySignal(mObj.Processors{ii,1}.FsHzOut,'ratemap_power',cfHz,'Ratemap (power)',[],'mono');
+                            sig = TimeFrequencySignal(mObj.Processors{ii,1}.FsHzOut,mObj.Data.bufferSize_s,'ratemap_power',cfHz,'Ratemap (power)',[],'mono');
                             % Add signal to the data object
                             mObj.Data.addSignal(sig);
                         end
@@ -768,8 +754,8 @@ classdef manager < handle
                             mObj.Processors{ii,2} = onsetProc(dep_proc_r.FsHzOut,p.ons_maxOnsetdB);
                             % Generate new signals
                             cfHz = dep_proc_l.getDependentParameter('cfHz');    % Center frequencies
-                            sig_l = TimeFrequencySignal(mObj.Processors{ii,1}.FsHzOut,'onset_strength',cfHz,'Onset strength',[],'left');
-                            sig_r = TimeFrequencySignal(mObj.Processors{ii,2}.FsHzOut,'onset_strength',cfHz,'Onset strength',[],'right');
+                            sig_l = TimeFrequencySignal(mObj.Processors{ii,1}.FsHzOut,mObj.Data.bufferSize_s,'onset_strength',cfHz,'Onset strength',[],'left');
+                            sig_r = TimeFrequencySignal(mObj.Processors{ii,2}.FsHzOut,mObj.Data.bufferSize_s,'onset_strength',cfHz,'Onset strength',[],'right');
                             % Add the signals to the data object
                             mObj.Data.addSignal(sig_l);
                             mObj.Data.addSignal(sig_r)
@@ -778,7 +764,7 @@ classdef manager < handle
                             mObj.Processors{ii,1} = onsetProc(dep_proc.FsHzOut,p.ons_maxOnsetdB);
                             % Generate a new signal
                             cfHz = dep_proc.getDependentParameter('cfHz');    % Center frequencies
-                            sig = TimeFrequencySignal(mObj.Processors{ii,1}.FsHzOut,'onset_strength',cfHz,'Onset strength',[],'mono');
+                            sig = TimeFrequencySignal(mObj.Processors{ii,1}.FsHzOut,mObj.Data.bufferSize_s,'onset_strength',cfHz,'Onset strength',[],'mono');
                             % Add signal to the data object
                             mObj.Data.addSignal(sig);
                         end
@@ -790,8 +776,8 @@ classdef manager < handle
                             mObj.Processors{ii,2} = offsetProc(dep_proc_r.FsHzOut,p.ofs_maxOffsetdB);
                             % Generate new signals
                             cfHz = dep_proc_l.getDependentParameter('cfHz');    % Center frequencies
-                            sig_l = TimeFrequencySignal(mObj.Processors{ii,1}.FsHzOut,'offset_strength',cfHz,'Offset strength',[],'left');
-                            sig_r = TimeFrequencySignal(mObj.Processors{ii,2}.FsHzOut,'offset_strength',cfHz,'Offset strength',[],'right');
+                            sig_l = TimeFrequencySignal(mObj.Processors{ii,1}.FsHzOut,mObj.Data.bufferSize_s,'offset_strength',cfHz,'Offset strength',[],'left');
+                            sig_r = TimeFrequencySignal(mObj.Processors{ii,2}.FsHzOut,mObj.Data.bufferSize_s,'offset_strength',cfHz,'Offset strength',[],'right');
                             % Add the signals to the data object
                             mObj.Data.addSignal(sig_l);
                             mObj.Data.addSignal(sig_r)
@@ -800,7 +786,7 @@ classdef manager < handle
                             mObj.Processors{ii,1} = offsetProc(dep_proc.FsHzOut,p.ofs_maxOffsetdB);
                             % Generate a new signal
                             cfHz = dep_proc.getDependentParameter('cfHz');    % Center frequencies
-                            sig = TimeFrequencySignal(mObj.Processors{ii,1}.FsHzOut,'offset_strength',cfHz,'Offset strength',[],'mono');
+                            sig = TimeFrequencySignal(mObj.Processors{ii,1}.FsHzOut,mObj.Data.bufferSize_s,'offset_strength',cfHz,'Offset strength',[],'mono');
                             % Add signal to the data object
                             mObj.Data.addSignal(sig);
                         end
@@ -813,8 +799,8 @@ classdef manager < handle
                             mObj.Processors{ii,1} = spectralFeaturesProc(dep_proc_l.FsHzOut,cfHz,p.sf_requests,p.sf_br_cf,p.sf_hfc_cf,p.sf_ro_thres);
                             mObj.Processors{ii,2} = spectralFeaturesProc(dep_proc_r.FsHzOut,cfHz,p.sf_requests,p.sf_br_cf,p.sf_hfc_cf,p.sf_ro_thres);
                             % Generate new signals
-                            sig_l = SpectralFeaturesSignal(mObj.Processors{ii,1}.FsHzOut,mObj.Processors{ii,1}.requestList,'spec_features','Spectral Features','left');
-                            sig_r = SpectralFeaturesSignal(mObj.Processors{ii,2}.FsHzOut,mObj.Processors{ii,2}.requestList,'spec_features','Spectral Features','right');
+                            sig_l = SpectralFeaturesSignal(mObj.Processors{ii,1}.FsHzOut,mObj.Processors{ii,1}.requestList,mObj.Data.bufferSize_s,'spec_features','Spectral Features','left');
+                            sig_r = SpectralFeaturesSignal(mObj.Processors{ii,2}.FsHzOut,mObj.Processors{ii,2}.requestList,mObj.Data.bufferSize_s,'spec_features','Spectral Features','right');
                             % Add the signals to the data object
                             mObj.Data.addSignal(sig_l);
                             mObj.Data.addSignal(sig_r)
@@ -824,7 +810,7 @@ classdef manager < handle
                             % Instantiate a processor
                             mObj.Processors{ii,1} = spectralFeaturesProc(dep_proc.FsHzOut,cfHz,p.sf_requests,p.sf_br_cf,p.sf_hfc_cf,p.p.sf_ro_thres);
                             % Generate a new signal
-                            sig = SpectralFeaturesSignal(mObj.Processors{ii,1}.FsHzOut,mObj.Processors{ii,1}.requestList,'spec_features','Spectral Features','mono');
+                            sig = SpectralFeaturesSignal(mObj.Processors{ii,1}.FsHzOut,mObj.Processors{ii,1}.requestList,mObj.Data.bufferSize_s,'spec_features','Spectral Features','mono');
                             % Add signal to the data object
                             mObj.Data.addSignal(sig);
                         end
@@ -839,7 +825,7 @@ classdef manager < handle
                         else
                             mObj.Processors{ii,1} = ildProc(p.fs,p);
                             cfHz = dep_proc_l.getDependentParameter('cfHz');    % Center frequencies
-                            sig = TimeFrequencySignal(mObj.Processors{ii,1}.FsHzOut,'ild',cfHz,'Interaural Level Difference',[],'mono');
+                            sig = TimeFrequencySignal(mObj.Processors{ii,1}.FsHzOut,mObj.Data.bufferSize_s,'ild',cfHz,'Interaural Level Difference',[],'mono');
                             mObj.Data.addSignal(sig);
                         end
                         
@@ -850,7 +836,7 @@ classdef manager < handle
                         else
                             mObj.Processors{ii,1} = icProc(dep_proc.FsHzOut,p);
                             cfHz = dep_proc.getDependentParameter('cfHz');    % Center frequencies
-                            sig = TimeFrequencySignal(mObj.Processors{ii,1}.FsHzOut,'ic_xcorr',cfHz,'Interaural correlation',[],'mono');
+                            sig = TimeFrequencySignal(mObj.Processors{ii,1}.FsHzOut,mObj.Data.bufferSize_s,'ic_xcorr',cfHz,'Interaural correlation',[],'mono');
                             mObj.Data.addSignal(sig);
                         end
                         
@@ -861,7 +847,7 @@ classdef manager < handle
                         else
                             mObj.Processors{ii,1} = itdProc(dep_proc.FsHzOut,p);
                             cfHz = dep_proc.getDependentParameter('cfHz');    % Center frequencies
-                            sig = TimeFrequencySignal(mObj.Processors{ii,1}.FsHzOut,'itd_xcorr',cfHz,'Interaural Time Difference',[],'mono');
+                            sig = TimeFrequencySignal(mObj.Processors{ii,1}.FsHzOut,mObj.Data.bufferSize_s,'itd_xcorr',cfHz,'Interaural Time Difference',[],'mono');
                             mObj.Data.addSignal(sig);
                         end
                         
@@ -879,7 +865,7 @@ classdef manager < handle
                     % Add input/output pointers, dependencies, and update dependencies.
                     % Three possible scenarios:
 
-                    if isprop(mObj.Processors{ii},'isBinaural')
+                    if mObj.Processors{ii}.isBinaural
 
                         % 1-Then there are two inputs (left&right) and one output
                         mObj.InputList{ii,1} = dep_sig_l;

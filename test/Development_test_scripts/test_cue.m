@@ -22,7 +22,7 @@ end
 clear earSignals
 
 % Parameters
-request = {'onset_strength' 'offset_strength'};
+request = {'modulation'};
 p = genParStruct('am_type','filter');
 
 % Create a data object
