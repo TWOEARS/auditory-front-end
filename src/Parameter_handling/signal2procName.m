@@ -49,6 +49,9 @@ switch signal
     case 'ild'
         procName = 'ildProc';
         
+    case 'drnl'
+        procName = 'drnlProc';
+        
     otherwise
         procName = '';
         warning('Signal named %s is invalid or not implemented yet.',signal)

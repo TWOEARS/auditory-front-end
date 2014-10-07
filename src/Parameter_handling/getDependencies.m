@@ -39,6 +39,9 @@ switch sig
     case 'autocorrelation'
         dep = {'innerhaircell'};
         
+    case 'drnl'
+        dep = {'time'};
+        
     % Cues
     case 'rms'
         dep = {'time'};
@@ -95,12 +98,12 @@ switch sig
             'itd_xcorr' 'ic_xcorr' 'ild' 'average_deviation' ...
             'onset_strength' 'offset_strength' 'synchrony' 'sacf' ...
             'ratemap_feature' 'azimuth' 'azimuth_hist' 'source_position'...
-            'pitch'};
+            'pitch' 'drnl'};
         
     case 'available'    % Lists all currently implemented processors
          dep = {'time' 'gammatone' 'innerhaircell' 'crosscorrelation' ...
              'autocorrelation' 'ratemap_magnitude' 'ratemap_power' 'ild' ...
-             'itd_xcorr' 'ic_xcorr'};
+             'itd_xcorr' 'ic_xcorr' 'drnl'};
         
     % Otherwise it's not in the list, generate a list of valid names
     otherwise

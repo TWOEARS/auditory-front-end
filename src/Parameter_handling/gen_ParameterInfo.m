@@ -65,6 +65,11 @@ clear pInfo
     % Interaural time difference
     addParameterInfo('itd',[],[],[],'Interaural Time Difference')
     
+    % DRNL filterbank
+    addParameterInfo('drnl', 'drnl_CF', [], 'Vector of Characteristic Frequencies indicating BM location (Hz)', 'DRNL filterbank')
+    addParameterInfo('drnl', 'drnl_DRNLParams', [], 'Structure of DRNL-specific parameters')
+    
+    
 % Plotting:
     addParameterInfo('plotting','ftype','Helvetica','Plots font name','Plot properties')
     addParameterInfo('plotting','fsize_label',12,'Labels font size')
