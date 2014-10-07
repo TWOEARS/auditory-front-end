@@ -27,11 +27,17 @@ switch sig
     case 'time'
         dep = {'time'};
         
+    case 'framedSignal'
+        dep = {'time'};
+        
     case 'gammatone'
         dep = {'time'};
         
     case 'innerhaircell'
         dep = {'gammatone'};
+        
+    case 'modulation'
+        dep = {'innerhaircell'};
         
     case 'crosscorrelation'
         dep = {'innerhaircell'};
@@ -77,6 +83,12 @@ switch sig
         dep = {'autocorrelation'};
         
     % Features
+    case 'crosscorrelation_feature'
+        dep = {'crosscorrelation'};
+
+    case 'spec_features'
+        dep = {'ratemap_power'};
+    
     case 'ratemap_feature'
         dep = {'ratemap_magnitude'};
         
@@ -93,17 +105,18 @@ switch sig
         dep = {'sacf'};
         
     case 'valid'     % Dummy name to list all currently valid names
-        dep = {'time' 'gammatone' 'innerhaircell' 'crosscorrelation' ...
-            'autocorrelation' 'rms' 'ratemap_magnitude' 'ratemap_power' ...
-            'itd_xcorr' 'ic_xcorr' 'ild' 'average_deviation' ...
+        dep = {'time' 'gammatone' 'innerhaircell' 'modulation' ...
+            'crosscorrelation' 'autocorrelation' 'rms' 'ratemap_magnitude' ...
+            'ratemap_power' 'itd_xcorr' 'ic_xcorr' 'ild' 'average_deviation' ...
             'onset_strength' 'offset_strength' 'synchrony' 'sacf' ...
-            'ratemap_feature' 'azimuth' 'azimuth_hist' 'source_position'...
-            'pitch' 'drnl'};
+            'spec_features' 'ratemap_feature' 'azimuth' 'azimuth_hist' ...
+            'source_position' 'pitch' 'drnl'};
         
     case 'available'    % Lists all currently implemented processors
-         dep = {'time' 'gammatone' 'innerhaircell' 'crosscorrelation' ...
+         dep = {'time' 'gammatone' 'innerhaircell' 'modulation' 'crosscorrelation' ...
              'autocorrelation' 'ratemap_magnitude' 'ratemap_power' 'ild' ...
-             'itd_xcorr' 'ic_xcorr' 'drnl'};
+             'itd_xcorr' 'ic_xcorr' 'spec_features' 'crosscorrelation_feature' ...
+             'onset_strength' 'offset_strength' 'drnl'};
         
     % Otherwise it's not in the list, generate a list of valid names
     otherwise

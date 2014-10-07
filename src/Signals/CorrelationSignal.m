@@ -9,7 +9,7 @@ classdef CorrelationSignal < Signal
     
     methods
         
-        function sObj = CorrelationSignal(fs,name,cfHz,lags,label,data,canal)
+        function sObj = CorrelationSignal(fs,bufferSize_s,name,cfHz,lags,label,data,canal)
             %CorrelationSignal  Constructor for the correlation children
             %                   signal class
             %
@@ -33,21 +33,23 @@ classdef CorrelationSignal < Signal
             %OUTPUT ARGUMENT
             %     sObj : Correlation signal object inheriting the signal class
             
+            sObj = sObj@Signal( fs, bufferSize_s, [length(cfHz), length(lags)] );
+            
             if nargin>0     % Safeguard for Matlab empty calls
                 
             % Check input arguments
-            if nargin<2||isempty(name)
+            if nargin<3||isempty(name)
                 name = 'correlation';
                 warning(['A name tag should be assigned to the signal. '...
                     'The name %s was chosen by default'],name)
             end
-            if nargin<7; canal = 'mono'; end
-            if nargin<6||isempty(data); data = []; end
-            if nargin<5||isempty(label)
+            if nargin<8; canal = 'mono'; end
+            if nargin<7||isempty(data); data = []; end
+            if nargin<6||isempty(label)
                 label = name;
             end
-            if nargin<4||isempty(lags); lags = []; end
-            if nargin<3||isempty(cfHz); cfHz = []; end
+            if nargin<5||isempty(lags); lags = []; end
+            if nargin<4||isempty(cfHz); cfHz = []; end
             if nargin<1||isempty(fs)
 %                 error('The sampling frequency needs to be provided')
                 fs = [];
@@ -60,9 +62,9 @@ classdef CorrelationSignal < Signal
             
             % Populate object properties
             populateProperties(sObj,'Label',label,'Name',name,...
-                'Dimensions','nSample x nFilters x nLags','FsHz',fs);
+                'Dimensions','nSample x nFilters x nLags');
             sObj.cfHz = cfHz;
-            sObj.Data = data;
+            sObj.setData( data );
             sObj.Canal = canal;
             sObj.lags = lags;
                 

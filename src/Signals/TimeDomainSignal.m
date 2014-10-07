@@ -5,7 +5,7 @@ classdef TimeDomainSignal < Signal
     end
     
     methods
-        function sObj = TimeDomainSignal(fs,name,label,data,canal)
+        function sObj = TimeDomainSignal(fs,bufferSize_s,name,label,data,canal)
             %TimeDomainSignal       Constructor for the "time domain signal"
             %                       children signal class
             %
@@ -29,13 +29,15 @@ classdef TimeDomainSignal < Signal
             %OUTPUT ARGUMENT
             %     sObj : Time domain signal object inheriting the signal class
             
+            sObj = sObj@Signal( fs, bufferSize_s, 1 );
+            
             if nargin>0  % Failproof for Matlab empty calls
             
             % Check input arguments
-            if nargin<5; canal = 'mono'; end
-            if nargin<4; data = []; end
-            if nargin<3||isempty(label); label = 'Waveform'; end
-            if nargin<2||isempty(name); name = 'time'; end
+            if nargin<6; canal = 'mono'; end
+            if nargin<5; data = []; end
+            if nargin<4||isempty(label); label = 'Waveform'; end
+            if nargin<3||isempty(name); name = 'time'; end
             %if nargin<1; fs = []; end
             
             % Check dimensionality of data if it was provided
@@ -43,14 +45,14 @@ classdef TimeDomainSignal < Signal
                 error(['The data used to instantiate this object should be a' ...
                     'single vector of amplitude values'])
             end
-            
+
             % Format data to a column vector
             data = data(:);
             
             % Populate object properties
             populateProperties(sObj,'Label',label,'Name',name,...
-                'Dimensions','nSamples x 1','FsHz',fs);
-            sObj.Data = data;
+                'Dimensions','nSamples x 1');
+            sObj.setData( data );
             sObj.Canal = canal;
             
             end
@@ -94,7 +96,7 @@ classdef TimeDomainSignal < Signal
                 p = getDefaultParameters([],'plotting');
 
                 % Generate a time axis
-                t = 0:1/sObj.FsHz:(length(sObj.Data)-1)/sObj.FsHz;
+                t = 0:1/sObj.FsHz:(length(sObj.Data(:))-1)/sObj.FsHz;
 
                 % Set up a title (include channel in the title)
                 if ~strcmp(sObj.Canal,'mono')
@@ -104,7 +106,7 @@ classdef TimeDomainSignal < Signal
                 end
                 
                 % Plot
-                plot(t,sObj.Data,'color',p.color,'linewidth',p.linewidth_s)
+                plot(t,sObj.Data(:),'color',p.color,'linewidth',p.linewidth_s)
                 xlabel('Time (s)','fontsize',p.fsize_label,'fontname',p.ftype)
                 ylabel('Amplitude','fontsize',p.fsize_label,'fontname',p.ftype)
                 title(pTitle,'fontsize',p.fsize_title,'fontname',p.ftype)
@@ -126,7 +128,7 @@ classdef TimeDomainSignal < Signal
             %INPUT ARGUMENTS
             %   sObj : Time domain signal object
             
-            sound(sObj.Data,sObj.FsHz)
+            sound(sObj.Data(:),sObj.FsHz)
             
         end
         

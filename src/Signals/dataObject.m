@@ -1,21 +1,24 @@
 classdef dataObject < dynamicprops
 
     properties
-        isStereo   % Flag indicating if the data structure will be based
+        bufferSize_s;
+        isStereo;   % Flag indicating if the data structure will be based
                     %   on a stereo (binaural) signal
     end
     
     methods
-        function dObj = dataObject(s,fs,is_stereo)
+        function dObj = dataObject(s,fs,bufferSize_s,is_stereo)
             %dataObject     Constructs a data object
             %
             %USAGE
-            %       dObj = dataObject(s,fs)
-            %       dObj = dataObject(s,fs,is_stereo)
+            %       dObj = dataObject(s,fs,bufferSize)
+            %       dObj = dataObject(s,fs,bufferSize,is_stereo)
             %
             %INPUT ARGUMENTS
             %          s : Initial time-domain signal
             %         fs : Sampling frequency
+            % bufferSize : length of the signal buffer in seconds
+            %              default = 10;
             %  is_stereo : Flag indicating if the ear signal is binaural
             %              (true) or  monaural (false) (default:
             %              is_stereo=false). Used in chunk-based scenario
@@ -32,12 +35,16 @@ classdef dataObject < dynamicprops
                 s = [];
                 fs = [];
             end
+            if nargin < 3
+                bufferSize_s = 10;
+            end
+            dObj.bufferSize_s = bufferSize_s;
             
             % Check number of channels of the provided signal
             if size(s,2)==2 
                 % Set to stereo when provided signal is
                 is_stereo = true;
-            elseif nargin<3||isempty(is_stereo)
+            elseif nargin<4||isempty(is_stereo)
                 % Set to default if stereo flag not provided
                 is_stereo = false;
             end
@@ -50,19 +57,19 @@ classdef dataObject < dynamicprops
             % TO DO: Do something with the label of this signal?
             if is_stereo
                 if ~isempty(s)
-                    sig_l = TimeDomainSignal(fs,'signal','Ear Signal',s(:,1),'left');
-                    sig_r = TimeDomainSignal(fs,'signal','Ear Signal',s(:,2),'right');
+                    sig_l = TimeDomainSignal(fs,dObj.bufferSize_s,'signal','Ear Signal',s(:,1),'left');
+                    sig_r = TimeDomainSignal(fs,dObj.bufferSize_s,'signal','Ear Signal',s(:,2),'right');
                 else
-                    sig_l = TimeDomainSignal(fs,'signal','Ear Signal',[],'left');
-                    sig_r = TimeDomainSignal(fs,'signal','Ear Signal',[],'right');
+                    sig_l = TimeDomainSignal(fs,dObj.bufferSize_s,'signal','Ear Signal',[],'left');
+                    sig_r = TimeDomainSignal(fs,dObj.bufferSize_s,'signal','Ear Signal',[],'right');
                 end
                 dObj.addSignal(sig_l);
                 dObj.addSignal(sig_r);
             else
                 if ~isempty(s)
-                    sig = TimeDomainSignal(fs,'signal','Ear signal (mono)',s);
+                    sig = TimeDomainSignal(fs,dObj.bufferSize_s,'signal','Ear signal (mono)',s);
                 else
-                    sig = TimeDomainSignal(fs,'signal','Ear signal (mono)',[]);
+                    sig = TimeDomainSignal(fs,dObj.bufferSize_s,'signal','Ear signal (mono)',[]);
                 end
                 dObj.addSignal(sig);
             end          
@@ -115,8 +122,8 @@ classdef dataObject < dynamicprops
             % Get a list of the signals contained in the data object
             sig_list = fieldnames(dObj);
             
-            % Remove the "isStereo" property from the list
-            sig_list = sig_list(2:end);
+            % Remove the "isStereo" and "bufferSize_s" properties from the list
+            sig_list = setdiff(sig_list,{'isStereo' 'bufferSize_s'});
             
             % Loop over all the signals
             for ii = 1:size(sig_list,1)
@@ -155,7 +162,7 @@ classdef dataObject < dynamicprops
             
             % Get a list of instantiated signals
             prop_list = properties(dObj);
-            sig_list = setdiff(prop_list,{'isStereo'});
+            sig_list = setdiff(prop_list,{'isStereo' 'bufferSize_s'});
             
             % Initialize the output
             p = struct;
@@ -202,10 +209,10 @@ classdef dataObject < dynamicprops
             else
                 if size(dObj.signal,2)==1
                     % Then mono playback
-                    sound(dObj.signal{1}.Data,dObj.signal{1}.FsHz)
+                    sound(dObj.signal{1}.Data(:),dObj.signal{1}.FsHz)
                 else
                     % Stereo playback
-                    temp_snd = [dObj.signal{1}.Data dObj.signal{2}.Data];
+                    temp_snd = [dObj.signal{1}.Data(:) dObj.signal{2}.Data(:)];
                     sound(temp_snd,dObj.signal{1}.FsHz)
                 end
             end
