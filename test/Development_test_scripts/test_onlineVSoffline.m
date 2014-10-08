@@ -6,9 +6,9 @@ clear
 
 % Request and parameters for feature extraction
 % request = {'modulation'};
-request = {'onset_strength'};
+request = {'innerhaircell'};
 p = [];
-p = genParStruct('IHCMethod','fullwave');%,'am_win','rectwin');
+% p = genParStruct('IHCMethod','breebart','am_type','filter');
 
 
 % Online processing parameters
@@ -76,7 +76,7 @@ fprintf('\tComputation time for offline: %f s (%d%% of signal duration)\n',t_off
 % Try to add your own case to the loop if it is missing
 switch s_off.Name
     case 'modulation'
-        delta = ModulationSignal(s_off.FsHz,'modulation',s_off.cfHz,s_off.modCfHz,['''' mObj_on.Processors{4,1}.filterType '''-based modulation: online vs offline'],s_off.Data(:)-s_on.Data(:)+eps);
+        delta = ModulationSignal(s_off.FsHz,dObj_on.bufferSize_s,'modulation',s_off.cfHz,s_off.modCfHz,['''' mObj_on.Processors{4,1}.filterType '''-based modulation: online vs offline'],s_off.Data(:)-s_on.Data(:)+eps);
         delta.plot;
         colorbar
         
