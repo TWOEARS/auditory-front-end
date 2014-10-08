@@ -9,12 +9,12 @@ classdef gammatoneFilter < filterObj
     end   
     
     methods
-        function obj = gammatoneFilter(cf,fs,type,n,bwERB,do_align,durSec)
+        function obj = gammatoneFilter(cf,fs,type,n,bwERB,do_align,durSec,cascade)
             %gammatoneFilter    Construct a gammatone filter object
             %
             %USAGE
             %           F = gammatoneFilter(fc,fs)
-            %           F = gammatoneFilter(fc,fs,type,n,bw,do_align,durSec)
+            %           F = gammatoneFilter(fc,fs,type,n,bw,do_align,durSec,cascade)
             % 
             %INPUT ARGUMENTS
             %          cf : center frequency of the filter (Hz)
@@ -28,6 +28,7 @@ classdef gammatoneFilter < filterObj
             %               delay for time alignment (default : false)
             %      durSec : Duration of the impulse response in seconds 
             %               (default: durSec = 0.128)
+            %     cascade : Cascading order of the filter (default : 1)
             %
             %OUTPUT
             %           F : Gammatone filter object
@@ -39,11 +40,14 @@ classdef gammatoneFilter < filterObj
             if nargin > 0   % Prevent error when constructors is called 
                             %   without arguments
                 % Check for input arguments
-                if nargin < 2 || nargin > 7
+                if nargin < 2 || nargin > 8
                     error('Wrong number of input arguments')
                 end
                 
                 % Set default parameters
+                if nargin < 8 || isempty(cascade)
+                    cascade = 1;
+                end
                 if nargin < 7 || isempty(durSec)
                     durSec = 0.128;
                 end
@@ -135,6 +139,7 @@ classdef gammatoneFilter < filterObj
                 obj.IRduration = durSec;
                 obj.delay = delaySpl;
                 obj.IRtype = type;
+                obj.CascadeOrder = cascade;
                 
             end
         end
