@@ -35,6 +35,7 @@ classdef drnlProc < Processor
     methods
         function pObj = drnlProc(CF, fs, DRNLParams)
           
+            if nargin>0
             % Checking input arguments
             narginchk(1, 3)
             
@@ -155,6 +156,7 @@ classdef drnlProc < Processor
             % 2- Specific properties
             pObj.CF = CF;
             
+            end
         end
       
         function out = processChunk(pObj,in)

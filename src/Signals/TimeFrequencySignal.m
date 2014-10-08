@@ -83,7 +83,7 @@ classdef TimeFrequencySignal < Signal
             switch sObj.Name
                 case {'gammatone','ild','ic_xcorr','itd_xcorr','onset_strength','offset_strength'}
                     do_dB = 0;
-                case {'innerhaircell','ratemap_magnitude','ratemap_power'}
+                case {'innerhaircell','ratemap_magnitude','ratemap_power','drnl'}
                     do_dB = 1;
                 otherwise 
                     warning('Cannot plot this object')
@@ -151,7 +151,7 @@ classdef TimeFrequencySignal < Signal
 
                 % Scaling the plot
                 switch sObj.Name
-                    case {'innerhaircell','ratemap_magnitude','ratemap_power'}
+                    case {'innerhaircell','ratemap_magnitude','ratemap_power','drnl'}
                         m = max(data(:));    % Get maximum value for scaling
                         set(gca,'CLim',[m-p.dynrange m])
 
