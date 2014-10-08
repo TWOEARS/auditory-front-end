@@ -1,0 +1,12 @@
+test_accessingParameters
+test_appendingVSoverwriting
+test_cue
+test_findInitProc
+test_gammatoneGen
+test_hasProcessor
+test_IHCextraction
+test_mexCompTime
+test_multRequests
+test_onlineVSoffline
+test_parameterChange
+test_parameterHandling

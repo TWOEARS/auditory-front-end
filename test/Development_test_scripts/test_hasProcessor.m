@@ -6,9 +6,7 @@ close all
 % only at the final processing stage, but also checks lower-level stages to
 % control that they also have the requested parameters.
 
-% Add paths
-path = fileparts(mfilename('fullpath')); 
-run([path filesep '..' filesep '..' filesep 'src' filesep 'startWP2.m'])
+test_startup;
 
 % Load a signal
 load('TestBinauralCues');
