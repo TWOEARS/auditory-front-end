@@ -13,11 +13,11 @@ data = earSignals;
 
 % Create an empty data object. It will be filled up as new ear signal
 % chunks are "acquired". 
-dObj = dataObject([],fsHz,1);     % Last input (1) indicates a stereo signal
+dObj = dataObject([],fsHz,10,1);     % Last input (1) indicates a stereo signal
 mObj = manager(dObj,request);     % Instantiate a manager
 
 % Create an additional data object and manager, for comparison purpose
-dObj2 = dataObject([],fsHz,1);     % Last input (1) indicates a stereo signal
+dObj2 = dataObject([],fsHz,10,1);     % Last input (1) indicates a stereo signal
 mObj2 = manager(dObj2,request);     % Instantiate a manager
 
 % From here on, simulating real-time chunk acquisition and processing
@@ -46,7 +46,7 @@ for ii = 1:n_chunks
     
     % Display the number of frames in the output
     fprintf('Time-frames in the output: %i (appending), %i (overwriting)\n',...
-        size(dObj.ild{1}.Data,1),size(dObj2.ild{1}.Data,1))
+        size(dObj.ild{1}.Data(:),1),size(dObj2.ild{1}.Data(:),1))
     
     
 end

@@ -5,14 +5,18 @@ classdef Signal < handle
         Name            % Used as an instance name in Matlab
         Dimensions      % String describing the dimensions of the signal
         FsHz            % Sampling frequency
-        Data            % Storing actual values
-        LastChunk       % Time indexes of beginning and end of latest chunk
         Canal           % Flag keeping track of the channel: 'mono', 'left'
                         %   or 'right'
     end
-
-        
     
+    properties (SetAccess = protected)
+        Data;
+    end
+
+    properties (Access = protected)
+        Buf;
+    end
+
     methods (Abstract = true)
         h = plot(sObj,h_prev)
             % This method should create a figure displaying the data in the
@@ -23,6 +27,33 @@ classdef Signal < handle
     end
     
     methods
+        
+        function sObj = Signal( fs, bufferSize_s, bufferElemSize )
+            %Signal     Super-constructor for the signal class
+            %
+            %USAGE:
+            %   sObj = Signal(fs,bufferSize_s,bufferElemSize)
+            %
+            %INPUT ARGUMENTS:
+            %             fs : Sampling frequency (Hz)
+            %   bufferSize_s : Buffer duration in s
+            % bufferElemSize : Additional dimensions of the buffer
+            %                  [dim2,dim3,...]
+            %
+            %OUTPUT ARGUMENT:
+            %           sObj : Signal instance
+            
+            % Set up sampling frequency
+            sObj.FsHz = fs;
+            
+            % Get the buffer size in samples
+            bufferSizeSamples = ceil( bufferSize_s * sObj.FsHz );
+            
+            % Instantiate a buffer, and an array interface
+            sObj.Buf = circVBuf( bufferSizeSamples, bufferElemSize );
+            sObj.Data = circVBufArrayInterface( sObj.Buf );
+            
+        end
         
         function appendChunk(sObj,data)
             %appendChunk   This method appends the chunk in data to the
@@ -41,21 +72,27 @@ classdef Signal < handle
             %dimensionality) to improve efficiency. Although for practical
             %reason it remains public, it should not be called "manually"
             %by a user.
+            
+            sObj.Buf.append( data );
+            
+        end
+
+        function setData(sObj, data)
+            %setData    Initialize the cyclic buffer using provided data
             %
-            %TO DO: There is no pre-allocation of the Data property of a
-            %signal. This causes substantial increase in computation time.
-                        
-            % Time index of new chunk begining (time is always 1st
-            % dimension)
-            start = size(sObj.Data,1)+1;
+            %USAGE:
+            %   sObj.setData(data)
+            %
+            %INPUT ARGUMENTS:
+            %   sObj : Signal instance
+            %   data : Block of data to initialize the signal with
             
-            % Append the signal
-%             sObj.Data = [sObj.Data; data];
-            sObj.Data = cat(1,sObj.Data,data);
-            
-            % Update LastChunk property
-            sObj.LastChunk = [start start+size(data,1)-1];
-                        
+            % First: clear the buffer
+            sObj.Buf.clear();
+
+            % Then append the provided data
+            if ~isempty(data), sObj.Buf.append( data ); end;
+
         end
         
         function clearData(sObj)
@@ -65,7 +102,53 @@ classdef Signal < handle
             %USAGE
             %   sObj.clearData
             
-            sObj.Data = [];
+            sObj.Buf.clear();
+        end
+        
+        function sb = getSignalBlock(sObj,blocksize_s,backOffset_s)
+            %getSignalBlock   Returns this Signal object's signal data
+            %truncated to the last blocksize_s seconds. In case of too
+            %little data, the block gets filled with zeros from beginning.
+            %
+            %USAGE:
+            %   sb = sObj.getSignalBlock(blocksize_s)
+            %   sb = sObj.getSignalBlock(blocksize_s,backOffset_s)
+            %
+            %INPUT ARGUMENTS:
+            %         sObj : Signal instance
+            %  blocksize_s : Length of the required data block in seconds
+            % backOffset_s : Offset from the end of the signal to the 
+            %                requested block's end in seconds (default: 0s)
+            %
+            %OUTPUT ARGUMENTS:
+            %    sb : signal data block
+            
+            % Get the block duration in samples
+            blocksize_samples = ceil( sObj.FsHz * blocksize_s );
+            
+            % Set default value for backOffset_s
+            if nargin < 3, backOffset_s = 0; end;
+            
+            % Get the offset in samples...
+            offset_samples = ceil( sObj.FsHz * backOffset_s );
+            
+            % ... with a warning if the requested signal is "too old"
+            if offset_samples >= length(sObj.Data)
+                warning( ['You are requesting a block that is not in the ',...
+                    'buffer anymore.'] );
+            end
+            
+            % Figure out the starting index in the buffer
+            blockStart = max( 1, length( sObj.Data ) - ...
+                blocksize_samples - offset_samples + 1 );
+            
+            % Extract the data block
+            sb = sObj.Data(blockStart:end-offset_samples);
+            
+            % Zero-pad the data if not enough samples are available
+            if size( sb, 1 ) < blocksize_samples
+                sb = [zeros( blocksize_samples - size(sb,1), size(sb,2) ); sb];
+            end
             
         end
             
@@ -155,9 +238,7 @@ classdef Signal < handle
             % here?
             validProp = {'Label',...
                          'Name',...
-                         'Dimensions',...
-                         'FsHz',...
-                         'Data'};
+                         'Dimensions'};
                      
             % Loop on the additional arguments
             for ii = 1:2:size(varargin,2)-1
@@ -172,9 +253,6 @@ classdef Signal < handle
                 % Then add the property value
                 sObj.(varargin{ii})=varargin{ii+1};
             end
-            
-            % Latest chunk is empty at instantiation
-            sObj.LastChunk = [];
             
         end
     end

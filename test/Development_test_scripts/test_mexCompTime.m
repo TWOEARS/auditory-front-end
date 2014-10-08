@@ -46,6 +46,6 @@ t_ref = toc;
 fprintf('Elapsed time (approximate) for computation of %s: %fs (with mex), %fs (without mex).\n',request,t_mex-t_ref,t_nomex-t_ref)
 
 % Check that both representations are similar
-m = max(max(max(abs(dObj1.(request){1,1}.Data-dObj2.(request){1,1}.Data))));
+m = max(max(max(abs(dObj1.(request){1,1}.Data(:)-dObj2.(request){1,1}.Data(:)))));
 
 fprintf('Maximum absolute sample-by-sample difference: %f\n',m)

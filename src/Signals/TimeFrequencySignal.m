@@ -14,7 +14,7 @@ classdef TimeFrequencySignal < Signal
     end
     
     methods 
-        function sObj = TimeFrequencySignal(fs,name,cfHz,label,data,canal)
+        function sObj = TimeFrequencySignal(fs,bufferSize_s,name,cfHz,label,data,canal)
             %TimeFrequencySignal    Constructor for the "time-frequency
             %                       representation" children signal class
             %
@@ -38,20 +38,22 @@ classdef TimeFrequencySignal < Signal
             %     sObj : Time-frequency representation signal object 
             %            inheriting the signal class
              
+            sObj = sObj@Signal( fs, bufferSize_s, length(cfHz) );
+            
             if nargin>0     % Safeguard for Matlab empty calls
             
             % Check input arguments
-            if nargin<2||isempty(name)
+            if nargin<3||isempty(name)
                 name = 'tfRepresentation';
                 warning(['A name tag should be assigned to the signal. '...
                     'The name %s was chosen by default'],name)
             end
-            if nargin<6; canal = 'mono'; end
-            if nargin<5||isempty(data); data = []; end
-            if nargin<4||isempty(label)
+            if nargin<7; canal = 'mono'; end
+            if nargin<6||isempty(data); data = []; end
+            if nargin<5||isempty(label)
                 label = name;
             end
-            if nargin<3||isempty(cfHz); cfHz = []; end
+            if nargin<4||isempty(cfHz); cfHz = []; end
             if nargin<1||isempty(fs)
 %                 error('The sampling frequency needs to be provided')
                 fs = [];
@@ -65,9 +67,9 @@ classdef TimeFrequencySignal < Signal
             
             % Populate object properties
             populateProperties(sObj,'Label',label,'Name',name,...
-                'Dimensions','nSamples x nFilters','FsHz',fs);
+                'Dimensions','nSamples x nFilters');
             sObj.cfHz = cfHz;
-            sObj.Data = data;
+            sObj.setData( data );
             sObj.Canal = canal;
             
             end
@@ -79,7 +81,7 @@ classdef TimeFrequencySignal < Signal
             
             % Decide if the plot should be on a linear or dB scale
             switch sObj.Name
-                case {'gammatone','ild','ic_xcorr','itd_xcorr'}
+                case {'gammatone','ild','ic_xcorr','itd_xcorr','onset_strength','offset_strength'}
                     do_dB = 0;
                 case {'innerhaircell','ratemap_magnitude','ratemap_power'}
                     do_dB = 1;
@@ -92,12 +94,10 @@ classdef TimeFrequencySignal < Signal
                 % Get plotting parameters
                 p = getDefaultParameters([],'plotting');
 
+                data = sObj.Data(:).';
                 if do_dB
                     % Get the data in dB
-                    data = 20*log10(abs(sObj.Data.'));
-                else
-                    % Keep linear amplitude
-                    data = sObj.Data.';
+                    data = 20*log10(abs(data));
                 end
 
                 % Get a time vector

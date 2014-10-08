@@ -132,7 +132,7 @@ switch lower(scale)
         powR = sum(sig2.^2,1);
         
         % Normalization
-        xcorr = c ./ repmat(sqrt(powL .* powR),[length(lags) 1]);
+        xcorr = c ./ repmat(eps + sqrt(powL .* powR),[length(lags) 1]);
     otherwise
         error(['Normalization method ''',lower(scale),...
                ''' is not supported.'])

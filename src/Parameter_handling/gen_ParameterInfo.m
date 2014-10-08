@@ -16,6 +16,10 @@ clear pInfo
 % Add all parameters
 
 % Processing:
+    % Time-domain framing processor
+    addParameterInfo('fr','fr_wname','hamming','Window name descriptor (see window.m)','Time-domain signal framing processor')
+    addParameterInfo('fr','fr_wSize',1024,'Window duration in samples')
+    addParameterInfo('fr','fr_hSize',512,'Step size between windows in samples')
 
     % Gammatone filterbank
     addParameterInfo('gammatone','f_low',80,'Lowest center frequency (Hz)','Gammatone filterbank')
@@ -33,6 +37,15 @@ clear pInfo
     % Inner hair-cell envelope extraction
     addParameterInfo('ihc','IHCMethod','dau','Inner hair-cell envelope extraction method (''none'', ''halfwave'', ''fullwave'', ''square'', ''hilbert'', ''joergensen'', ''dau'', ''breebart'', ''berstein'')','Inner hair-cell envelope extraction')
 
+    % Amplitude modulation filterbank
+    addParameterInfo('am','am_nFilters',15,'Requested number of filters (integer)','Amplitude modulation filterbank')
+    addParameterInfo('am','am_range',[0 400],'Modulation frequency range (Hz)')
+    addParameterInfo('am','am_win','rectwin','STFT/framing window type')
+    addParameterInfo('am','am_bSize',512,'STFT/framing block size')
+    addParameterInfo('am','am_olap',256,'STFT/framing overlap')
+    addParameterInfo('am','am_type','fft','Filterbank type (''fft'' or ''filter'')')
+    addParameterInfo('am','am_dsRatio',4,'Downsampling ratio')
+    
     % Interaural Level Difference (ILD)
     addParameterInfo('ild','ild_wname','hann','Window name','Interaural Level Difference')
     addParameterInfo('ild','ild_wSizeSec',20E-3,'Window duration (s)')
@@ -45,6 +58,12 @@ clear pInfo
     addParameterInfo('rm','rm_scaling','power','Ratemap scaling (''power'' or ''magnitude'')')
     addParameterInfo('rm','rm_decaySec',8E-3,'Leaky integrator time constant (s)')
 
+    % Onset strength
+    addParameterInfo('ons','ons_maxOnsetdB',30,'Upper limit for onset value','Onset strength extraction')
+    
+     % Onset strength
+    addParameterInfo('ofs','ofs_maxOffsetdB',30,'Upper limit for offset value','Offset strength extraction')
+    
     % Auto-correlation
     addParameterInfo('ac','ac_wname','hann','Window name','Auto-correlation')
     addParameterInfo('ac','ac_wSizeSec',20E-3,'Window duration (s)')
@@ -59,11 +78,20 @@ clear pInfo
     addParameterInfo('cc','cc_hSizeSec',10E-3,'Window step size (s)')
     addParameterInfo('cc','cc_maxDelaySec',1.1E-3,'Maximum delay in cross-correlation computation (s)')
 
+    % Cross-correlation feature
+    addParameterInfo('ccf','ccf_factor',3,'Downsampling factor for the lag vector (positive integer)','Cross-correlation feature')
+    
     % Interaural coherence
     addParameterInfo('ic',[],[],[],'Interaural coherence')
     
     % Interaural time difference
     addParameterInfo('itd',[],[],[],'Interaural Time Difference')
+    
+    % Spectral features
+    addParameterInfo('sf','sf_requests','all','List (cell array) of requested spectral features, type ''help SpectralFeaturesProc'' for a list','Spectral features')
+    addParameterInfo('sf','sf_br_cf',1500,'Cutoff frequency for brightness computation')
+    addParameterInfo('sf','sf_hfc_cf',4000,'Cutoff frequency for high-frequency content computation')
+    addParameterInfo('sf','sf_ro_thres',0.8,'Threshold (re. 1) for spectral rolloff computation')
     
 % Plotting:
     addParameterInfo('plotting','ftype','Helvetica','Plots font name','Plot properties')
