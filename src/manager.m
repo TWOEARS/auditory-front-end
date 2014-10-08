@@ -857,8 +857,8 @@ classdef manager < handle
                             mObj.Processors{ii,1} = drnlProc(p.drnl_CF, p.fs);       % where should CF come from!?
                             mObj.Processors{ii,2} = drnlProc(p.drnl_CF, p.fs);
                             % Generate new signals
-                            sig_l = TimeFrequencySignal(mObj.Processors{ii,1}.FsHzOut,'drnl','DRNL filterbank output','left');
-                            sig_r = TimeFrequencySignal(mObj.Processors{ii,2}.FsHzOut,'drnl','DRNL filterbank output','right');
+                            sig_l = TimeFrequencySignal(mObj.Processors{ii,1}.FsHzOut,mObj.Data.bufferSize_s,'drnl','DRNL filterbank output',[],'left');
+                            sig_r = TimeFrequencySignal(mObj.Processors{ii,2}.FsHzOut,mObj.Data.bufferSize_s,'drnl','DRNL filterbank output',[],'right');
                             % Add the signals to the data object
                             mObj.Data.addSignal(sig_l);
                             mObj.Data.addSignal(sig_r)
@@ -866,7 +866,7 @@ classdef manager < handle
                             % Instantiate a processor
                             mObj.Processors{ii,1} = drnlProc(p.drnl_CF, p.fs);
                             % Generate a new signal
-                            sig = TimeFrequencySignal(mObj.Processors{ii,1}.FsHzOut,'drnl','DRNL filterbank output','mono');
+                            sig = TimeFrequencySignal(mObj.Processors{ii,1}.FsHzOut,mObj.Data.bufferSize_s,'drnl','DRNL filterbank output',[],'mono');
                             % Add signal to the data object
                             mObj.Data.addSignal(sig);
                         end
