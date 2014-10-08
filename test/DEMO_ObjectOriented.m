@@ -1,8 +1,8 @@
-%% Object-oriented implementation of WP2 bottom-up processing
+%% Object-oriented implementation of Two!Ears Auditory Front-End processing
 %
 
-% This Demo scripts presents the object-oriented implementation of the WP2
-% bottom-up cue/feature extraction. It is intended as a demo at that stage,
+% This Demo scripts presents the object-oriented implementation of the Two!Ears
+% Auditory Front-End cue/feature extraction. It is intended as a demo at that stage,
 % and not a working copy, as important feature are not implemented fully
 % yet.
 %
@@ -23,11 +23,7 @@ close all
 
 % Get to correct directory and add working directories to path
 path = fileparts(mfilename('fullpath')); 
-run([path filesep '..' filesep 'src' filesep 'startWP2.m'])
-% cd(path)
-% cd ..
-% addpath Test signals
-% % addpath AuditoryModel
+run([path filesep '..' filesep 'startAuditoryFrontEnd.m'])
 
 
 % Load a signal
