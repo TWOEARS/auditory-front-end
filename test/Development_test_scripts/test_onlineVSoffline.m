@@ -6,7 +6,7 @@ clear
 
 % Request and parameters for feature extraction
 % request = {'modulation'};
-request = {'onset_strength'};
+request = {'drnl'};
 p = [];
 p = genParStruct('IHCMethod','fullwave');%,'am_win','rectwin');
 
@@ -82,10 +82,11 @@ switch s_off.Name
         
 
     case {'innerhaircell' 'gammatone' 'onset_strength' 'offset_strength' 'ratemap_magnitude' ...
-            'ratemap_power'}
+            'ratemap_power' 'drnl'}
         figure,imagesc(20*log10(abs(s_off.Data(:)-s_on.Data(:))+eps).')
+        axis xy
         colorbar
-        title(['Chunk vs signal-based, ' s_off.Name])
+        title(['Error for chunk vs signal-based, ' s_off.Name])
         
     otherwise
         fprintf('\tCould not print the online vs. offline data difference\n')

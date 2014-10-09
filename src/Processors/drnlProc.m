@@ -139,13 +139,13 @@ classdef drnlProc < Processor
             % GTF - here use BW_lin and BW_nlin as the bandwidth parameter 
             % (in Hz) instead of bw in ERBs
             pObj.GTFilters_lin = pObj.populateGTFilters(pObj.LP_lin_cutoff, fs,...
-                irType, n, pObj.BW_lin, bAlign, durSec);
+                irType, n, pObj.BW_lin, bAlign, durSec, pObj.nGTfilt_lin);
             pObj.GTFilters_nlin = pObj.populateGTFilters(pObj.LP_nlin_cutoff, fs,...
-                irType, n, pObj.BW_nlin, bAlign, durSec); 
+                irType, n, pObj.BW_nlin, bAlign, durSec, pObj.nGTfilt_nlin); 
             
             % Instantiating the LPFs
-            pObj.LPFilters_lin = pObj.populateLPFilters(pObj.LP_lin_cutoff, fs);
-            pObj.LPFilters_nlin = pObj.populateLPFilters(pObj.LP_nlin_cutoff, fs);           
+            pObj.LPFilters_lin = pObj.populateLPFilters(pObj.LP_lin_cutoff, fs, pObj.nLPfilt_lin);
+            pObj.LPFilters_nlin = pObj.populateLPFilters(pObj.LP_nlin_cutoff, fs, pObj.nLPfilt_nlin);           
                         
             % Setting up additional properties
             % 1- Global properties
@@ -209,12 +209,12 @@ classdef drnlProc < Processor
                 % apply linear gain
                 out_lin(:, ii) = in.*pObj.g(ii);
                 % linear path GT filtering - cascaded "nGTfilt_lin" times
-                for jj = 1: pObj.nGTfilt_lin
+                for jj = 1:1% pObj.nGTfilt_lin
                     out_lin(:, ii) = ...
                         pObj.GTFilters_lin(ii).filter(out_lin(:, ii));
                 end
                 % linear path LP filtering - cascaded "nLPfilt_lin" times
-                for jj=1:pObj.nLPfilt_lin
+                for jj=1:1%pObj.nLPfilt_lin
                     out_lin(:, ii) = ...
                         pObj.LPFilters_lin(ii).filter(out_lin(:, ii));
                 end
@@ -223,7 +223,7 @@ classdef drnlProc < Processor
                 out_nlin(:, ii) = in;
                 % nonlinear path GT filtering - cascaded "nGTfilt_nlin"
                 % times
-                for jj = 1: pObj.nGTfilt_nlin
+                for jj = 1:1% pObj.nGTfilt_nlin
                     out_nlin(:, ii) = ...
                         pObj.GTFilters_nlin(ii).filter(out_nlin(:, ii));
                 end               
@@ -235,12 +235,12 @@ classdef drnlProc < Processor
                 
                 out_nlin(:, ii) = sign(out_nlin(:, ii)).*min(y_decide, [], 2);
                 % nonlinear path GT filtering again afterwards
-                for jj = 1: pObj.nGTfilt_nlin
+                for jj = 1:1% pObj.nGTfilt_nlin
                     out_nlin(:, ii) = ...
                         pObj.GTFilters_nlin(ii).filter(out_nlin(:, ii));
                 end  
                 % nonlinear path LP filtering - cascaded "nLPfilt_nlin" times
-                for jj=1:pObj.nLPfilt_nlin
+                for jj=1:1%pObj.nLPfilt_nlin
                     out_nlin(:, ii) = ...
                         pObj.LPFilters_nlin(ii).filter(out_nlin(:, ii));
                 end                
@@ -322,7 +322,7 @@ classdef drnlProc < Processor
     end
     
     methods (Access = private)
-        function obj = populateGTFilters(pObj,cfHz,fs,irType,n,bw,bAlign,durSec)
+        function obj = populateGTFilters(pObj,cfHz,fs,irType,n,bw,bAlign,durSec,cascadeOrder)
             % This function is a workaround to assign an array of objects
             % as one of the processor's property, should remain private
   
@@ -336,41 +336,41 @@ classdef drnlProc < Processor
             % Also note that bw is supposed to be a function of cf (could
             % be a vector!)
             
-            theta = 2*pi*cfHz(:)/fs;        % convert cfHz to column
-            phi   = 2*pi*bw(:)/fs;             % bw should be in Hz!!!
-            alpha = -exp(-phi).*cos(theta);
-
-            b1 = 2*alpha;
-            b2 = exp(-2*phi);
-            a0 = abs( (1+b1.*cos(theta)-1i*b1.*sin(theta)+b2.*cos(2*theta)-1i*b2.*sin(2*theta)) ./ (1+alpha.*cos(theta)-1i*alpha.*sin(theta))  );
-            a1 = alpha.*a0;
-
-            % adapt to matlab filter terminology
-            B=[a0, a1];
-            A=[ones(length(theta), 1), b1, b2];
-            
-            % Preallocate memory by instantiating last filter
-            obj(1,nFilter) = genericFilter(B(nFilter,:), A(nFilter, :), fs);
-            % Instantiating remaining filters
-            for ii = 1:nFilter-1
-                obj(1,ii) = genericFilter(B(ii,:), A(ii,:), fs);
-            end                                  
+%             theta = 2*pi*cfHz(:)/fs;        % convert cfHz to column
+%             phi   = 2*pi*bw(:)/fs;             % bw should be in Hz!!!
+%             alpha = -exp(-phi).*cos(theta);
+% 
+%             b1 = 2*alpha;
+%             b2 = exp(-2*phi);
+%             a0 = abs( (1+b1.*cos(theta)-1i*b1.*sin(theta)+b2.*cos(2*theta)-1i*b2.*sin(2*theta)) ./ (1+alpha.*cos(theta)-1i*alpha.*sin(theta))  );
+%             a1 = alpha.*a0;
+% 
+%             % adapt to matlab filter terminology
+%             B=[a0, a1];
+%             A=[ones(length(theta), 1), b1, b2];
+%             
+%             % Preallocate memory by instantiating last filter
+%             obj(1,nFilter) = genericFilter(B(nFilter,:), A(nFilter, :), fs);
+%             % Instantiating remaining filters
+%             for ii = 1:nFilter-1
+%                 obj(1,ii) = genericFilter(B(ii,:), A(ii,:), fs);
+%             end                                  
             
 %             % Use gammatoneFilter object instead of genericFilter
 %             % In this case bw is fixed as 1.08 ERBs
 % 
 %             % Preallocate memory by instantiating last filter
-%             obj(1,nFilter) = gammatoneFilter(cfHz(nFilter),fs,irType,n,...
-%                                         bw(nFilter),bAlign,durSec);
-%             % Instantiating remaining filters
-%             for ii = 1:nFilter-1
-%                 obj(1,ii) = gammatoneFilter(cfHz(ii),fs,irType,n,...
-%                                         bw(ii),bAlign,durSec);
-%             end                        
+            obj(1,nFilter) = gammatoneFilter(cfHz(nFilter),fs,irType,n,...
+                                        bw(nFilter),bAlign,durSec,cascadeOrder);
+            % Instantiating remaining filters
+            for ii = 1:nFilter-1
+                obj(1,ii) = gammatoneFilter(cfHz(ii),fs,irType,n,...
+                                        bw(ii),bAlign,durSec,cascadeOrder);
+            end                        
             
         end
         
-        function obj = populateLPFilters(pObj,cfHz,fs)
+        function obj = populateLPFilters(pObj,cfHz,fs,cascadeOrder)
             % This function is a workaround to assign an array of objects
             % as one of the processor's property, should remain private
 
@@ -389,10 +389,10 @@ classdef drnlProc < Processor
             A = [ones(length(theta), 1), D, E];
                                     
             % Preallocate memory by instantiating last filter
-            obj(1,nFilter) = genericFilter(B(nFilter,:), A(nFilter, :), fs);
+            obj(1,nFilter) = genericFilter(B(nFilter,:), A(nFilter, :), fs,[],cascadeOrder);
             % Instantiating remaining filters
             for ii = 1:nFilter-1
-                obj(1,ii) = genericFilter(B(ii,:), A(ii,:), fs);
+                obj(1,ii) = genericFilter(B(ii,:), A(ii,:), fs,[],cascadeOrder);
             end                        
             
 %             % use bwFilter instead of genericFilter

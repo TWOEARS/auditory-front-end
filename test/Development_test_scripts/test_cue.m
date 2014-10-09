@@ -22,7 +22,7 @@ end
 clear earSignals
 
 % Parameters
-request = {'modulation'};
+request = {'drnl'};
 p = genParStruct('am_type','filter');
 
 % Create a data object

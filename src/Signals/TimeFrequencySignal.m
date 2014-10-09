@@ -81,9 +81,9 @@ classdef TimeFrequencySignal < Signal
             
             % Decide if the plot should be on a linear or dB scale
             switch sObj.Name
-                case {'gammatone','ild','ic_xcorr','itd_xcorr','onset_strength','offset_strength'}
+                case {'gammatone','ild','ic_xcorr','itd_xcorr','onset_strength','offset_strength','drnl'}
                     do_dB = 0;
-                case {'innerhaircell','ratemap_magnitude','ratemap_power','drnl'}
+                case {'innerhaircell','ratemap_magnitude','ratemap_power'}
                     do_dB = 1;
                 otherwise 
                     warning('Cannot plot this object')
@@ -151,11 +151,11 @@ classdef TimeFrequencySignal < Signal
 
                 % Scaling the plot
                 switch sObj.Name
-                    case {'innerhaircell','ratemap_magnitude','ratemap_power','drnl'}
+                    case {'innerhaircell','ratemap_magnitude','ratemap_power'}
                         m = max(data(:));    % Get maximum value for scaling
                         set(gca,'CLim',[m-p.dynrange m])
 
-                    case {'gammatone','ild','itc_xcorr'}
+                    case {'gammatone','ild','itc_xcorr','drnl'}
                         m = max(abs(data(:)))+eps;
                         set(gca,'CLim',[-m m])
 

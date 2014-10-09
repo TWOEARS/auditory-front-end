@@ -64,7 +64,7 @@ classdef IHCenvelopeProc < Processor
 
                  case 'breebart'
                      % First order butterworth filter @ 2000Hz
-                     pObj.IHCFilter = bwFilter(pObj.FsHzIn,5,2000);
+                     pObj.IHCFilter = bwFilter(pObj.FsHzIn,1,2000,[],5);
                      % TO DO: CAN'T SERIES THE FILTERS ATM
 
                  case 'bernstein'
