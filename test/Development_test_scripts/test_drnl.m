@@ -103,13 +103,13 @@ mObj.processSignal();
 
 % dObj.drnl.Data vs IntRep.BM
 
-diff = dObj.drnl{1}.Data - IntRep.BM;
+diff = (abs(dObj.drnl{1}.Data(:) - IntRep.BM)+eps).';
 figure;
-imagesc(dObj.drnl{1}.Data); colorbar;
+imagesc(dObj.drnl{1}.Data(:).'); colorbar;
 figure;
-imagesc(IntRep.BM); colorbar;
+imagesc(IntRep.BM.'); colorbar;
 figure;
-imagesc(diff); colorbar;
+imagesc(20*log10(diff)); colorbar;
 
 
 % dObj.drnl{1}.plot;      % this needs revising - inside TImeFrequencySignal

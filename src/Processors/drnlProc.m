@@ -12,13 +12,15 @@ classdef drnlProc < Processor
         g               % linear path gain
         LP_lin_cutoff
         nLPfilt_lin
-        % nonlinear path
+        % nonlinear path: has two [cascaded] GT filter stages before and
+        % after nonlinearity
         Fc_nlin         % nonlinear path GT filter centre frequency
         nGTfilt_nlin    % nonlinear path GT filter # of cascades
         BW_nlin         % nonlinear path GT filter bandwidth
-        a
+        a               % these parameters may have different definitions depending on the implementation model (CASP? MAP?)
         b
         c
+        nGTfilt_nlin2   % nonlinear path GT filter AFTER BROKEN STICK STAGE, # of cascades
         LP_nlin_cutoff
         nLPfilt_nlin
 
@@ -27,8 +29,9 @@ classdef drnlProc < Processor
     properties % (GetAccess = private)
         GTFilters_lin           % GT filters for linear path
         GTFilters_nlin          % GT filters for nonlinear path 
-        LPFilters_lin                 % Low Pass Filters for linear path
-        LPFilters_nlin                % Low Pass Filters for nonlinear path
+        GTFilters_nlin2         % GT filters for nonlinear path, AFTER BROKEN STICK STAGE
+        LPFilters_lin           % Low Pass Filters for linear path
+        LPFilters_nlin          % Low Pass Filters for nonlinear path
         
     end
         
@@ -83,19 +86,23 @@ classdef drnlProc < Processor
                 pObj.Fc_nlin = 10.^(-0.05252+1.01650*log10(CF)); % Hz, CF_nlin
                 pObj.nGTfilt_nlin = 2; % number of cascaded gammatone filters
                 pObj.BW_nlin = 10.^(-0.03193+.70*log10(CF)); % Hz, BW_nlin
-                if CF<=1000
-                    % SE 03.02.2011, the 2008 paper states <= 1500 Hz
-                    % 06/04/2011 CI: answer from Morten regarding the discontinuity:
-                    % This is imprecisely described in the paper. It was simulated as
-                    % described with parameter a, having the value for 1500 Hz, for CFs
-                    % above 1000 Hz. I do recognize the discontinuity in the derived
-                    % parameter, but I think this is not critical
-                    pObj.a = 10.^(1.40298+.81916*log10(CF)); % a, the 1500 assumption is no good for compressionat low freq filters
-                    pObj.b = 10.^(1.61912-.81867*log10(CF)); % b [(m/s)^(1-c)]
-                else
-                    pObj.a = 10.^(1.40298+.81916*log10(1500)).*ones(size(CF)); % a, the 1500 assumption is no good for compressionat low freq filters
-                    pObj.b = 10.^(1.61912-.81867*log10(1500)).*ones(size(CF)); % b [(m/s)^(1-c)]
+                % Warning: note that CF can be a vector now!!
+                for ii=1:length(CF)                  
+                    if CF(ii)<=1000
+                        % SE 03.02.2011, the 2008 paper states <= 1500 Hz
+                        % 06/04/2011 CI: answer from Morten regarding the discontinuity:
+                        % This is imprecisely described in the paper. It was simulated as
+                        % described with parameter a, having the value for 1500 Hz, for CFs
+                        % above 1000 Hz. I do recognize the discontinuity in the derived
+                        % parameter, but I think this is not critical
+                        pObj.a(ii) = 10.^(1.40298+.81916*log10(CF(ii))); % a, the 1500 assumption is no good for compressionat low freq filters
+                        pObj.b(ii) = 10.^(1.61912-.81867*log10(CF(ii))); % b [(m/s)^(1-c)]
+                    else
+                        pObj.a(ii) = 10.^(1.40298+.81916*log10(1500)); % a, the 1500 assumption is no good for compressionat low freq filters
+                        pObj.b(ii) = 10.^(1.61912-.81867*log10(1500)); % b [(m/s)^(1-c)]
+                    end
                 end
+                pObj.nGTfilt_nlin2 = 2; % number of cascaded gammatone filters AFTER BROKEN STICK NONLINEARITY STAGE
                 pObj.c = 10^(-.60206); % c, compression coeff
                 pObj.LP_nlin_cutoff = 10.^(-0.05252+1.01*log10(CF)); % LP_nlincutoff
                 pObj.nLPfilt_nlin = 1; % no. of cascaded LP filters in nlin path            
@@ -142,6 +149,8 @@ classdef drnlProc < Processor
                 irType, n, pObj.BW_lin, bAlign, durSec, pObj.nGTfilt_lin);
             pObj.GTFilters_nlin = pObj.populateGTFilters(pObj.LP_nlin_cutoff, fs,...
                 irType, n, pObj.BW_nlin, bAlign, durSec, pObj.nGTfilt_nlin); 
+            pObj.GTFilters_nlin2 = pObj.populateGTFilters(pObj.LP_nlin_cutoff, fs,...
+                irType, n, pObj.BW_nlin, bAlign, durSec, pObj.nGTfilt_nlin2); 
             
             % Instantiating the LPFs
             pObj.LPFilters_lin = pObj.populateLPFilters(pObj.LP_lin_cutoff, fs, pObj.nLPfilt_lin);
@@ -209,41 +218,32 @@ classdef drnlProc < Processor
                 % apply linear gain
                 out_lin(:, ii) = in.*pObj.g(ii);
                 % linear path GT filtering - cascaded "nGTfilt_lin" times
-                for jj = 1:1% pObj.nGTfilt_lin
+                % already (when the filter objects were initiated)
                     out_lin(:, ii) = ...
                         pObj.GTFilters_lin(ii).filter(out_lin(:, ii));
-                end
                 % linear path LP filtering - cascaded "nLPfilt_lin" times
-                for jj=1:1%pObj.nLPfilt_lin
                     out_lin(:, ii) = ...
                         pObj.LPFilters_lin(ii).filter(out_lin(:, ii));
-                end
                 
                 % nonlinear path
                 out_nlin(:, ii) = in;
                 % nonlinear path GT filtering - cascaded "nGTfilt_nlin"
                 % times
-                for jj = 1:1% pObj.nGTfilt_nlin
                     out_nlin(:, ii) = ...
                         pObj.GTFilters_nlin(ii).filter(out_nlin(:, ii));
-                end               
                 % broken stick nonlinearity
                 % refer to (Lopez-Poveda and Meddis, 2001) 
                 % note that out_nlin(:, ii) is a COLUMN vector!
                 y_decide = [pObj.a(ii).*abs(out_nlin(:, ii)) ...
                     pObj.b(ii).*abs(out_nlin(:, ii)).^pObj.c];
-                
                 out_nlin(:, ii) = sign(out_nlin(:, ii)).*min(y_decide, [], 2);
-                % nonlinear path GT filtering again afterwards
-                for jj = 1:1% pObj.nGTfilt_nlin
+                % nonlinear path GT filtering again afterwards - cascaded
+                % "nGTfilt_nlin2" times
                     out_nlin(:, ii) = ...
-                        pObj.GTFilters_nlin(ii).filter(out_nlin(:, ii));
-                end  
+                        pObj.GTFilters_nlin2(ii).filter(out_nlin(:, ii));
                 % nonlinear path LP filtering - cascaded "nLPfilt_nlin" times
-                for jj=1:1%pObj.nLPfilt_nlin
                     out_nlin(:, ii) = ...
                         pObj.LPFilters_nlin(ii).filter(out_nlin(:, ii));
-                end                
                 
             end
             % now add the outputs
@@ -268,6 +268,7 @@ classdef drnlProc < Processor
             for ii = 1:nFilter
                 pObj.GTFilters_lin(ii).reset();
                 pObj.GTFilters_nlin(ii).reset();
+                pObj.GTFilters_nlin2(ii).reset();
                 pObj.LPFilters_lin(ii).reset();
                 pObj.LPFilters_nlin(ii).reset();
             end
@@ -336,37 +337,37 @@ classdef drnlProc < Processor
             % Also note that bw is supposed to be a function of cf (could
             % be a vector!)
             
-%             theta = 2*pi*cfHz(:)/fs;        % convert cfHz to column
-%             phi   = 2*pi*bw(:)/fs;             % bw should be in Hz!!!
-%             alpha = -exp(-phi).*cos(theta);
-% 
-%             b1 = 2*alpha;
-%             b2 = exp(-2*phi);
-%             a0 = abs( (1+b1.*cos(theta)-1i*b1.*sin(theta)+b2.*cos(2*theta)-1i*b2.*sin(2*theta)) ./ (1+alpha.*cos(theta)-1i*alpha.*sin(theta))  );
-%             a1 = alpha.*a0;
-% 
-%             % adapt to matlab filter terminology
-%             B=[a0, a1];
-%             A=[ones(length(theta), 1), b1, b2];
-%             
-%             % Preallocate memory by instantiating last filter
-%             obj(1,nFilter) = genericFilter(B(nFilter,:), A(nFilter, :), fs);
-%             % Instantiating remaining filters
-%             for ii = 1:nFilter-1
-%                 obj(1,ii) = genericFilter(B(ii,:), A(ii,:), fs);
-%             end                                  
+            theta = 2*pi*cfHz(:)/fs;        % convert cfHz to column
+            phi   = 2*pi*bw(:)/fs;             % bw should be in Hz!!!
+            alpha = -exp(-phi).*cos(theta);
+
+            b1 = 2*alpha;
+            b2 = exp(-2*phi);
+            a0 = abs( (1+b1.*cos(theta)-1i*b1.*sin(theta)+b2.*cos(2*theta)-1i*b2.*sin(2*theta)) ./ (1+alpha.*cos(theta)-1i*alpha.*sin(theta))  );
+            a1 = alpha.*a0;
+
+            % adapt to matlab filter terminology
+            B=[a0, a1];
+            A=[ones(length(theta), 1), b1, b2];
+            
+            % Preallocate memory by instantiating last filter
+            obj(1,nFilter) = genericFilter(B(nFilter,:), A(nFilter, :), fs, [], cascadeOrder);
+            % Instantiating remaining filters
+            for ii = 1:nFilter-1
+                obj(1,ii) = genericFilter(B(ii,:), A(ii,:), fs, [], cascadeOrder);
+            end                                  
             
 %             % Use gammatoneFilter object instead of genericFilter
 %             % In this case bw is fixed as 1.08 ERBs
 % 
 %             % Preallocate memory by instantiating last filter
-            obj(1,nFilter) = gammatoneFilter(cfHz(nFilter),fs,irType,n,...
-                                        bw(nFilter),bAlign,durSec,cascadeOrder);
-            % Instantiating remaining filters
-            for ii = 1:nFilter-1
-                obj(1,ii) = gammatoneFilter(cfHz(ii),fs,irType,n,...
-                                        bw(ii),bAlign,durSec,cascadeOrder);
-            end                        
+%             obj(1,nFilter) = gammatoneFilter(cfHz(nFilter),fs,irType,n,...
+%                                         bw(nFilter),bAlign,durSec,cascadeOrder);
+%             % Instantiating remaining filters
+%             for ii = 1:nFilter-1
+%                 obj(1,ii) = gammatoneFilter(cfHz(ii),fs,irType,n,...
+%                                         bw(ii),bAlign,durSec,cascadeOrder);
+%             end                        
             
         end
         
