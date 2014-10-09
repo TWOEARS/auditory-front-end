@@ -95,7 +95,6 @@ out = mObj.addProcessor(request, param_struct);
 % param_struct = genParStruct('drnl_CF', [500 1000 5000 10000]);
 % out = mObj.addProcessor(request, param_struct);
 
-
 %% Request processing
 mObj.processSignal();
 

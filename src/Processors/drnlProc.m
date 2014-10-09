@@ -290,33 +290,9 @@ classdef drnlProc < Processor
             % DRNLParams are fixed from physiological data or determined
             % from CF - so check CF only at this stage
             
-            p_list = {'CF'};
             
             % Initialization of a parameters difference vector
-            delta = zeros(size(p_list,2),1);
-            
-            % Loop on the list of parameters
-            for ii = 1:size(p_list,2)
-                try
-                    if size(pObj.(p_list{ii}))==size(p.(p_list{ii}))
-                        delta(ii) = max(abs(pObj.(p_list{ii}) - p.(p_list{ii})));
-                    else
-                        delta(ii) = 1;
-                    end
-                    
-                catch err
-                    % Warning: something is missing
-                    warning('Parameter %s is missing in input p.',p_list{ii})
-                    delta(ii) = 1;
-                end
-            end
-            
-            % Check if delta is a vector of zeros
-            if max(delta)>0
-                hp = false;
-            else
-                hp = true;
-            end
+            hp = isequal(pObj.CF,p.drnl_CF);
             
         end  
         
