@@ -328,45 +328,45 @@ classdef drnlProc < Processor
   
             nFilter = numel(cfHz);
          
-%             % Use genericFilter object to exactly copy CASP2008
-%             % implementation
-%             % In this case only cfHz, fs, and bw are necessary
-%             % bw here should indicate the bandwidth in Hz (compare to the
-%             % use of bw below)
-%             % Also note that bw is supposed to be a function of cf (could
-%             % be a vector!)
-%             
-%             theta = 2*pi*cfHz(:)/fs;        % convert cfHz to column
-%             phi   = 2*pi*bw(:)/fs;             % bw should be in Hz!!!
-%             alpha = -exp(-phi).*cos(theta);
-% 
-%             b1 = 2*alpha;
-%             b2 = exp(-2*phi);
-%             a0 = abs( (1+b1.*cos(theta)-1i*b1.*sin(theta)+b2.*cos(2*theta)-1i*b2.*sin(2*theta)) ./ (1+alpha.*cos(theta)-1i*alpha.*sin(theta))  );
-%             a1 = alpha.*a0;
-% 
-%             % adapt to matlab filter terminology
-%             B=[a0, a1];
-%             A=[ones(length(theta), 1), b1, b2];
-%             
-%             % Preallocate memory by instantiating last filter
-%             obj(1,nFilter) = genericFilter(B(nFilter,:), A(nFilter, :), fs);
-%             % Instantiating remaining filters
-%             for ii = 1:nFilter-1
-%                 obj(1,ii) = genericFilter(B(ii,:), A(ii,:), fs);
-%             end                                  
+            % Use genericFilter object to exactly copy CASP2008
+            % implementation
+            % In this case only cfHz, fs, and bw are necessary
+            % bw here should indicate the bandwidth in Hz (compare to the
+            % use of bw below)
+            % Also note that bw is supposed to be a function of cf (could
+            % be a vector!)
             
-            % Use gammatoneFilter object instead of genericFilter
-            % In this case bw is fixed as 1.08 ERBs
+            theta = 2*pi*cfHz(:)/fs;        % convert cfHz to column
+            phi   = 2*pi*bw(:)/fs;             % bw should be in Hz!!!
+            alpha = -exp(-phi).*cos(theta);
 
+            b1 = 2*alpha;
+            b2 = exp(-2*phi);
+            a0 = abs( (1+b1.*cos(theta)-1i*b1.*sin(theta)+b2.*cos(2*theta)-1i*b2.*sin(2*theta)) ./ (1+alpha.*cos(theta)-1i*alpha.*sin(theta))  );
+            a1 = alpha.*a0;
+
+            % adapt to matlab filter terminology
+            B=[a0, a1];
+            A=[ones(length(theta), 1), b1, b2];
+            
             % Preallocate memory by instantiating last filter
-            obj(1,nFilter) = gammatoneFilter(cfHz(nFilter),fs,irType,n,...
-                                        bw(nFilter),bAlign,durSec);
+            obj(1,nFilter) = genericFilter(B(nFilter,:), A(nFilter, :), fs);
             % Instantiating remaining filters
             for ii = 1:nFilter-1
-                obj(1,ii) = gammatoneFilter(cfHz(ii),fs,irType,n,...
-                                        bw(ii),bAlign,durSec);
-            end                        
+                obj(1,ii) = genericFilter(B(ii,:), A(ii,:), fs);
+            end                                  
+            
+%             % Use gammatoneFilter object instead of genericFilter
+%             % In this case bw is fixed as 1.08 ERBs
+% 
+%             % Preallocate memory by instantiating last filter
+%             obj(1,nFilter) = gammatoneFilter(cfHz(nFilter),fs,irType,n,...
+%                                         bw(nFilter),bAlign,durSec);
+%             % Instantiating remaining filters
+%             for ii = 1:nFilter-1
+%                 obj(1,ii) = gammatoneFilter(cfHz(ii),fs,irType,n,...
+%                                         bw(ii),bAlign,durSec);
+%             end                        
             
         end
         
