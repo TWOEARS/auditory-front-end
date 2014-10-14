@@ -34,7 +34,8 @@ switch sig
         dep = {'time'};
         
     case 'innerhaircell'
-        dep = {'gammatone'};
+%         dep = {'gammatone'};
+        dep = {'drnl'};
         
     case 'modulation'
         dep = {'innerhaircell'};

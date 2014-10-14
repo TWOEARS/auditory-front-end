@@ -22,8 +22,14 @@ end
 clear earSignals
 
 % Parameters
-request = {'drnl'};
-p = genParStruct('am_type','filter');
+request = {'innerhaircell'};
+% p = genParStruct('nChannels',15);
+p = genParStruct('drnl_CF', ...
+    1.0e+03 * [0.0800 0.1616 0.2648 0.3952 0.5601 0.7686 1.0321 1.3653 1.7866 ...
+    2.3191 2.9924 3.8436 4.9197 6.2801 8.0000], ...
+    'cfHz', ...
+    1.0e+03 * [0.0800 0.1616 0.2648 0.3952 0.5601 0.7686 1.0321 1.3653 1.7866 ...
+    2.3191 2.9924 3.8436 4.9197 6.2801 8.0000]);
 
 % Create a data object
 dObj = dataObject(data,fsHz);
