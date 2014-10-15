@@ -3,7 +3,17 @@ classdef drnlProc < Processor
     properties
         % Firstly follow Jepsen et al. 2008 and then accept MAP1_14-style
         % manual parameter input
-        CF              % Characteristic Frequencies
+        cfHz            % Characteristic Frequencies 
+        % NOTE: parameter cfHz here is DIFFERENT FROM cfHz as used in
+        % gammatoneProc! - cfHz in gammatoneProc means CENTER FREQUENCY
+        % cfHz is used just to follow the framework convention - e.g., some
+        % processors after the gammatone filterbank stage expect 'cfHz' for
+        % internal operations, and this should be the 'BM characteristic
+        % frequency' when the gammatone filterbank is replaced by DRNL 
+        % filterbank. See the constructor for the difference in the naming
+        % convention: Characteristic Frequencies are denoted by CF, Center
+        % Frequencies are denoted by Fc
+        
         % Parameters of DRNL filterbank blocks
         % linear path
         Fc_lin          % linear path GT filter centre frequency
@@ -37,7 +47,27 @@ classdef drnlProc < Processor
         
     methods
         function pObj = drnlProc(CF, fs, DRNLParams)
-          
+            %drnlProc      Construct a DRNL filterbank inheriting
+            %                   the "processor" class
+            %
+            %USAGE
+            % -Minimal usage, either (in order of priority)
+            %   pObj = drnlProc(CF, fs, DRNLParams)
+            %   pObj = drnlProc(CF, fs)
+            %   pObj = drnlProc(CF)
+            %
+            % -Additional arguments:
+            %   
+            %
+            %INPUT ARGUMENTS
+            %     CF : Vector of Characteristic Frequencies
+            %     fs : Sampling frequency (Hz), default: 44100
+            %
+            %    DRNLParams : Parameter set for internal blocks 
+            %
+            %OUTPUT ARGUMENTS
+            %   pObj : Processor object
+            
             if nargin>0
             % Checking input arguments
             narginchk(1, 3)
@@ -163,7 +193,7 @@ classdef drnlProc < Processor
                 'FsHzIn',fs,'FsHzOut',fs);
             
             % 2- Specific properties
-            pObj.CF = CF;
+            pObj.cfHz = CF;
             
             end
         end
@@ -201,7 +231,7 @@ classdef drnlProc < Processor
             
             % Get number of channels (CFs)
 %             nFilter = size(pObj.Filters,2);
-            nFilter = numel(pObj.CF);
+            nFilter = numel(pObj.cfHz);
             
             % Pre-allocate memory
 %             out = zeros(length(in),nFilter);      % not necessary
@@ -262,7 +292,7 @@ classdef drnlProc < Processor
             %       pObj : Processor object
             
             % number of "CF" channels - check whether this can vary!!!
-            nFilter = numel(pObj.CF);
+            nFilter = numel(pObj.cfHz);
             
             % Resetting the internal states of the internal filters
             for ii = 1:nFilter
@@ -292,7 +322,7 @@ classdef drnlProc < Processor
             
             
             % Initialization of a parameters difference vector
-            hp = isequal(pObj.CF,p.drnl_CF);
+            hp = isequal(pObj.cfHz,p.drnl_CF);
             
         end  
         
