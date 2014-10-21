@@ -1,4 +1,4 @@
-classdef Signal < handle
+classdef Signal < matlab.mixin.Copyable
     
     properties
         Label           % Used to label the signal (e.g., in plots)
@@ -52,7 +52,22 @@ classdef Signal < handle
             % Instantiate a buffer, and an array interface
             sObj.Buf = circVBuf( bufferSizeSamples, bufferElemSize );
             sObj.Data = circVBufArrayInterface( sObj.Buf );
+        end
+        
+        function setBufferSize( sObj, newBufferSize_s )
+            %setBufferSize  This method sets the buffer to a new size,
+            %               erasing all data previously stored.
+            %USAGE:
+            %   sObj.setBufferSize( newBufferSize_s )
+            %
+            %INPUT ARGUMENTS:
+            %   newBufferSize_s : new size of the buffer in seconds. The
+            %                     dimensionality of the individual elements
+            %                     remains the same
             
+            bufferSizeSamples = ceil( newBufferSize_s * sObj.FsHz );
+            sObj.Buf = circVBuf( bufferSizeSamples, sObj.Buf.matSz );
+            sObj.Data = circVBufArrayInterface( sObj.Buf );
         end
         
         function appendChunk(sObj,data)
@@ -103,6 +118,20 @@ classdef Signal < handle
             %   sObj.clearData
             
             sObj.Buf.clear();
+        end
+
+        function newSobj = cutSignalCopy( sObj, blocksize_s, backOffset_s )
+            newSobj = sObj.copy();
+            newSobj.setBufferSize( ceil( blocksize_s ) );
+            dataBlock = sObj.getSignalBlock( blocksize_s, backOffset_s );
+            newSobj.setData( dataBlock );
+        end
+        
+        function reduceBufferToArray( sObj )
+            data = sObj.Data(:);
+            delete( sObj.Data );
+            sObj.Data = data;
+            delete( sObj.Buf );
         end
         
         function sb = getSignalBlock(sObj,blocksize_s,backOffset_s)
