@@ -1,6 +1,7 @@
 function p_full = parseParameters(p)
 %parseParameters    Add default values for missing parameters in a provided
-%                   list of (non-default) parameters for WP2 processing
+%                   list of (non-default) parameters for Two!Ears Auditory
+%                   Front-End processing
 %
 %USAGE
 %  p_full = parseParameters(p)

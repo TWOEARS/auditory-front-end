@@ -12,7 +12,7 @@ function addParameterInfo(cat,name,default,description,catLabel)
 %     default : Default value for the parameter
 % description : Description of the parameter (string)
 %
-%NB: To be used for WP2 development only!
+%NB: To be used for development only!
 
 % Parameter handling directory
 path = fileparts(mfilename('fullpath'));

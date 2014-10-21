@@ -2,12 +2,7 @@ clear all
 close all
 clc
 
-
-%% Load a signal
-
-% Add paths
-path = fileparts(mfilename('fullpath')); 
-run([path filesep '..' filesep '..' filesep 'src' filesep 'startWP2.m'])
+test_startup;
 
 % Load a signal
 load('TestBinauralCues');

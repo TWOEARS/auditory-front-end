@@ -14,7 +14,7 @@ NormalPos.top=26
 NormalPos.right=1821
 NormalPos.bottom=660
 Class=LaTeXView
-Document=WP2_TWO!EARS.tex
+Document=AFE_TWO!EARS.tex
 
 [Frame0_View0,0]
 TopLine=86

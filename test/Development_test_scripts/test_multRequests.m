@@ -1,18 +1,14 @@
 % This script demonstrates the different approaches to requesting multiple
-% representations at a time in the WP2 processing framework.
+% representations at a time in the Two!Ears Auditory Front-End processing framework.
 
 % clear all
 close all
 clc
 
+test_startup;
+
 % Which demo(s) to run:
 demo = [1];
-
-%% Load a signal
-
-% Add paths
-path = fileparts(mfilename('fullpath')); 
-run([path filesep '..' filesep '..' filesep 'src' filesep 'startWP2.m'])
 
 % Load a signal
 load('TestBinauralCues');

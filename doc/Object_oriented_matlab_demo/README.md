@@ -1,5 +1,5 @@
-Two!Ears WP2 Object oriented published demo
-===========================================
+Two!Ears Auditory Front-End publish demo
+========================================
 
 The script in this folder is formatted for Matlab publishing.
 Published output can be found in sub-folder /html or can be

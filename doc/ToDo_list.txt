@@ -1,4 +1,5 @@
-This file sums up some of the content that needs to be added to the WP2 implementation.
+This file sums up some of the content that needs to be added to the
+Two!Ears Auditory Front-End implementation.
 Lines come (loosely) in priority order, feel free to rearrange them.
 
 Last modified: 17-07-2014
