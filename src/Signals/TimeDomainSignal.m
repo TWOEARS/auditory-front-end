@@ -58,7 +58,7 @@ classdef TimeDomainSignal < Signal
             end
         end
        
-        function h = plot(sObj,h_prev)
+        function h = plot(sObj,h0)
             %plot       This method plots the data from a time domain
             %           signal object
             %
@@ -77,17 +77,16 @@ classdef TimeDomainSignal < Signal
             % TO DO: A .m file could be generated, that would contain
             % prefered properties for plots
             
-            % Check input
-            if nargin<2
-                h_prev = [];
-            end
-            
-            if ~isempty(h_prev)
-                figure(h_prev)
-                h = h_prev;
-                hold on
-            else
-                h = figure();
+            % Manage handles
+            if nargin < 2 || isempty(h0)
+                    h = figure;             % Generate a new figure
+                elseif get(h0,'parent')~=0
+                    % Then it's a subplot
+                    figure(get(h0,'parent')),subplot(h0)
+                    h = h0;
+                else
+                    figure(h0)
+                    h = h0;
             end
             
             if ~isempty(sObj.Data)

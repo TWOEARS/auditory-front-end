@@ -1,6 +1,7 @@
 function p = getDefaultParameters(fs,varargin)
 %getDefaultParameter    Fetch a list of default parameters for a specific
-%                       activity related to WP2 processing
+%                       activity related to Two!Ears Auditory Front-End
+%                       processing
 %
 %USAGE
 %       p = getDefaultParameter(fs,fields)

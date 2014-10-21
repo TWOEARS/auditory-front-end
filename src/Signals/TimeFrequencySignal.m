@@ -103,8 +103,17 @@ classdef TimeFrequencySignal < Signal
                 % Get a time vector
                 t = 0:1/sObj.FsHz:(size(data,2)-1)/sObj.FsHz;
 
-                h = figure;             % Generate a new figure
-
+                % Manage handles
+                if nargin < 2 || isempty(h0)
+                        h = figure;             % Generate a new figure
+                    elseif get(h0,'parent')~=0
+                        % Then it's a subplot
+                        figure(get(h0,'parent')),subplot(h0)
+                        h = h0;
+                    else
+                        figure(h0)
+                        h = h0;
+                end
 
                 % Managing frequency axis ticks for auditory filterbank
                 %

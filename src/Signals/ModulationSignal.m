@@ -131,7 +131,7 @@ classdef ModulationSignal < Signal
             
         end
         
-        function h = plot(sObj)
+        function h = plot(sObj,h0)
             %plot   Plot a modulation signal
             %
             %USAGE:
@@ -158,9 +158,18 @@ classdef ModulationSignal < Signal
             % plot
             data = reshape(permute(data,[1 3 2]),[s(1) s(2)*s(3)]);
             
+            % Manage handles
+            if nargin < 2 || isempty(h0)
+                    h = figure;             % Generate a new figure
+                elseif get(h0,'parent')~=0
+                    % Then it's a subplot
+                    figure(get(h0,'parent')),subplot(h0)
+                    h = h0;
+                else
+                    figure(h0)
+                    h = h0;
+            end
             
-            
-            h = figure;
             imagesc(20*log10(abs(data.')))
             axis xy
             title([sObj.Label ' (w.i.p.)'])
