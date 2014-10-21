@@ -121,6 +121,16 @@ classdef Signal < matlab.mixin.Copyable
         end
 
         function newSobj = cutSignalCopy( sObj, blocksize_s, backOffset_s )
+            %cutSignalCopy  This method copies the Signal object into a new
+            %               instance, cutting out the specified data block.
+            %
+            %USAGE:
+            %   cutSignalCopy = sObj.cutSignalCopy( blockSize_s, backOffset_s )
+            %
+            %INPUT ARGUMENTS:
+            %  blocksize_s : Length of the required data block in seconds
+            % backOffset_s : Offset from the end of the signal to the 
+            %                requested block's end in seconds (default: 0s)
             newSobj = sObj.copy();
             newSobj.setBufferSize( ceil( blocksize_s ) );
             dataBlock = sObj.getSignalBlock( blocksize_s, backOffset_s );
@@ -128,6 +138,15 @@ classdef Signal < matlab.mixin.Copyable
         end
         
         function reduceBufferToArray( sObj )
+            %reduceBufferToArray    This method converts the
+            %                       buffer+interface combination into a
+            %                       native matlab array. The object should
+            %                       not be used for adding new data any
+            %                       more.
+            %
+            %USAGE:
+            %   sObj.reduceBufferToArray
+            %
             data = sObj.Data(:);
             delete( sObj.Data );
             sObj.Data = data;
