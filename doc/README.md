@@ -1,5 +1,5 @@
-Two!Ears WP2 Documentation
-==========================
+Two!Ears Auditory Front-End Documentation
+=========================================
 
 This folder regroups any kind of document written for
-dissemination of WP2 activities.
+dissemination of Two!Ears Auditory Front-End activities.

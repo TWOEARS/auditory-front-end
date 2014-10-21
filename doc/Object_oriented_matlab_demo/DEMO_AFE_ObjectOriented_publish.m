@@ -1,8 +1,8 @@
-%% Object-oriented implementation of WP2 bottom-up processing
+%% Object-oriented implementation of Auditory Front-End
 %
 %%
-% This Demo scripts presents the object-oriented implementation of the WP2
-% bottom-up cue/feature extraction. It is intended as a demo at that stage,
+% This Demo scripts presents the object-oriented implementation of the
+% Two!Ears Auditory Front-End. It is intended as a demo at that stage,
 % and not a working copy, as important feature are not implemented fully
 % yet.
 %
