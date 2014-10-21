@@ -1,8 +1,9 @@
-function  WP2parameterHelper(cat)
-%WP2parameterHelper     Extensive and user friendly listing of parameters involved in WP2 processing.
+function  parameterHelper(cat)
+%parameterHelper     Extensive and user friendly listing of parameters involved
+%                    in the Two!Ears Auditory Front-End.
 %
 %USAGE:
-%    WP2parameterHelper
+%    parameterHelper
 
 
 
@@ -15,12 +16,12 @@ cats = fieldnames(pInfo);
 
 if nargin == 0
     % Display header
-    fprintf('\nParameter handling in WP2')
-    fprintf('\n-------------------------\n')
+    fprintf('\nParameter handling in Two!Ears Auditory Front-End')
+    fprintf('\n-------------------------------------------------\n')
     fprintf(['The extraction of various auditory representations '...
-        'performed by the WP2 software involves many parameters.\n'])
+        'performed by the Two!Ears Auditory Front-End software involves many parameters.\n'])
     fprintf('Each parameter is given a unique name and a default value. ')
-    fprintf(['When placing a request for WP2 processing that\n'...
+    fprintf(['When placing a request for Two!Ears Auditory Front-End processing that\n'...
         'uses one or more non-default parameters, a specific structure of non-default parameters needs to be provided as input.\n'])
     fprintf('Such structure can be generated from <a href="matlab: help genParStruct">genParStruct</a>, using pairs of parameter name and chosen value as inputs.\n' )
     fprintf('\nParameters names for each processors are listed below:\n')
@@ -28,7 +29,7 @@ if nargin == 0
     % Display the categories
     for ii = 1:size(cats,1)
         category = cats{ii};
-        link = ['<a href="matlab:WP2parameterHelper(''' category ''')">'];
+        link = ['<a href="matlab:parameterHelper(''' category ''')">'];
         fprintf(['\t' link pInfo.(cats{ii}).label '</a>\n'])
     end
     fprintf('\n')
