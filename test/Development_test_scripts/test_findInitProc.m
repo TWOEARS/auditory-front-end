@@ -5,10 +5,7 @@ clc
 % This script is for testing the behavior of the findInitProc method of the
 % manager class.
 
-
-% Add path
-path = fileparts(mfilename('fullpath')); 
-run([path filesep '..' filesep '..' filesep 'src' filesep 'startWP2.m'])
+test_startup;
 
 % Load a signal
 load('TestBinauralCues');

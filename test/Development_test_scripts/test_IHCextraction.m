@@ -4,6 +4,7 @@
 % clear all
 close all
 
+test_startup;
 
 %% Load a mono signal
 path = fileparts(mfilename('fullpath'));
