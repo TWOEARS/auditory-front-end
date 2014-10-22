@@ -58,41 +58,46 @@ classdef TimeDomainSignal < Signal
             end
         end
        
-        function h = plot(sObj,h0)
+        function h = plot(sObj,h0,p)
             %plot       This method plots the data from a time domain
             %           signal object
             %
             %USAGE
             %       sObj.plot
-            %       sObj.plot(h_prev)
+            %       sObj.plot(h_prev,p)
             %       h = sObj.plot(...)
             %
             %INPUT ARGUMENT
-            %  h_prev : Handle to an already existing figure, to plot
-            %           alongside another signal
+            %  h_prev : Handle to an already existing figure or subplot
+            %           where the new plot should be placed
+            %       p : Structure of non-default plot parameters (generated
+            %           from genParStruct.m)
             %
             %OUTPUT ARGUMENT
             %       h : Handle to the newly created figure
             
-            % TO DO: A .m file could be generated, that would contain
-            % prefered properties for plots
-            
-            % Manage handles
-            if nargin < 2 || isempty(h0)
-                    h = figure;             % Generate a new figure
-                elseif get(h0,'parent')~=0
-                    % Then it's a subplot
-                    figure(get(h0,'parent')),subplot(h0)
-                    h = h0;
-                else
-                    figure(h0)
-                    h = h0;
-            end
-            
             if ~isempty(sObj.Data)
+            
+                % Manage handles
+                if nargin < 2 || isempty(h0)
+                        h = figure;             % Generate a new figure
+                    elseif get(h0,'parent')~=0
+                        % Then it's a subplot
+                        figure(get(h0,'parent')),subplot(h0)
+                        h = h0;
+                    else
+                        figure(h0)
+                        h = h0;
+                end
                 
-                % Get default plotting parameters
-                p = getDefaultParameters([],'plotting');
+                % Manage plot parameters
+                if nargin < 3 || isempty(p) 
+                    % Get default plotting parameters
+                    p = getDefaultParameters([],'plotting');
+                else
+                    p.fs = sObj.FsHz;   % Add the sampling frequency to satisfy parseParameters
+                    p = parseParameters(p);
+                end
 
                 % Generate a time axis
                 t = 0:1/sObj.FsHz:(length(sObj.Data(:))-1)/sObj.FsHz;
@@ -110,6 +115,10 @@ classdef TimeDomainSignal < Signal
                 ylabel('Amplitude','fontsize',p.fsize_label,'fontname',p.ftype)
                 title(pTitle,'fontsize',p.fsize_title,'fontname',p.ftype)
                 set(gca,'fontsize',p.fsize_axes,'fontname',p.ftype)
+                
+                % Center the waveform
+                m = max(abs(sObj.Data(:)));
+                set(gca,'XLim',[t(1) t(end)],'YLim',[-1.1*m 1.1*m])
             
             else
                 warning('This is an empty signal, cannot be plotted')

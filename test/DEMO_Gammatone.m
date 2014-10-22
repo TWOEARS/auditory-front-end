@@ -6,10 +6,10 @@ clc
 %% Load a signal
 
 % Add paths
-path = fileparts(mfilename('fullpath')); 
-run([path filesep '..' filesep 'src' filesep 'startAuditoryFrontEnd.m'])
-
-addpath(['Test_signals',filesep]);
+% path = fileparts(mfilename('fullpath')); 
+% run([path filesep '..' filesep 'src' filesep 'startAuditoryFrontEnd.m'])
+% 
+% addpath(['Test_signals',filesep]);
 
 % Load a signal
 load('TestBinauralCues');
@@ -48,7 +48,7 @@ tSec = (1:size(bm,1))/fs;
 zoom  = [];
 bNorm = [];
 
-waveplot(bm);
+waveplot(bm)
 
 figure;
 ax1 = subplot(3,1,1);
