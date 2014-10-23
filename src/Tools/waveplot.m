@@ -1,9 +1,9 @@
-function waveplot(data,xAxis,yAxis,zoom,bNorm,hA)
+function waveplot(data,xAxis,yAxis,zoom,bNorm)
 %waveplot   Waterfall plot. 
 %
 %USAGE
 %   waveplot(data)
-%   waveplot(data,xAxis,yAxis,zoom,bNorm,hA)
+%   waveplot(data,xAxis,yAxis,zoom,bNorm)
 %   
 %INPUT ARGUMENTS
 %      data : data matrix arranged as  [nSamples  x nChannels]
@@ -12,7 +12,6 @@ function waveplot(data,xAxis,yAxis,zoom,bNorm,hA)
 %      zoom : zoom factor              (default, zoom = 5)
 %     bNorm : equalize the dynamic range of each channel prior to plotting 
 %             (default, bNORM = true)
-%        hA : axis handle (default, hA = figure)
 % 
 %NOTE
 %   This function is inspired by "waveplot", a MATLAB function
@@ -36,6 +35,8 @@ function waveplot(data,xAxis,yAxis,zoom,bNorm,hA)
 %   History :  
 %   v.0.1   2008/05/11
 %   v.0.2   2014/07/06 interpolate cf labels for y-axis
+%           2014/10/22 RD: removed axis handle input argument for
+%                      integration in the Two!Ears framework.
 %   ***********************************************************************
 
 
@@ -99,12 +100,6 @@ end
 % Get global maxima
 m = max(max(data));
 n = max(5 * zoom * data(:,nChannels)/m+nChannels * 10);
-
-if exist('hA','var') && ~isempty(hA)
-    axes(hA)
-else
-    figure;
-end
 
 hold on;
 

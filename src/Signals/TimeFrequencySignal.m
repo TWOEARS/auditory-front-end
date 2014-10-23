@@ -76,31 +76,53 @@ classdef TimeFrequencySignal < Signal
             
         end
         
-        function h = plot(sObj,h0)
-            % TO DO: h1 line
-            
-            % Decide if the plot should be on a linear or dB scale
-            switch sObj.Name
-                case {'gammatone','ild','ic_xcorr','itd_xcorr','onset_strength','offset_strength'}
-                    do_dB = 0;
-                case {'innerhaircell','ratemap_magnitude','ratemap_power'}
-                    do_dB = 1;
-                otherwise 
-                    warning('Cannot plot this object')
-            end
+        function h = plot(sObj,h0,p)
+            %plot       This method plots the data from a time-frequency
+            %           domain signal object
+            %
+            %USAGE
+            %       sObj.plot
+            %       sObj.plot(h_prev,p)
+            %       h = sObj.plot(...)
+            %
+            %INPUT ARGUMENT
+            %  h_prev : Handle to an already existing figure or subplot
+            %           where the new plot should be placed
+            %       p : Structure of non-default plot parameters (generated
+            %           from genParStruct.m)
+            %
+            %OUTPUT ARGUMENT
+            %       h : Handle to the newly created figure
             
             if ~isempty(sObj.Data)
             
-                % Get plotting parameters
-                p = getDefaultParameters([],'plotting');
-
-                data = sObj.Data(:).';
+                % Decide if the plot should be on a linear or dB scale
+                switch sObj.Name
+                    case {'gammatone','ild','ic_xcorr','itd_xcorr','onset_strength','offset_strength'}
+                        do_dB = 0;
+                    case {'innerhaircell','ratemap_magnitude','ratemap_power'}
+                        do_dB = 1;
+                    otherwise 
+                        warning('Cannot plot this object')
+                end
+            
+                % Manage plotting parameters
+                if nargin < 3 || isempty(p) 
+                    % Get default plotting parameters
+                    p = getDefaultParameters([],'plotting');
+                else
+                    p.fs = sObj.FsHz;   % Add the sampling frequency to satisfy parseParameters
+                    p = parseParameters(p);
+                end
+                
                 if do_dB
                     % Get the data in dB
-                    data = 20*log10(abs(data));
+                    data = 20*log10(abs(sObj.Data(:).'));
+                else
+                    data = sObj.Data(:).';
                 end
 
-                % Get a time vector
+                % Generate a time vector
                 t = 0:1/sObj.FsHz:(size(data,2)-1)/sObj.FsHz;
 
                 % Manage handles
@@ -136,10 +158,32 @@ classdef TimeFrequencySignal < Signal
                     ticks_pos(ii) = jj*M/n_points;
                 end
 
+                
+                % Set the color map
+                try
+                    colormap(p.colormap)
+                catch
+                    warning('No colormap %s is available, using ''jet''.',p.colormap)
+                    colormap('jet')
+                end
+                
                 % Plot the figure
-                imagesc(t,1:M,data)  % Plot the data
-                axis xy                 % Use Cartesian coordinates
-                colorbar                % Display a colorbar
+                switch sObj.Name
+                    case 'gammatone'
+                        waveplot(data.',t,sObj.cfHz,[],[]);
+                    otherwise
+                        imagesc(t,1:M,data)  % Plot the data
+                        axis xy              % Use Cartesian coordinates
+                        
+                        % Set up y-axis
+                        set(gca,'YTick',ticks_pos,...
+                            'YTickLabel',aud_ticks,'fontsize',p.fsize_axes,...
+                            'fontname',p.ftype)
+                
+                        if p.bColorbar
+                            colorbar             % Display a colorbar
+                        end
+                end
 
                 % Set up a title
                 if ~strcmp(sObj.Canal,'mono')
@@ -154,9 +198,7 @@ classdef TimeFrequencySignal < Signal
                 title(pTitle,'fontsize',p.fsize_title,'fontname',p.ftype)
 
                 % Set up plot properties
-                set(gca,'YTick',ticks_pos,...
-                    'YTickLabel',aud_ticks,'fontsize',p.fsize_axes,...
-                    'fontname',p.ftype)
+                
 
                 % Scaling the plot
                 switch sObj.Name
@@ -164,7 +206,7 @@ classdef TimeFrequencySignal < Signal
                         m = max(data(:));    % Get maximum value for scaling
                         set(gca,'CLim',[m-p.dynrange m])
 
-                    case {'gammatone','ild','itc_xcorr'}
+                    case {'ild','itc_xcorr'}
                         m = max(abs(data(:)))+eps;
                         set(gca,'CLim',[-m m])
 
