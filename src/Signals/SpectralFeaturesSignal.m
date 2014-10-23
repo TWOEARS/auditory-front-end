@@ -57,7 +57,7 @@ classdef SpectralFeaturesSignal < Signal
             
         end
         
-        function h = plot(sObj,h_prev)
+        function h = plot(sObj,h0,mObj)
             % TODO: Implement a user-friendly plotting method
             % - Maybe using a script to plot only one figure, and navigate
             % via next/previous buttons between the features
@@ -65,6 +65,57 @@ classdef SpectralFeaturesSignal < Signal
             % input plot (e.g., though providing a handle to it as input
             h = [];
             warning('There is no automated plotting method for spectral features at the moment.')
+            
+            % Manage handles
+            if nargin < 2 || isempty(h0)
+                    h = figure;             % Generate a new figure
+                elseif get(h0,'parent')~=0
+                    % Then it's a subplot
+                    figure(get(h0,'parent')),subplot(h0)
+                    h = h0;
+                else
+                    figure(h0)
+                    h = h0;
+            end
+            
+            % Number of subplots
+            nFeatures = size(sObj.fList,2);
+            nSubplots = ceil(sqrt(nFeatures));
+            
+            % Time axis
+            tSec = 0:1/sObj.FsHz:(size(sObj.Data(:,:),1)-1)/sObj.FsHz;
+            
+            % Plots
+            for ii = 1 : nFeatures
+                ax(ii) = subplot(nSubplots,nSubplots,ii);
+                switch sObj.fList{ii}
+                    case {'variation' 'hfc' 'brightness' 'flatness' 'entropy'}
+                        %imagesc(tSec,(1:nFreq)/nFreq,10*log10(rMap'));axis xy;
+                        hold on;
+                        plot(tSec,sObj.Data(:,ii),'k--','linewidth',2)
+
+                        xlabel('Time (s)')
+                        ylabel('Normalized frequency')
+                    case {'irregularity' 'skewness' 'kurtosis' 'flux' 'decrease' 'crest'}
+                        plot(tSec,sObj.Data(:,ii),'k--','linewidth',2)
+                        xlim([tSec(1) tSec(end)])
+
+                        xlabel('Time (s)')
+                        ylabel('Feature magnitude')
+
+                    case {'rolloff' 'spread' 'centroid'}
+                        %imagesc(tSec,fHz,10*log10(rMap'));axis xy;
+                        hold on;
+                        plot(tSec,sObj.Data(:,ii),'k--','linewidth',2)
+
+                        xlabel('Time (s)')
+                        ylabel('Frequency (Hz)')
+                    otherwise
+                        error('Feature is not supported!')
+                end
+                title(['Spectral ',sObj.fList{ii}])
+            end
+            linkaxes(ax,'x');
             
         end
         
