@@ -57,16 +57,32 @@ classdef SpectralFeaturesSignal < Signal
             
         end
         
-        function h = plot(sObj,h0,mObj)
-            % TODO: Implement a user-friendly plotting method
-            % - Maybe using a script to plot only one figure, and navigate
-            % via next/previous buttons between the features
-            % - Give the option of overlapping the plots with the ratemap
-            % input plot (e.g., though providing a handle to it as input
+        function h = plot(sObj,mObj,h0)
+            %plot   Plots the requested spectral features
+            %
+            %USAGE:
+            %     sObj.plot
+            % h = sObj.plot(mObj,h0)
+            %
+            %INPUT ARGUMENTS:
+            %   sObj : Spectral features signal instance
+            %   mObj : Optional handle to the manager which computed the
+            %          signal. Allows, when provided, to superimpose the 
             
+            % Access the ratemap representation, if handle to the manager
+            % was provided
+            if nargin>1 && ~isempty(mObj)
+                p_sf = sObj.findProcessor(mObj);
+                p_rm = p_sf.Dependencies{1};
+                rMap = p_rm.Output.Data(:);
+                fHz = p_rm.Output.cfHz;
+                bPlotRatemap = true;
+            else
+                bPlotRatemap = false;
+            end
              
             % Manage handles
-            if nargin < 2 || isempty(h0)
+            if nargin < 3 || isempty(h0)
                     h = figure;             % Generate a new figure
                 elseif get(h0,'parent')~=0
                     % Then it's a subplot
@@ -89,10 +105,12 @@ classdef SpectralFeaturesSignal < Signal
                 ax(ii) = subplot(nSubplots,nSubplots,ii);
                 switch sObj.fList{ii}
                     case {'variation' 'hfc' 'brightness' 'flatness' 'entropy'}
-                        %imagesc(tSec,(1:nFreq)/nFreq,10*log10(rMap'));axis xy;
-                        hold on;
+                        if bPlotRatemap
+                            imagesc(tSec,(1:size(fHz,2))/size(fHz,2),10*log10(rMap'));axis xy;
+                            hold on;
+                        end
                         plot(tSec,sObj.Data(:,ii),'k--','linewidth',2)
-
+                        
                         xlabel('Time (s)')
                         ylabel('Normalized frequency')
                     case {'irregularity' 'skewness' 'kurtosis' 'flux' 'decrease' 'crest'}
@@ -103,8 +121,10 @@ classdef SpectralFeaturesSignal < Signal
                         ylabel('Feature magnitude')
 
                     case {'rolloff' 'spread' 'centroid'}
-                        %imagesc(tSec,fHz,10*log10(rMap'));axis xy;
-                        hold on;
+                        if bPlotRatemap
+                            imagesc(tSec,fHz,10*log10(rMap'));axis xy;
+                            hold on;
+                        end
                         plot(tSec,sObj.Data(:,ii),'k--','linewidth',2)
 
                         xlabel('Time (s)')
@@ -115,6 +135,8 @@ classdef SpectralFeaturesSignal < Signal
                 title(['Spectral ',sObj.fList{ii}])
             end
             linkaxes(ax,'x');
+            set(gca,'xLim',[0 tSec(end)])
+%             set(h,'units','normalized','outerposition',[0 0 1 1])
             
         end
         
