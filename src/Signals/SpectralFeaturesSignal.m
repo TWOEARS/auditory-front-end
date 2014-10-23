@@ -63,9 +63,8 @@ classdef SpectralFeaturesSignal < Signal
             % via next/previous buttons between the features
             % - Give the option of overlapping the plots with the ratemap
             % input plot (e.g., though providing a handle to it as input
-            h = [];
-            warning('There is no automated plotting method for spectral features at the moment.')
             
+             
             % Manage handles
             if nargin < 2 || isempty(h0)
                     h = figure;             % Generate a new figure
