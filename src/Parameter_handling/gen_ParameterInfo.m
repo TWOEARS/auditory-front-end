@@ -90,8 +90,7 @@ clear pInfo
     % Spectral features
     addParameterInfo('sf','sf_requests','all','List (cell array) of requested spectral features, type ''help SpectralFeaturesProc'' for a list','Spectral features')
     addParameterInfo('sf','sf_br_cf',1500,'Cutoff frequency for brightness computation')
-    addParameterInfo('sf','sf_hfc_cf',4000,'Cutoff frequency for high-frequency content computation')
-    addParameterInfo('sf','sf_ro_thres',0.8,'Threshold (re. 1) for spectral rolloff computation')
+    addParameterInfo('sf','sf_ro_perc',0.8,'Threshold (re. 1) for spectral rolloff computation')
     
 % Plotting:
     addParameterInfo('plotting','ftype','Helvetica','Plots font name','Plot properties')
