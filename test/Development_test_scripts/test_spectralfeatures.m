@@ -8,10 +8,10 @@ clc
 %% Load a signal
 
 % Add paths
-path = fileparts(mfilename('fullpath')); 
-run([path filesep '..' filesep '..' filesep 'src' filesep 'startAuditoryFrontEnd.m'])
-
-addpath(['..',filesep,'Test_signals',filesep]);
+% path = fileparts(mfilename('fullpath')); 
+% run([path filesep '..' filesep '..' filesep 'src' filesep 'startAuditoryFrontEnd.m'])
+% 
+% addpath(['..',filesep,'Test_signals',filesep]);
 
 % Load a signal
 load('TestBinauralCues');
