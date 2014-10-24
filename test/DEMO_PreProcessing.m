@@ -9,14 +9,15 @@ load(['Test_signals',filesep,'TestBinauralCues']);
 % Ear signals
 speech = fliplr(earSignals);
 
-% Add a sinus 
-fHz = 0.5;
-
-% Imprint amplitude modulation
-data = speech .* repmat(sin(2*pi.*(0:size(speech,1)-1).' * fHz/fsHz),[1 size(speech,2)]);
+% Add a sinus @ 0.5 Hz
+data = speech + repmat(sin(2*pi.*(0:size(speech,1)-1).' * 0.5/fsHz),[1 size(speech,2)]);
 
 fs = fsHz;
 clear earSignals fsHz
+
+figure;
+plot(data);
+title('Input signal')
 
 
 %% Preprocessing settings
@@ -44,6 +45,10 @@ if bRemoveDC
     else
         error('IIR filter is not stable, reduce the filter order!')
     end
+    
+    figure;
+    plot(data);
+    title('After DC removal')
 end
 
 
@@ -57,6 +62,10 @@ if bWhitening
     
     % Apply 1st order pre-whitening filter
     data = filter(b, a, data);
+    
+    figure;
+    plot(data);
+    title('After whitening')
 end
 
 
