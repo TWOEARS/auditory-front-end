@@ -195,7 +195,7 @@ classdef Signal < matlab.mixin.Copyable
             
             % Zero-pad the data if not enough samples are available
             if size( sb, 1 ) < blocksize_samples
-                sb = [zeros( blocksize_samples - size(sb,1), size(sb,2) ); sb];
+                sb = [zeros( blocksize_samples - size(sb,1), size(sb,2), size(sb,3) ); sb];
             end
             
         end
