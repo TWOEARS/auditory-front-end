@@ -4,7 +4,7 @@ classdef onsetProc < Processor
         maxOnsetdB      % Upper limit for onset value
     end
     
-    properties %(GetAccess = private)
+    properties (GetAccess = private)
         buffer          % Buffered last frame of the previous chunk
     end
     
