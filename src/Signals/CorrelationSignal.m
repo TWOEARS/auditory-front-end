@@ -9,13 +9,13 @@ classdef CorrelationSignal < Signal
     
     methods
         
-        function sObj = CorrelationSignal(fs,bufferSize_s,name,cfHz,lags,label,data,canal)
+        function sObj = CorrelationSignal(fs,bufferSize_s,name,cfHz,lags,label,data,channel)
             %CorrelationSignal  Constructor for the correlation children
             %                   signal class
             %
             %USAGE
             %    sObj = CorrelationSignal(fs,name)
-            %    sObj = CorrelationSignal(fs,name,cfHz,lags,label,data,canal)
+            %    sObj = CorrelationSignal(fs,name,cfHz,lags,label,data,channel)
             %
             %INPUT ARGUMENTS
             %       fs : Sampling frequency (Hz)
@@ -28,8 +28,8 @@ classdef CorrelationSignal < Signal
             %     data : Data matrix to construct an object from existing 
             %            data. Time should span the first dimension,
             %            frequency the second dimension, and lags the third
-            %    canal : Flag indicating 'left', 'right', or 'mono'
-            %            (default: canal = 'mono')
+            %  channel : Flag indicating 'left', 'right', or 'mono'
+            %            (default: channel = 'mono')
             %OUTPUT ARGUMENT
             %     sObj : Correlation signal object inheriting the signal class
             
@@ -43,7 +43,7 @@ classdef CorrelationSignal < Signal
                 warning(['A name tag should be assigned to the signal. '...
                     'The name %s was chosen by default'],name)
             end
-            if nargin<8; canal = 'mono'; end
+            if nargin<8; channel = 'mono'; end
             if nargin<7||isempty(data); data = []; end
             if nargin<6||isempty(label)
                 label = name;
@@ -65,7 +65,7 @@ classdef CorrelationSignal < Signal
                 'Dimensions','nSample x nFilters x nLags');
             sObj.cfHz = cfHz;
             sObj.setData( data );
-            sObj.Canal = canal;
+            sObj.Channel = channel;
             sObj.lags = lags;
                 
             end

@@ -297,7 +297,7 @@ classdef manager < handle
                 proc = mObj.Processors{ii,earIndex};
                 
                 % Is the current processor one of the sought type?
-                if isa(proc,name) && ismember(proc.Output.Canal,channel)
+                if isa(proc,name) && ismember(proc.Output.Channel,channel)
                     
                     % Does it have the requested parameters?
                     if proc.hasParameters(p)
@@ -881,7 +881,7 @@ classdef manager < handle
                         dep_sig = sig;
                         dep_proc = mObj.Processors{ii};
 
-                    elseif exist('sig','var')&&strcmp(sig.Canal,'mono') && proceed
+                    elseif exist('sig','var')&&strcmp(sig.Channel,'mono') && proceed
 
                         % 2-Then there is a single input and single output
                         mObj.InputList{ii,1} = dep_sig;
@@ -1056,16 +1056,16 @@ classdef manager < handle
             % If the processor found operates on the left channel of a stereo
             % signal, we need to find its twin processor in charge of the
             % right channel
-            if ~isempty(hProc) && strcmp(hProc.Output.Canal,'left')
+            if ~isempty(hProc) && strcmp(hProc.Output.Channel,'left')
                 
                 % Then repeat the same loop, but specifying the "other"
                 % channel
-                canal = 'right';
+                Channel = 'right';
                 
                 % Initialization of while loop
                 ii = 1;
                 dep = signal2procName(dep_list{ii});
-                hProc2 = mObj.hasProcessor(dep,p,canal);
+                hProc2 = mObj.hasProcessor(dep,p,Channel);
                 list = {};
 
                 % Looping until we find a suitable processor in the list of
@@ -1078,7 +1078,7 @@ classdef manager < handle
                     % Move on to next level of dependency
                     ii = ii + 1;
                     dep = signal2procName(dep_list{ii});
-                    hProc2 = mObj.hasProcessor(dep,p,canal);
+                    hProc2 = mObj.hasProcessor(dep,p,Channel);
 
                 end
                 

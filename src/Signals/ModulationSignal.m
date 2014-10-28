@@ -8,12 +8,12 @@ classdef ModulationSignal < Signal
     
     methods
         
-        function sObj = ModulationSignal(fs,bufferSize_s,name,cfHz,modCfHz,label,data,canal)
+        function sObj = ModulationSignal(fs,bufferSize_s,name,cfHz,modCfHz,label,data,channel)
             %ModulationSignal   Constructor for the modulation signal class
             %
             %USAGE:
             %   sObj = ModulationSignal(fs,name)
-            %   sObj = ModulationSignal(fs,name,cfHz,modCfHz,label,data,canal)
+            %   sObj = ModulationSignal(fs,name,cfHz,modCfHz,label,data,channel)
             %
             %INPUT ARGUMENTS:
             %      fs : Sampling frequency (Hz)
@@ -29,8 +29,8 @@ classdef ModulationSignal < Signal
             %           frequency the third. Alternatively, audio and
             %           modulation frequencies can be interleaved in the
             %           second dimension.
-            %   canal : Flag indicating 'left', 'right', or 'mono'
-            %           (default: canal = 'mono')
+            %  channel : Flag indicating 'left', 'right', or 'mono'
+            %           (default: channel = 'mono')
             %
             %OUTPUT ARGUMENT:
             %    sObj : Instance of modulation signal object
@@ -45,7 +45,7 @@ classdef ModulationSignal < Signal
                 warning(['A name tag should be assigned to the signal. '...
                     'The name %s was chosen by default'],name)
             end
-            if nargin<8; canal = 'mono'; end
+            if nargin<8; channel = 'mono'; end
             if nargin<7||isempty(data); data = []; end
             if nargin<6||isempty(label)
                 label = name;
@@ -123,7 +123,7 @@ classdef ModulationSignal < Signal
                 'Dimensions','nSample x nFilters x nModulationFilters');
             sObj.cfHz = cfHz(:)';
             sObj.setData(data);
-            sObj.Canal = canal;
+            sObj.Channel = channel;
             sObj.modCfHz = modCfHz(:)';
                 
             end

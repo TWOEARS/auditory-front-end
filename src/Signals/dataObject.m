@@ -96,7 +96,7 @@ classdef dataObject < dynamicprops
             % check if that is a limitation.
             
             % Which channel (left, right, mono) is this signal
-            if strcmp(sObj.Canal,'right')
+            if strcmp(sObj.Channel,'right')
                 jj = 2;
             else
                 jj = 1;

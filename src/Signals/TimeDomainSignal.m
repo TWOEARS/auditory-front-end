@@ -5,14 +5,14 @@ classdef TimeDomainSignal < Signal
     end
     
     methods
-        function sObj = TimeDomainSignal(fs,bufferSize_s,name,label,data,canal)
+        function sObj = TimeDomainSignal(fs,bufferSize_s,name,label,data,channel)
             %TimeDomainSignal       Constructor for the "time domain signal"
             %                       children signal class
             %
             %USAGE
             %     sObj = TimeDomainSignal(fs)
             %     sObj = TimeDomainSignal(fs,name,label)
-            %     sObj = TimeDomainSignal(fs,name,label,data,canal)
+            %     sObj = TimeDomainSignal(fs,name,label,data,channel)
             %
             %INPUT ARGUMENTS
             %       fs : Sampling frequency (Hz)
@@ -22,8 +22,8 @@ classdef TimeDomainSignal < Signal
             %            (default: label = 'Waveform')
             %     data : Vector of amplitudes to construct an object from
             %            existing data
-            %    canal : Flag indicating 'left', 'right', or 'mono'
-            %            (default: canal = 'mono')
+            %   channel : Flag indicating 'left', 'right', or 'mono'
+            %            (default: channel = 'mono')
             
             %
             %OUTPUT ARGUMENT
@@ -34,7 +34,7 @@ classdef TimeDomainSignal < Signal
             if nargin>0  % Failproof for Matlab empty calls
             
             % Check input arguments
-            if nargin<6; canal = 'mono'; end
+            if nargin<6; channel = 'mono'; end
             if nargin<5; data = []; end
             if nargin<4||isempty(label); label = 'Waveform'; end
             if nargin<3||isempty(name); name = 'time'; end
@@ -53,7 +53,7 @@ classdef TimeDomainSignal < Signal
             populateProperties(sObj,'Label',label,'Name',name,...
                 'Dimensions','nSamples x 1');
             sObj.setData( data );
-            sObj.Canal = canal;
+            sObj.Channel = channel;
             
             end
         end
@@ -103,8 +103,8 @@ classdef TimeDomainSignal < Signal
                 t = 0:1/sObj.FsHz:(length(sObj.Data(:))-1)/sObj.FsHz;
 
                 % Set up a title (include channel in the title)
-                if ~strcmp(sObj.Canal,'mono')
-                    pTitle = [sObj.Label ' - ' sObj.Canal];
+                if ~strcmp(sObj.Channel,'mono')
+                    pTitle = [sObj.Label ' - ' sObj.Channel];
                 else
                     pTitle = sObj.Label;
                 end
