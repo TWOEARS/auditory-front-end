@@ -90,8 +90,7 @@ clear pInfo
     % Spectral features
     addParameterInfo('sf','sf_requests','all','List (cell array) of requested spectral features, type ''help SpectralFeaturesProc'' for a list','Spectral features')
     addParameterInfo('sf','sf_br_cf',1500,'Cutoff frequency for brightness computation')
-    addParameterInfo('sf','sf_hfc_cf',4000,'Cutoff frequency for high-frequency content computation')
-    addParameterInfo('sf','sf_ro_thres',0.8,'Threshold (re. 1) for spectral rolloff computation')
+    addParameterInfo('sf','sf_ro_perc',0.8,'Threshold (re. 1) for spectral rolloff computation')
     
 % Plotting:
     addParameterInfo('plotting','ftype','Helvetica','Plots font name','Plot properties')
@@ -104,6 +103,8 @@ clear pInfo
     addParameterInfo('plotting','linewidth_m',2,'Medium linewidth')
     addParameterInfo('plotting','linewidth_l',3,'Large linewidth')
 
+    addParameterInfo('plotting','colormap','jet','Colormap for time-frequency plots')
+    addParameterInfo('plotting','bColorbar',1,'Boolean for displaying colorbar in time-frequency plots')
     addParameterInfo('plotting','dynrange',80,'Dynamic range for time-frequency plots (dB)')
     addParameterInfo('plotting','aud_ticks',[100 250 500 1000 2000 4000 8000 16000 32000],'Auditory ticks for ERB-based representations')
 

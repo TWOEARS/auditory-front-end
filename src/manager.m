@@ -796,8 +796,8 @@ classdef manager < handle
                             % Get the center frequencies from dependent processors
                             cfHz = dep_proc_l.getDependentParameter('cfHz');
                             % Instantiate left and right ear processors
-                            mObj.Processors{ii,1} = spectralFeaturesProc(dep_proc_l.FsHzOut,cfHz,p.sf_requests,p.sf_br_cf,p.sf_hfc_cf,p.sf_ro_thres);
-                            mObj.Processors{ii,2} = spectralFeaturesProc(dep_proc_r.FsHzOut,cfHz,p.sf_requests,p.sf_br_cf,p.sf_hfc_cf,p.sf_ro_thres);
+                            mObj.Processors{ii,1} = spectralFeaturesProc(dep_proc_l.FsHzOut,cfHz,p.sf_requests,p.sf_br_cf,p.sf_ro_perc);
+                            mObj.Processors{ii,2} = spectralFeaturesProc(dep_proc_r.FsHzOut,cfHz,p.sf_requests,p.sf_br_cf,p.sf_ro_perc);
                             % Generate new signals
                             sig_l = SpectralFeaturesSignal(mObj.Processors{ii,1}.FsHzOut,mObj.Processors{ii,1}.requestList,mObj.Data.bufferSize_s,'spec_features','Spectral Features','left');
                             sig_r = SpectralFeaturesSignal(mObj.Processors{ii,2}.FsHzOut,mObj.Processors{ii,2}.requestList,mObj.Data.bufferSize_s,'spec_features','Spectral Features','right');
@@ -808,7 +808,7 @@ classdef manager < handle
                             % Get the center frequencies from dependent processors
                             cfHz = dep_proc.getDependentParameter('cfHz');
                             % Instantiate a processor
-                            mObj.Processors{ii,1} = spectralFeaturesProc(dep_proc.FsHzOut,cfHz,p.sf_requests,p.sf_br_cf,p.sf_hfc_cf,p.p.sf_ro_thres);
+                            mObj.Processors{ii,1} = spectralFeaturesProc(dep_proc.FsHzOut,cfHz,p.sf_requests,p.sf_br_cf,p.sf_ro_perc);
                             % Generate a new signal
                             sig = SpectralFeaturesSignal(mObj.Processors{ii,1}.FsHzOut,mObj.Processors{ii,1}.requestList,mObj.Data.bufferSize_s,'spec_features','Spectral Features','mono');
                             % Add signal to the data object

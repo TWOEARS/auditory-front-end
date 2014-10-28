@@ -13,6 +13,7 @@ load([path filesep 'parameterInfo.mat'])
 
 % List the categories
 cats = fieldnames(pInfo);
+cats = sort(cats);
 
 if nargin == 0
     % Display header
