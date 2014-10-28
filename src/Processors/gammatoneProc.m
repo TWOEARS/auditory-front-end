@@ -3,11 +3,10 @@ classdef gammatoneProc < Processor
     properties
         cfHz            % Filters center frequencies
         nERBs           % Distance between neighboring filters in ERBs
-        n_gamma         % Gammatone order of the filters
+        nGamma          % Gammatone order of the filters
         bwERBs          % Bandwidth of the filters in ERBs
-        f_low           % Lowest center frequency used at instantiation
-        f_high          % Highest center frequency used at instantiation
-        fb_decimation   % Decimation ratio of the filterbank
+        lowFreqHz       % Lowest center frequency used at instantiation
+        highFreqHz      % Highest center frequency used at instantiation
     end
     
     properties (GetAccess = private)
@@ -124,10 +123,10 @@ classdef gammatoneProc < Processor
             % 2- Specific properties
             pObj.cfHz = cfHz;
             pObj.nERBs = nERBs;
-            pObj.n_gamma = n;
+            pObj.nGamma = n;
             pObj.bwERBs = bw;
-            pObj.f_low = flow;
-            pObj.f_high = fhigh;
+            pObj.lowFreqHz = flow;
+            pObj.highFreqHz = fhigh;
             
             end
         end
@@ -217,7 +216,7 @@ classdef gammatoneProc < Processor
             % channel positionning.
             
             p_list = {'gt_cfHz','gt_nGamma','gt_bwERBs'};
-            p_list_proc = {'cfHz','n_gamma','bwERBs'};
+            p_list_proc = {'cfHz','nGamma','bwERBs'};
             
             % The center frequency position needs to be computed for
             % scenario where it is not explicitely provided
