@@ -20,8 +20,8 @@ end
 clear earSignals
 
 % Parameters
-request = {'modulation'};
-p = [];%genParStruct('am_type','filter');
+request = {'innerhaircell'};
+p = genParStruct('IHCMethod','breebart');
 
 % Create a data object
 dObj = dataObject(data,fsHz);
