@@ -137,6 +137,10 @@ classdef spectralFeaturesProc < Processor
             
             % Output initialization
             out = zeros(size(in,1),n_feat);
+
+            if isempty( in ) %whyever
+                return;
+            end
             
             % Size of input chunk
             [nFrames, nFreq] = size(in);
