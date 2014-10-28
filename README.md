@@ -1,4 +1,12 @@
-Two!Ears bottom-up processing
-=============================
+Two!Ears Auditory Front-End
+===========================
 
-Explain how it works
+Short description
+
+## Installation
+
+## Usage
+
+## Credits
+
+## License

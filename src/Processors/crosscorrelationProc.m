@@ -102,7 +102,6 @@ classdef crosscorrelationProc < Processor
             maxLag = ceil(pObj.maxDelaySec*pObj.FsHzIn);
             
             % Pre-allocate output
-            
             if ~pObj.do_mex
 
             out = zeros(nFrames,nChannels,maxLag*2+1);
@@ -147,7 +146,7 @@ classdef crosscorrelationProc < Processor
                     % output
                     powL = sum(frame_l.^2);
                     powR = sum(frame_r.^2);
-                    out(ii,jj,:) = c/sqrt(powL*powR);
+                    out(ii,jj,:) = c/sqrt(powL*powR+eps);
                     
                 end
                 

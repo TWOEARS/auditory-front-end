@@ -1,5 +1,5 @@
-Two!Ears WP2 demo scripts
-=========================
+Two!Ears Auditory Front-End demo scripts
+========================================
 
 This folder contains demo and testing scripts intended
 for both:
