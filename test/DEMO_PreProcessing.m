@@ -13,7 +13,7 @@ load(['Test_signals',filesep,'TestBinauralCues']);
 earSignals = fliplr(earSignals);
 
 % Replicate signals at a higher level
-earSignals = cat(1,earSignals,5*earSignals);
+earSignals = cat(1,earSignals,10*earSignals)/10;
 
 % Add a sinus @ 0.5 Hz
 data = earSignals + repmat(sin(2*pi.*(0:size(earSignals,1)-1).' * 0.5/fsHz),[1 size(earSignals,2)]);
@@ -26,46 +26,49 @@ timeSec = (1:size(data,1))/fsHz;
 % 
 % 
 % Activate DC removal filter
-bRemoveDC = true;
-cutoffHz  = 20;
+pp_bRemoveDC  = true;
+pp_cutoffHzDC = 20;
 
-% Activate pre-whitening
-bWhitening = false;
+% Reference sampling frequency
+pp_fsHzRef = 16E3;
+
+% Activate pre-emphasis
+pp_bPreEmphasis    = true;
+pp_coefPreEmphasis = 0.97;
 
 % Activate RMS normalization
-bNormalizeRMS = true;
-rmsIntTimeSec = 500E-3;   
+pp_bNormalizeRMS = true;
+pp_intTimeSecRMS = 2000E-3;   
     
-% Reference sampling frequency
-fsHzRef = [];
 
 
 %% Plot signal
 % 
 % 
-% Number of subplots
-nSubplots = 2 + sum([bRemoveDC bWhitening 2 * bNormalizeRMS]);
-
-ctrSubPlot = 1;
 
 figure;
-ax(1) = subplot(nSubplots,1,1);
 plot(timeSec,earSignals);
-title('Ears signal')
+title(sprintf('1. Ears signals sampled at %i Hz',fsHz))
+xlabel('Time (s)')
+ylabel('Amplitude')
+xlim([timeSec(1) timeSec(end)])
+ylim([-2 2])
 
-ctrSubPlot = ctrSubPlot + 1;
-
-ax(ctrSubPlot) = subplot(nSubplots,1,ctrSubPlot);
+figure;
 plot(timeSec,data);
-title('Ear signals + sinus at 0.5 Hz')
+title('2. Ear signals + sinus at 0.5 Hz')
+xlabel('Time (s)')
+ylabel('Amplitude')
+xlim([timeSec(1) timeSec(end)])
+ylim([-2 2])
 
 
 %% DC removal filter
 %
 %
-if bRemoveDC
+if pp_bRemoveDC
     % 4th order @ 20 Hz cutoff
-    [bDC,aDC] = butter(4,cutoffHz/(fsHz * 0.5),'high');
+    [bDC,aDC] = butter(4,pp_cutoffHzDC/(fsHz * 0.5),'high');
     
     if isstable(bDC,aDC)
         data = filter(bDC,aDC,data);
@@ -73,25 +76,37 @@ if bRemoveDC
         error('IIR filter is not stable, reduce the filter order!')
     end
     
-    ctrSubPlot = ctrSubPlot + 1;
-    
-    ax(ctrSubPlot) = subplot(nSubplots,1,ctrSubPlot);
+    figure;
     plot(timeSec,data);
-    title('After DC removal')
+    title('3. After DC removal')
+    xlabel('Time (s)')
+    ylabel('Amplitude')
+    xlim([timeSec(1) timeSec(end)])
+    ylim([-2 2])
 end
 
 
 %% Resampling
 %
 %
-if isempty(fsHzRef) 
+if isempty(pp_fsHzRef) 
     % Do nothing
-elseif fsHz > fsHzRef
+elseif fsHz > pp_fsHzRef
     % Resample signal
-    data = resample(data,fsHzRef,fsHz);
+    data = resample(data,pp_fsHzRef,fsHz);
+    
+    fsHz = pp_fsHzRef;
     
     % Re-create time axis
-    timeSec = (1:size(data,1))/fsHzRef;
+    timeSec = (1:size(data,1))/pp_fsHzRef;
+    
+    figure;
+    plot(timeSec,data);
+    title(sprintf('4. After resampling to %i Hz',fsHz))
+    xlabel('Time (s)')
+    ylabel('Amplitude')
+    xlim([timeSec(1) timeSec(end)])
+    ylim([-2 2])
 else
     error('Upsampling of the input signal is not supported.')
 end        
@@ -100,44 +115,47 @@ end
 %% Pre-whitening
 % 
 %
-if bWhitening
-    % Common choices are between 0.9 and 0.97
-    b = [1 -0.97];
+if pp_bPreEmphasis
+    % Common choices are between 0.9 and 1
+    b = [1 -abs(pp_coefPreEmphasis)];
     a = 1;
     
     % Apply 1st order pre-whitening filter
     data = filter(b, a, data);
     
-    ctrSubPlot = ctrSubPlot + 1;
-    
-    ax(ctrSubPlot) = subplot(nSubplots,1,ctrSubPlot);
+    figure; 
     plot(timeSec,data);
-    title('After whitening')
+    title('5. After pre-emphasis')
+    xlabel('Time (s)')
+    ylabel('Amplitude')
+    xlim([timeSec(1) timeSec(end)])
+    ylim([-2 2])
 end
 
 
 %% Perform AGC
 %
 %
-if bNormalizeRMS
+if pp_bNormalizeRMS
     % Apply AGC to all channels independently
-    out1 = agc(data,fsHz,rmsIntTimeSec,false);
+    out1 = agc(data,fsHz,pp_intTimeSecRMS,false);
     
     % Preserve level differences across channels
-    out2 = agc(data,fsHz,rmsIntTimeSec,true);
+    out2 = agc(data,fsHz,pp_intTimeSecRMS,true);
     
-    ctrSubPlot = ctrSubPlot + 1;
-    
-    ax(ctrSubPlot) = subplot(nSubplots,1,ctrSubPlot);
+    figure;
     plot(timeSec,out1);
-    title('After monaural AGC')
-    
-    ctrSubPlot = ctrSubPlot + 1;
-    
-    ax(ctrSubPlot) = subplot(nSubplots,1,ctrSubPlot);
-    plot(timeSec,out2);
-    title('After binaural AGC')
-end
+    title('6. After monaural AGC')
+    xlabel('Time (s)')
+    ylabel('Amplitude')
+    xlim([timeSec(1) timeSec(end)])
+    ylim([-27 27])
 
-linkaxes(ax(:),'x');
-axis tight;
+    figure;
+    plot(timeSec,out2);
+    title('7. After binaural AGC')
+    xlabel('Time (s)')
+    ylabel('Amplitude')
+    xlim([timeSec(1) timeSec(end)])
+    ylim([-27 27])
+end
