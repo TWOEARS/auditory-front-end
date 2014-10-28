@@ -21,7 +21,7 @@ clear earSignals
 
 % Parameters
 request = {'innerhaircell'};
-p = genParStruct('IHCMethod','breebart');
+p = genParStruct('ihc_method','breebart');
 
 % Create a data object
 dObj = dataObject(data,fsHz);

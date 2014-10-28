@@ -589,8 +589,8 @@ classdef manager < handle
                     case 'innerhaircell'
                         if mObj.Data.isStereo
                             % Instantiate left and right ear processors
-                            mObj.Processors{ii,1} = IHCenvelopeProc(p.fs,p.IHCMethod);
-                            mObj.Processors{ii,2} = IHCenvelopeProc(p.fs,p.IHCMethod);
+                            mObj.Processors{ii,1} = IHCenvelopeProc(p.fs,p.ihc_method);
+                            mObj.Processors{ii,2} = IHCenvelopeProc(p.fs,p.ihc_method);
                             % Generate new signals
                             cfHz = dep_proc_l.getDependentParameter('cfHz');    % Get the center frequencies from dependencies
                             sig_l = TimeFrequencySignal(mObj.Processors{ii,1}.FsHzOut,mObj.Data.bufferSize_s,'innerhaircell',cfHz,'Inner hair-cell envelope',[],'left');
@@ -600,7 +600,7 @@ classdef manager < handle
                             mObj.Data.addSignal(sig_r)
                         else
                             % Instantiate a processor
-                            mObj.Processors{ii} = IHCenvelopeProc(p.fs,p.IHCMethod);
+                            mObj.Processors{ii} = IHCenvelopeProc(p.fs,p.ihc_method);
                             % Generate a new signal
                             cfHz = dep_proc.getDependentParameter('cfHz');    % Get the center frequencies from dependencies
                             sig = TimeFrequencySignal(mObj.Processors{ii,1}.FsHzOut,mObj.Data.bufferSize_s,'innerhaircell',cfHz,'Inner hair-cell envelope',[],'mono');

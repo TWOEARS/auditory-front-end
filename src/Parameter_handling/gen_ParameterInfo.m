@@ -32,7 +32,7 @@ clear pInfo
     addParameterInfo('gammatone','gt_bAlign',false,'Correction for filter alignment')
 
     % Inner hair-cell envelope extraction
-    addParameterInfo('ihc','IHCMethod','dau','Inner hair-cell envelope extraction method (''none'', ''halfwave'', ''fullwave'', ''square'', ''hilbert'', ''joergensen'', ''dau'', ''breebart'', ''berstein'')','Inner hair-cell envelope extraction')
+    addParameterInfo('ihc','ihc_method','dau','Inner hair-cell envelope extraction method (''none'', ''halfwave'', ''fullwave'', ''square'', ''hilbert'', ''joergensen'', ''dau'', ''breebart'', ''berstein'')','Inner hair-cell envelope extraction')
 
     % Amplitude modulation filterbank
     addParameterInfo('am','am_nFilters',15,'Requested number of filters (integer)','Amplitude modulation filterbank')
