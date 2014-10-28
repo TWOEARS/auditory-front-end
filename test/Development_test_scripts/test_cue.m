@@ -20,7 +20,7 @@ end
 clear earSignals
 
 % Parameters
-request = {'spec_features'};
+request = {'modulation'};
 p = [];%genParStruct('am_type','filter');
 
 % Create a data object
