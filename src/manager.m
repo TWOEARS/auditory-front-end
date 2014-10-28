@@ -395,10 +395,10 @@ classdef manager < handle
             end
             
             % Find out about the Gammatone definition
-            if isfield(p,'cfHz')
+            if isfield(p,'gt_cfHz')
                 % Generated from provided center frequencies
                 gamma_init = 'cfHz';
-            elseif isfield(p,'nChannels')
+            elseif isfield(p,'gt_nChannels')
                 % Generate from upper/lower frequencies and number of
                 % channels
                 gamma_init = 'nChannels';
@@ -541,28 +541,28 @@ classdef manager < handle
                             % Instantiate left and right ear processors
                             switch gamma_init
                                 case 'cfHz'
-                                    mObj.Processors{ii,1} = gammatoneProc(p.fs,[],[],[],[],p.cfHz,p.IRtype,p.bAlign,p.n_gamma,p.bwERBs,p.durSec);
-                                    mObj.Processors{ii,2} = gammatoneProc(p.fs,[],[],[],[],p.cfHz,p.IRtype,p.bAlign,p.n_gamma,p.bwERBs,p.durSec);
+                                    mObj.Processors{ii,1} = gammatoneProc(p.fs,[],[],[],[],p.gt_cfHz,p.gt_bAlign,p.gt_nGamma,p.gt_bwERBs);
+                                    mObj.Processors{ii,2} = gammatoneProc(p.fs,[],[],[],[],p.gt_cfHz,p.gt_bAlign,p.gt_nGamma,p.gt_bwERBs);
                                     
                                     % Throw a warning if conflicting information was provided
-                                    if isfield(p,'f_low')||isfield(p,'f_high')||isfield(p,'nERBs')||isfield(p,'nChannels')
-                                        warning(['Conflicting information was provided for the Gammatone filterbank instantiation. The filterbank '...
-                                            'will be generated from the provided vector of center frequencies.'])
-                                    end
+%                                     if isfield(p,'gt_lowFreqHz')||isfield(p,'gt_highFreqHz')||isfield(p,'gt_nERBs')||isfield(p,'gt_nChannels')
+%                                         warning(['Conflicting information was provided for the Gammatone filterbank instantiation. The filterbank '...
+%                                             'will be generated from the provided vector of center frequencies.'])
+%                                     end
                                     
                                 case 'nChannels'
-                                    mObj.Processors{ii,1} = gammatoneProc(p.fs,p.f_low,p.f_high,[],p.nChannels,[],p.IRtype,p.bAlign,p.n_gamma,p.bwERBs,p.durSec);
-                                    mObj.Processors{ii,2} = gammatoneProc(p.fs,p.f_low,p.f_high,[],p.nChannels,[],p.IRtype,p.bAlign,p.n_gamma,p.bwERBs,p.durSec);
+                                    mObj.Processors{ii,1} = gammatoneProc(p.fs,p.gt_lowFreqHz,p.gt_highFreqHz,[],p.gt_nChannels,[],p.gt_bAlign,p.gt_nGamma,p.gt_bwERBs);
+                                    mObj.Processors{ii,2} = gammatoneProc(p.fs,p.gt_lowFreqHz,p.gt_highFreqHz,[],p.gt_nChannels,[],p.gt_bAlign,p.gt_nGamma,p.gt_bwERBs);
                                     
                                     % Throw a warning if conflicting information was provided
-                                    if isfield(p,'nERBs')
-                                        warning(['Conflicting information was provided for the Gammatone filterbank instantiation. The filterbank '...
-                                            'will be generated from the provided frequency range and number of channels.'])
-                                    end
+%                                     if isfield(p,'gt_nERBs')
+%                                         warning(['Conflicting information was provided for the Gammatone filterbank instantiation. The filterbank '...
+%                                             'will be generated from the provided frequency range and number of channels.'])
+%                                     end
                                     
                                 case 'standard'
-                                    mObj.Processors{ii,1} = gammatoneProc(p.fs,p.f_low,p.f_high,p.nERBs,[],[],p.IRtype,p.bAlign,p.n_gamma,p.bwERBs,p.durSec);
-                                    mObj.Processors{ii,2} = gammatoneProc(p.fs,p.f_low,p.f_high,p.nERBs,[],[],p.IRtype,p.bAlign,p.n_gamma,p.bwERBs,p.durSec);
+                                    mObj.Processors{ii,1} = gammatoneProc(p.fs,p.gt_lowFreqHz,p.gt_highFreqHz,p.gt_nERBs,[],[],p.gt_bAlign,p.gt_nGamma,p.gt_bwERBs);
+                                    mObj.Processors{ii,2} = gammatoneProc(p.fs,p.gt_lowFreqHz,p.gt_highFreqHz,p.gt_nERBs,[],[],p.gt_bAlign,p.gt_nGamma,p.gt_bwERBs);
                             end
                             % Generate new signals
                             sig_l = TimeFrequencySignal(mObj.Processors{ii,1}.FsHzOut,mObj.Data.bufferSize_s,'gammatone',mObj.Processors{ii}.cfHz,'Gammatone filterbank output',[],'left');
@@ -574,11 +574,11 @@ classdef manager < handle
                             % Instantiate a processor
                             switch gamma_init
                                 case 'cfHz'
-                                    mObj.Processors{ii,1} = gammatoneProc(p.fs,p.f_low,p.f_high,[],[],p.cfHz,p.IRtype,p.bAlign,p.n_gamma,p.bwERBs,p.durSec);
+                                    mObj.Processors{ii,1} = gammatoneProc(p.fs,p.gt_lowFreqHz,p.gt_highFreqHz,[],[],p.gt_cfHz,p.gt_bAlign,p.gt_nGamma,p.gt_bwERBs);
                                 case 'nChannels'
-                                    mObj.Processors{ii,1} = gammatoneProc(p.fs,p.f_low,p.f_high,[],p.nChannels,[],p.IRtype,p.bAlign,p.n_gamma,p.bwERBs,p.durSec);
+                                    mObj.Processors{ii,1} = gammatoneProc(p.fs,p.gt_lowFreqHz,p.gt_highFreqHz,[],p.gt_nChannels,[],p.gt_bAlign,p.gt_nGamma,p.gt_bwERBs);
                                 case 'standard'
-                                    mObj.Processors{ii,1} = gammatoneProc(p.fs,p.f_low,p.f_high,p.nERBs,[],[],p.IRtype,p.bAlign,p.n_gamma,p.bwERBs,p.durSec);
+                                    mObj.Processors{ii,1} = gammatoneProc(p.fs,p.gt_lowFreqHz,p.gt_highFreqHz,p.gt_nERBs,[],[],p.gt_bAlign,p.gt_nGamma,p.gt_bwERBs);
                             end
                             % Generate a new signal
                             sig = TimeFrequencySignal(mObj.Processors{ii,1}.FsHzOut,mObj.Data.bufferSize_s,'gammatone',mObj.Processors{ii}.cfHz,'Gammatone filterbank output',[],'mono');
