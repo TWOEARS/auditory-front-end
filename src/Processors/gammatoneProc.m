@@ -3,11 +3,10 @@ classdef gammatoneProc < Processor
     properties
         cfHz            % Filters center frequencies
         nERBs           % Distance between neighboring filters in ERBs
-        n_gamma         % Gammatone order of the filters
+        nGamma          % Gammatone order of the filters
         bwERBs          % Bandwidth of the filters in ERBs
-        f_low           % Lowest center frequency used at instantiation
-        f_high          % Highest center frequency used at instantiation
-        fb_decimation   % Decimation ratio of the filterbank
+        lowFreqHz       % Lowest center frequency used at instantiation
+        highFreqHz      % Highest center frequency used at instantiation
     end
     
     properties (GetAccess = private)
@@ -15,8 +14,8 @@ classdef gammatoneProc < Processor
     end
         
     methods
-        function pObj = gammatoneProc(fs,flow,fhigh,nERBs,nChan,cfHz,irType,bAlign,...
-                                        n,bw,durSec)
+        function pObj = gammatoneProc(fs,flow,fhigh,nERBs,nChan,cfHz,bAlign,...
+                                        n,bw)
             %gammatoneProc      Construct a gammatone filterbank inheriting
             %                   the "processor" class
             %
@@ -60,17 +59,15 @@ classdef gammatoneProc < Processor
             if nargin>0  % Failsafe for constructor calls without arguments
             
             % Checking input arguments
-            if nargin < 3 || nargin > 11
+            if nargin < 3 || nargin > 9
                 help(mfilename);
                 error('Wrong number of input arguments!')
             end
             
             % Set default optional parameter
-            if nargin < 11 || isempty(durSec); durSec = 0.128; end
-            if nargin < 10 || isempty(bw); bw = 1.08; end
-            if nargin < 9 || isempty(n); n = 4; end
-            if nargin < 8 || isempty(bAlign); bAlign = false; end
-            if nargin < 7 || isempty(irType); irType = 'FIR'; end
+            if nargin < 9 || isempty(bw); bw = 1.08; end
+            if nargin < 8 || isempty(n); n = 4; end
+            if nargin < 7 || isempty(bAlign); bAlign = false; end
             
             % Parse mandatory arguments: three scenarios
             
@@ -80,14 +77,6 @@ classdef gammatoneProc < Processor
                 % Do nothing, we already have a vector of center
                 % frequencies in Hz
                 
-                % Give a warning to the user though if he specified other
-                % conflicting properties
-%                 if ~isempty(flow)||~isempty(fhigh)||~isempty(nChan)||~isempty(nERBs)
-%                     warning(['Conflicting parameters were provided for '...
-%                         'the Gammatone filterbank instantiation. The '...
-%                         'filterbank will be generated from the provided'...
-%                         ' list of center frequencies.'])
-%                 end
                 
             elseif ~isempty(flow)&&~isempty(fhigh)&&~isempty(nChan)
                 % 2- Frequency range and number of channels is provided
@@ -124,8 +113,7 @@ classdef gammatoneProc < Processor
             nFilter = numel(cfHz); 
             
             % Instantiating the filters
-            pObj.Filters = pObj.populateFilters(cfHz,fs,irType,n,bw,...
-                            bAlign,durSec);
+            pObj.Filters = pObj.populateFilters(cfHz,fs,n,bw,bAlign);
             
             % Setting up additional properties
             % 1- Global properties
@@ -135,11 +123,10 @@ classdef gammatoneProc < Processor
             % 2- Specific properties
             pObj.cfHz = cfHz;
             pObj.nERBs = nERBs;
-            pObj.n_gamma = n;
+            pObj.nGamma = n;
             pObj.bwERBs = bw;
-            pObj.f_low = flow;
-            pObj.f_high = fhigh;
-            pObj.fb_decimation = 1;
+            pObj.lowFreqHz = flow;
+            pObj.highFreqHz = fhigh;
             
             end
         end
@@ -228,16 +215,17 @@ classdef gammatoneProc < Processor
             % common. Hence only this parameter is checked regarding
             % channel positionning.
             
-            p_list = {'cfHz','n_gamma','bwERBs'};
+            p_list = {'gt_cfHz','gt_nGamma','gt_bwERBs'};
+            p_list_proc = {'cfHz','nGamma','bwERBs'};
             
             % The center frequency position needs to be computed for
             % scenario where it is not explicitely provided
-            if isempty(p.cfHz)&&~isempty(p.nChannels)
-                ERBS = linspace(freq2erb(p.f_low),freq2erb(p.f_high),p.nChannels);    % In ERBS
-                p.cfHz = erb2freq(ERBS);                                              % In Hz
-            elseif isempty(p.cfHz)&&isempty(p.nChannels)
-                ERBS = freq2erb(p.f_low):double(p.nERBs):freq2erb(p.f_high);   % In ERBS
-                p.cfHz = erb2freq(ERBS);                                       % In Hz
+            if isempty(p.gt_cfHz)&&~isempty(p.gt_nChannels)
+                ERBS = linspace(freq2erb(p.gt_lowFreqHz),freq2erb(p.gt_highFreqHz),p.gt_nChannels);    % In ERBS
+                p.gt_cfHz = erb2freq(ERBS);                                              % In Hz
+            elseif isempty(p.gt_cfHz)&&isempty(p.gt_nChannels)
+                ERBS = freq2erb(p.gt_lowFreqHz):double(p.gt_nERBs):freq2erb(p.gt_highFreqHz);   % In ERBS
+                p.gt_cfHz = erb2freq(ERBS);                                       % In Hz
             end
             
             
@@ -247,8 +235,8 @@ classdef gammatoneProc < Processor
             % Loop on the list of parameters
             for ii = 1:size(p_list,2)
                 try
-                    if size(pObj.(p_list{ii}))==size(p.(p_list{ii}))
-                        delta(ii) = max(abs(pObj.(p_list{ii}) - p.(p_list{ii})));
+                    if size(pObj.(p_list_proc{ii}))==size(p.(p_list{ii}))
+                        delta(ii) = max(abs(pObj.(p_list_proc{ii}) - p.(p_list{ii})));
                     else
                         delta(ii) = 1;
                     end
@@ -272,19 +260,19 @@ classdef gammatoneProc < Processor
     end
     
     methods (Access = private)
-        function obj = populateFilters(pObj,cfHz,fs,irType,n,bw,bAlign,durSec)
+        function obj = populateFilters(pObj,cfHz,fs,n,bw,bAlign)
             % This function is a workaround to assign an array of objects
             % as one of the processor's property, should remain private
 
             nFilter = numel(cfHz);
             
             % Preallocate memory by instantiating last filter
-            obj(1,nFilter) = gammatoneFilter(cfHz(nFilter),fs,irType,n,...
-                                        bw,bAlign,durSec);
+            obj(1,nFilter) = gammatoneFilter(cfHz(nFilter),fs,n,...
+                                        bw,bAlign);
             % Instantiating remaining filters
             for ii = 1:nFilter-1
-                obj(1,ii) = gammatoneFilter(cfHz(ii),fs,irType,n,...
-                                        bw,bAlign,durSec);
+                obj(1,ii) = gammatoneFilter(cfHz(ii),fs,n,...
+                                        bw,bAlign);
             end                        
             
         end
