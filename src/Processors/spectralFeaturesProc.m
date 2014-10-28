@@ -216,7 +216,9 @@ classdef spectralFeaturesProc < Processor
                         out(:,ii) = sqrt(mean(power(deltaSpec,2),2));
                         
                         % Update the buffer
-                        pObj.flux_buffer = pSpec(end,:);
+                        if ~isempty( pSpec )
+                            pObj.flux_buffer = pSpec(end,:);
+                        end
                         
                     case 'kurtosis'
                         
