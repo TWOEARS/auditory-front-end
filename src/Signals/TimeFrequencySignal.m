@@ -117,7 +117,7 @@ classdef TimeFrequencySignal < Signal
                 
                 if do_dB
                     % Get the data in dB
-                    data = 20*log10(abs(sObj.Data(:).'));
+                    data = 10*log10(abs(sObj.Data(:).'));
                 else
                     data = sObj.Data(:).';
                 end
