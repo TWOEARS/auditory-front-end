@@ -4,31 +4,49 @@ close all
 % Basic script used throughout chapter 2 of deliverable 2.2
 % Using echo for copy/pasting to deliverable text
 
+% Loading a signal
 load('TestBinauralCues');
-s = earSignals;
+sIn = earSignals;
 clear earSignals
 
-% Start echo now
-echo on
+L = size(sIn,1);    % Number of samples in the input signal
+
+% Boundaries for arbitrary chunk size
+chunkSizeMin = 100;
+chunkSizeMax = 20000;
 
 % Instantiation of data and manager objects
-dataObj = dataObject(s,fsHz);
+dataObj = dataObject([],fsHz,10,1);
 managerObj = manager(dataObj);
 
-% Non-default parameter values
-parameters = genParStruct('ild_wSizeSec',0.04,'ild_hSizeSec',0.02);
+% Place a request
+sOut = managerObj.addProcessor('ild');
 
-% Place a request for the computation of ILDs
-sOut = managerObj.addProcessor('ild',parameters);
+% Initialize current chunk indexes
+chunkStart = 0;
+chunkStop = 1;
 
-% Place another request
-sOut2 = managerObj.addProcessor('onset_strength');
+% Simulate a chunk-based aquisition of the input
+while chunkStart < L - chunkSizeMin
+    
+    % Generate new chunk boundaries
+    chunkStart = chunkStop + 1;
+    chunkStop = chunkStart + chunkSizeMin + ...
+                randsample(chunkSizeMax-chunkSizeMin,1);
+            
+    % Limit the end of the chunk to the end of the signal
+    chunkStop = min(chunkStop,L);
+            
+    % Request the processing of the chunk
+    managerObj.processChunk(sIn(chunkStart:chunkStop,:),1);
+    
+end
 
-% And a last one, with some parameter changes
-moreParameters = genParStruct('ac_hSizeSec',0.015);
-managerObj.addProcessor('autocorrelation',moreParameters);
+% Comparison with offline processing
+dataObjOff = dataObject(sIn,fsHz);
+managerObjOff = manager(dataObj);
+sOutOff = managerObjOff.addProcessor('ild');
+managerObjOff.processSignal;
 
-% Request the processing
-managerObj.processSignal;
-
-echo off
+% Plot the difference between the two representations
+figure,imagesc(sOut.Data(:)-sOutOff.Data(:)),colorbar
