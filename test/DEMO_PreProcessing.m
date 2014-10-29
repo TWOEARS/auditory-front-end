@@ -15,7 +15,7 @@ earSignals = earSignals(1:62E3,:);
 
 
 % Replicate signals at a higher level
-earSignals = cat(1,earSignals,5*earSignals)/5;
+earSignals = cat(1,earSignals,3*earSignals)/3;
 
 % Add a sinus @ 0.5 Hz
 data = earSignals + repmat(sin(2*pi.*(0:size(earSignals,1)-1).' * 0.5/fsHz),[1 size(earSignals,2)]);
@@ -40,7 +40,7 @@ pp_coefPreEmphasis = 0.97;
 
 % Activate RMS normalization
 pp_bNormalizeRMS = true;
-pp_intTimeSecRMS = 2000E-3;   
+pp_intTimeSecRMS = 500E-3;   
     
 
 
@@ -151,7 +151,7 @@ if pp_bNormalizeRMS
     xlabel('Time (s)')
     ylabel('Amplitude')
     xlim([timeSec(1) timeSec(end)])
-    ylim([-27 27])
+    ylim([-18 18])
 
     figure;
     plot(timeSec(1:3:end),out2(1:3:end,:));
@@ -159,7 +159,7 @@ if pp_bNormalizeRMS
     xlabel('Time (s)')
     ylabel('Amplitude')
     xlim([timeSec(1) timeSec(end)])
-    ylim([-27 27])
+    ylim([-18 18])
 end
 
 if 0

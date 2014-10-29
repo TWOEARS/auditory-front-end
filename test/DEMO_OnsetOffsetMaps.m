@@ -22,7 +22,7 @@ fsHz = fsHzRef;
 requests = {'onset_strength' 'offset_strength'};
 
 % Minimum ratemap level in dB below which onsets or offsets are not considered
-minLeveldB = -80;
+minRatemapLeveldB = -80;
 
 % Ratemap settings
 rm_wSizeSec = 20E-3;
@@ -39,6 +39,18 @@ fuseOnsetsWithinSec = 30E-3;
 minOffsetStrengthdB  = 3;
 minOffsetSpread      = 5;
 fuseOffsetsWithinSec = 30E-3;
+
+
+% % Onset parameters
+% minOnsetStrengthdB  = 0;
+% minOnsetSpread      = 1;
+% fuseOnsetsWithinSec = 0;
+% 
+% % Offset parameters
+% minOffsetStrengthdB  = 0;
+% minOffsetSpread      = 1;
+% fuseOffsetsWithinSec = 0;
+
 
 % Parameters
 par = genParStruct('gt_lowFreqHz',80,'gt_highFreqHz',8000,'gt_nChannels',nChannels,'ihc_method','dau','rm_decaySec',rm_decaySec,'rm_wSizeSec',rm_wSizeSec,'rm_hSizeSec',rm_hSizeSec); 
@@ -67,9 +79,9 @@ stepSizeSec = 1/dObj.onset_strength{1}.FsHz;
 ratemap_dB = 10*log10([dObj.ratemap_power{1}.Data(:)]);
 
 % Delete activity which is below "minLeveldB"
-bSet2zero = ratemap_dB  < minLeveldB;
+bSet2zero = ratemap_dB  < minRatemapLeveldB;
 
-onsetStrength(bSet2zero) = 0;
+onsetStrength(bSet2zero)  = 0;
 offsetStrength(bSet2zero) = 0;
 
 % Detect onsets and offsets
@@ -95,7 +107,7 @@ hold on;
 for ii = 1 : nChannels
     data = repmat(timeSec(bOnsets(:,ii) ~= 0)-0.5 * stepSizeSec,[2 1]);
     if ~isempty(data)
-        plot(data,ii-0.5:ii+0.5,'Color','k','LineWidth',3);
+        plot(data,ii-0.5:ii+0.5,'Color','k','LineWidth',2);
     end
 end
 
@@ -103,7 +115,7 @@ end
 for ii = 1 : nChannels
     data = repmat(timeSec(bOffsets(:,ii) ~= 0)-0.5 * stepSizeSec,[2 1]);
     if ~isempty(data)
-        plot(data,ii-0.5:ii+0.5,'Color','w','LineWidth',3);
+        plot(data,ii-0.5:ii+0.5,'Color','w','LineWidth',2);
     end
 end
 
