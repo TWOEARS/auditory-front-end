@@ -22,20 +22,17 @@ clear pInfo
     addParameterInfo('fr','fr_hSize',512,'Step size between windows in samples')
 
     % Gammatone filterbank
-    addParameterInfo('gammatone','f_low',80,'Lowest center frequency (Hz)','Gammatone filterbank')
-    addParameterInfo('gammatone','f_high',8000,'Highest center frequency (Hz)')
-    addParameterInfo('gammatone','nERBs',1,'Distance between neighbor filters in ERBs')
-    addParameterInfo('gammatone','nChannels',[],'Number of channels')
-    addParameterInfo('gammatone','cfHz',[],'Vector of channels'' center frequencies in Hz')
-    addParameterInfo('gammatone','IRtype','IIR','Gammatone filter impulse response type (''IIR'' or ''FIR'')')
-    addParameterInfo('gammatone','n_gamma',4,'Gammatone rising slope order')
-    addParameterInfo('gammatone','bwERBs',1.018,'Bandwidth of the filters (ERBs)')
-    % addParameterInfo('gammatone','fb_decimation',1,'Decimation ratio of the filterbank')
-    addParameterInfo('gammatone','durSec',128E-3,'Duration of FIR (s)')
-    addParameterInfo('gammatone','bAlign',false,'Correction for filter alignment')
+    addParameterInfo('gammatone','gt_lowFreqHz',80,'Lowest center frequency (Hz)','Gammatone filterbank')
+    addParameterInfo('gammatone','gt_highFreqHz',8000,'Highest center frequency (Hz)')
+    addParameterInfo('gammatone','gt_nERBs',1,'Distance between neighbor filters in ERBs')
+    addParameterInfo('gammatone','gt_nChannels',[],'Number of channels')
+    addParameterInfo('gammatone','gt_cfHz',[],'Vector of channels'' center frequencies in Hz')
+    addParameterInfo('gammatone','gt_nGamma',4,'Gammatone rising slope order')
+    addParameterInfo('gammatone','gt_bwERBs',1.018,'Bandwidth of the filters (ERBs)')
+    addParameterInfo('gammatone','gt_bAlign',false,'Correction for filter alignment')
 
     % Inner hair-cell envelope extraction
-    addParameterInfo('ihc','IHCMethod','dau','Inner hair-cell envelope extraction method (''none'', ''halfwave'', ''fullwave'', ''square'', ''hilbert'', ''joergensen'', ''dau'', ''breebart'', ''berstein'')','Inner hair-cell envelope extraction')
+    addParameterInfo('ihc','ihc_method','dau','Inner hair-cell envelope extraction method (''none'', ''halfwave'', ''fullwave'', ''square'', ''hilbert'', ''joergensen'', ''dau'', ''breebart'', ''berstein'')','Inner hair-cell envelope extraction')
 
     % Amplitude modulation filterbank
     addParameterInfo('am','am_nFilters',15,'Requested number of filters (integer)','Amplitude modulation filterbank')

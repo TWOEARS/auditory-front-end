@@ -14,13 +14,13 @@ classdef TimeFrequencySignal < Signal
     end
     
     methods 
-        function sObj = TimeFrequencySignal(fs,bufferSize_s,name,cfHz,label,data,canal)
+        function sObj = TimeFrequencySignal(fs,bufferSize_s,name,cfHz,label,data,channel)
             %TimeFrequencySignal    Constructor for the "time-frequency
             %                       representation" children signal class
             %
             %USAGE 
             %     sObj = TimeFrequencySignal(fs,name)
-            %     sObj = TimeFrequencySignal(fs,name,cfHz,label,data,canal)
+            %     sObj = TimeFrequencySignal(fs,name,cfHz,label,data,channel)
             %
             %INPUT ARGUMENTS
             %       fs : Sampling frequency (Hz)
@@ -32,8 +32,8 @@ classdef TimeFrequencySignal < Signal
             %     data : Data matrix to construct an object from existing 
             %            data. Time should span lines and frequency spans
             %            columns.
-            %    canal : Flag indicating 'left', 'right', or 'mono'
-            %            (default: canal = 'mono')
+            %   channel : Flag indicating 'left', 'right', or 'mono'
+            %            (default: channel = 'mono')
             %OUTPUT ARGUMENT
             %     sObj : Time-frequency representation signal object 
             %            inheriting the signal class
@@ -48,7 +48,7 @@ classdef TimeFrequencySignal < Signal
                 warning(['A name tag should be assigned to the signal. '...
                     'The name %s was chosen by default'],name)
             end
-            if nargin<7; canal = 'mono'; end
+            if nargin<7; channel = 'mono'; end
             if nargin<6||isempty(data); data = []; end
             if nargin<5||isempty(label)
                 label = name;
@@ -70,7 +70,7 @@ classdef TimeFrequencySignal < Signal
                 'Dimensions','nSamples x nFilters');
             sObj.cfHz = cfHz;
             sObj.setData( data );
-            sObj.Canal = canal;
+            sObj.Channel = channel;
             
             end
             
@@ -116,8 +116,12 @@ classdef TimeFrequencySignal < Signal
                 end
                 
                 if do_dB
-                    % Get the data in dB
-                    data = 10*log10(abs(sObj.Data(:).'));
+                    if strcmp(sObj.Name,'ratemap_power')
+                        data = 10*log10(abs(sObj.Data(:).'));
+                    else
+                        % Get the data in dB
+                        data = 20*log10(abs(sObj.Data(:).'));
+                    end
                 else
                     data = sObj.Data(:).';
                 end
@@ -186,8 +190,8 @@ classdef TimeFrequencySignal < Signal
                 end
 
                 % Set up a title
-                if ~strcmp(sObj.Canal,'mono')
-                    pTitle = [sObj.Label ' - ' sObj.Canal];
+                if ~strcmp(sObj.Channel,'mono')
+                    pTitle = [sObj.Label ' - ' sObj.Channel];
                 else
                     pTitle = sObj.Label;
                 end

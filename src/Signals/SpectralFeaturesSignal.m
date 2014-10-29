@@ -7,13 +7,13 @@ classdef SpectralFeaturesSignal < Signal
     
     methods
         
-        function sObj = SpectralFeaturesSignal(fs,fList,bufferSize_s,name,label,canal)
+        function sObj = SpectralFeaturesSignal(fs,fList,bufferSize_s,name,label,channel)
             %SpectralFeaturesSignal     Constructor for the spectral
             %                           features signal class
             %
             %USAGE:
             %   sObj = SpectralFeaturesSignal(fs,fList)
-            %   sObj = SpectralFeaturesSignal(fs,fList,name,label,canal)
+            %   sObj = SpectralFeaturesSignal(fs,fList,name,label,channel)
             %
             %INPUT ARGUMENTS
             %     fs : Sampling frequency (Hz) of the spectral features
@@ -23,7 +23,7 @@ classdef SpectralFeaturesSignal < Signal
             %   name : Name tag of the signal, should be compatible with
             %          the global request name syntax.
             %  label : Label for the signal
-            %  canal : Flag indicating 'left', 'right', or 'mono' (default)
+            % channel : Flag indicating 'left', 'right', or 'mono' (default)
             %
             %OUTPUT ARGUMENT:
             %   sObj : Instant of the signal object
@@ -33,7 +33,7 @@ classdef SpectralFeaturesSignal < Signal
             if nargin>0     % Failsafe for Matlab empty calls
                 
             % Check input arguments
-            if nargin<6||isempty(canal);canal='mono';end
+            if nargin<6||isempty(channel);channel='mono';end
             if nargin<4||isempty(name);name='spec_features';end
             if nargin<5||isempty(label);label=name;end
             
@@ -49,7 +49,7 @@ classdef SpectralFeaturesSignal < Signal
             sObj.Label = label;
             sObj.Name = name;
             sObj.Dimensions = ['nSamples x ' num2str(size(fList,2)) 'features'];
-            sObj.Canal = canal;
+            sObj.Channel = channel;
             sObj.fList = fList;
             
                 

@@ -6,12 +6,12 @@ classdef FramedSignal < Signal
     
     methods
     
-        function sObj = FramedSignal(fs,bufferSize_s,frameSize,frameFs,name,label,canal)
+        function sObj = FramedSignal(fs,bufferSize_s,frameSize,frameFs,name,label,channel)
             %FramedSignal   Constructor for the framed signal class
             %
             %USAGE:
             %   sObj = FramedSignal(fs,frameSize,frameFs)
-            %   sObj = FramedSignal(fs,frameSize,frameFs,name,label,canal)
+            %   sObj = FramedSignal(fs,frameSize,frameFs,name,label,channel)
             %
             %INPUT ARGUMENTS
             %        fs : Sampling frequency (inverse of frame step-size)
@@ -19,7 +19,7 @@ classdef FramedSignal < Signal
             %   frameFs : Sampling frequency inside a frame (Hz)
             %      name : Name tag of the signal
             %     label : Label for the signal
-            %     canal : 'left', 'right', or 'mono' (default)
+            %   channel : 'left', 'right', or 'mono' (default)
             %
             %OUTPUT ARGUMENTS
             %    sObj : Signal instance
@@ -28,7 +28,7 @@ classdef FramedSignal < Signal
             
             if nargin>0
                 
-            if nargin<7||isempty(canal);canal='mono';end
+            if nargin<7||isempty(channel);channel='mono';end
             if nargin<5||isempty(name);name='framedSignal';end
             if nargin<6||isempty(label);label=name;end
             
@@ -40,7 +40,7 @@ classdef FramedSignal < Signal
             populateProperties(sObj,'Label',label,'Name',name,...
                 'Dimensions','nFrames x frameSize');
             sObj.frameFsHz = frameFs;
-            sObj.Canal = canal;
+            sObj.Channel = channel;
                 
             end
             
