@@ -41,7 +41,7 @@ minOffsetSpread      = 5;
 fuseOffsetsWithinSec = 30E-3;
 
 % Parameters
-par = genParStruct('f_low',80,'f_high',8000,'nChannels',nChannels,'IHCMethod','dau','rm_decaySec',rm_decaySec,'rm_wSizeSec',rm_wSizeSec,'rm_hSizeSec',rm_hSizeSec); 
+par = genParStruct('gt_lowFreqHz',80,'gt_highFreqHz',8000,'gt_nChannels',nChannels,'ihc_method','dau','rm_decaySec',rm_decaySec,'rm_wSizeSec',rm_wSizeSec,'rm_hSizeSec',rm_hSizeSec); 
 
 % Create a data object
 dObj = dataObject(data,fsHz);
