@@ -22,7 +22,7 @@ fsHz = fsHzRef;
 requests = {'ratemap_power'};
 
 % Parameters
-par = genParStruct('f_low',80,'f_high',8000,'nChannels',[16],'IHCMethod','dau'); 
+par = genParStruct('gt_lowFreqHz',80,'gt_highFreqHz',8000,'gt_nChannels',16,'ihc_method','dau'); 
 
 % Create a data object
 dObj = dataObject(data,fsHz);

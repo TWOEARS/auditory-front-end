@@ -162,7 +162,7 @@ if pp_bNormalizeRMS
     ylim([-27 27])
 end
 
-if 1
+if 0
    fig2LaTeX(['Pre_Processing_01'],1,18)
    fig2LaTeX(['Pre_Processing_02'],2,18)
    fig2LaTeX(['Pre_Processing_03'],3,18)

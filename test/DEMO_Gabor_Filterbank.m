@@ -3,22 +3,20 @@ close all
 clc
 
 
-%% Load a signal
-
-% Add paths
-path = fileparts(mfilename('fullpath')); 
-run([path filesep '..' filesep 'src' filesep 'startAuditoryFrontEnd.m'])
-
-addpath(['Test_signals',filesep]);
-
 % Load a signal
 load('TestBinauralCues');
 
 % Take right ear signal
-data = earSignals(:,2);     
+data = earSignals(1:62E3,2);     
 
-fs = fsHz;
-clear earSignals fsHz
+% New sampling frequency
+fsHzRef = 16E3;
+
+% Resample
+data = resample(data,fsHzRef,fsHz);
+
+% Copy fs
+fsHz = fsHzRef;
 
 % Request ratemap    
 requests = {'ratemap_power'};
@@ -29,12 +27,12 @@ winStepSec  = 10E-3; % DO NOT CHANGE!!!
 rm_decaySec = 8E-3;
 
 % Parameters
-par = genParStruct('f_low',80,'f_high',8000,'nChannels',[],...
+par = genParStruct('gt_lowFreqHz',80,'gt_highFreqHz',8000,'gt_nChannels',[],...
                    'rm_wSizeSec',winSizeSec,'rm_hSizeSec',winStepSec,...
                    'rm_decaySec',rm_decaySec); 
 
 % Create a data object
-dObj = dataObject(data,fs);
+dObj = dataObject(data,fsHz);
 
 % Create a manager
 mObj = manager(dObj,requests,par);
@@ -57,7 +55,6 @@ gb_feat = gbfb(rm_feat);
 
 % Normalize Gabor features
 gb_feat_N = normalizeData(gb_feat','meanvar')';
-
 
 figure;
 subplot(1,3,1);
