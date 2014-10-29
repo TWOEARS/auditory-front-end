@@ -30,6 +30,9 @@ switch signal
         
     case 'innerhaircell'
         procName = 'IHCenvelopeProc';
+    
+    case 'adaptation'
+        procName = 'adaptationProc';  
         
     case 'modulation'
         procName = 'modulationProc';
