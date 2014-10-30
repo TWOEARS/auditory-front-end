@@ -1,5 +1,5 @@
 clear;
-close all
+% close all
 clc
 
 
@@ -22,13 +22,12 @@ fsHz = fsHzRef;
 % Request ratemap    
 requests = {'autocorrelation'};
 
-
 ac_wSizeSec  = 0.02;
 ac_hSizeSec  = 0.01;
 ac_clipAlpha = 0.0;
 ac_K         = 2;
 
-  
+
 % Parameters
 par = genParStruct('gt_lowFreqHz',80,'gt_highFreqHz',8000,'gt_nChannels',16,'ihc_method','dau','ac_wSizeSec',ac_wSizeSec,'ac_hSizeSec',ac_hSizeSec,'ac_clipAlpha',ac_clipAlpha,'ac_K',ac_K); 
 
@@ -52,6 +51,10 @@ pauseSec = 0.125;
 
 %% Plot the ACF
 
+zoom1 = 3;
+zoom2 = 3;
+bNorm = true;
+
 frameIdx2Plot = 10;
 
 wSizeSamples = 0.5 * round((ac_wSizeSec * fsHz * 2));
@@ -60,13 +63,13 @@ wStepSamples = round((ac_hSizeSec * fsHz));
 samplesIdx = (1:wSizeSamples) + ((frameIdx2Plot-1) * wStepSamples);
 
 figure;
-waveplot(ihc(samplesIdx,:),samplesIdx/fsHz,dObj.autocorrelation{1}.cfHz)
+waveplot(ihc(samplesIdx,:),samplesIdx/fsHz,dObj.autocorrelation{1}.cfHz,zoom1,bNorm)
 xlabel('Time (s)')
 ylabel('Center frequency (Hz)')
 title('IHC signal')
 
 figure;
-waveplot(permute(acf(frameIdx2Plot,:,:),[3 1 2]),dObj.autocorrelation{1}.lags,dObj.autocorrelation{1}.cfHz)
+waveplot(permute(acf(frameIdx2Plot,:,:),[3 1 2]),dObj.autocorrelation{1}.lags,dObj.autocorrelation{1}.cfHz,zoom2,bNorm)
 xlabel('Lag period (s)')
 ylabel('Center frequency (Hz)')
 title('ACF')
