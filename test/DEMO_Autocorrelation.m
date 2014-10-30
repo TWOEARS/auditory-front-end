@@ -7,11 +7,11 @@ clc
 load('TestBinauralCues');
 
 % Take right ear signal
-data = earSignals(1:62E3,2);     
+data = earSignals(1:62E3,2); 
 % data = earSignals(1:15E3,2);     
 
 % New sampling frequency
-fsHzRef = 30E3;
+fsHzRef = 16E3;
 
 % Resample
 data = resample(data,fsHzRef,fsHz);
@@ -25,7 +25,7 @@ requests = {'autocorrelation'};
 
 ac_wSizeSec  = 0.02;
 ac_hSizeSec  = 0.01;
-ac_clipAlpha = 0;
+ac_clipAlpha = 0.0;
 ac_K         = 2;
 
   
@@ -41,11 +41,51 @@ mObj = manager(dObj,requests,par);
 % Request processing
 mObj.processSignal();
 
+ihc = [dObj.innerhaircell{1}.Data(:)];
+
 acf = [dObj.autocorrelation{1}.Data(:)];
 
+% Pause in seconds between two consecutive plots 
+pauseSec = 0.125;
+
+
+
+%% Plot the ACF
+
+frameIdx2Plot = 10;
+
+wSizeSamples = 0.5 * round((ac_wSizeSec * fsHz * 2));
+wStepSamples = round((ac_hSizeSec * fsHz));
+
+samplesIdx = (1:wSizeSamples) + ((frameIdx2Plot-1) * wStepSamples);
 
 figure;
-waveplot(permute(acf(50,:,:),[3 1 2]))
+waveplot(ihc(samplesIdx,:),samplesIdx/fsHz,dObj.autocorrelation{1}.cfHz)
+xlabel('Time (s)')
+ylabel('Center frequency (Hz)')
+title('IHC signal')
+
+figure;
+waveplot(permute(acf(frameIdx2Plot,:,:),[3 1 2]),dObj.autocorrelation{1}.lags,dObj.autocorrelation{1}.cfHz)
+xlabel('Lag period (s)')
+ylabel('Center frequency (Hz)')
+title('ACF')
+
+
+%% Show a ACF movie
+% 
+% 
+if 0
+    figure;
+    
+    % Loop over the number of frames
+    for ii = 1 : size(acf,1)
+        cla;
+        waveplot(permute(acf(ii,:,:),[3 1 2]),dObj.autocorrelation{1}.lags,dObj.autocorrelation{1}.cfHz)
+        pause(pauseSec);
+        title(['Frame number ',num2str(ii)])
+    end
+end
 
 
 % %% Plot Gammatone response

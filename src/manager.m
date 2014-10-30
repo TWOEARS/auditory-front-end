@@ -650,7 +650,7 @@ classdef manager < handle
                             % Instantiate a processor
                             mObj.Processors{ii,1} = autocorrelationProc(p.fs,p,mObj.use_mex);
                             % Generate a new signal
-                            lags = 0:1/p.fs:mObj.Processors{ii,1}.wSizeSec-1/p.fs;   % Vector of lags
+                            lags = ((1:(2 * round(mObj.Processors{ii,1}.wSizeSec * p.fs * 0.5)-1))-1)/p.fs;
                             cfHz = dep_proc.getDependentParameter('cfHz');         % Vector of center frequencies
                             sig = CorrelationSignal(mObj.Processors{ii,1}.FsHzOut,mObj.Data.bufferSize_s,'autocorrelation',cfHz,lags,'Auto-correlation',[],'mono');
                             % Add signal to the data object
