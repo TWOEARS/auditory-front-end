@@ -8,7 +8,8 @@ test_startup;
 
 % Request and parameters for feature extraction
 % request = {'modulation'};
-request = {'drnl'};
+% request = {'drnl'};
+request = {'adaptation'};
 p = [];
 p = genParStruct('IHCMethod','fullwave');%,'am_win','rectwin');
 
@@ -84,7 +85,7 @@ switch s_off.Name
         
 
     case {'innerhaircell' 'gammatone' 'onset_strength' 'offset_strength' 'ratemap_magnitude' ...
-            'ratemap_power' 'drnl'}
+            'ratemap_power' 'drnl' 'adaptation'}
         figure,imagesc(20*log10(abs(s_off.Data(:)-s_on.Data(:))+eps).')
         axis xy
         colorbar

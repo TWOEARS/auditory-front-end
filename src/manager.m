@@ -854,23 +854,45 @@ classdef manager < handle
                     case 'drnl'
                         if mObj.Data.isStereo
                             % Instantiate left and right ear processors
-                            mObj.Processors{ii,1} = drnlProc(p.drnl_CF, p.fs);       % where should CF come from!?
-                            mObj.Processors{ii,2} = drnlProc(p.drnl_CF, p.fs);
+                            mObj.Processors{ii,1} = drnlProc(p.drnl_cf, p.fs);       
+                            mObj.Processors{ii,2} = drnlProc(p.drnl_cf, p.fs);
                             % Generate new signals
-                            sig_l = TimeFrequencySignal(mObj.Processors{ii,1}.FsHzOut,mObj.Data.bufferSize_s,'drnl',p.drnl_CF,'DRNL filterbank output',[],'left');
-                            sig_r = TimeFrequencySignal(mObj.Processors{ii,2}.FsHzOut,mObj.Data.bufferSize_s,'drnl',p.drnl_CF,'DRNL filterbank output',[],'right');
+                            sig_l = TimeFrequencySignal(mObj.Processors{ii,1}.FsHzOut,mObj.Data.bufferSize_s,'drnl',p.drnl_cf,'DRNL filterbank output',[],'left');
+                            sig_r = TimeFrequencySignal(mObj.Processors{ii,2}.FsHzOut,mObj.Data.bufferSize_s,'drnl',p.drnl_cf,'DRNL filterbank output',[],'right');
                             % Add the signals to the data object
                             mObj.Data.addSignal(sig_l);
                             mObj.Data.addSignal(sig_r)
                         else
                             % Instantiate a processor
-                            mObj.Processors{ii,1} = drnlProc(p.drnl_CF, p.fs);
+                            mObj.Processors{ii,1} = drnlProc(p.drnl_cf, p.fs);
                             % Generate a new signal
-                            sig = TimeFrequencySignal(mObj.Processors{ii,1}.FsHzOut,mObj.Data.bufferSize_s,'drnl',p.drnl_CF,'DRNL filterbank output',[],'mono');
+                            sig = TimeFrequencySignal(mObj.Processors{ii,1}.FsHzOut,mObj.Data.bufferSize_s,'drnl',p.drnl_cf,'DRNL filterbank output',[],'mono');
                             % Add signal to the data object
                             mObj.Data.addSignal(sig);
                         end
-                    
+
+                    case 'adaptation'
+                        if mObj.Data.isStereo
+                            % Instantiate left and right ear processors
+                            mObj.Processors{ii,1} = adaptationProc(p.fs,p.adpt_lim, p.adpt_mindB, p.adpt_tau);
+                            mObj.Processors{ii,2} = adaptationProc(p.fs,p.adpt_lim, p.adpt_mindB, p.adpt_tau);
+                            % Generate new signals
+                            cfHz = dep_proc_l.getDependentParameter('cfHz');    % Get the center frequencies from dependencies
+                            sig_l = TimeFrequencySignal(mObj.Processors{ii,1}.FsHzOut,mObj.Data.bufferSize_s,'adaptation',cfHz,'Adaptation loop output',[],'left');
+                            sig_r = TimeFrequencySignal(mObj.Processors{ii,2}.FsHzOut,mObj.Data.bufferSize_s,'adaptation',cfHz,'Adaptation loop output',[],'right');
+                            % Add the signals to the data object
+                            mObj.Data.addSignal(sig_l);
+                            mObj.Data.addSignal(sig_r)
+                        else
+                            % Instantiate a processor
+                            mObj.Processors{ii} = adaptationProc(p.fs,p.adpt_lim, p.adpt_mindB, p.adpt_tau);
+                            % Generate a new signal
+                            cfHz = dep_proc.getDependentParameter('cfHz');    % Get the center frequencies from dependencies
+                            sig = TimeFrequencySignal(mObj.Processors{ii,1}.FsHzOut,mObj.Data.bufferSize_s,'adaptation',cfHz,'Adaptation loop output',[],'mono');
+                            % Add signal to the data object
+                            mObj.Data.addSignal(sig);
+                        end
+
                     % TO DO: Populate that list further
                     
                     % N.B: No need for "otherwise" case once complete

@@ -34,6 +34,11 @@ clear pInfo
     % Inner hair-cell envelope extraction
     addParameterInfo('ihc','ihc_method','dau','Inner hair-cell envelope extraction method (''none'', ''halfwave'', ''fullwave'', ''square'', ''hilbert'', ''joergensen'', ''dau'', ''breebart'', ''berstein'')','Inner hair-cell envelope extraction')
 
+    % Adaptation loop
+    addParameterInfo('adt','adpt_lim',10,'Adaptation loop overshoot limit', 'Adaptation loop')
+    addParameterInfo('adt','adpt_mindB',0,'Adaptation loop lowest signal level (dB)', 'Adaptation loop')
+    addParameterInfo('adt','adpt_tau',[0.005 0.050 0.129 0.253 0.500],'Adaptation loop time constants', 'Adaptation loop')
+   
     % Amplitude modulation filterbank
     addParameterInfo('am','am_nFilters',15,'Requested number of filters (integer)','Amplitude modulation filterbank')
     addParameterInfo('am','am_range',[0 400],'Modulation frequency range (Hz)')
@@ -85,8 +90,10 @@ clear pInfo
     addParameterInfo('itd',[],[],[],'Interaural Time Difference')
     
     % DRNL filterbank
-    addParameterInfo('drnl', 'drnl_CF', [100 137.5 179.2 225.7 277.6 335.3 399.6 471.2 551 639.8 738.9 849.1 972 1109 1261 1431 1620 1831 2065 2327 2619 2943 3305 3708 4156 4656 5213 5833 6524 7294 8151 9106], 'Vector of Characteristic Frequencies indicating BM location (Hz)', 'DRNL filterbank')
-%     addParameterInfo('drnl', 'drnl_DRNLParams', [], 'Structure of DRNL-specific parameters')
+    addParameterInfo('drnl', 'drnl_cf', [100 137.5 179.2 225.7 277.6 335.3 399.6 471.2 551 639.8 738.9 849.1 972 1109 1261 1431 1620 1831 2065 2327 2619 2943 3305 3708 4156 4656 5213 5833 6524 7294 8151 9106], 'Vector of Characteristic Frequencies indicating BM location (Hz)', 'DRNL filterbank')
+    addParameterInfo('drnl', 'drnl_mocIpsi', 1, 'Ipsilateral MOC feedback factor as DRNL nonlinear path gain', 'DRNL filterbank')
+    addParameterInfo('drnl', 'drnl_mocContra', 1, 'Contralateral MOC feedback factor as DRNL nonlinear path gain', 'DRNL filterbank')
+    addParameterInfo('drnl', 'drnl_model', 'CASP', 'DRNL implementation model (CASP or MAP)', 'DRNL filterbank')
     
     % Spectral features
     addParameterInfo('sf','sf_requests','all','List (cell array) of requested spectral features, type ''help SpectralFeaturesProc'' for a list','Spectral features')
