@@ -1,7 +1,7 @@
 classdef IHCenvelopeProc < Processor
     
      properties
-         IHCMethod      % Label for the IHC model used
+         method        % Label for the IHC model used
      end
      
      properties (GetAccess = private)
@@ -49,10 +49,10 @@ classdef IHCenvelopeProc < Processor
                  'Dependencies',getDependencies('innerhaircell'),...
                  'FsHzIn',fs,'FsHzOut',fs);
              % 2- Specific properties
-             pObj.IHCMethod = method;
+             pObj.method = method;
              
              % Instantiate a low-pass filter if needed
-             switch pObj.IHCMethod
+             switch pObj.method
                  
                  case 'joergensen'
                      % First order butterworth filter @ 150Hz
@@ -63,9 +63,9 @@ classdef IHCenvelopeProc < Processor
                      pObj.IHCFilter = bwFilter(pObj.FsHzIn,2,1000);
 
                  case 'breebart'
-                     % First order butterworth filter @ 2000Hz
+                     % First order butterworth filter @ 2000Hz cascaded 5
+                     % times
                      pObj.IHCFilter = bwFilter(pObj.FsHzIn,1,2000,[],5);
-                     % TO DO: CAN'T SERIES THE FILTERS ATM
 
                  case 'bernstein'
                      % Second order butterworth filter @ 425Hz
@@ -80,7 +80,7 @@ classdef IHCenvelopeProc < Processor
          function out = processChunk(pObj,in)
                         
             % Carry out the processing for the chosen IHC method
-            switch pObj.IHCMethod
+            switch pObj.method
                 case 'none'
                     out = in;
 
@@ -149,7 +149,8 @@ classdef IHCenvelopeProc < Processor
             % The IHC processor has the following parameters to be
             % checked: IHCMethod
             
-            p_list = {'IHCMethod'};
+            p_list = {'ihc_method'};
+            p_list_proc = {'method'};
             
             % Initialization of a parameters difference vector
             delta = zeros(size(p_list,2),1);
@@ -157,7 +158,7 @@ classdef IHCenvelopeProc < Processor
             % Loop on the list of parameters
             for ii = 1:size(p_list,2)
                 try
-                    delta(ii) = ~strcmp(pObj.(p_list{ii}),p.(p_list{ii}));
+                    delta(ii) = ~strcmp(pObj.(p_list_proc{ii}),p.(p_list{ii}));
                     
                 catch err
                     % Warning: something is missing

@@ -5,7 +5,7 @@ classdef Signal < handle
         Name            % Used as an instance name in Matlab
         Dimensions      % String describing the dimensions of the signal
         FsHz            % Sampling frequency
-        Canal           % Flag keeping track of the channel: 'mono', 'left'
+        Channel         % Flag keeping track of the channel: 'mono', 'left'
                         %   or 'right'
     end
     

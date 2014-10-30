@@ -4,9 +4,7 @@
 clear 
 close all
 
-% Add path
-% path = fileparts(mfilename('fullpath')); 
-% run([path filesep '..' filesep '..' filesep 'src' filesep 'startWP2.m'])
+test_startup;
 
 % Test on monoral or binaural signal
 do_stereo = 1;
@@ -27,6 +25,7 @@ request = {'innerhaircell'};
 p = genParStruct('drnl_CF', ...     % use this when testing with drnlProc
     1.0e+03 * [0.0800 0.1616 0.2648 0.3952 0.5601 0.7686 1.0321 1.3653 1.7866 ...
     2.3191 2.9924 3.8436 4.9197 6.2801 8.0000]); 
+
 
 % Create a data object
 dObj = dataObject(data,fsHz);

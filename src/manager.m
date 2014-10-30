@@ -297,7 +297,7 @@ classdef manager < handle
                 proc = mObj.Processors{ii,earIndex};
                 
                 % Is the current processor one of the sought type?
-                if isa(proc,name) && ismember(proc.Output.Canal,channel)
+                if isa(proc,name) && ismember(proc.Output.Channel,channel)
                     
                     % Does it have the requested parameters?
                     if proc.hasParameters(p)
@@ -395,10 +395,10 @@ classdef manager < handle
             end
             
             % Find out about the Gammatone definition
-            if isfield(p,'cfHz')
+            if isfield(p,'gt_cfHz')
                 % Generated from provided center frequencies
                 gamma_init = 'cfHz';
-            elseif isfield(p,'nChannels')
+            elseif isfield(p,'gt_nChannels')
                 % Generate from upper/lower frequencies and number of
                 % channels
                 gamma_init = 'nChannels';
@@ -541,28 +541,28 @@ classdef manager < handle
                             % Instantiate left and right ear processors
                             switch gamma_init
                                 case 'cfHz'
-                                    mObj.Processors{ii,1} = gammatoneProc(p.fs,[],[],[],[],p.cfHz,p.IRtype,p.bAlign,p.n_gamma,p.bwERBs,p.durSec);
-                                    mObj.Processors{ii,2} = gammatoneProc(p.fs,[],[],[],[],p.cfHz,p.IRtype,p.bAlign,p.n_gamma,p.bwERBs,p.durSec);
+                                    mObj.Processors{ii,1} = gammatoneProc(p.fs,[],[],[],[],p.gt_cfHz,p.gt_bAlign,p.gt_nGamma,p.gt_bwERBs);
+                                    mObj.Processors{ii,2} = gammatoneProc(p.fs,[],[],[],[],p.gt_cfHz,p.gt_bAlign,p.gt_nGamma,p.gt_bwERBs);
                                     
                                     % Throw a warning if conflicting information was provided
-                                    if isfield(p,'f_low')||isfield(p,'f_high')||isfield(p,'nERBs')||isfield(p,'nChannels')
-                                        warning(['Conflicting information was provided for the Gammatone filterbank instantiation. The filterbank '...
-                                            'will be generated from the provided vector of center frequencies.'])
-                                    end
+%                                     if isfield(p,'gt_lowFreqHz')||isfield(p,'gt_highFreqHz')||isfield(p,'gt_nERBs')||isfield(p,'gt_nChannels')
+%                                         warning(['Conflicting information was provided for the Gammatone filterbank instantiation. The filterbank '...
+%                                             'will be generated from the provided vector of center frequencies.'])
+%                                     end
                                     
                                 case 'nChannels'
-                                    mObj.Processors{ii,1} = gammatoneProc(p.fs,p.f_low,p.f_high,[],p.nChannels,[],p.IRtype,p.bAlign,p.n_gamma,p.bwERBs,p.durSec);
-                                    mObj.Processors{ii,2} = gammatoneProc(p.fs,p.f_low,p.f_high,[],p.nChannels,[],p.IRtype,p.bAlign,p.n_gamma,p.bwERBs,p.durSec);
+                                    mObj.Processors{ii,1} = gammatoneProc(p.fs,p.gt_lowFreqHz,p.gt_highFreqHz,[],p.gt_nChannels,[],p.gt_bAlign,p.gt_nGamma,p.gt_bwERBs);
+                                    mObj.Processors{ii,2} = gammatoneProc(p.fs,p.gt_lowFreqHz,p.gt_highFreqHz,[],p.gt_nChannels,[],p.gt_bAlign,p.gt_nGamma,p.gt_bwERBs);
                                     
                                     % Throw a warning if conflicting information was provided
-                                    if isfield(p,'nERBs')
-                                        warning(['Conflicting information was provided for the Gammatone filterbank instantiation. The filterbank '...
-                                            'will be generated from the provided frequency range and number of channels.'])
-                                    end
+%                                     if isfield(p,'gt_nERBs')
+%                                         warning(['Conflicting information was provided for the Gammatone filterbank instantiation. The filterbank '...
+%                                             'will be generated from the provided frequency range and number of channels.'])
+%                                     end
                                     
                                 case 'standard'
-                                    mObj.Processors{ii,1} = gammatoneProc(p.fs,p.f_low,p.f_high,p.nERBs,[],[],p.IRtype,p.bAlign,p.n_gamma,p.bwERBs,p.durSec);
-                                    mObj.Processors{ii,2} = gammatoneProc(p.fs,p.f_low,p.f_high,p.nERBs,[],[],p.IRtype,p.bAlign,p.n_gamma,p.bwERBs,p.durSec);
+                                    mObj.Processors{ii,1} = gammatoneProc(p.fs,p.gt_lowFreqHz,p.gt_highFreqHz,p.gt_nERBs,[],[],p.gt_bAlign,p.gt_nGamma,p.gt_bwERBs);
+                                    mObj.Processors{ii,2} = gammatoneProc(p.fs,p.gt_lowFreqHz,p.gt_highFreqHz,p.gt_nERBs,[],[],p.gt_bAlign,p.gt_nGamma,p.gt_bwERBs);
                             end
                             % Generate new signals
                             sig_l = TimeFrequencySignal(mObj.Processors{ii,1}.FsHzOut,mObj.Data.bufferSize_s,'gammatone',mObj.Processors{ii}.cfHz,'Gammatone filterbank output',[],'left');
@@ -574,11 +574,11 @@ classdef manager < handle
                             % Instantiate a processor
                             switch gamma_init
                                 case 'cfHz'
-                                    mObj.Processors{ii,1} = gammatoneProc(p.fs,p.f_low,p.f_high,[],[],p.cfHz,p.IRtype,p.bAlign,p.n_gamma,p.bwERBs,p.durSec);
+                                    mObj.Processors{ii,1} = gammatoneProc(p.fs,p.gt_lowFreqHz,p.gt_highFreqHz,[],[],p.gt_cfHz,p.gt_bAlign,p.gt_nGamma,p.gt_bwERBs);
                                 case 'nChannels'
-                                    mObj.Processors{ii,1} = gammatoneProc(p.fs,p.f_low,p.f_high,[],p.nChannels,[],p.IRtype,p.bAlign,p.n_gamma,p.bwERBs,p.durSec);
+                                    mObj.Processors{ii,1} = gammatoneProc(p.fs,p.gt_lowFreqHz,p.gt_highFreqHz,[],p.gt_nChannels,[],p.gt_bAlign,p.gt_nGamma,p.gt_bwERBs);
                                 case 'standard'
-                                    mObj.Processors{ii,1} = gammatoneProc(p.fs,p.f_low,p.f_high,p.nERBs,[],[],p.IRtype,p.bAlign,p.n_gamma,p.bwERBs,p.durSec);
+                                    mObj.Processors{ii,1} = gammatoneProc(p.fs,p.gt_lowFreqHz,p.gt_highFreqHz,p.gt_nERBs,[],[],p.gt_bAlign,p.gt_nGamma,p.gt_bwERBs);
                             end
                             % Generate a new signal
                             sig = TimeFrequencySignal(mObj.Processors{ii,1}.FsHzOut,mObj.Data.bufferSize_s,'gammatone',mObj.Processors{ii}.cfHz,'Gammatone filterbank output',[],'mono');
@@ -589,8 +589,8 @@ classdef manager < handle
                     case 'innerhaircell'
                         if mObj.Data.isStereo
                             % Instantiate left and right ear processors
-                            mObj.Processors{ii,1} = IHCenvelopeProc(p.fs,p.IHCMethod);
-                            mObj.Processors{ii,2} = IHCenvelopeProc(p.fs,p.IHCMethod);
+                            mObj.Processors{ii,1} = IHCenvelopeProc(p.fs,p.ihc_method);
+                            mObj.Processors{ii,2} = IHCenvelopeProc(p.fs,p.ihc_method);
                             % Generate new signals
                             cfHz = dep_proc_l.getDependentParameter('cfHz');    % Get the center frequencies from dependencies
                             sig_l = TimeFrequencySignal(mObj.Processors{ii,1}.FsHzOut,mObj.Data.bufferSize_s,'innerhaircell',cfHz,'Inner hair-cell envelope',[],'left');
@@ -600,7 +600,7 @@ classdef manager < handle
                             mObj.Data.addSignal(sig_r)
                         else
                             % Instantiate a processor
-                            mObj.Processors{ii} = IHCenvelopeProc(p.fs,p.IHCMethod);
+                            mObj.Processors{ii} = IHCenvelopeProc(p.fs,p.ihc_method);
                             % Generate a new signal
                             cfHz = dep_proc.getDependentParameter('cfHz');    % Get the center frequencies from dependencies
                             sig = TimeFrequencySignal(mObj.Processors{ii,1}.FsHzOut,mObj.Data.bufferSize_s,'innerhaircell',cfHz,'Inner hair-cell envelope',[],'mono');
@@ -796,8 +796,8 @@ classdef manager < handle
                             % Get the center frequencies from dependent processors
                             cfHz = dep_proc_l.getDependentParameter('cfHz');
                             % Instantiate left and right ear processors
-                            mObj.Processors{ii,1} = spectralFeaturesProc(dep_proc_l.FsHzOut,cfHz,p.sf_requests,p.sf_br_cf,p.sf_hfc_cf,p.sf_ro_thres);
-                            mObj.Processors{ii,2} = spectralFeaturesProc(dep_proc_r.FsHzOut,cfHz,p.sf_requests,p.sf_br_cf,p.sf_hfc_cf,p.sf_ro_thres);
+                            mObj.Processors{ii,1} = spectralFeaturesProc(dep_proc_l.FsHzOut,cfHz,p.sf_requests,p.sf_br_cf,p.sf_ro_perc);
+                            mObj.Processors{ii,2} = spectralFeaturesProc(dep_proc_r.FsHzOut,cfHz,p.sf_requests,p.sf_br_cf,p.sf_ro_perc);
                             % Generate new signals
                             sig_l = SpectralFeaturesSignal(mObj.Processors{ii,1}.FsHzOut,mObj.Processors{ii,1}.requestList,mObj.Data.bufferSize_s,'spec_features','Spectral Features','left');
                             sig_r = SpectralFeaturesSignal(mObj.Processors{ii,2}.FsHzOut,mObj.Processors{ii,2}.requestList,mObj.Data.bufferSize_s,'spec_features','Spectral Features','right');
@@ -808,7 +808,7 @@ classdef manager < handle
                             % Get the center frequencies from dependent processors
                             cfHz = dep_proc.getDependentParameter('cfHz');
                             % Instantiate a processor
-                            mObj.Processors{ii,1} = spectralFeaturesProc(dep_proc.FsHzOut,cfHz,p.sf_requests,p.sf_br_cf,p.sf_hfc_cf,p.p.sf_ro_thres);
+                            mObj.Processors{ii,1} = spectralFeaturesProc(dep_proc.FsHzOut,cfHz,p.sf_requests,p.sf_br_cf,p.sf_ro_perc);
                             % Generate a new signal
                             sig = SpectralFeaturesSignal(mObj.Processors{ii,1}.FsHzOut,mObj.Processors{ii,1}.requestList,mObj.Data.bufferSize_s,'spec_features','Spectral Features','mono');
                             % Add signal to the data object
@@ -901,7 +901,7 @@ classdef manager < handle
                         dep_sig = sig;
                         dep_proc = mObj.Processors{ii};
 
-                    elseif exist('sig','var')&&strcmp(sig.Canal,'mono') && proceed
+                    elseif exist('sig','var')&&strcmp(sig.Channel,'mono') && proceed
 
                         % 2-Then there is a single input and single output
                         mObj.InputList{ii,1} = dep_sig;
@@ -1076,16 +1076,16 @@ classdef manager < handle
             % If the processor found operates on the left channel of a stereo
             % signal, we need to find its twin processor in charge of the
             % right channel
-            if ~isempty(hProc) && strcmp(hProc.Output.Canal,'left')
+            if ~isempty(hProc) && strcmp(hProc.Output.Channel,'left')
                 
                 % Then repeat the same loop, but specifying the "other"
                 % channel
-                canal = 'right';
+                Channel = 'right';
                 
                 % Initialization of while loop
                 ii = 1;
                 dep = signal2procName(dep_list{ii});
-                hProc2 = mObj.hasProcessor(dep,p,canal);
+                hProc2 = mObj.hasProcessor(dep,p,Channel);
                 list = {};
 
                 % Looping until we find a suitable processor in the list of
@@ -1098,7 +1098,7 @@ classdef manager < handle
                     % Move on to next level of dependency
                     ii = ii + 1;
                     dep = signal2procName(dep_list{ii});
-                    hProc2 = mObj.hasProcessor(dep,p,canal);
+                    hProc2 = mObj.hasProcessor(dep,p,Channel);
 
                 end
                 
