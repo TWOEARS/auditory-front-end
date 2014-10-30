@@ -1,6 +1,6 @@
 % Test script to compare the output from TwoEars adaptation processor
 % to the output from CASP 2008 (Jepsen et al. 2008) / PEMO versions of implementation 
-
+% 
 clear all
 close all
 clc
@@ -23,7 +23,7 @@ run([path filesep '..' filesep '..' filesep 'src' filesep 'startWP2.m'])
 load('CASP_data2');       % IHC stage in CASP uses 2ND ORDER LPF here
 % Create parameter structure specifying Characteristic Frequencies as
 % defined in CASP2008 script
-param_struct = genParStruct('drnl_cf', BM.CenterFreqs);
+param_struct = genParStruct('drnl_cf', BM.CenterFreqs, 'adpt_lim', 0);
 % ----------------------------------------------------------------------
 
 %% Instantiate manager and data object

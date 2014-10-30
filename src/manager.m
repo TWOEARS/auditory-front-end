@@ -874,8 +874,8 @@ classdef manager < handle
                     case 'adaptation'
                         if mObj.Data.isStereo
                             % Instantiate left and right ear processors
-                            mObj.Processors{ii,1} = adaptationProc(p.fs,p.adpt_lim, p.adpt_min);
-                            mObj.Processors{ii,2} = adaptationProc(p.fs,p.adpt_lim, p.adpt_min);
+                            mObj.Processors{ii,1} = adaptationProc(p.fs,p.adpt_lim, p.adpt_mindB, p.adpt_tau);
+                            mObj.Processors{ii,2} = adaptationProc(p.fs,p.adpt_lim, p.adpt_mindB, p.adpt_tau);
                             % Generate new signals
                             cfHz = dep_proc_l.getDependentParameter('cfHz');    % Get the center frequencies from dependencies
                             sig_l = TimeFrequencySignal(mObj.Processors{ii,1}.FsHzOut,mObj.Data.bufferSize_s,'adaptation',cfHz,'Adaptation loop output',[],'left');
@@ -885,7 +885,7 @@ classdef manager < handle
                             mObj.Data.addSignal(sig_r)
                         else
                             % Instantiate a processor
-                            mObj.Processors{ii} = adaptationProc(p.fs,p.adpt_lim, p.adpt_min);
+                            mObj.Processors{ii} = adaptationProc(p.fs,p.adpt_lim, p.adpt_mindB, p.adpt_tau);
                             % Generate a new signal
                             cfHz = dep_proc.getDependentParameter('cfHz');    % Get the center frequencies from dependencies
                             sig = TimeFrequencySignal(mObj.Processors{ii,1}.FsHzOut,mObj.Data.bufferSize_s,'adaptation',cfHz,'Adaptation loop output',[],'mono');

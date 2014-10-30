@@ -38,8 +38,9 @@ clear pInfo
     addParameterInfo('ihc','IHCMethod','dau','Inner hair-cell envelope extraction method (''none'', ''halfwave'', ''fullwave'', ''square'', ''hilbert'', ''joergensen'', ''dau'', ''breebart'', ''berstein'')','Inner hair-cell envelope extraction')
 
     % Adaptation loop
-    addParameterInfo('adt','adpt_lim',0 ,'Adaptation loop overshoot limit', 'Adaptation loop')
-    addParameterInfo('adt','adpt_min',1e-5 ,'Adaptation loop lowest signal level', 'Adaptation loop')
+    addParameterInfo('adt','adpt_lim',10,'Adaptation loop overshoot limit', 'Adaptation loop')
+    addParameterInfo('adt','adpt_mindB',0,'Adaptation loop lowest signal level (dB)', 'Adaptation loop')
+    addParameterInfo('adt','adpt_tau',[0.005 0.050 0.129 0.253 0.500],'Adaptation loop time constants', 'Adaptation loop')
    
     % Amplitude modulation filterbank
     addParameterInfo('am','am_nFilters',15,'Requested number of filters (integer)','Amplitude modulation filterbank')

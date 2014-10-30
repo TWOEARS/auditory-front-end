@@ -2,299 +2,247 @@ classdef adaptationProc < Processor
     
      properties
          overshootLimit      % limit to the overshoot of the output
-         minValue            % the lowest audible threshhold of the signal 
-         tau                 % time constants involved in the adaptation loops. 
-                             % The number of adaptation loops is determined by the length of tau.
+         minLeveldB          % the lowest audible threshhold of the signal 
+         tau                 % time constants involved in the adaptation loops 
+                             % the number of adaptation loops is determined
+                             % by the length of tau (?)
      end
      
      properties (GetAccess = private)
-         state              % structure to store previous output
+         stateStore         % cell to store previous output
+                            % each element has the same length as tau
+                            % # of elements depends on the freq. channels
+         minLevel           % minLevel converted from dB to signal value
 
      end
      
      methods
-         function pObj = adaptationProc(fs, lim, min)
-             %adaptationProc   Construct an adaptation loop processor
-             %
-             %USAGE
-             %   pObj = adaptationProc(fs, limit, minValue)
-             %
-             %INPUT ARGUMENTS
-             %     fs : Sampling frequency (Hz)
-             %    lim : limit to the overshoot of the output
-             %    min : the lowest audible threshhold of the signal
-             %
+         function pObj = adaptationProc(fs, varargin)
+            %adaptationProc   Construct an adaptation loop processor
+            %
+            %USAGE
+            %   pObj = adaptationProc(fs, model)
+            %   pObj = adaptationProc(fs, lim, mindB, taus)
+            %   pObj = adaptationProc(fs, lim, mindB)
+            %   pObj = adaptationProc(fs, lim)
+            %
+            %INPUT ARGUMENTS
+            %   fs    : Sampling frequency (Hz)
+            %   lim   : limit to the overshoot of the output, default: 10
+            %   mindB : the lowest audible threshhold of the signal 
+            %           (dB SPL), default: 0
+            %   taus  : time constants of adaptation loops, 
+            %           default: [0.005 0.050 0.129 0.253 0.500]
+            %   model : implementation model as in various related studies
+            %
+            %     'adt_dau'        Choose the parameters as in the Dau 1996 and 1997
+            %                      models. This consists of 5 adaptation loops with
+            %                      an overshoot limit of 10 and a minimum level of
+            %                      1e-5. This is a correction in regard to the model
+            %                      described in Dau et al. (1996a), which did not use 
+            %                      overshoot limiting. The adaptation loops have an 
+            %                      exponential spacing. This flag is the default.
+            %
+            %     'adt_puschel'    Choose the parameters as in the original Puschel 1988
+            %                      model. This consists of 5 adaptation loops without
+            %                      overshoot limiting. The adapation loops have a linear spacing.
+            %
+            %     'adt_breebaart'  As `'puschel'`, but with overshoot limiting.
+            % 
              
-            % check input arguments and set default values
-            if nargin>0  % Failsafe for constructor calls without arguments
+            % TODO: input level scaling, once a convention is given 
+            % (What dB SPL corresponds to signal level 1?)
             
-                % Checking input arguments
-                if nargin > 3
-                    help(mfilename);
-                    error('Wrong number of input arguments!')
+            % check input arguments and set default values
+            narginchk(2, 4) % support 2 to 4 input arguments
+
+            numVarargs = length(varargin);
+            
+            % Default arguments: lim = 0(CASP) vs 10(AMT), min = 1e-5(CASP) vs 0 dB (AMT), 
+            % tau = [0.005 0.050 0.129 0.253 0.500]
+            % set default optional arguments
+            optArgs = {10 0 [0.005 0.050 0.129 0.253 0.500]};
+            
+            % overwrite the arguments as specified in varargin
+            if ischar(varargin(1))      
+                % specific model is given
+                model = varargin(1);
+                switch (model)
+                    case 'adt_dau'
+                        % this is the default - optArgs does not change
+                    case 'adt_puschel'
+                        % 5 adaptation loops, no overshoot limiting, 
+                        % linear tau spacing
+                        optArgs = {0 0 linspace(0.005,0.5,5)};
+                    case 'adt_breebaart'
+                        % 5 adaptation loops, with [default] overshoot limiting,
+                        % linear tau spacing
+                        optArgs = {10 0 linspace(0.005,0.5,5)};
+                    otherwise
+                        % not supported
+                        error('%s: Unsupported adaptation loop model',upper(mfilename));
                 end
+            else
+                % numbers (or something other than string) are given
+                % simply overwrite the arguments
+                optArgs(1:numVarargs) = varargin;
+            end
+            [lim, mindB, taus] = optArgs{:};
+            
+            if ~isnumeric(taus) || ~isvector(taus) || any(taus<=0)
+                error('%s: "tau" must be a vector with positive values.',upper(mfilename));
+            end
 
-                if nargin < 3 || isempty(min); min = 1e-5; end
-                if nargin < 2 || isempty(lim); lim = 0; end
-                if nargin < 1 || isempty(fs); fs = 44100; end
+            if ~isnumeric(mindB) || ~isscalar(mindB)
+                error('%s: "mindB" must be a scalar.',upper(mfilename));
+            end
 
-                % Populate the object's properties
-                % 1- Global properties
-                populateProperties(pObj,'Type','Adaptation loop processor',...
-                     'Dependencies',getDependencies('adaptation'),...
-                     'FsHzIn',fs,'FsHzOut',fs);
-                % 2- Specific properties
-                pObj.overshootLimit = lim;
-                pObj.minValue = min;
-                pObj.tau = [0.005 0.050 0.129 0.253 0.500];
-                % initialise the state structure
-                % the sizes are unknown at this point - determined by the
-                % length of cf (given from the input time-frequency signal)
-                pObj.state = struct('tmp1', [], 'tmp21', [],  'tmp22', [], ...
-                    'tmp23', [], 'tmp24', [], 'tmp25', []);
+            if ~isnumeric(lim) || ~isscalar(lim) 
+                error('%s: "lim" must be a scalar.',upper(mfilename));
+            end 
+                     
+            % Prepare to scale the input signal following level convention
+            % convention: 100 dB SPL corresponds to signal amplitude of 1
+            % calibration factor (see Jepsen et al. 2008)
+            dBSPLCal = 100;         % signal amplitude 1 should correspond to max SPL 100 dB
+            ampCal = 1;             % signal amplitude to correspond to dBSPLRef
+%             pRef = 2e-5;            % reference sound pressure (p0)
+%             pCal = pRef*10^(dBSPLCal/20);
+
+            % Populate the object's properties
+            % 1- Global properties
+            populateProperties(pObj,'Type','Adaptation loop processor',...
+                 'Dependencies',getDependencies('adaptation'),...
+                 'FsHzIn',fs,'FsHzOut',fs);
+            % 2- Specific properties
+            pObj.overshootLimit = lim;
+            pObj.minLeveldB = mindB;
+            % if mindB is given in dB SPL
+            % convert min dB SPL to numerical value (AMT)
+            pObj.minLevel = ampCal*10.^((pObj.minLeveldB-dBSPLCal)/20);
+            pObj.tau = taus;           
+            % initialise the stateStore cell
+            % the sizes are unknown at this point - determined by the
+            % length of cf (given from the input time-frequency signal)
+            pObj.stateStore = {};
                 
-            end            
         end
          
         function out = processChunk(pObj,in)
-            % This is an initial implementation copied from CASP2008
-            % Needs further re-structuring
-            % On-line chunk-based processing should be considered
+            % On-line chunk-based processing is considered
             % in: time-frequency signal (time (row) x frequency (column))
-            % Needs to loop through cf channels!!
+            % The input level is assumed to follow the "convention" that
+            % 100 dB SPL corresponds to signal amplitude of 1
+            % To allow for flexibility, configuration should be possible
+            % at the beginning...
             
             %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-            % testing against CASP2008: needs some additional steps between IHC and adaptation when
+            % for DRNL - CASP2008: needs some additional steps between IHC and adaptation when
             % DRNL is used (not needed when gammatone filterbank is used)
-            % linear gain to fit ADloop operating point
-            in = in*10^(50/20);
-            % expansion
-            in = in.^2;
+            % Check whether drnlProc is in the dependency list
+            if strcmp(pObj.Dependencies{1}.Dependencies{1}.Type, 'drnl filterbank')
+                % linear gain to fit ADloop operating point
+                in = in*10^(50/20);
+                % expansion
+                in = in.^2;
+            end
             %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
             
-            len=size(in, 1);            % signal length = column length
-            chanNo = size(in, 2);       % # of frequency channels
-            out=max(in, pObj.minValue); % dimension same as in
-            % SE 02/2012, included divisorStage
-            divisorStage = out*0;       % dimension same as in
-                        
-            tmp1 = NaN(1, chanNo);      % memory allocation
-            %% coefficients/temp. outputs for adaptation loops
-            % aXXs and bXXs are fixed along frequency channels (by given tau values)
-            % tmpXX values will keep being updated through the loops 
-            %--------------------------------------------------------------
-            % first adaption loop
-            b01 = 1/(pObj.tau(1)*pObj.FsHzIn);		%b0 from RC-lowpass recursion relation y(n)=b0*x(n)+a1*y(n-1)
-            a11 = exp(-b01);			%a1 coefficient of the upper IIR-filter
-            b01 = 1-a11;
-            tmp21 = sqrt(pObj.minValue)*ones(1, chanNo);		%from steady-state relation
-            %---------------------------------------------------------------
-            % second adaption loop
-            b02=1/(pObj.tau(2)*pObj.FsHzIn);		%b0 from RC-lowpass recursion relation y(n)=b0*x(n)+a1*y(n-1)
-            a12=exp(-b02);			%a1 coefficient of the upper IIR-filter
-            b02=1-a12;
-            tmp22=pObj.minValue^(1/4)*ones(1, chanNo);		%from steady-state relation
-            %---------------------------------------------------------------
-            % third adaption loop
-            b03=1/(pObj.tau(3)*pObj.FsHzIn);		%b0 from RC-lowpass recursion relation y(n)=b0*x(n)+a1*y(n-1)
-            a13=exp(-b03);			%a1 coefficient of the upper IIR-filter
-            b03=1-a13;
-            tmp23=pObj.minValue^(1/8)*ones(1, chanNo);		%from steady-state relation
-            %---------------------------------------------------------------
-            % forth adaption loop
-            b04=1/(pObj.tau(4)*pObj.FsHzIn);		%b0 from RC-lowpass recursion relation y(n)=b0*x(n)+a1*y(n-1)
-            a14=exp(-b04);			%a1 coefficient of the upper IIR-filter
-            b04=1-a14;
-            tmp24=pObj.minValue^(1/16)*ones(1, chanNo);		%from steady-state relation
-            %---------------------------------------------------------------
-            % fifth adaption loop
-            b05=1/(pObj.tau(5)*pObj.FsHzIn);		%b0 from RC-lowpass recursion relation y(n)=b0*x(n)+a1*y(n-1)
-            a15=exp(-b05);			%a1 coefficient of the upper IIR-filter
-            b05=1-a15;
-            tmp25=pObj.minValue^(1/32)*ones(1, chanNo);		%from steady-state relation
+            sigLen=size(in, 1);         % signal length = column length
+            nChan = size(in, 2);        % # of frequency channels
+            nLoops = length(pObj.tau);  % number of loops 
+            
+            % If stateStore is not defined yet (for the very
+            % first chunk of signal)
+            % then preallocate storage space
+            if isempty(pObj.stateStore)
+                pObj.stateStore = cell(1, nChan);
+            end
+            
+            % b0 from RC-lowpass recursion relation y(n)=b0*x(n)+a1*y(n-1)
+            % a1 coefficient of the upper IIR-filter
+            b0 = 1./(pObj.tau*pObj.FsHzIn);
+            a1 = exp(-b0);
+            b0 = 1-a1;
 
+            % to get a range from 0 to 100 model units
             % corr and mult are fixed throughout the loops
             % (do not vary along frequency channels)
-            corr = pObj.minValue^(1/32);		% to get a range from 0 to 100 model units
+            corr = pObj.minLevel^(1/(2^nLoops));		
             mult = 100/(1-corr);
-            %  mult = 100/(1.2*(1-corr)); % after expansion,DRNL, we need to compensate for
-            % "m" is added or altered by morten 26. jun 2006
-            if pObj.overshootLimit <= 1 % m, no limitation
-                % retrieve final values from the previous chunk(if present)
-                % ** how can we know there WAS a previous chunk?
-                if(~isempty(pObj.state.tmp21))      % not a good way to check
-                    tmp1 = pObj.state.tmp1;
-                    tmp21 = pObj.state.tmp21;
-                    tmp22 = pObj.state.tmp22;
-                    tmp23 = pObj.state.tmp23;
-                    tmp24 = pObj.state.tmp24;
-                    tmp25 = pObj.state.tmp25;
-                end
-                
-                for ch = 1:chanNo    % for each frequency channel (column)
-                    for t = 1:len             % for each (time) sample
-                        %   tmp1=out(i);
-                        %if tmp1 < min
-                        %   tmp1=min;
-                        %end
-                        %---------------------------------------------------------------
-                        tmp1(ch)=out(t, ch)/tmp21(ch);
-                        tmp21(ch) = a11*tmp21(ch) + b01*tmp1(ch);       % this is y(n) = a1*y(n-1)+b0*x(n)
+            
+            % Apply minimum level to the input
+            out = max(in, pObj.minLevel);       % dimension same as in
+            
+            % Determine steady-state levels. The values are repeated to fit the
+            % number of input signals.
+            state = pObj.minLevel.^(1./(2.^((1:nLoops))));    
 
-                        %---------------------------------------------------------------
-                        tmp1(ch)=tmp1(ch)/tmp22(ch);
-                        tmp22(ch) = a12*tmp22(ch) + b02*tmp1(ch);
-
-                        %---------------------------------------------------------------
-                        tmp1(ch)=tmp1(ch)/tmp23(ch);
-                        tmp23(ch) = a13*tmp23(ch) + b03*tmp1(ch);
-
-                        %---------------------------------------------------------------
-                        tmp1(ch)=tmp1(ch)/tmp24(ch);
-                        tmp24(ch) = a14*tmp24(ch) + b04*tmp1(ch);
-
-                        %---------------------------------------------------------------
-                        tmp1(ch)=tmp1(ch)/tmp25(ch);
-                        divisorStage(t, ch) = (tmp25(ch)-corr)*mult;
-                        tmp25(ch) = a15*tmp25(ch) + b05*tmp1(ch);
-
-                        %--- Scale to model units ----------------------------------
-
-                        out(t, ch) = (tmp1(ch)-corr)*mult;
-
-                        % --- LP --------
-
-                        %   if (lp)
-                        %	tmp1 = a1l*tmp_l + b0l*tmp1;
-                        %	tmp_l = tmp1;
-                        %
-                        %   end
-
-                        % out(i) = tmp1;
-                    end                  
-                end
-                % store the final values for next chunk processing
-                pObj.state.tmp1 = tmp1;
-                pObj.state.tmp21 = tmp21;
-                pObj.state.tmp22 = tmp22;
-                pObj.state.tmp23 = tmp23;
-                pObj.state.tmp24 = tmp24;
-                pObj.state.tmp25 = tmp25;
-                
-                
-            else    % m, now limit 
-                % retrieve final values from the previous chunk(if present)
-                if(~isempty(pObj.state.tmp21))      % not a good way to check
-                    tmp1 = pObj.state.tmp1;
-                    tmp21 = pObj.state.tmp21;
-                    tmp22 = pObj.state.tmp22;
-                    tmp23 = pObj.state.tmp23;
-                    tmp24 = pObj.state.tmp24;
-                    tmp25 = pObj.state.tmp25;
-                end             
-                
-                min1 = tmp21; min2 = tmp22; min3 = tmp23;
-                min4 = tmp24; min5 = tmp25;
-
-                % calc values for exp fcn once
-                maxvalue = (1 - min1.^2) * pObj.overshootLimit - 1;
-                factor1 = maxvalue * 2;
-                expfac1 = -2./maxvalue;
-                offset1 = maxvalue - 1;
-
-                maxvalue = (1 - min2.^2) * pObj.overshootLimit - 1;
-                factor2 = maxvalue * 2;
-                expfac2 = -2./maxvalue;
-                offset2 = maxvalue - 1;
-
-                maxvalue = (1 - min3.^2) * pObj.overshootLimit - 1;
-                factor3 = maxvalue * 2;
-                expfac3 = -2./maxvalue;
-                offset3 = maxvalue - 1;
-
-                maxvalue = (1 - min4.^2) * pObj.overshootLimit - 1;
-                factor4 = maxvalue * 2;
-                expfac4 = -2./maxvalue;
-                offset4 = maxvalue - 1;
-
-                maxvalue = (1 - min5.^2) * pObj.overshootLimit - 1;
-                factor5 = maxvalue * 2;
-                expfac5 = -2./maxvalue;
-                offset5 = maxvalue - 1;
-                
-                for ch = 1:chanNo
-
-                    for t = 1:len
-                        %  tmp1=out(i);
-                        %if tmp1 < min
-                        %   tmp1=min;
-                        %end
-                        %---------------------------------------------------------------
-                        tmp1(ch)=out(t, ch)/tmp21(ch);
-
-                        if ( tmp1(ch) > 1 )                 % m,
-                            tmp1(ch) = factor1(ch)/(1+exp(expfac1(ch)*(tmp1(ch)-1)))-offset1(ch);  % m,
-                        end                             % m,
-                        tmp21(ch) = a11*tmp21(ch) + b01*tmp1(ch);
-
-                        %---------------------------------------------------------------
-                        tmp1(ch)=tmp1(ch)/tmp22(ch);
-
-                        if ( tmp1(ch) > 1 )                 % m,
-                            tmp1(ch) = factor2(ch)/(1+exp(expfac2(ch)*(tmp1(ch)-1)))-offset2(ch);  % m,
-                        end                             % m,
-                        tmp22(ch) = a12*tmp22(ch) + b02*tmp1(ch);
-
-                        %---------------------------------------------------------------
-                        tmp1(ch)=tmp1(ch)/tmp23(ch);
-
-                        if ( tmp1(ch) > 1 )                 % m,
-                            tmp1(ch) = factor3(ch)/(1+exp(expfac3(ch)*(tmp1(ch)-1)))-offset3(ch);  % m,
-                        end
-                        tmp23(ch) = a13*tmp23(ch) + b03*tmp1(ch);
-
-                        %---------------------------------------------------------------
-                        tmp1(ch)=tmp1(ch)/tmp24(ch);
-
-                        if ( tmp1(ch) > 1 )                 % m,
-                            tmp1(ch) = factor4(ch)/(1+exp(expfac4(ch)*(tmp1(ch)-1)))-offset4(ch);  % m,
-                        end
-                        tmp24(ch) = a14*tmp24(ch) + b04*tmp1(ch);
-
-                        %---------------------------------------------------------------
-                        tmp1(ch)=tmp1(ch)/tmp25(ch);
-                        divisorStage(t, ch) = (tmp25(ch)-corr)*mult;
-
-                        if ( tmp1(ch) > 1 )                 % m,
-                            tmp1(ch) = factor5(ch)/(1+exp(expfac5(ch)*(tmp1(ch)-1)))-offset5(ch);  % m,
-                        end
-                        tmp25(ch) = a15*tmp25(ch) + b05*tmp1(ch);
-
-                        %--- Scale to model units ----------------------------------
-
-                        out(t, ch) = (tmp1(ch)-corr)*mult;
-
-                        % --- LP --------
-
-                        %   if (lp)
-                        %	tmp1 = a1l*tmp_l + b0l*tmp1;
-                        %	tmp_l = tmp1;
-                        %
-                        %   end
-
-                        %  out(i) = tmp1;
-
+            % Back up the value, because state is overwritten
+            stateinit=state;
+            
+            if pObj.overshootLimit <=1 
+            % No overshoot limitation
+                for ch=1:nChan
+                    state=stateinit;
+                    % If there are state values stored from previous call
+                    % of the function, overwrite the starting values with
+                    % the stored values
+                    if ~isempty(pObj.stateStore{ch})
+                        state = pObj.stateStore{ch};
                     end
+                    for ii=1:sigLen
+                        tmp1=out(ii,ch);
+                        % Compute the adaptation loops
+                        for jj=1:nLoops
+                            tmp1=tmp1/state(jj);
+                            state(jj) = a1(jj)*state(jj) + b0(jj)*tmp1;         
+                        end   
+                        % store the result
+                        out(ii,ch)=tmp1;
+                    end
+                    % Now back up the last state (per freq channel)
+                    pObj.stateStore{ch} = state;
                 end
-                % store the final values for next chunk processing
-                pObj.state.tmp1 = tmp1;
-                pObj.state.tmp21 = tmp21;
-                pObj.state.tmp22 = tmp22;
-                pObj.state.tmp23 = tmp23;
-                pObj.state.tmp24 = tmp24;
-                pObj.state.tmp25 = tmp25;              
-                
-            end          
+
+            else 
+            % Overshoot Limitation
+
+                % Max. possible output value
+                maxvalue = (1 - state.^2) * pObj.overshootLimit - 1;
+                % Factor in formula to speed it up 
+                factor = maxvalue * 2; 			
+                % Exponential factor in output limiting function
+                expfac = -2./maxvalue;
+                offset = maxvalue - 1;
+
+                for ch=1:nChan
+                    state=stateinit;
+                    % If there are state values stored from previous call
+                    % of the function, overwrite the starting values with
+                    % the stored values
+                    if ~isempty(pObj.stateStore{ch})
+                        state = pObj.stateStore{ch};
+                    end
+                    for ii=1:sigLen
+                        tmp1=out(ii,ch);
+                        for jj=1:nLoops
+                            tmp1=tmp1/state(jj);
+                            if ( tmp1 > 1 )
+                                tmp1 = factor(jj)/(1+exp(expfac(jj)*(tmp1-1)))-offset(jj);
+                            end
+                            state(jj) = a1(jj)*state(jj) + b0(jj)*tmp1;
+                        end
+                    % store the result
+                    out(ii,ch)=tmp1;    
+                    end
+                    % Now back up the last state (per freq channel)
+                    pObj.stateStore{ch} = state;                    
+                end
+            end
+            % Scale to model units
+            out = (out-corr)*mult;
+       
         end
          
         function reset(pObj)
@@ -306,15 +254,10 @@ classdef adaptationProc < Processor
              %INPUT ARGUMENTS
              %  pObj : adaptation processor instance
              
-            if(~isempty(pObj.state.tmp21))
-                pObj.state.tmp1 = [];                
-                pObj.state.tmp21 = [];
-                pObj.state.tmp22 = [];
-                pObj.state.tmp23 = [];
-                pObj.state.tmp24 = [];
-                pObj.state.tmp25 = [];
+             % empty the stateStore cell
+            if(~isempty(pObj.stateStore))
+                pObj.stateStore = {};
             end
-
         end
          
         function hp = hasParameters(pObj,p)
@@ -331,9 +274,9 @@ classdef adaptationProc < Processor
             %NB: Could be moved to private
             
             % The adaptation processor has the following parameters to be
-            % checked: overshootLimit, minValue
+            % checked: overshootLimit, minLeveldB, tau
             
-            p_list = {'overshootLimit', 'minValue'};
+            p_list = {'overshootLimit', 'minLeveldB', 'tau'};
             
             % Initialization of a parameters difference vector
             delta = zeros(size(p_list,2),1);
