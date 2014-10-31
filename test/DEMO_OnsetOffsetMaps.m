@@ -100,6 +100,8 @@ timeSec = rm_wSizeSec + ((0:nFrames-1) * stepSizeSec);
 
 figure;
 imagesc(timeSec,1:nChannels,ratemap_dB',[-100 -25]);
+xlabel('Time (s)')
+ylabel('Center frequency (Hz)')
 axis xy
 hold on;
 
@@ -119,5 +121,10 @@ for ii = 1 : nChannels
     end
 end
 
+nYLabels = 8;
+ 
+% Find the spacing for the y-axis which evenly divides the y-axis
+set(gca,'ytick',linspace(1,nChannels,nYLabels));
+set(gca,'yticklabel',round(interp1(1:nChannels,dObj.onset_strength{1}.cfHz,linspace(1,nChannels,nYLabels))));
 
 

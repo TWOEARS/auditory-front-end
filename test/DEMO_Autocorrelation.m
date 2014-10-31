@@ -1,5 +1,5 @@
 clear;
-% close all
+close all
 clc
 
 
@@ -29,7 +29,7 @@ ac_K         = 2;
 
 
 % Parameters
-par = genParStruct('gt_lowFreqHz',80,'gt_highFreqHz',8000,'gt_nChannels',16,'ihc_method','dau','ac_wSizeSec',ac_wSizeSec,'ac_hSizeSec',ac_hSizeSec,'ac_clipAlpha',ac_clipAlpha,'ac_K',ac_K); 
+par = genParStruct('gt_lowFreqHz',80,'gt_highFreqHz',8000,'gt_nChannels',32,'ihc_method','dau','ac_wSizeSec',ac_wSizeSec,'ac_hSizeSec',ac_hSizeSec,'ac_clipAlpha',ac_clipAlpha,'ac_K',ac_K); 
 
 % Create a data object
 dObj = dataObject(data,fsHz);
@@ -62,6 +62,8 @@ wStepSamples = round((ac_hSizeSec * fsHz));
 
 samplesIdx = (1:wSizeSamples) + ((frameIdx2Plot-1) * wStepSamples);
 
+lagsMS = dObj.autocorrelation{1}.lags*1E3;
+
 figure;
 waveplot(ihc(samplesIdx,:),samplesIdx/fsHz,dObj.autocorrelation{1}.cfHz,zoom1,bNorm)
 xlabel('Time (s)')
@@ -69,10 +71,27 @@ ylabel('Center frequency (Hz)')
 title('IHC signal')
 
 figure;
-waveplot(permute(acf(frameIdx2Plot,:,:),[3 1 2]),dObj.autocorrelation{1}.lags,dObj.autocorrelation{1}.cfHz,zoom2,bNorm)
-xlabel('Lag period (s)')
-ylabel('Center frequency (Hz)')
-title('ACF')
+ax(1) = subplot(4,1,[1:3]);
+waveplot(permute(acf(frameIdx2Plot,:,:),[3 1 2]),lagsMS,dObj.autocorrelation{1}.cfHz,zoom2,bNorm)
+xlabel('')
+hy = ylabel('Center frequency (Hz)');
+hypos = get(hy,'position');
+hypos(1) = -2.15;
+set(hy,'position',hypos);
+ht = title('ACF');
+htpos = get(ht,'position');
+htpos(2) = htpos(2) * 0.985;
+set(ht,'position',htpos);
+
+ax(2) = subplot(4,1,4);
+plot(lagsMS,mean(permute(acf(frameIdx2Plot,:,:),[3 1 2]),3),'k','linewidth',1.25)
+grid on
+xlim([lagsMS(1) lagsMS(end)])
+ylim([0 1])
+xlabel('Lag period (ms)')
+ylabel('SACF')
+
+
 
 
 %% Show a ACF movie

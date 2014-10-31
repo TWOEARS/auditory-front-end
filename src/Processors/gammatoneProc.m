@@ -65,9 +65,11 @@ classdef gammatoneProc < Processor
             end
             
             % Set default optional parameter
-            if nargin < 9 || isempty(bw); bw = 1.08; end
-            if nargin < 8 || isempty(n); n = 4; end
             if nargin < 7 || isempty(bAlign); bAlign = false; end
+            if nargin < 8 || isempty(n); n = 4; end
+            if nargin < 9 || isempty(bw); 
+                bw = (factorial(n-1))^2/(pi*factorial(2*n-2)*2^(-(2*n-2)));
+            end
             
             % Parse mandatory arguments: three scenarios
             
