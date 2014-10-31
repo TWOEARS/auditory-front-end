@@ -2,7 +2,7 @@ classdef CorrelationSignal < Signal
     % This children class collects all signals resulting from a correlation
     % computation (i.e., auto-correlation, cross-correlation)
     
-    properties
+    properties (SetAccess=protected)
         cfHz    % Center frequencies of the frequency channels (Hz)
         lags    % Lags values (in s if specified, else in samples)
     end

@@ -3,7 +3,7 @@ classdef TimeFrequencySignal < Signal
     % time frequency representation (e.g., spectrograms, filterbank
     % outputs, etc...)
     
-    properties
+    properties (SetAccess=protected)
         cfHz        % Center frequencies of the frequency channels
     end
        

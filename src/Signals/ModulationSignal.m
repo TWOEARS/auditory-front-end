@@ -1,7 +1,7 @@
 classdef ModulationSignal < Signal
 % This class collects three-dimensional outputs of a modulation filterbank    
     
-    properties
+    properties (SetAccess=protected)
         cfHz    % Audio center frequencies of the channels (Hz)
         modCfHz % Modulation center frequencies (Hz)
     end
