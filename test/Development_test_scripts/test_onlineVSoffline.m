@@ -8,8 +8,8 @@ test_startup;
 
 % Request and parameters for feature extraction
 % request = {'modulation'};
-% request = {'drnl'};
-request = {'adaptation'};
+request = {'drnl'};
+% request = {'adaptation'};
 p = [];
 p = genParStruct('IHCMethod','fullwave');%,'am_win','rectwin');
 

@@ -408,6 +408,20 @@ classdef manager < handle
                 gamma_init ='standard';
             end
             
+            % Same applies to the DRNL processor
+            if isfield(p,'drnl_cfHz')
+                % Generated from provided center frequencies
+                drnl_init = 'cfHz';
+            elseif isfield(p,'drnl_nChannels')
+                % Generate from upper/lower frequencies and number of
+                % channels
+                drnl_init = 'nChannels';
+            else
+                % Generate from upper/lower freqs. and distance between
+                % channels
+                drnl_init ='standard';
+            end
+
             % Add default values for parameters not explicitly defined in p
             p = parseParameters(p);
             
@@ -586,6 +600,55 @@ classdef manager < handle
                             mObj.Data.addSignal(sig);
                         end
                         
+                    case 'drnl'
+                        if mObj.Data.isStereo
+                            switch drnl_init
+                                case 'cfHz'
+                                    mObj.Processors{ii,1} = drnlProc(p.fs,[],[],[],[],p.drnl_cfHz,p.drnl_mocIpsi,p.drnl_mocContra,p.drnl_model);
+                                    mObj.Processors{ii,2} = drnlProc(p.fs,[],[],[],[],p.drnl_cfHz,p.drnl_mocIpsi,p.drnl_mocContra,p.drnl_model);
+                                    
+                                    % Throw a warning if conflicting information was provided
+%                                     if isfield(p,'drnl_lowFreqHz')||isfield(p,'drnl_highFreqHz')||isfield(p,'drnl_nERBs')||isfield(p,'drnl_nChannels')
+%                                         warning(['Conflicting information was provided for the DRNL filterbank instantiation. The filterbank '...
+%                                             'will be generated from the provided vector of center frequencies.'])
+%                                     end
+                                    
+                                case 'nChannels'
+                                    mObj.Processors{ii,1} = drnlProc(p.fs,p.drnl_lowFreqHz,p.drnl_highFreqHz,[],p.drnl_nChannels,[],p.drnl_mocIpsi,p.drnl_mocContra,p.drnl_model);
+                                    mObj.Processors{ii,2} = drnlProc(p.fs,p.drnl_lowFreqHz,p.drnl_highFreqHz,[],p.drnl_nChannels,[],p.drnl_mocIpsi,p.drnl_mocContra,p.drnl_model);
+                                    
+                                    % Throw a warning if conflicting information was provided
+%                                     if isfield(p,'drnl_nERBs')
+%                                         warning(['Conflicting information was provided for the DRNL filterbank instantiation. The filterbank '...
+%                                             'will be generated from the provided frequency range and number of channels.'])
+%                                     end
+                                    
+                                case 'standard'
+                                    mObj.Processors{ii,1} = drnlProc(p.fs,p.drnl_lowFreqHz,p.drnl_highFreqHz,p.drnl_nERBs,[],[],p.drnl_mocIpsi,p.drnl_mocContra,p.drnl_model);
+                                    mObj.Processors{ii,2} = drnlProc(p.fs,p.drnl_lowFreqHz,p.drnl_highFreqHz,p.drnl_nERBs,[],[],p.drnl_mocIpsi,p.drnl_mocContra,p.drnl_model);
+                            end
+                            % Generate new signals
+                            sig_l = TimeFrequencySignal(mObj.Processors{ii,1}.FsHzOut,mObj.Data.bufferSize_s,'drnl',mObj.Processors{ii}.cfHz,'DRNL filterbank output',[],'left');
+                            sig_r = TimeFrequencySignal(mObj.Processors{ii,2}.FsHzOut,mObj.Data.bufferSize_s,'drnl',mObj.Processors{ii}.cfHz,'DRNL filterbank output',[],'right');
+                            % Add the signals to the data object
+                            mObj.Data.addSignal(sig_l);
+                            mObj.Data.addSignal(sig_r)
+                        else
+                            % Instantiate a processor
+                            switch drnl_init
+                                case 'cfHz'
+                                    mObj.Processors{ii,1} = drnlProc(p.fs,[],[],[],[],p.drnl_cfHz,p.drnl_mocIpsi,p.drnl_mocContra,p.drnl_model);
+                                case 'nChannels'
+                                    mObj.Processors{ii,1} = drnlProc(p.fs,p.drnl_lowFreqHz,p.drnl_highFreqHz,[],p.drnl_nChannels,[],p.drnl_mocIpsi,p.drnl_mocContra,p.drnl_model);
+                                case 'standard'
+                                    mObj.Processors{ii,1} = drnlProc(p.fs,p.drnl_lowFreqHz,p.drnl_highFreqHz,p.drnl_nERBs,[],[],p.drnl_mocIpsi,p.drnl_mocContra,p.drnl_model);
+                            end
+                            % Generate a new signal
+                            sig = TimeFrequencySignal(mObj.Processors{ii,1}.FsHzOut,mObj.Data.bufferSize_s,'drnl',mObj.Processors{ii}.cfHz,'DRNL filterbank output',[],'mono');
+                            % Add signal to the data object
+                            mObj.Data.addSignal(sig);
+                        end
+   
                     case 'innerhaircell'
                         if mObj.Data.isStereo
                             % Instantiate left and right ear processors
@@ -607,7 +670,29 @@ classdef manager < handle
                             % Add signal to the data object
                             mObj.Data.addSignal(sig);
                         end
-                        
+                    
+                    case 'adaptation'
+                        if mObj.Data.isStereo
+                            % Instantiate left and right ear processors
+                            mObj.Processors{ii,1} = adaptationProc(p.fs,p.adpt_lim, p.adpt_mindB, p.adpt_tau);
+                            mObj.Processors{ii,2} = adaptationProc(p.fs,p.adpt_lim, p.adpt_mindB, p.adpt_tau);
+                            % Generate new signals
+                            cfHz = dep_proc_l.getDependentParameter('cfHz');    % Get the center frequencies from dependencies
+                            sig_l = TimeFrequencySignal(mObj.Processors{ii,1}.FsHzOut,mObj.Data.bufferSize_s,'adaptation',cfHz,'Adaptation loop output',[],'left');
+                            sig_r = TimeFrequencySignal(mObj.Processors{ii,2}.FsHzOut,mObj.Data.bufferSize_s,'adaptation',cfHz,'Adaptation loop output',[],'right');
+                            % Add the signals to the data object
+                            mObj.Data.addSignal(sig_l);
+                            mObj.Data.addSignal(sig_r)
+                        else
+                            % Instantiate a processor
+                            mObj.Processors{ii} = adaptationProc(p.fs,p.adpt_lim, p.adpt_mindB, p.adpt_tau);
+                            % Generate a new signal
+                            cfHz = dep_proc.getDependentParameter('cfHz');    % Get the center frequencies from dependencies
+                            sig = TimeFrequencySignal(mObj.Processors{ii,1}.FsHzOut,mObj.Data.bufferSize_s,'adaptation',cfHz,'Adaptation loop output',[],'mono');
+                            % Add signal to the data object
+                            mObj.Data.addSignal(sig);
+                        end
+
                     case 'modulation'
                         if mObj.Data.isStereo
                             cfHz = dep_proc_l.getDependentParameter('cfHz');    % Vector of center audio frequencies
@@ -851,48 +936,6 @@ classdef manager < handle
                             mObj.Data.addSignal(sig);
                         end
                         
-                    case 'drnl'
-                        if mObj.Data.isStereo
-                            % Instantiate left and right ear processors
-                            mObj.Processors{ii,1} = drnlProc(p.drnl_cf, p.fs);       
-                            mObj.Processors{ii,2} = drnlProc(p.drnl_cf, p.fs);
-                            % Generate new signals
-                            sig_l = TimeFrequencySignal(mObj.Processors{ii,1}.FsHzOut,mObj.Data.bufferSize_s,'drnl',p.drnl_cf,'DRNL filterbank output',[],'left');
-                            sig_r = TimeFrequencySignal(mObj.Processors{ii,2}.FsHzOut,mObj.Data.bufferSize_s,'drnl',p.drnl_cf,'DRNL filterbank output',[],'right');
-                            % Add the signals to the data object
-                            mObj.Data.addSignal(sig_l);
-                            mObj.Data.addSignal(sig_r)
-                        else
-                            % Instantiate a processor
-                            mObj.Processors{ii,1} = drnlProc(p.drnl_cf, p.fs);
-                            % Generate a new signal
-                            sig = TimeFrequencySignal(mObj.Processors{ii,1}.FsHzOut,mObj.Data.bufferSize_s,'drnl',p.drnl_cf,'DRNL filterbank output',[],'mono');
-                            % Add signal to the data object
-                            mObj.Data.addSignal(sig);
-                        end
-
-                    case 'adaptation'
-                        if mObj.Data.isStereo
-                            % Instantiate left and right ear processors
-                            mObj.Processors{ii,1} = adaptationProc(p.fs,p.adpt_lim, p.adpt_mindB, p.adpt_tau);
-                            mObj.Processors{ii,2} = adaptationProc(p.fs,p.adpt_lim, p.adpt_mindB, p.adpt_tau);
-                            % Generate new signals
-                            cfHz = dep_proc_l.getDependentParameter('cfHz');    % Get the center frequencies from dependencies
-                            sig_l = TimeFrequencySignal(mObj.Processors{ii,1}.FsHzOut,mObj.Data.bufferSize_s,'adaptation',cfHz,'Adaptation loop output',[],'left');
-                            sig_r = TimeFrequencySignal(mObj.Processors{ii,2}.FsHzOut,mObj.Data.bufferSize_s,'adaptation',cfHz,'Adaptation loop output',[],'right');
-                            % Add the signals to the data object
-                            mObj.Data.addSignal(sig_l);
-                            mObj.Data.addSignal(sig_r)
-                        else
-                            % Instantiate a processor
-                            mObj.Processors{ii} = adaptationProc(p.fs,p.adpt_lim, p.adpt_mindB, p.adpt_tau);
-                            % Generate a new signal
-                            cfHz = dep_proc.getDependentParameter('cfHz');    % Get the center frequencies from dependencies
-                            sig = TimeFrequencySignal(mObj.Processors{ii,1}.FsHzOut,mObj.Data.bufferSize_s,'adaptation',cfHz,'Adaptation loop output',[],'mono');
-                            % Add signal to the data object
-                            mObj.Data.addSignal(sig);
-                        end
-
                     % TO DO: Populate that list further
                     
                     % N.B: No need for "otherwise" case once complete
