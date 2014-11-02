@@ -74,35 +74,35 @@ grid on;
 
 if any(strcmp(listOfFeatures,'centroid'))
     figure;
-    imagesc(timeSec,cfHz,10*log10(ratemap'));axis xy;
+    imagesc(timeSec,(1:nChannels)/nChannels,10*log10(ratemap'));axis xy;
     hold on;
     plot(timeSec,spectralFeatures(:,strcmp(listOfFeatures,'centroid')),'linestyle',strLineStyle,'color',strColor,'linewidth',strLineWidth);
     xlim([timeSec(1) timeSec(end)])
     xlabel('Time (s)')
-    ylabel('Frequency (Hz)')
+    ylabel('Normalized frequency')
     title('Spectral centroid')
 end
 
 if any(strcmp(listOfFeatures,'spread'))
     figure;
-    imagesc(timeSec,cfHz,10*log10(ratemap'));axis xy;
+    imagesc(timeSec,(1:nChannels)/nChannels,10*log10(ratemap'));axis xy;
     hold on;
     plot(timeSec,spectralFeatures(:,strcmp(listOfFeatures,'spread')),'linestyle',strLineStyle,'color',strColor,'linewidth',strLineWidth);
     xlim([timeSec(1) timeSec(end)])
     xlabel('Time (s)')
-    ylabel('Frequency (Hz)')
+    ylabel('Normalized frequency')
     title('Spectral spread')
 end
 
 
 if any(strcmp(listOfFeatures,'rolloff'))
     figure;
-    imagesc(timeSec,cfHz,10*log10(ratemap'));axis xy;
+    imagesc(timeSec,(1:nChannels)/nChannels,10*log10(ratemap'));axis xy;
     hold on;
     plot(timeSec,spectralFeatures(:,strcmp(listOfFeatures,'rolloff')),'linestyle',strLineStyle,'color',strColor,'linewidth',strLineWidth);
     xlim([timeSec(1) timeSec(end)])
     xlabel('Time (s)')
-    ylabel('Frequency (Hz)')
+    ylabel('Normalized frequency')
     title('Spectral rolloff')
 end
 
@@ -231,7 +231,7 @@ if any(strcmp(listOfFeatures,'irregularity'))
     title('Spectral irregularity')
 end
 
-if 0
+if 1
     for ii = 1 : numel(listOfFeatures) + 1
         fig2LaTeX(['SpectralFeature_',num2str(ii)],ii,20);
     end

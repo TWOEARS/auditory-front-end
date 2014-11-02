@@ -15,10 +15,10 @@ earSignals = earSignals(1:62E3,:);
 
 
 % Replicate signals at a higher level
-earSignals = cat(1,earSignals,3*earSignals)/3;
+earSignals = cat(1,earSignals,5*earSignals)/5;
 
 % Add a sinus @ 0.5 Hz
-data = earSignals + repmat(sin(2*pi.*(0:size(earSignals,1)-1).' * 0.5/fsHz),[1 size(earSignals,2)]);
+data = earSignals + repmat(0.5*sin(2*pi.*(0:size(earSignals,1)-1).' * 0.5/fsHz),[1 size(earSignals,2)]);
 
 % Time axis
 timeSec = (1:size(data,1))/fsHz;
@@ -54,7 +54,7 @@ title(sprintf('1. Ears signals sampled at %i Hz',fsHz))
 xlabel('Time (s)')
 ylabel('Amplitude')
 xlim([timeSec(1) timeSec(end)])
-ylim([-2 2])
+ylim([-1.5 1.5])
 
 figure;
 plot(timeSec(1:3:end),data(1:3:end,:));
@@ -62,7 +62,7 @@ title('2. Ear signals + sinus at 0.5 Hz')
 xlabel('Time (s)')
 ylabel('Amplitude')
 xlim([timeSec(1) timeSec(end)])
-ylim([-2 2])
+ylim([-1.5 1.5])
 
 
 %% DC removal filter
@@ -84,7 +84,7 @@ if pp_bRemoveDC
     xlabel('Time (s)')
     ylabel('Amplitude')
     xlim([timeSec(1) timeSec(end)])
-    ylim([-2 2])
+    ylim([-1.5 1.5])
 end
 
 
@@ -108,7 +108,7 @@ elseif fsHz > pp_fsHzRef
     xlabel('Time (s)')
     ylabel('Amplitude')
     xlim([timeSec(1) timeSec(end)])
-    ylim([-2 2])
+    ylim([-1.5 1.5])
 else
     error('Upsampling of the input signal is not supported.')
 end        
@@ -131,7 +131,7 @@ if pp_bPreEmphasis
     xlabel('Time (s)')
     ylabel('Amplitude')
     xlim([timeSec(1) timeSec(end)])
-    ylim([-2 2])
+    ylim([-1.5 1.5])
 end
 
 
@@ -162,12 +162,13 @@ if pp_bNormalizeRMS
     ylim([-18 18])
 end
 
-if 0
-   fig2LaTeX(['Pre_Processing_01'],1,18)
-   fig2LaTeX(['Pre_Processing_02'],2,18)
-   fig2LaTeX(['Pre_Processing_03'],3,18)
-   fig2LaTeX(['Pre_Processing_04'],4,18)
-   fig2LaTeX(['Pre_Processing_05'],5,18)
-   fig2LaTeX(['Pre_Processing_06'],6,18)
-   fig2LaTeX(['Pre_Processing_07'],7,18)
+if 1
+   mode = 20;
+   fig2LaTeX(['Pre_Processing_01'],1,mode)
+   fig2LaTeX(['Pre_Processing_02'],2,mode)
+   fig2LaTeX(['Pre_Processing_03'],3,mode)
+   fig2LaTeX(['Pre_Processing_04'],4,mode)
+   fig2LaTeX(['Pre_Processing_05'],5,mode)
+   fig2LaTeX(['Pre_Processing_06'],6,mode)
+   fig2LaTeX(['Pre_Processing_07'],7,mode)
 end

@@ -210,7 +210,7 @@ classdef TimeFrequencySignal < Signal
                         m = max(data(:));    % Get maximum value for scaling
                         set(gca,'CLim',[m-p.dynrange m])
 
-                    case {'ild','itc_xcorr'}
+                    case {'ild','itd_xcorr'}
                         m = max(abs(data(:)))+eps;
                         set(gca,'CLim',[-m m])
 
