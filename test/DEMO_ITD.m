@@ -19,7 +19,7 @@ data = resample(data,fsHzRef,fsHz);
 fsHz = fsHzRef;
 
 % Request ratemap    
-requests = {'itd_xcorr'};
+requests = {'itd'};
 
 cc_wSizeSec = 0.02;
 cc_hSizeSec = 0.01;
@@ -41,8 +41,8 @@ sigR = [dObj.time{2}.Data(:)];
 
 timeSec = (1:numel(sigL))/fsHz;
 
-itd = [dObj.itd_xcorr{1}.Data(:)];
-freqHz = dObj.itd_xcorr{1}.cfHz;
+itd = [dObj.itd{1}.Data(:)];
+freqHz = dObj.itd{1}.cfHz;
 
 [nFrames,nChannels] = size(itd);
 

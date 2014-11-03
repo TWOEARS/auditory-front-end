@@ -49,7 +49,9 @@ pp_intTimeSecRMS = 500E-3;
 % 
 
 figure;
-plot(timeSec(1:3:end),earSignals(1:3:end,:));
+h = plot(timeSec(1:3:end),earSignals(1:3:end,:));
+set(h(1),'color',[0 0 0]);
+set(h(2),'color',[0.5 0.5 0.5]);
 title(sprintf('1. Ears signals sampled at %i Hz',fsHz))
 xlabel('Time (s)')
 ylabel('Amplitude')
@@ -57,7 +59,9 @@ xlim([timeSec(1) timeSec(end)])
 ylim([-1.5 1.5])
 
 figure;
-plot(timeSec(1:3:end),data(1:3:end,:));
+h = plot(timeSec(1:3:end),data(1:3:end,:));
+set(h(1),'color',[0 0 0]);
+set(h(2),'color',[0.5 0.5 0.5]);
 title('2. Ear signals + sinus at 0.5 Hz')
 xlabel('Time (s)')
 ylabel('Amplitude')
@@ -79,7 +83,9 @@ if pp_bRemoveDC
     end
     
     figure;
-    plot(timeSec(1:3:end),data(1:3:end,:));
+    h = plot(timeSec(1:3:end),data(1:3:end,:));
+    set(h(1),'color',[0 0 0]);
+    set(h(2),'color',[0.5 0.5 0.5]);
     title('3. After DC removal')
     xlabel('Time (s)')
     ylabel('Amplitude')
@@ -103,7 +109,9 @@ elseif fsHz > pp_fsHzRef
     timeSec = (1:size(data,1))/pp_fsHzRef;
     
     figure;
-    plot(timeSec(1:3:end),data(1:3:end,:));
+    h = plot(timeSec(1:3:end),data(1:3:end,:));
+    set(h(1),'color',[0 0 0]);
+    set(h(2),'color',[0.5 0.5 0.5]);
     title(sprintf('4. After resampling to %i Hz',fsHz))
     xlabel('Time (s)')
     ylabel('Amplitude')
@@ -126,7 +134,9 @@ if pp_bPreEmphasis
     data = filter(b, a, data);
     
     figure; 
-    plot(timeSec(1:3:end),data(1:3:end,:));
+    h = plot(timeSec(1:3:end),data(1:3:end,:));
+    set(h(1),'color',[0 0 0]);
+    set(h(2),'color',[0.5 0.5 0.5]);
     title('5. After pre-emphasis')
     xlabel('Time (s)')
     ylabel('Amplitude')
@@ -146,7 +156,9 @@ if pp_bNormalizeRMS
     out2 = agc(data,fsHz,pp_intTimeSecRMS,true);
     
     figure;
-    plot(timeSec(1:3:end),out1(1:3:end,:));
+    h = plot(timeSec(1:3:end),out1(1:3:end,:));
+    set(h(1),'color',[0 0 0]);
+    set(h(2),'color',[0.5 0.5 0.5]);
     title('6. After monaural AGC')
     xlabel('Time (s)')
     ylabel('Amplitude')
@@ -154,7 +166,9 @@ if pp_bNormalizeRMS
     ylim([-18 18])
 
     figure;
-    plot(timeSec(1:3:end),out2(1:3:end,:));
+    h = plot(timeSec(1:3:end),out2(1:3:end,:));
+    set(h(1),'color',[0 0 0]);
+    set(h(2),'color',[0.5 0.5 0.5]);
     title('7. After binaural AGC')
     xlabel('Time (s)')
     ylabel('Amplitude')

@@ -29,7 +29,7 @@ classdef manager < handle
             %     data : Handle of an existing data structure
             %  request : Single request as a string (e.g., 'ild'), OR
             %            cell array of requested signals, cues or features
-            %            (e.g., request = {'ild','itd_xcorr'})
+            %            (e.g., request = {'ild','itd'})
             %        p : Single parameter structure, if all requests share
             %            the same parameters, OR cell array of individual
             %            parameter structures corresponding to the request.
@@ -608,26 +608,26 @@ classdef manager < handle
                             mObj.Data.addSignal(sig);
                         end
                         
-                    case 'modulation'
+                    case 'ams_features'
                         if mObj.Data.isStereo
                             cfHz = dep_proc_l.getDependentParameter('cfHz');    % Vector of center audio frequencies
                             % Instantiate left and right ear processors
-                            mObj.Processors{ii,1} = modulationProc(p.fs,numel(cfHz),p.am_nFilters,p.am_range,p.am_win,p.am_bSize,p.am_olap,p.am_type,p.am_dsRatio);
-                            mObj.Processors{ii,2} = modulationProc(p.fs,numel(cfHz),p.am_nFilters,p.am_range,p.am_win,p.am_bSize,p.am_olap,p.am_type,p.am_dsRatio);
+                            mObj.Processors{ii,1} = modulationProc(p.fs,numel(cfHz),p.ams_cfHz,p.ams_nFilters,p.ams_lowFreqHz,p.ams_highFreqHz,p.ams_wname,p.ams_wSizeSec,p.ams_hSizeSec,p.ams_fbType,p.ams_dsRatio);
+                            mObj.Processors{ii,2} = modulationProc(p.fs,numel(cfHz),p.ams_cfHz,p.ams_nFilters,p.ams_lowFreqHz,p.ams_highFreqHz,p.ams_wname,p.ams_wSizeSec,p.ams_hSizeSec,p.ams_fbType,p.ams_dsRatio);
                             % Generate new signals
                             modCfHz = mObj.Processors{ii,1}.modCfHz;            % Vector of center modulation frequencies
-                            sig_l = ModulationSignal(mObj.Processors{ii,1}.FsHzOut,mObj.Data.bufferSize_s,'modulation',cfHz,modCfHz,'Amplitude modulation',[],'left');
-                            sig_r = ModulationSignal(mObj.Processors{ii,2}.FsHzOut,mObj.Data.bufferSize_s,'modulation',cfHz,modCfHz,'Amplitude modulation',[],'right');
+                            sig_l = ModulationSignal(mObj.Processors{ii,1}.FsHzOut,mObj.Data.bufferSize_s,'ams_features',cfHz,modCfHz,'Amplitude modulation spectrogram',[],'left');
+                            sig_r = ModulationSignal(mObj.Processors{ii,2}.FsHzOut,mObj.Data.bufferSize_s,'ams_features',cfHz,modCfHz,'Amplitude modulation spectrogram',[],'right');
                             % Add the signals to the data object
                             mObj.Data.addSignal(sig_l);
                             mObj.Data.addSignal(sig_r)
                         else
                             cfHz = dep_proc.getDependentParameter('cfHz');    % Vector of center audio frequencies
                             % Instantiate a processor
-                            mObj.Processors{ii,1} = modulationProc(p.fs,numel(cfHz),p.am_nFilters,p.am_range,p.am_win,p.am_bSize,p.am_olap,p.am_type,p.am_dsRatio);
+                            mObj.Processors{ii,1} = modulationProc(p.fs,numel(cfHz),p.ams_cfHz,p.ams_nFilters,p.ams_lowFreqHz,p.ams_highFreqHz,p.ams_wname,p.ams_wSizeSec,p.ams_hSizeSec,p.ams_fbType,p.ams_dsRatio);
                             % Generate a new signal
                             modCfHz = mObj.Processors{ii,1}.modCfHz;            % Vector of center modulation frequencies
-                            sig = ModulationSignal(mObj.Processors{ii,1}.FsHzOut,mObj.Data.bufferSize_s,'modulation',cfHz,modCfHz,'Amplitude modulation',[],'mono');
+                            sig = ModulationSignal(mObj.Processors{ii,1}.FsHzOut,mObj.Data.bufferSize_s,'ams_features',cfHz,modCfHz,'Amplitude modulation spectrogram',[],'mono');
                             % Add signal to the data object
                             mObj.Data.addSignal(sig);
                         end
@@ -829,25 +829,25 @@ classdef manager < handle
                             mObj.Data.addSignal(sig);
                         end
                         
-                    case 'ic_xcorr'
+                    case 'ic'
                         if ~mObj.Data.isStereo
                             warning('Manager cannot instantiate a binaural cue extractor for a single-channel signal')
                             proceed = 0;
                         else
                             mObj.Processors{ii,1} = icProc(dep_proc.FsHzOut,p);
                             cfHz = dep_proc.getDependentParameter('cfHz');    % Center frequencies
-                            sig = TimeFrequencySignal(mObj.Processors{ii,1}.FsHzOut,mObj.Data.bufferSize_s,'ic_xcorr',cfHz,'Interaural correlation',[],'mono');
+                            sig = TimeFrequencySignal(mObj.Processors{ii,1}.FsHzOut,mObj.Data.bufferSize_s,'ic',cfHz,'Interaural correlation',[],'mono');
                             mObj.Data.addSignal(sig);
                         end
                         
-                    case 'itd_xcorr'
+                    case 'itd'
                         if ~mObj.Data.isStereo
                             warning('Manager cannot instantiate a binaural cue extractor for a single-channel signal')
                             proceed = 0;
                         else
                             mObj.Processors{ii,1} = itdProc(dep_proc.FsHzOut,p);
                             cfHz = dep_proc.getDependentParameter('cfHz');    % Center frequencies
-                            sig = TimeFrequencySignal(mObj.Processors{ii,1}.FsHzOut,mObj.Data.bufferSize_s,'itd_xcorr',cfHz,'Interaural Time Difference',[],'mono');
+                            sig = TimeFrequencySignal(mObj.Processors{ii,1}.FsHzOut,mObj.Data.bufferSize_s,'itd',cfHz,'Interaural Time Difference',[],'mono');
                             mObj.Data.addSignal(sig);
                         end
                         

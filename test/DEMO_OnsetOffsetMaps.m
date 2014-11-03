@@ -32,12 +32,12 @@ nChannels   = 64;
 
 % Onset parameters
 minOnsetStrengthdB  = 3;
-minOnsetSpread      = 5;
+minOnsetSize        = 5;
 fuseOnsetsWithinSec = 30E-3;
 
 % Offset parameters
 minOffsetStrengthdB  = 3;
-minOffsetSpread      = 5;
+minOffsetSize        = 5;
 fuseOffsetsWithinSec = 30E-3;
 
 
@@ -85,8 +85,8 @@ onsetStrength(bSet2zero)  = 0;
 offsetStrength(bSet2zero) = 0;
 
 % Detect onsets and offsets
-bOnsets  = detectOnsetsOffsets(onsetStrength,stepSizeSec,minOnsetStrengthdB,minOnsetSpread,fuseOnsetsWithinSec);
-bOffsets = detectOnsetsOffsets(offsetStrength,stepSizeSec,minOffsetStrengthdB,minOffsetSpread,fuseOffsetsWithinSec);
+bOnsets  = detectOnsetsOffsets(onsetStrength,stepSizeSec,minOnsetStrengthdB,minOnsetSize,fuseOnsetsWithinSec);
+bOffsets = detectOnsetsOffsets(offsetStrength,stepSizeSec,minOffsetStrengthdB,minOffsetSize,fuseOffsetsWithinSec);
 
 
 %% Plot binary onset map

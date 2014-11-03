@@ -22,7 +22,7 @@ end
 data = earSignals(1:22494,:); 
 
 % Request ratemap    
-requests = {'ic_xcorr' 'itd_xcorr'};
+requests = {'ic' 'itd'};
 
 cc_wSizeSec = 0.02;
 cc_hSizeSec = 0.01;
@@ -44,9 +44,9 @@ sigR = [dObj.time{2}.Data(:)];
 
 timeSec = (1:numel(sigL))/fsHz;
 
-ic = [dObj.ic_xcorr{1}.Data(:)];
-itd = [dObj.itd_xcorr{1}.Data(:)];
-freqHz = dObj.ic_xcorr{1}.cfHz;
+ic = [dObj.ic{1}.Data(:)];
+itd = [dObj.itd{1}.Data(:)];
+freqHz = dObj.ic{1}.cfHz;
 
 [nFrames,nChannels] = size(ic);
 
