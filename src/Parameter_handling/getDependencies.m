@@ -33,9 +33,12 @@ switch sig
     case 'gammatone'
         dep = {'time'};
         
+    case 'drnl'
+        dep = {'time'};
+        
     case 'innerhaircell'
-%         dep = {'gammatone'};
-        dep = {'drnl'};
+        dep = {'gammatone'};
+%         dep = {'drnl'};
         
     case 'adaptation'
         dep = {'innerhaircell'};
@@ -48,10 +51,7 @@ switch sig
      
     case 'autocorrelation'
         dep = {'innerhaircell'};
-        
-    case 'drnl'
-        dep = {'time'};
-        
+                
     % Cues
     case 'rms'
         dep = {'time'};

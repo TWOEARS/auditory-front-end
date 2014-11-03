@@ -52,6 +52,7 @@ adt_testout = mObj.Processors{4}.processChunk(inputSignal);
 %% Plot result - compare to the output from AMToolbox
 % Input signal
 figure; plot(x, 20*log10(inputSignal));
+ylim([-110 10]);
 xlabel('Time [sec]');
 ylabel('Level [dB]');
 title('Input signal');

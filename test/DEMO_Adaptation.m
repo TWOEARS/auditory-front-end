@@ -8,7 +8,35 @@ load('TestBinauralCues');
 
 % Take right ear signal
 data = earSignals(1:62E3,2);     
-% data = earSignals(1:15E3,2);     
+% data = earSignals(1:15E3,2);   
+
+% % A simpler signal (silence - ramp - steday-state - ramp - silence)
+% % as in the demo in AMToolbox (demo_adaploop.m) 
+% fsHz=10000;
+% minlvl=setdbspl(0);
+% duration = 0.4;                
+% beginSilence=0.2;
+% endSilence=0.4;
+% rampDuration=0.1;              
+% 
+% dt=1/fsHz; % seconds
+% time=dt: dt: duration;
+% inputSignal=ones(1, length(time));      
+% 
+% rampTime=dt:dt:rampDuration;
+% ramp=[sin(pi*rampTime/(2*rampDuration)) ...
+%     ones(1,length(time)-length(rampTime))];
+% inputSignal=inputSignal.*ramp;
+% ramp=fliplr(ramp);
+% inputSignal=inputSignal.*ramp;
+% 
+% intialSilence = zeros(1,round(beginSilence/dt));
+% finalSilence = zeros(1,round(endSilence/dt));
+% inputSignal = [intialSilence inputSignal finalSilence];
+% inputSignal = max(inputSignal,minlvl);
+% data = inputSignal.';
+% x = (0:length(inputSignal)-1)/fsHz;
+
 
 % New sampling frequency
 fsHzRef = 16E3;

@@ -298,6 +298,16 @@ classdef drnlProc < Processor
                 error('The input should be a one-dimensional array')
             end
             
+            % The current implementation of the DRNL works with
+            % dboffset=100, so we must change to this setting.
+            % The output is always the same, so there is no need for changing back.
+
+            % Obtain the dboffset currently used
+            dboffset=dbspl(1);
+
+            % Switch signal to the correct scaling
+            in=gaindb(in, dboffset-100);
+
             % Turn input into column vector
             in = in(:);
             
