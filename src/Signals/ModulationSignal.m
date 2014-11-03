@@ -154,10 +154,20 @@ classdef ModulationSignal < Signal
             
             s = size(data);
             
+            rsAMS = permute(data,[3 2 1]);
+            % Reshape data to incorporate boarder
+            rsAMS = reshape(20*log10(abs(rsAMS)),[s(3) s(2) s(1)]);
+            rsAMS(end+1,:,:) = min(rsAMS(:));  % insert a border
+            rsAMS = reshape(rsAMS,[(s(3)+1)*s(2) s(1)]);
+            rsAMS = rsAMS + abs(min(rsAMS(:)));
+            
             % Interleave audio and modulation frequencies for a simple, 2D
             % plot
-            data = reshape(permute(data,[1 3 2]),[s(1) s(2)*s(3)]);
+            % data = reshape(permute(data,[1 3 2]),[s(1) s(2)*s(3)]);
             
+            % Generate a time vector
+            timeSec = 0:1/sObj.FsHz:(s(1)-1)/sObj.FsHz;
+                
             % Manage handles
             if nargin < 2 || isempty(h0)
                     h = figure;             % Generate a new figure
@@ -170,11 +180,25 @@ classdef ModulationSignal < Signal
                     h = h0;
             end
             
-            imagesc(20*log10(abs(data.')))
+%             imagesc(20*log10(abs(rsAMS)))
+            imagesc(timeSec,1:s(2)*(1+s(3)),rsAMS)
             axis xy
-            title([sObj.Label ' (w.i.p.)'])
-            xlabel('Time (samples)')
-            ylabel('Audio/modulation frequencies')
+            %title([sObj.Label ' (w.i.p.)'])
+            title(sObj.Label)
+            xlabel('Time (s)')
+            ylabel('Center frequency (Hz)')
+            
+            nYLabels = 5;
+            
+            yPosInt = round(linspace(1,s(2),nYLabels));
+            
+            % Center yPos at mod filter frequencies
+            yPos = (yPosInt - 1) * (s(3)+1) + round((s(3)+1)/2);
+            
+            % Find the spacing for the y-axis which evenly divides the y-axis
+            set(gca,'ytick',yPos);
+            set(gca,'yticklabel',round(sObj.cfHz(yPosInt)));
+
         end
         
     end

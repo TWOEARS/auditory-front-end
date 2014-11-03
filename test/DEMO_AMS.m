@@ -52,6 +52,7 @@ mObj.processSignal();
 dObj.ams_features{1}.plot
 
 
+
 % %% Perform Gabor transformation
 % % 
 % % 
