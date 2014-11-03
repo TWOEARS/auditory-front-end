@@ -18,7 +18,7 @@ data = resample(data,fsHzRef,fsHz);
 fsHz = fsHzRef;
 
 % Request ratemap    
-requests = {'spec_features'};
+requests = {'spectral_features'};
 
 % Ratemap parameters
 rm_wSizeSec = 20E-3;
@@ -39,7 +39,7 @@ mObj = manager(dObj,requests,par);
 mObj.processSignal();
 
 ratemap = [dObj.ratemap_power{1}.Data(:)];
-spectralFeatures = [dObj.spec_features{1}.Data(:)];
+spectralFeatures = [dObj.spectral_features{1}.Data(:)];
 
 cfHz = dObj.ratemap_power{1}.cfHz;
 
@@ -50,7 +50,7 @@ wStepSamples = round((rm_hSizeSec * fsHz));
 
 timeSec = (wSizeSamples + (0:nFrames-1)*wStepSamples)/fsHz;
 
-listOfFeatures = dObj.spec_features{1}.fList;
+listOfFeatures = dObj.spectral_features{1}.fList;
 
 
 %% Plot spectral features
@@ -231,7 +231,7 @@ if any(strcmp(listOfFeatures,'irregularity'))
     title('Spectral irregularity')
 end
 
-if 1
+if 0
     for ii = 1 : numel(listOfFeatures) + 1
         fig2LaTeX(['SpectralFeature_',num2str(ii)],ii,20);
     end
