@@ -131,7 +131,7 @@ classdef ModulationSignal < Signal
             
         end
         
-        function h = plot(sObj,h0)
+        function h = plot(sObj,h0,p)
             %plot   Plot a modulation signal
             %
             %USAGE:
@@ -148,18 +148,24 @@ classdef ModulationSignal < Signal
             %TODO: - Clean up and use plot properties. 
             %      - Add other plot options (given audio frequency?)
             
+            % Manage plotting parameters
+            if nargin < 3 || isempty(p) 
+                % Get default plotting parameters
+                p = getDefaultParameters([],'plotting');
+            else
+                p.fs = sObj.FsHz;   % Add the sampling frequency to satisfy parseParameters
+                p = parseParameters(p);
+            end
             
             % Extract the data from the buffer
             data = sObj.Data(:);
-            
             s = size(data);
             
-            
-            % Limit dynamic range of ratemap representation
-            maxDynamicRangedB = 80;
+            % Limit dynamic range of AMS representation
+            maxDynamicRangedB = p.dynrange;
 
+            % Reshape data to incorporate borders
             rsAMS = permute(data,[3 2 1]);
-            % Reshape data to incorporate boarder
             rsAMS = reshape(20*log10(abs(rsAMS)),[s(3) s(2) s(1)]);
             
             maxValdB = max(rsAMS(:));
@@ -169,12 +175,11 @@ classdef ModulationSignal < Signal
 
             rangedB = [quant(minValdB,5) quant(maxValdB,5)];
 
-            rsAMS(end+1,:,:) = rangedB(1)-5;  % insert a border at minimum
+            rsAMS(end+1,:,:) = NaN;  % insert borders
+            
+            % Reshape for plotting (interleaved audio and modulation
+            % frequencies)
             rsAMS = reshape(rsAMS,[(s(3)+1)*s(2) s(1)]);
-                        
-            % Interleave audio and modulation frequencies for a simple, 2D
-            % plot
-            % data = reshape(permute(data,[1 3 2]),[s(1) s(2)*s(3)]);
             
             % Generate a time vector
             timeSec = 0:1/sObj.FsHz:(s(1)-1)/sObj.FsHz;
@@ -191,22 +196,38 @@ classdef ModulationSignal < Signal
                     h = h0;
             end
 
-            imagesc(timeSec,1:s(2)*(1+s(3)),rsAMS)
-            colorbar;
-            hold on;
-            for ii = 1:s(2)-1
-                % insert a border
-                plot([timeSec(1)-0.1 timeSec(end)+0.1],[(ii-1)*(s(3)+1)+s(3)+1 (ii-1)*(s(3)+1)+s(3)+1],'k-','linewidth',1)
+            im = imagesc(timeSec,1:s(2)*(1+s(3)),rsAMS);
+            
+            % Make borders appear black
+            set(gca,'Color','k')                % Black background
+            set(im,'AlphaData',~isnan(rsAMS))   % Transparent borders
+            
+            % Set color map
+            try
+                colormap(p.colormap)
+            catch
+                warning('No colormap %s is available, using ''jet''.',p.colormap)
+                colormap('jet')
+            end
+            
+            if p.bColorbar
+                colorbar;
             end
 
             set(gca,'CLim',rangedB)
             
             axis xy
             
-            %title([sObj.Label ' (w.i.p.)'])
-            title(sObj.Label)
-            xlabel('Time (s)')
-            ylabel('Center frequency (Hz)')
+            if ~strcmp(sObj.Channel,'mono')
+                pTitle = [sObj.Label ' - ' sObj.Channel];
+            else
+                pTitle = sObj.Label;
+            end
+            
+            % Set up title and labels
+            title(pTitle,'fontsize',p.fsize_title,'fontname',p.ftype)
+            xlabel('Time (s)','fontsize',p.fsize_label,'fontname',p.ftype)
+            ylabel('Center frequency (Hz)','fontsize',p.fsize_label,'fontname',p.ftype)
             
             nYLabels = 5;
             
@@ -222,6 +243,9 @@ classdef ModulationSignal < Signal
             for ii = 1:s(2)
                 text([timeSec(3) timeSec(3)],floor(s(3)/2)+[((ii-1)*(s(3)+1)) ((ii-1)*(s(3)+1))],num2str(ii),'verticalalignment','middle','fontsize',8);
             end
+            
+            % 
+            
         end
         
     end

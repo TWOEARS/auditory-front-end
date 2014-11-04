@@ -103,8 +103,8 @@ classdef modulationProc < Processor
             if isempty(blockSec)
                 blockSec = 32E-3;
             end
-            if isempty(blockSec)
-                stepSec = 16E-3;
+            if isempty(stepSec)
+                stepSec = blockSec/2;
             end
             if isempty(win)
                 win = 'hamming';
