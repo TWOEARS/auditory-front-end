@@ -96,8 +96,8 @@ ylabel('SACF')
 
 %% Show a ACF movie
 % 
-% 
-if 0
+% y-axis is slightly moving in the movie, might consider fixing it
+if 1
     figure;
     
     % Loop over the number of frames
