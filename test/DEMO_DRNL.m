@@ -1,13 +1,32 @@
 clear;
-close all
+% close all
 clc
-
 
 % Load a signal
 load('TestBinauralCues');
 
 % Take right ear signal
-data = earSignals(1:62E3,2);     
+earSignal = earSignals(:,2);
+
+% Use pink noise to add to the input signal (Brown et al., JASA 2010)
+pinkNoise = pinknoise(length(earSignal));
+
+% Band pass filter - this needs Signal Processing Toolbox
+bpFilt = designfilt('bandpassiir','FilterOrder',20, ...
+         'HalfPowerFrequency1',100,'HalfPowerFrequency2',22000, ...
+         'SampleRate',fsHz);
+pinkNoiseFiltered = filter(bpFilt,pinkNoise);
+
+SNR = 5;
+
+% Set pink noise amplitude SNR dB below the ear signal
+pinkNoiseScaled = setdbspl(pinkNoiseFiltered, dbspl(earSignal)-SNR);
+
+% Add to create noisy speech signal
+earSignalNoisy = earSignal+pinkNoiseScaled.';
+
+% Same resampling procedure as in other DEMO scripts
+data = earSignalNoisy(1:62E3);     
 
 % New sampling frequency
 fsHzRef = 16E3;
@@ -22,8 +41,8 @@ fsHz = fsHzRef;
 % To compare the DRNL output directly corresponding to the gammatone
 % output, the input to both processors needs to be converted to the stapes output. 
 
-% Obtain the level convention (what dB SPL corresponds to signal level of
-% 1)
+% Obtain the level convention 
+% (what dB SPL corresponds to signal level of 1)
 dboffset=dbspl(1);
 
 % Scale signal such that level 1 corresponds to 100 dB SPL
@@ -40,8 +59,10 @@ dataStapes = filter(me_fir, 1, dataMiddleEar);
 % Request DRNL    
 requests = {'drnl'};
 
-% Parameters
-par = genParStruct('drnl_lowFreqHz',80,'drnl_highFreqHz',8000,'drnl_nChannels',16); 
+% Parameters - use full nonlinearity for half of the channels (drnl_mocIpsi = 1)
+% and totally suppressed nonlinearity for the other half (drnl_mocIpsi = 0)
+par = genParStruct('drnl_lowFreqHz',80,'drnl_highFreqHz',8000,'drnl_nChannels',16, ...
+    'drnl_mocIpsi', [zeros(1,8) ones(1,8)]); 
 
 % Create a data object - here use dataStapes (stapes output, velocity)
 dObj = dataObject(dataStapes,fsHz);
@@ -61,7 +82,7 @@ bm   = [dObj.drnl{1}.Data(:,:)];
 fHz  = dObj.drnl{1}.cfHz;
 tSec = (1:size(bm,1))/fsHz;
 
-zoom  = [];
+zoom  = 2.5;
 bNorm = [];
 
 
@@ -105,7 +126,7 @@ bm_gt   = [dObj_gt.gammatone{1}.Data(:,:)];
 fHz  = dObj_gt.gammatone{1}.cfHz;
 tSec = (1:size(bm,1))/fsHz;
 
-zoom  = [];
+zoom  = 2.5;
 bNorm = [];
 
 figure;
