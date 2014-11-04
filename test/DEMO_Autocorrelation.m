@@ -45,7 +45,7 @@ ihc = [dObj.innerhaircell{1}.Data(:)];
 acf = [dObj.autocorrelation{1}.Data(:)];
 
 % Pause in seconds between two consecutive plots 
-pauseSec = 0.125;
+pauseSec = 0.0125;
 
 
 

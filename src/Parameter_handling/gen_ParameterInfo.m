@@ -106,6 +106,8 @@ clear pInfo
     addParameterInfo('plotting','bColorbar',1,'Boolean for displaying colorbar in time-frequency plots')
     addParameterInfo('plotting','dynrange',80,'Dynamic range for time-frequency plots (dB)')
     addParameterInfo('plotting','aud_ticks',[100 250 500 1000 2000 4000 8000 16000 32000],'Auditory ticks for ERB-based representations')
+    addParameterInfo('plotting','wavPlotDS',3,'Decimation ratio for plotting undecimated wave plot representations')
+    addParameterInfo('plotting','wavPlotZoom',5,'Zoom factor in wave plot representations')
 
 
 
