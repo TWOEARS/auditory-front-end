@@ -96,13 +96,12 @@ classdef autocorrelationProc < Processor
             % How many frames are in the buffered input?
             nFrames = floor((nSamples-(pObj.wSize-pObj.hSize))/pObj.hSize);
             
-            % Pre-allocate output
-            out = zeros(nFrames,nChannels,pObj.wSize);
-            
             % Determine maximum lag
             M = pObj.wSize;     % Frame size in samples
             maxLag = M-1;      % Maximum lag in computation
-            
+
+            % Pre-allocate output
+            out = zeros(nFrames,nChannels,maxLag);            
             
             if ~pObj.do_mex
                 % Loop on the frames
@@ -151,10 +150,10 @@ classdef autocorrelationProc < Processor
                     frames = applyCenterClipping(frames,pObj.clipMethod,pObj.alpha);
                     
                     % Auto-correlation analysis
-                    acf = calcACorr(frames,[],'coeff',pObj.K);
+                    acf = calcACorr(frames,maxLag,'coeff',pObj.K);
                     
                     % Store results for positive lags only
-                    out(:,jj,:) = permute(acf(maxLag+1:end,:),[2 3 1]);
+                    out(:,jj,:) = permute(acf,[2 3 1]);
                     
                 end
             end

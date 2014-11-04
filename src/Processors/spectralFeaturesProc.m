@@ -145,6 +145,9 @@ classdef spectralFeaturesProc < Processor
                         % Spectral center of gravity of the spectrum
                         out(:,ii) = sum(repmat(pObj.cfHz,[nFrames 1]).*in,2)./(sum(in,2)+pObj.eps);
                         
+                        % Normalize centroid to "nyquist" frequency channel
+                        out(:,ii) = out(:,ii) / pObj.cfHz(end);
+                        
                     case 'crest'        % Spectral crest
                         % Ratio of maximum to average in every frame
                         out(:,ii) = max(in,[],2)./(mean(in,2)+pObj.eps);
@@ -169,6 +172,9 @@ classdef spectralFeaturesProc < Processor
                         
                         % Spectrum bandwidth
                         out(:,ii) = sqrt(sum(nom,2)./(sum(in,2)+pObj.eps));
+                        
+                        % Normalize spread to "nyquist" frequency channel
+                        out(:,ii) = out(:,ii) / pObj.cfHz(end);
                         
                     case 'brightness'   % Spectral brightness
                         % Ratio of energy above cutoff to total energy in
@@ -276,6 +282,9 @@ classdef spectralFeaturesProc < Processor
                                 end
                             end
                         end
+                        
+                        % Normalize rolloff to "nyquist" frequency channel
+                        out(:,ii) = out(:,ii) / pObj.cfHz(end);
                         
                     case 'variation'
                         

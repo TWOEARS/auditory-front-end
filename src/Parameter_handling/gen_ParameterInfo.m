@@ -34,14 +34,16 @@ clear pInfo
     % Inner hair-cell envelope extraction
     addParameterInfo('ihc','ihc_method','dau','Inner hair-cell envelope extraction method (''none'', ''halfwave'', ''fullwave'', ''square'', ''hilbert'', ''joergensen'', ''dau'', ''breebart'', ''berstein'')','Inner hair-cell envelope extraction')
 
-    % Amplitude modulation filterbank
-    addParameterInfo('am','am_nFilters',15,'Requested number of filters (integer)','Amplitude modulation filterbank')
-    addParameterInfo('am','am_range',[0 400],'Modulation frequency range (Hz)')
-    addParameterInfo('am','am_win','rectwin','STFT/framing window type')
-    addParameterInfo('am','am_bSize',512,'STFT/framing block size')
-    addParameterInfo('am','am_olap',256,'STFT/framing overlap')
-    addParameterInfo('am','am_type','fft','Filterbank type (''fft'' or ''filter'')')
-    addParameterInfo('am','am_dsRatio',4,'Downsampling ratio')
+    % Amplitude modulation spectrogram features
+    addParameterInfo('ams','ams_fbType','log','Filterbank type (''lin'' or ''log'')','Amplitude modulation spectrogram features')
+    addParameterInfo('ams','ams_nFilters',[],'Requested number of modulation filters (integer)')
+    addParameterInfo('ams','ams_lowFreqHz',4,'Lowest modulation center frequency (Hz)','Modulation filterbank')
+    addParameterInfo('ams','ams_highFreqHz',1024,'Highest modulation center frequency (Hz)','Modulation filterbank')
+    addParameterInfo('ams','ams_cfHz',[],'Vector of channels'' center frequencies in Hz')
+    addParameterInfo('ams','ams_dsRatio',4,'Downsampling ratio of the envelope')
+    addParameterInfo('ams','ams_wSizeSec',32E-3,'Window duration (s)')
+    addParameterInfo('ams','ams_hSizeSec',16E-3,'Window step size (s)')
+    addParameterInfo('ams','ams_wname','rectwin','Window name')
     
     % Interaural Level Difference (ILD)
     addParameterInfo('ild','ild_wname','hann','Window name','Interaural Level Difference')

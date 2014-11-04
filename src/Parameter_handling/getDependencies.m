@@ -36,7 +36,7 @@ switch sig
     case 'innerhaircell'
         dep = {'gammatone'};
         
-    case 'modulation'
+    case 'ams_features'
         dep = {'innerhaircell'};
         
     case 'crosscorrelation'
@@ -55,10 +55,10 @@ switch sig
     case 'ratemap_power'
         dep = {'innerhaircell'};
         
-    case 'itd_xcorr'
+    case 'itd'
         dep = {'crosscorrelation'};
         
-    case 'ic_xcorr'
+    case 'ic'
         dep = {'crosscorrelation'};
         
     case 'ild'
@@ -83,17 +83,17 @@ switch sig
     case 'crosscorrelation_feature'
         dep = {'crosscorrelation'};
 
-    case 'spec_features'
+    case 'spectral_features'
         dep = {'ratemap_power'};
     
     case 'ratemap_feature'
         dep = {'ratemap_magnitude'};
         
     case 'azimuth'
-        dep = {'itd_xcorr'};
+        dep = {'itd'};
         
     case 'azimuth_hist'
-        dep = {'azimuth' 'ic_xcorr'};
+        dep = {'azimuth' 'ic'};
         
     case 'source_position'
         dep = {'azimuth_hist'};
@@ -102,17 +102,17 @@ switch sig
         dep = {'sacf'};
         
     case 'valid'     % Dummy name to list all currently valid names
-        dep = {'time' 'gammatone' 'innerhaircell' 'modulation' ...
+        dep = {'time' 'gammatone' 'innerhaircell' 'ams_features' ...
             'crosscorrelation' 'autocorrelation' 'rms' 'ratemap_magnitude' ...
-            'ratemap_power' 'itd_xcorr' 'ic_xcorr' 'ild' 'average_deviation' ...
+            'ratemap_power' 'itd' 'ic' 'ild' 'average_deviation' ...
             'onset_strength' 'offset_strength' 'synchrony' 'sacf' ...
-            'spec_features' 'ratemap_feature' 'azimuth' 'azimuth_hist' ...
+            'spectral_features' 'ratemap_feature' 'azimuth' 'azimuth_hist' ...
             'source_position' 'pitch'};
         
     case 'available'    % Lists all currently implemented processors
-         dep = {'time' 'gammatone' 'innerhaircell' 'modulation' 'crosscorrelation' ...
+         dep = {'time' 'gammatone' 'innerhaircell' 'ams_features' 'crosscorrelation' ...
              'autocorrelation' 'ratemap_magnitude' 'ratemap_power' 'ild' ...
-             'itd_xcorr' 'ic_xcorr' 'spec_features' 'crosscorrelation_feature' ...
+             'itd' 'ic' 'spectral_features' 'crosscorrelation_feature' ...
              'onset_strength' 'offset_strength'};
         
     % Otherwise it's not in the list, generate a list of valid names

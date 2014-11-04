@@ -34,11 +34,16 @@ if nargin < 2 || isempty(cfMod);       cfMod       = pow2(0:10); end
 % ==============================
 % 
 % 
-% Order of low-pass filter
-nLP = 1;
-
-% Order of band-pass filter
+% Order of filter bank
 nBP = 2;
+
+% Check filter order
+if (nBP-fix(nBP./2)*2)
+    error('Filter order must be even-numbered!')    
+else
+    % Order of low-pass / high-pass filter
+    nLP = 1;
+end
 
 % Number of modulation filter
 nFilter = numel(cfMod);
@@ -92,6 +97,11 @@ for ii = 1 : nFilter
         % Filter order is 2 * nBP, thus / 2 
         [b{ii},a{ii}] = butter(nBP/2,wn(ii,:),'bandpass');
     end
+    
+    % Check if resulting filter coefficients are stable
+    if ~isstable(b{ii},a{ii})
+        error('IIR filter is not stable, reduce the filter order!')
+    end    
 end
 
 % Plot filter transfer function

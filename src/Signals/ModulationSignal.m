@@ -154,10 +154,31 @@ classdef ModulationSignal < Signal
             
             s = size(data);
             
+            
+            % Limit dynamic range of ratemap representation
+            maxDynamicRangedB = 80;
+
+            rsAMS = permute(data,[3 2 1]);
+            % Reshape data to incorporate boarder
+            rsAMS = reshape(20*log10(abs(rsAMS)),[s(3) s(2) s(1)]);
+            
+            maxValdB = max(rsAMS(:));
+            
+            % Minimum ratemap floor to limit dynamic range
+            minValdB = -(maxDynamicRangedB + (0 - maxValdB));
+
+            rangedB = [quant(minValdB,5) quant(maxValdB,5)];
+
+            rsAMS(end+1,:,:) = rangedB(1)-5;  % insert a border at minimum
+            rsAMS = reshape(rsAMS,[(s(3)+1)*s(2) s(1)]);
+                        
             % Interleave audio and modulation frequencies for a simple, 2D
             % plot
-            data = reshape(permute(data,[1 3 2]),[s(1) s(2)*s(3)]);
+            % data = reshape(permute(data,[1 3 2]),[s(1) s(2)*s(3)]);
             
+            % Generate a time vector
+            timeSec = 0:1/sObj.FsHz:(s(1)-1)/sObj.FsHz;
+                
             % Manage handles
             if nargin < 2 || isempty(h0)
                     h = figure;             % Generate a new figure
@@ -169,12 +190,38 @@ classdef ModulationSignal < Signal
                     figure(h0)
                     h = h0;
             end
+
+            imagesc(timeSec,1:s(2)*(1+s(3)),rsAMS)
+            colorbar;
+            hold on;
+            for ii = 1:s(2)-1
+                % insert a border
+                plot([timeSec(1)-0.1 timeSec(end)+0.1],[(ii-1)*(s(3)+1)+s(3)+1 (ii-1)*(s(3)+1)+s(3)+1],'k-','linewidth',1)
+            end
+
+            set(gca,'CLim',rangedB)
             
-            imagesc(20*log10(abs(data.')))
             axis xy
-            title([sObj.Label ' (w.i.p.)'])
-            xlabel('Time (samples)')
-            ylabel('Audio/modulation frequencies')
+            
+            %title([sObj.Label ' (w.i.p.)'])
+            title(sObj.Label)
+            xlabel('Time (s)')
+            ylabel('Center frequency (Hz)')
+            
+            nYLabels = 5;
+            
+            yPosInt = round(linspace(1,s(2),nYLabels));
+            
+            % Center yPos at mod filter frequencies
+            yPos = (yPosInt - 1) * (s(3)+1) + round((s(3)+1)/2);
+            
+            % Find the spacing for the y-axis which evenly divides the y-axis
+            set(gca,'ytick',yPos);
+            set(gca,'yticklabel',round(sObj.cfHz(yPosInt)));
+
+            for ii = 1:s(2)
+                text([timeSec(3) timeSec(3)],floor(s(3)/2)+[((ii-1)*(s(3)+1)) ((ii-1)*(s(3)+1))],num2str(ii),'verticalalignment','middle','fontsize',8);
+            end
         end
         
     end

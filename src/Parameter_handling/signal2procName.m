@@ -31,8 +31,8 @@ switch signal
     case 'innerhaircell'
         procName = 'IHCenvelopeProc';
         
-    case 'modulation'
-        procName = 'modulationProc';
+    case 'ams_features'
+        procName = 'amsProc';
         
     case 'crosscorrelation'
         procName = 'crosscorrelationProc';
@@ -52,16 +52,16 @@ switch signal
     case 'offset_strength'
         procName = 'offsetProc';
         
-    case 'itd_xcorr'
+    case 'itd'
         procName = 'itdProc';
         
-    case 'ic_xcorr'
+    case 'ic'
         procName = 'icProc';
         
     case 'ild'
         procName = 'ildProc';
         
-    case 'spec_features'
+    case 'spectral_features'
         procName = 'spectralFeaturesProc';
         
     otherwise
