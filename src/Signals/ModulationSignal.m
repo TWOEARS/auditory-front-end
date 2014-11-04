@@ -154,13 +154,24 @@ classdef ModulationSignal < Signal
             
             s = size(data);
             
+            
+            % Limit dynamic range of ratemap representation
+            maxDynamicRangedB = 80;
+
             rsAMS = permute(data,[3 2 1]);
             % Reshape data to incorporate boarder
             rsAMS = reshape(20*log10(abs(rsAMS)),[s(3) s(2) s(1)]);
-            rsAMS(end+1,:,:) = min(rsAMS(:));  % insert a border
-            rsAMS = reshape(rsAMS,[(s(3)+1)*s(2) s(1)]);
-            rsAMS = rsAMS + abs(min(rsAMS(:)));
             
+            maxValdB = max(rsAMS(:));
+            
+            % Minimum ratemap floor to limit dynamic range
+            minValdB = -(maxDynamicRangedB + (0 - maxValdB));
+
+            rangedB = [quant(minValdB,5) quant(maxValdB,5)];
+
+            rsAMS(end+1,:,:) = rangedB(1)-5;  % insert a border at minimum
+            rsAMS = reshape(rsAMS,[(s(3)+1)*s(2) s(1)]);
+                        
             % Interleave audio and modulation frequencies for a simple, 2D
             % plot
             % data = reshape(permute(data,[1 3 2]),[s(1) s(2)*s(3)]);
@@ -179,10 +190,19 @@ classdef ModulationSignal < Signal
                     figure(h0)
                     h = h0;
             end
-            
-%             imagesc(20*log10(abs(rsAMS)))
+
             imagesc(timeSec,1:s(2)*(1+s(3)),rsAMS)
+            colorbar;
+            hold on;
+            for ii = 1:s(2)-1
+                % insert a border
+                plot([timeSec(1)-0.1 timeSec(end)+0.1],[(ii-1)*(s(3)+1)+s(3)+1 (ii-1)*(s(3)+1)+s(3)+1],'k-','linewidth',1)
+            end
+
+            set(gca,'CLim',rangedB)
+            
             axis xy
+            
             %title([sObj.Label ' (w.i.p.)'])
             title(sObj.Label)
             xlabel('Time (s)')
@@ -199,6 +219,9 @@ classdef ModulationSignal < Signal
             set(gca,'ytick',yPos);
             set(gca,'yticklabel',round(sObj.cfHz(yPosInt)));
 
+            for ii = 1:s(2)
+                text([timeSec(3) timeSec(3)],floor(s(3)/2)+[((ii-1)*(s(3)+1)) ((ii-1)*(s(3)+1))],num2str(ii),'verticalalignment','middle','fontsize',8);
+            end
         end
         
     end

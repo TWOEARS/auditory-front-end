@@ -99,6 +99,17 @@ classdef modulationProc < Processor
                 error('Highest modulation center frequency is above nyquist frequency. Either reduce the downsampling ratio or decrease the upper frequency limit. ')
             end
             
+            % Set default values
+            if isempty(blockSec)
+                blockSec = 32E-3;
+            end
+            if isempty(blockSec)
+                stepSec = 16E-3;
+            end
+            if isempty(win)
+                win = 'hamming';
+            end
+            
             % Compute framing parameters
             blockSamples    = 2 * round(blockSec * pObj.fs_ds / 2);
             stepSizeSamples = round(blockSamples / (blockSec/stepSec));
@@ -116,6 +127,17 @@ classdef modulationProc < Processor
                     % FFT-size
                     fftFactor = 2;  
                     pObj.nfft = pow2(nextpow2(fftFactor*blockSamples));
+                    
+                    if isempty(lowFreqHz);
+                        lowFreqHz = 0;
+                    end
+                    if isempty(highFreqHz);
+                        highFreqHz = 400;
+                    end
+                    if isempty(nFilters)
+                        nFilters = 15;
+                    end
+                    
                     % Normalized lower and upper frequencies of the mod. filterbank
                     fLow  = lowFreqHz  / pObj.fs_ds;
                     fHigh = highFreqHz / pObj.fs_ds;
@@ -128,6 +150,13 @@ classdef modulationProc < Processor
                 
                 % Get center frequencies
                 if isempty(cfHz)
+                     if isempty(lowFreqHz);
+                        lowFreqHz = 4;
+                    end
+                    if isempty(highFreqHz);
+                        highFreqHz = 1024;
+                    end
+                    
                     pObj.modCfHz = createFreqAxisLog(lowFreqHz,highFreqHz,nFilters);
                 else
                     % Overwrite frequency range
@@ -214,6 +243,9 @@ classdef modulationProc < Processor
                         % Calculate the modulation pattern for this filter
                         ams = spectrogram(in(:,ii),pObj.win,pObj.overlap,pObj.nfft);
 
+                        % Normalize spectrogram
+                        ams = ams / pObj.nfft;
+                        
                         % Restrain the pattern to the required mod. frequency bins
                         output = pObj.wts*abs(ams(pObj.mn:pObj.mx,:));
 
@@ -236,7 +268,6 @@ classdef modulationProc < Processor
 
                         % Store the buffered input for that channel
                         temp_buffer(:,ii) = in(bstart:bend,ii);
-
                     end
 
                 % If not, then buffer the all input signal    
