@@ -71,6 +71,11 @@ clear pInfo
     addParameterInfo('ac','ac_clipAlpha',0.6,'Threshold in center clipping (between 0 and 1)')
     addParameterInfo('ac','ac_K',2,'Exponent in auto-correlation')
 
+    % Pitch
+    addParameterInfo('pi','pi_rangeHz',[80 400],'Range in Hz for valid pitch estimation','Pitch estimation')
+    addParameterInfo('pi','pi_confThres',0.7,'Threshold for pitch condidence measure (re. 1)')
+    addParameterInfo('pi','pi_medianOrder',3,'Median order filter for pitch smoothing (integer)')
+    
     % Cross-correlation
     addParameterInfo('cc','cc_wname','hann','Window name','Cross-correlation')
     addParameterInfo('cc','cc_wSizeSec',20E-3,'Window duration (s)')

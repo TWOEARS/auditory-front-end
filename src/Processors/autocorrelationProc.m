@@ -40,6 +40,8 @@ classdef autocorrelationProc < Processor
             if nargin<3||isempty(do_mex);do_mex = 1;end
             if nargin<2||isempty(p)
                 p = getDefaultParameters(fs,'processing');
+            else
+                p = parseParameters(p);
             end
             if isempty(fs)
                 error('Sampling frequency needs to be provided')
