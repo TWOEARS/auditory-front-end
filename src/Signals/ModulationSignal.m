@@ -192,7 +192,7 @@ classdef ModulationSignal < Signal
             end
 
             imagesc(timeSec,1:s(2)*(1+s(3)),rsAMS)
-            colorbar;
+%             colorbar;
             hold on;
             for ii = 1:s(2)-1
                 % insert a border

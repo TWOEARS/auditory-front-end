@@ -25,15 +25,15 @@ requests = {'ams_features'};
 % Linear versus logarithmic
 ams_fbType     = 'log';
 ams_nFilters   = [];
-ams_lowFreqHz  = [];
-ams_highFreqHz = [];
+ams_lowFreqHz  = [4];
+ams_highFreqHz = [1024];
 ams_dsRatio    = 1; 
 ams_wSizeSec   = 32E-3;
 ams_hSizeSec   = 16E-3;
 ams_wname      = 'hamming';
 
 % Number of auditory channels
-nChannels    = [23];
+nChannels    = [30];
 
 % Parameters
 par = genParStruct('gt_lowFreqHz',80,'gt_highFreqHz',8000,'gt_nChannels',nChannels,'ams_wSizeSec',ams_wSizeSec,'ams_hSizeSec',ams_hSizeSec,...
@@ -47,6 +47,25 @@ mObj = manager(dObj,requests,par);
 
 % Request processing
 mObj.processSignal();
+
+% Plot time domain signal
+dObj.time{1}.plot;grid on;ylim([-1 1]);title('Time domain signal')
+
+% Plot IHC signal
+% dObj.innerhaircell{1}.plot;title('IHC')
+
+% Envelope
+env  = [dObj.innerhaircell{1}.Data(:,:)];
+fHz  = dObj.gammatone{1}.cfHz;
+tSec = (1:size(env,1))/fsHz;
+
+zoom  = [];
+bNorm = [];
+
+figure;
+waveplot(env(1:3:end,:),tSec(1:3:end),fHz,zoom,bNorm);
+title('IHC')
+
 
 % Plot AMS pattern
 dObj.ams_features{1}.plot
