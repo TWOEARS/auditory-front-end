@@ -639,7 +639,7 @@ classdef manager < handle
                             mObj.Processors{ii,1} = autocorrelationProc(p.fs,p,mObj.use_mex);
                             mObj.Processors{ii,2} = autocorrelationProc(p.fs,p,mObj.use_mex);
                             % Generate new signals
-                            lags = 0:1/p.fs:mObj.Processors{ii,1}.wSizeSec-1/p.fs;   % Vector of lags
+                            lags = ((1:(2 * round(mObj.Processors{ii,1}.wSizeSec * p.fs * 0.5)-1))-1)/p.fs;
                             cfHz = dep_proc_l.getDependentParameter('cfHz');         % Vector of center frequencies
                             sig_l = CorrelationSignal(mObj.Processors{ii,1}.FsHzOut,mObj.Data.bufferSize_s,'autocorrelation',cfHz,lags,'Auto-correlation',[],'left');
                             sig_r = CorrelationSignal(mObj.Processors{ii,2}.FsHzOut,mObj.Data.bufferSize_s,'autocorrelation',cfHz,lags,'Auto-correlation',[],'right');
