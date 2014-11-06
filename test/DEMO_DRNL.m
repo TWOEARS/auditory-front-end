@@ -28,14 +28,14 @@ earSignalNoisy = earSignal+pinkNoiseScaled.';
 % Same resampling procedure as in other DEMO scripts
 data = earSignalNoisy(1:62E3);     
 
-% New sampling frequency
-fsHzRef = 16E3;
-
-% Resample
-data = resample(data,fsHzRef,fsHz);
-
-% Copy fs
-fsHz = fsHzRef;
+% % New sampling frequency
+% fsHzRef = 16E3;
+% 
+% % Resample
+% data = resample(data,fsHzRef,fsHz);
+% 
+% % Copy fs
+% fsHz = fsHzRef;
 
 % The level conversion and outer-middle ear filtering are added for DRNL
 % To compare the DRNL output directly corresponding to the gammatone
@@ -73,31 +73,47 @@ mObj = manager(dObj,requests,par);
 % Request processing
 mObj.processSignal();
 
-
 %% Plot DRNL response
 % 
 % 
-% Basilar membrane output
 bm   = [dObj.drnl{1}.Data(:,:)];
 fHz  = dObj.drnl{1}.cfHz;
 tSec = (1:size(bm,1))/fsHz;
 
-zoom  = 2.5;
+zoom  = 1.12;
 bNorm = [];
 
-
+% Plot the original input (noisy speech)
 figure;
+subplot(3,1,1)
 plot(tSec(1:3:end),data(1:3:end));
-xlabel('Time (s)')
 ylabel('Amplitude')
+title('Input signal');
 xlim([tSec(1) tSec(end)]);
 ylim([-1 1])
 
-figure;
+% Plot the middle ear "input" (to the stapes)
+subplot(3,1,2)
+plot(tSec(1:3:end),dataMiddleEar(1:3:end));
+ylabel('Amplitude')
+title('Input to the stapes');
+xlim([tSec(1) tSec(end)]);
+ylim([-1 1])
 
+% Plot the stapes output
+subplot(3,1,3)
+plot(tSec(1:3:end),dataStapes(1:3:end));
+xlabel('Time (s)')
+ylabel('Amplitude')
+title('Stapes output');
+xlim([tSec(1) tSec(end)]);
+% ylim([-1 1])
+
+% Basilar membrane output
+figure;
 waveplot(bm(1:3:end,:),tSec(1:3:end),fHz,zoom,bNorm);
 ylabel('Characteristic frequency (Hz)');
-
+% title('DRNL output');
 
 %% To compare the above result to the gammatone output 
 %% (using the same stapes velocity as the input)
@@ -120,15 +136,26 @@ mObj_gt.processSignal();
 
 %% Plot Gammatone response
 % 
-% 
 % Basilar membrane output
 bm_gt   = [dObj_gt.gammatone{1}.Data(:,:)];
 fHz  = dObj_gt.gammatone{1}.cfHz;
 tSec = (1:size(bm,1))/fsHz;
 
-zoom  = 2.5;
+zoom  = 2.6;
 bNorm = [];
 
 figure;
 waveplot(bm_gt(1:3:end,:),tSec(1:3:end),fHz,zoom,bNorm);
+% title('Gammatone filterbank output');
+
+
+% 80Hz channel output comparison  
+figure;
+title('80Hz CF channel output only')
+subplot(1,2,1)
+plot(tSec, bm(:, 1));
+title('DRNL output');
+subplot(1,2,2)
+plot(tSec, bm_gt(:, 1));
+title('GTFB output');
 

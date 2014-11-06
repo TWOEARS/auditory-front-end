@@ -2,7 +2,7 @@
 % to the I/O function in (Jepsen et al. 2008) (Figure 2, p425)
 
 clear all
-close all
+% close all
 clc
 
 %% Add paths
@@ -103,7 +103,7 @@ for jj=1:length(toneFrequency)
     xStapes = filter(me_fir, 1, xME);
 
     % parameter structure for testing on-freq stimulation
-    param_struct = genParStruct('drnl_cfHz', toneFrequency(jj));
+    param_struct = genParStruct('drnl_cfHz', toneFrequency(jj), 'drnl_mocIpsi', 0.5);
 %     % parameter structure for testing different stimulation freq at single CF
 %     param_struct = genParStruct('drnl_cfHz', 4000);
     for kk=1:length(leveldBSPL)

@@ -312,11 +312,9 @@ classdef drnlProc < Processor
             in = in(:);
             
             % Get number of channels (CFs)
-%             nFilter = size(pObj.Filters,2);
             nFilter = length(pObj.cfHz);
             
             % Pre-allocate memory
-%             out = zeros(length(in),nFilter);      % not necessary
             out_lin = zeros(length(in),nFilter);
             out_nlin = zeros(length(in),nFilter);
             
