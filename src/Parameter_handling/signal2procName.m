@@ -29,7 +29,7 @@ switch signal
         procName = 'gammatoneProc';
         
     case 'innerhaircell'
-        procName = 'IHCenvelopeProc';
+        procName = 'ihcProc';
         
     case 'ams_features'
         procName = 'amsProc';
