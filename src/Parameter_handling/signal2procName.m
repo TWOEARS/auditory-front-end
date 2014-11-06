@@ -64,6 +64,9 @@ switch signal
     case 'spectral_features'
         procName = 'spectralFeaturesProc';
         
+    case 'pitch'
+        procName = 'pitchProc';
+        
     otherwise
         procName = '';
         warning('Signal named %s is invalid or not implemented yet.',signal)

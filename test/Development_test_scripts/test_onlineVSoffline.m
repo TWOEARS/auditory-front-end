@@ -2,13 +2,13 @@
 % for a given feature
 
 clear 
-% close all
+close all
 
 test_startup;
 
 % Request and parameters for feature extraction
 % request = {'modulation'};
-request = {'innerhaircell'};
+request = {'pitch'};
 p = [];
 % p = genParStruct('IHCMethod','breebart','am_type','filter');
 

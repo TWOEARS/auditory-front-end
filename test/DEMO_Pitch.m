@@ -19,7 +19,7 @@ data = resample(data,fsHzRef,fsHz);
 fsHz = fsHzRef;
 
 % Request ratemap    
-requests = {'autocorrelation'};
+requests = {'pitch'};
 
 ac_wSizeSec   = 0.032;
 ac_hSizeSec   = 0.016;
@@ -68,56 +68,62 @@ rangeLags = 1./pitchRangeHz;
 
 % freqAxisHz = 1./lags(bValidLags);
 
-freqAxisHz = 1./lags;
+% freqAxisHz = 1./lags;
+% 
+% sacf = squeeze(mean(acf,2));
+% 
+% 
+% figure;
+% plot(timeSecSig,data);
+% xlim([timeSecSig(1) timeSec(end)])
+% ylim([-1 1])
+% xlabel('Time (s)');
+% ylabel('Amplitude');
+% title('Time domain signal')
+% 
+% figure;
+% imagesc(timeSec,lags,sacf');
+% colorbar;
+% hold on;
+% ylim([0 0.02])
+% for ii = 1 : nFrames
+%     plot(timeSec(ii),1/pitchRawHz(ii),'kx','linewidth',2,'markersize',8)
+% end
+% plot([timeSec(1) timeSec(end)],[min(rangeLags) min(rangeLags)],'w--','linewidth',2)
+% plot([timeSec(1) timeSec(end)],[max(rangeLags) max(rangeLags)],'w--','linewidth',2)
+% xlim([timeSec(1) timeSec(end)])
+% axis xy
+% title('SACF')
+% xlabel('Time (s)')
+% ylabel('Lag period (s)')
+% 
+% figure;
+% plot(timeSec,confidence,'-k','linewidth',1.25);
+% hold on;
+% [maxVal,maxIdx] = max(confidence);
+% plot(timeSec(maxIdx),maxVal,'rx','linewidth',2,'markersize',12);
+% hp = plot([timeSec(1) timeSec(end)],[thres thres],'--k');
+% hl = legend({'SACF magnitude' 'global maximum' 'confidence threshold'},'location','southeast');
+% hlpos = get(hl,'position');
+% hlpos(1) = hlpos(1) * 0.85;
+% hlpos(2) = hlpos(2) * 1.35;
+% set(hl,'position',hlpos);
+% grid on;
+% set(hp,'linewidth',2)
+% xlabel('Time (s)')
+% ylabel('Magnitude')
+% xlim([timeSec(1) timeSec(end)])
+% ylim([0 1])
+% title('Confidence measure')
 
-sacf = squeeze(mean(acf,2));
+% ADDED RD: 
+% Compute using pitchProc
+OUT = dObj.pitch{1}.Data(:,1);
 
-
-figure;
-plot(timeSecSig,data);
-xlim([timeSecSig(1) timeSec(end)])
-ylim([-1 1])
-xlabel('Time (s)');
-ylabel('Amplitude');
-title('Time domain signal')
-
-figure;
-imagesc(timeSec,lags,sacf');
-colorbar;
-hold on;
-ylim([0 0.02])
-for ii = 1 : nFrames
-    plot(timeSec(ii),1/pitchRawHz(ii),'kx','linewidth',2,'markersize',8)
-end
-plot([timeSec(1) timeSec(end)],[min(rangeLags) min(rangeLags)],'w--','linewidth',2)
-plot([timeSec(1) timeSec(end)],[max(rangeLags) max(rangeLags)],'w--','linewidth',2)
-xlim([timeSec(1) timeSec(end)])
-axis xy
-title('SACF')
-xlabel('Time (s)')
-ylabel('Lag period (s)')
-
-figure;
-plot(timeSec,confidence,'-k','linewidth',1.25);
-hold on;
-[maxVal,maxIdx] = max(confidence);
-plot(timeSec(maxIdx),maxVal,'rx','linewidth',2,'markersize',12);
-hp = plot([timeSec(1) timeSec(end)],[thres thres],'--k');
-hl = legend({'SACF magnitude' 'global maximum' 'confidence threshold'},'location','southeast');
-hlpos = get(hl,'position');
-hlpos(1) = hlpos(1) * 0.85;
-hlpos(2) = hlpos(2) * 1.35;
-set(hl,'position',hlpos);
-grid on;
-set(hp,'linewidth',2)
-xlabel('Time (s)')
-ylabel('Magnitude')
-xlim([timeSec(1) timeSec(end)])
-ylim([0 1])
-title('Confidence measure')
-
-figure;
+figure; hold on
 h = plot(timeSec,pitchHz,'o');
+h2 = plot(timeSec,OUT,'xr');
+
 grid on;
 set(h,'markerfacecolor','k','color','k')
 xlabel('Time (s)')

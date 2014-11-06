@@ -160,6 +160,9 @@ classdef autocorrelationProc < Processor
                 end
             end
 
+            % Update the buffer: the input that was not extracted as a
+            % frame should be stored
+            pObj.buffer = in(nFrames*pObj.hSize+1:end,:);
             
         end
         

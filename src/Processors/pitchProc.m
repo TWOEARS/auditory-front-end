@@ -7,9 +7,11 @@ classdef pitchProc < Processor
         lags            % Vector of auto-correlation lags
     end
     
-    properties (Access = protected)
+    properties %(Access = protected)
         bValidLags      % Which lags are in the pitch range
         pitchBuffer     % Buffer for online Median filtering
+        maxConf         % Buffer interface for maximum confidence
+        maxConfBuf      % Circular buffer for maximum confidence
     end
     
     
@@ -40,9 +42,9 @@ classdef pitchProc < Processor
                 p = parseParameters(p);
             end
                 
-            if mod(p.medianOrder,1)~=0
-                p.medianOrder = round(p,medianOrder);
-                warning('Median filter order should be an integer, using %i instead',p.medianOrder)
+            if mod(p.pi_medianOrder,1)~=0
+                p.pi_medianOrder = round(p.pi_medianOrder);
+                warning('Median filter order should be an integer, using %i instead',p.pi_medianOrder)
             end
             
             % Populate properties
@@ -51,7 +53,9 @@ classdef pitchProc < Processor
             pObj.orderMedFilt = p.pi_medianOrder;
             pObj.lags = lags;
             
-            
+            bufferDurSec = 5;   % Maximum confidence is taken in the past 5 seconds
+            pObj.maxConfBuf = circVBuf(bufferDurSec*fs,1);
+            pObj.maxConf = circVBufArrayInterface(pObj.maxConfBuf);
                 
             pObj.Type = 'Pitch estimator';
             pObj.FsHzIn = fs;
@@ -113,6 +117,7 @@ classdef pitchProc < Processor
                     maxVal = 0;
                 else
                     confidence(ii) = maxVal;
+                    pObj.maxConfBuf.append(max(maxVal,0));
                 end
 
                 % Only accept pitch estimate if confidence value is above 0
@@ -129,10 +134,11 @@ classdef pitchProc < Processor
             confidence = max(confidence,0);
 
             % Compute threshold
-            pObj.confThresPerc = max(confidence,[],1) * pObj.confThresPerc;
+%             pObj.confThresPerc = max(confidence,[],1) * pObj.confThresPerc;
+            confThresPerc = max(pObj.maxConf(:)) * pObj.confThresPerc;
 
             % Apply confidence threshold
-            bSetToZero = confidence < repmat(pObj.confThresPerc,[nFrames 1]);
+            bSetToZero = confidence < repmat(confThresPerc,[nFrames 1]);
 
             % Set unreliable pitch estimates to zero
             pitchHz = pitchHzRaw; pitchHz(bSetToZero) = 0;
@@ -147,25 +153,46 @@ classdef pitchProc < Processor
             %   - Corresponding ones from the previous chunk can now be obtained
             
             % Append buffer
-            pitchHzBuf = [pObj.pitchBuffer ; pitchHz];
+%             pitchHzBuf = [pObj.pitchBuffer ; pitchHz];
             
-            pitchHzFilt = medfilt1(pitchHzBuf,pObj.orderMedFilt);
+%             pitchHzFilt = medfilt1(pitchHzBuf,pObj.orderMedFilt);
+            filtPitch = medfilt1(pitchHz,pObj.orderMedFilt);
             
             % Discard the last Npost samples (accurate median estimation would need next 
             % input chunk) and the first Npre samples (used only to compute
             % Npre+1:Npre+Npost samples)
-            out = pitchHzFilt(Npre+1:end-Npost);
+%             filtPitch = pitchHzFilt(Npre+1:end-Npost);
 
+            % NB: The above statement leads to a pitch estimate which is shifted in time
+            % by Npost samples. Could we correct for that?
             
             % Update buffer: the last Npost samples that were discarded need to be
             % computed at next chunk, so we need Npost+Npre extra samples in the buffer
-            pObj.pitchBuffer = pitchHzBuf(end-Npost-Npre:end);
+%             pObj.pitchBuffer = pitchHzBuf(end-Npost-Npre:end);
             
             % Replace all zeros with NANs
-            out(out==0) = NaN;
+%             filtPitch(filtPitch==0) = NaN;
+            
+            % TODO: Solve the following
+%             filtPitch = [NaN;filtPitch;NaN];
+            
+            % Generate the output
+            out = [filtPitch pitchHzRaw confidence];
+%             out = filtPitch;
+%             out = pitchHzFilt;
+%             out = bSetToZero;
+%             out = pitchHzRaw;
+%             out = confidence;
             
         end
         
+        function reset(pObj)
+            pObj.pitchBuffer = [];
+        end
+        
+        function hp = hasParameters(pObj,p)
+            hp = 1;
+        end
         
     end
     

@@ -76,8 +76,8 @@ switch sig
     case 'synchrony'
         dep = {'autocorrelation'};
         
-    case 'sacf'
-        dep = {'autocorrelation'};
+%     case 'sacf'
+%         dep = {'autocorrelation'};
         
     % Features
     case 'crosscorrelation_feature'
@@ -99,13 +99,13 @@ switch sig
         dep = {'azimuth_hist'};
         
     case 'pitch'
-        dep = {'sacf'};
+        dep = {'autocorrelation'};
         
     case 'valid'     % Dummy name to list all currently valid names
         dep = {'time' 'gammatone' 'innerhaircell' 'ams_features' ...
             'crosscorrelation' 'autocorrelation' 'rms' 'ratemap_magnitude' ...
             'ratemap_power' 'itd' 'ic' 'ild' 'average_deviation' ...
-            'onset_strength' 'offset_strength' 'synchrony' 'sacf' ...
+            'onset_strength' 'offset_strength' 'synchrony' ...
             'spectral_features' 'ratemap_feature' 'azimuth' 'azimuth_hist' ...
             'source_position' 'pitch'};
         
@@ -113,7 +113,7 @@ switch sig
          dep = {'time' 'gammatone' 'innerhaircell' 'ams_features' 'crosscorrelation' ...
              'autocorrelation' 'ratemap_magnitude' 'ratemap_power' 'ild' ...
              'itd' 'ic' 'spectral_features' 'crosscorrelation_feature' ...
-             'onset_strength' 'offset_strength'};
+             'onset_strength' 'offset_strength' 'pitch'};
         
     % Otherwise it's not in the list, generate a list of valid names
     otherwise
