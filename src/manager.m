@@ -502,8 +502,8 @@ classdef manager < handle
                             mObj.Processors{ii,1} = identityProc(p.fs);
                             mObj.Processors{ii,2} = identityProc(p.fs);
                             % Generate new signals
-                            sig_l = TimeDomainSignal(mObj.Processors{ii,1}.FsHzOut,mObj.Data.bufferSize_s,'time','Time',[],'left');
-                            sig_r = TimeDomainSignal(mObj.Processors{ii,2}.FsHzOut,mObj.Data.bufferSize_s,'time','Time',[],'right');
+                            sig_l = TimeDomainSignal(mObj.Processors{ii,1}.FsHzOut,mObj.Data.bufferSize_s,'time','Time domain signal',[],'left');
+                            sig_r = TimeDomainSignal(mObj.Processors{ii,2}.FsHzOut,mObj.Data.bufferSize_s,'time','Time domain signal',[],'right');
                             % Add the signals to the data object
                             mObj.Data.addSignal(sig_l);
                             mObj.Data.addSignal(sig_r)
@@ -511,7 +511,7 @@ classdef manager < handle
                             % Instantiate a processor
                             mObj.Processors{ii} = identityProc(p.fs);
                             % Generate a new signal
-                            sig = TimeDomainSignal(mObj.Processors{ii,1}.FsHzOut,mObj.Data.bufferSize_s,'time','Time');
+                            sig = TimeDomainSignal(mObj.Processors{ii,1}.FsHzOut,mObj.Data.bufferSize_s,'time','Time domain signal',[],'mono');
                             % Add signal to the data object
                             mObj.Data.addSignal(sig);
                         end
@@ -665,8 +665,8 @@ classdef manager < handle
                             mObj.Processors{ii,1} = pitchProc(dep_proc_l.FsHzOut,lags,p);
                             mObj.Processors{ii,2} = pitchProc(dep_proc_r.FsHzOut,lags,p);
                             % Generate new signals
-                            sig_l = FeatureSignal(mObj.Processors{ii,1}.FsHzOut,{'filtered','raw','confidence'},mObj.Data.bufferSize_s,'pitch','Pitch estimation','left');
-                            sig_r = FeatureSignal(mObj.Processors{ii,1}.FsHzOut,{'filtered','raw','confidence'},mObj.Data.bufferSize_s,'pitch','Pitch estimation','left');
+                            sig_l = FeatureSignal(mObj.Processors{ii,1}.FsHzOut,{'pitch','rawPitch','confidence'},mObj.Data.bufferSize_s,'pitch','Pitch estimation','left');
+                            sig_r = FeatureSignal(mObj.Processors{ii,1}.FsHzOut,{'pitch','rawPitch','confidence'},mObj.Data.bufferSize_s,'pitch','Pitch estimation','left');
 %                             sig_l = TimeDomainSignal(mObj.Processors{ii,1}.FsHzOut,mObj.Data.bufferSize_s,'pitch','Pitch estimation',[],'left');
 %                             sig_r = TimeDomainSignal(mObj.Processors{ii,2}.FsHzOut,mObj.Data.bufferSize_s,'pitch','Pitch estimation',[],'right');
                             % Add the signals to the data object
@@ -677,7 +677,7 @@ classdef manager < handle
                             lags = dep_sig.lags;
                             mObj.Processors{ii,1} = pitchProc(dep_proc.FsHzOut,lags,p);
                             % Generate a new signal
-                            sig = FeatureSignal(mObj.Processors{ii,1}.FsHzOut,{'filtered','raw','confidence'},mObj.Data.bufferSize_s,'pitch','Pitch estimation','mono');
+                            sig = FeatureSignal(mObj.Processors{ii,1}.FsHzOut,{'pitch','rawPitch','confidence'},mObj.Data.bufferSize_s,'pitch','Pitch estimation','mono');
 %                             sig = TimeDomainSignal(mObj.Processors{ii,1}.FsHzOut,mObj.Data.bufferSize_s,'pitch','Pitch estimation',[],'mono');
                             % Add signal to the data object
                             mObj.Data.addSignal(sig);

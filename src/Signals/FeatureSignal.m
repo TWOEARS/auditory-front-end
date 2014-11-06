@@ -57,17 +57,19 @@ classdef FeatureSignal < Signal
             
         end
         
-        function h = plot(sObj,mObj,h0)
+        function h = plot(sObj,h0,feature,overlay)
             %plot   Plots the requested spectral features
             %
             %USAGE:
             %     sObj.plot
-            % h = sObj.plot(mObj,h0)
+            % h = sObj.plot(mObj,h0,feature)
             %
             %INPUT ARGUMENTS:
-            %   sObj : Spectral features signal instance
-            %   mObj : Optional handle to the manager which computed the
-            %          signal. Allows, when provided, to superimpose the 
+            %    sObj : Spectral features signal instance
+            %    mObj : Optional handle to the manager which computed the
+            %           signal. Allows, when provided, to superimpose the 
+            %      h0 : Handle to already existing figure or subplot
+            % feature : Name of a specific feature to plot
             
             % Access the ratemap representation, if handle to the manager
             % was provided
@@ -129,6 +131,7 @@ classdef FeatureSignal < Signal
 
                         xlabel('Time (s)')
                         ylabel('Frequency (Hz)')
+                        
                     otherwise
                         error('Feature is not supported!')
                 end
