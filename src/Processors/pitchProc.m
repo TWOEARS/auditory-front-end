@@ -81,6 +81,7 @@ classdef pitchProc < Processor
             
             % Input size
             [nFrames,nLags] = size(sacf);
+            
 
             % Restrict lags to plausible pitch range (only for first call?)
             rangeLagSec = 1./pObj.pitchRangeHz;
@@ -136,10 +137,10 @@ classdef pitchProc < Processor
             % Set unreliable pitch estimates to zero
             pitchHz = pitchHzRaw; pitchHz(bSetToZero) = 0;
             
-            %% POST-PROCESSING
-            % 
-            % 
             % Apply median filtering to reduce octave errors
+            Npre = floor(pObj.orderMedFilt/2);      % Past samples considered in median
+            Npost = ceil(pObj.orderMedFilt/2)-1;    % Future samples considered in median
+            
             % We have to fiddle a bit with online compatibility...
             % For a filter of order N,
             %   - Last (N-1)/2 (N odd) or N/2-1 (N even) sample cannot be obtained
@@ -150,10 +151,18 @@ classdef pitchProc < Processor
             
             pitchHzFilt = medfilt1(pitchHzBuf,pObj.orderMedFilt);
             
-            % Discard 
+            % Discard the last Npost samples (accurate median estimation would need next 
+            % input chunk) and the first Npre samples (used only to compute
+            % Npre+1:Npre+Npost samples)
+            out = pitchHzFilt(Npre+1:end-Npost);
 
+            
+            % Update buffer: the last Npost samples that were discarded need to be
+            % computed at next chunk, so we need Npost+Npre extra samples in the buffer
+            pObj.pitchBuffer = pitchHzBuf(end-Npost-Npre:end);
+            
             % Replace all zeros with NANs
-            pitchHz(pitchHz==0) = NaN;
+            out(out==0) = NaN;
             
         end
         
