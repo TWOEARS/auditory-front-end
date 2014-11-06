@@ -1,4 +1,4 @@
-classdef IHCenvelopeProc < Processor
+classdef ihcProc < Processor
     
      properties
          method        % Label for the IHC model used
@@ -9,12 +9,12 @@ classdef IHCenvelopeProc < Processor
      end
      
      methods
-         function pObj = IHCenvelopeProc(fs,method)
-             %IHCenvelopeProc   Construct a inner haircell (IHC) envelope
+         function pObj = ihcProc(fs,method)
+             %ihcProc   Construct a inner haircell (IHC) envelope
              %                  extractor
              %
              %USAGE
-             %   pObj = IHCenvelopeProc(fs,method)
+             %   pObj = ihcProc(fs,method)
              %
              %INPUT ARGUMENTS
              %     fs : Sampling frequency (Hz)

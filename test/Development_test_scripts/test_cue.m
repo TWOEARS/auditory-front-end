@@ -4,7 +4,7 @@
 clear 
 close all
 
-test_startup;
+% test_startup;
 
 % Test on monoral or binaural signal
 do_stereo = 1;
