@@ -19,7 +19,7 @@ data = resample(data,fsHzRef,fsHz);
 fsHz = fsHzRef;
 
 % Request ratemap    
-requests = {'ild'};
+requests = {'ild' 'itd'};
 
 cc_wSizeSec = 0.02;
 cc_hSizeSec = 0.01;
