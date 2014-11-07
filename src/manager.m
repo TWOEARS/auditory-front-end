@@ -692,10 +692,10 @@ classdef manager < handle
 %                             mObj.Processors{ii,1} = crosscorrelationProc(p.fs,p);
                                 
                             % TEMP:
-                            mObj.Processors{ii,1} = crosscorrelationProc(dep_proc.FsHzOut,p,mObj.use_mex);
+                            mObj.Processors{ii,1} = crosscorrelationProc(dep_proc_l.FsHzOut,p,mObj.use_mex);
 
-                            maxLag = ceil(mObj.Processors{ii,1}.maxDelaySec*dep_proc.FsHzOut);
-                            lags = (-maxLag:maxLag)/dep_proc.FsHzOut;                           % Lags
+                            maxLag = ceil(mObj.Processors{ii,1}.maxDelaySec*dep_proc_l.FsHzOut);
+                            lags = (-maxLag:maxLag)/dep_proc_l.FsHzOut;                           % Lags
                             cfHz = dep_proc_l.getDependentParameter('cfHz');        % Center frequencies 
                             sig = CorrelationSignal(mObj.Processors{ii,1}.FsHzOut,mObj.Data.bufferSize_s,'crosscorrelation',cfHz,lags,'Cross-correlation',[],'mono');
                             mObj.Data.addSignal(sig);

@@ -19,7 +19,7 @@ data = resample(data,fsHzRef,fsHz);
 % Copy fs
 fsHz = fsHzRef;
 
-% Request ratemap    
+% Request 
 requests = {'autocorrelation'};
 
 ac_wSizeSec  = 0.02;
@@ -63,13 +63,18 @@ dObj.autocorrelation{1}.plot([],[],frameIdx2Plot)
 %% Show a ACF movie
 % 
 % y-axis is slightly moving in the movie, might consider fixing it
-if 0
-    figure;
+if 1
+    h3 = figure;
     pauseSec = 0.0125;  % Pause between two consecutive plots
+    dObj.autocorrelation{1}.plot(h3,par,1);
+    
     % Loop over the number of frames
-    for ii = 1 : size(acf,1)
-        cla;
-        waveplot(permute(acf(ii,:,:),[3 1 2]),dObj.autocorrelation{1}.lags,dObj.autocorrelation{1}.cfHz)
+    for ii = 2 : size(dObj.autocorrelation{1}.Data(:),1)
+        h31=get(h3,'children');
+        cla(h31(1)); cla(h31(2));
+        
+        dObj.autocorrelation{1}.plot(h3,par,ii);
+
         pause(pauseSec);
         title(['Frame number ',num2str(ii)])
     end

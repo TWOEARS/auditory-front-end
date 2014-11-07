@@ -18,7 +18,7 @@ data = earSignals(1:62E3,:);
 % % Copy fs
 % fsHz = fsHzRef;
 
-% Request ratemap    
+% Request 
 requests = {'crosscorrelation'};
 
 cc_wSizeSec = 0.02;
@@ -44,72 +44,75 @@ ccf = [dObj.crosscorrelation{1}.Data(:)];
 
 %% Plot the CCF
 
-% Pause in seconds between two consecutive plots 
-pauseSec = 0.125;
+
 
 zoom = 5;
 bNorm = true;
 
 frameIdx2Plot = 10;
 
+% Get sample indexes in that frame to limit waveforms plot
 wSizeSamples = 0.5 * round((cc_wSizeSec * fsHz * 2));
 wStepSamples = round((cc_hSizeSec * fsHz));
-
 samplesIdx = (1:wSizeSamples) + ((frameIdx2Plot-1) * wStepSamples);
 
 lagsMS = dObj.crosscorrelation{1}.lags*1E3;
+% Plot the waveforms in that frame
+h1 = figure; hold on
+p1 = genParStruct('color','k','linewidth_s',2);
+p2 = genParStruct('color',[0.5 0.5 0.5],'linewidth_s',2);
+dObj.time{1}.plot(h1,p1,'rangeSec',[samplesIdx(1) samplesIdx(end)]/fsHz)
+dObj.time{2}.plot(h1,p2,'rangeSec',[samplesIdx(1) samplesIdx(end)]/fsHz)
+title('Time domain signals')    % Overwrite the title
 
-figure;
-hp = plot(samplesIdx/fsHz,[dObj.time{1}.Data(samplesIdx) dObj.time{2}.Data(samplesIdx)]);
-set(hp(1),'color',[0 0 0],'linewidth',2);
-set(hp(2),'color',[0.5 0.5 0.5],'linewidth',2);
+% Add a legend
 hl = legend({'Left ear' 'Right ear'});
 hpos = get(hl,'position');
 hpos(1) = hpos(1) * 0.95;
 hpos(2) = hpos(2) * 0.975;
 set(hl,'position',hpos);
 
+% Axes limits
 xlim([samplesIdx(1) samplesIdx(end)]/fsHz)
 ylim([-0.35 0.35])
-xlabel('Time (s)')
-ylabel('Amplitude')
-title('Time domain signals')
 
-figure;
-ax(1) = subplot(4,1,[1:3]);
-waveplot(permute(ccf(frameIdx2Plot,:,:),[3 1 2]),lagsMS,dObj.crosscorrelation{1}.cfHz,zoom,bNorm)
-xlabel('')
-hy = ylabel('Center frequency (Hz)');
-hypos = get(hy,'position');
-hypos(1) = -1.35;
-set(hy,'position',hypos);
+% hp = plot(samplesIdx/fsHz,[dObj.time{1}.Data(samplesIdx) dObj.time{2}.Data(samplesIdx)]);
+% set(hp(1),'color',[0 0 0],'linewidth',2);
+% set(hp(2),'color',[0.5 0.5 0.5],'linewidth',2);
+% hl = legend({'Left ear' 'Right ear'});
+% hpos = get(hl,'position');
+% hpos(1) = hpos(1) * 0.95;
+% hpos(2) = hpos(2) * 0.975;
+% set(hl,'position',hpos);
+% 
+% xlim([samplesIdx(1) samplesIdx(end)]/fsHz)
+% ylim([-0.35 0.35])
+% xlabel('Time (s)')
+% ylabel('Amplitude')
+% title('Time domain signals')
 
-ht = title('CCF');
-htpos = get(ht,'position');
-htpos(2) = htpos(2) * 0.985;
-set(ht,'position',htpos);
-
-
-ax(2) = subplot(4,1,4);
-plot(lagsMS,mean(permute(ccf(frameIdx2Plot,:,:),[3 1 2]),3),'k','linewidth',1.25)
-grid on
-xlim([lagsMS(1) lagsMS(end)])
-ylim([0.5 1])
-xlabel('Lag period (ms)')
-ylabel('SCCF')
+% Plot the cross-correlation in that frame
+p3 = genParStruct('corPlotZoom',5)
+dObj.crosscorrelation{1}.plot([],p3,frameIdx2Plot)
 
 
-%% Show a ACF movie
+%% Show a CCF movie
 % 
 % 
-if 0
-    figure;
+if 1
+    h3 = figure;
+    % Pause in seconds between two consecutive plots 
+    pauseSec = 0.0125;
+    dObj.crosscorrelation{1}.plot(h3,p3,1);
     
     % Loop over the number of frames
-    for ii = 1 : size(ccf,1)
-        cla;
-        waveplot(permute(ccf(ii,:,:),[3 1 2]),dObj.crosscorrelation{1}.lags,dObj.crosscorrelation{1}.cfHz,zoom,bNorm)
+    for ii = 2 : size(dObj.crosscorrelation{1}.Data(:),1)
+        h31=get(h3,'children');
+        cla(h31(1)); cla(h31(2));
+        
+        dObj.crosscorrelation{1}.plot(h3,p3,ii);
         pause(pauseSec);
+        
         title(['Frame number ',num2str(ii)])
     end
 end

@@ -155,9 +155,9 @@ classdef CorrelationSignal < Signal
                     sObj.cfHz,p.corPlotZoom,1)
                 xlabel('')
                 hy = ylabel('Center frequency (Hz)');
-                hypos = get(hy,'position');
-                hypos(1) = -2.15;
-                set(hy,'position',hypos);
+%                 hypos = get(hy,'position');
+%                 hypos(1) = -2.15;
+%                 set(hy,'position',hypos);
                 ht = title(sObj.Label);
                 htpos = get(ht,'position');
                 htpos(2) = htpos(2) * 0.985;
