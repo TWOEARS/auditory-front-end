@@ -19,27 +19,9 @@ else
 end
 clear earSignals
 
-% New sampling frequency
-fsHzRef = 16E3;
-
-% Resample
-data = resample(data,fsHzRef,fsHz);
-
-% Copy fs
-fsHz = fsHzRef;
-
 % Parameters
-request = {'pitch'};
-ac_wSizeSec   = 0.032;
-ac_hSizeSec   = 0.016;
-ac_clipAlpha  = 0.0;
-ac_K          = 2;
-pitchRangeHz  = [80 400];
-confThresPerc = 0.7;
-orderMedFilt  = 3;
-
-% Parameters
-p = genParStruct('gt_lowFreqHz',80,'gt_highFreqHz',8000,'gt_nChannels',16,'ihc_method','dau','ac_wSizeSec',ac_wSizeSec,'ac_hSizeSec',ac_hSizeSec,'ac_clipAlpha',ac_clipAlpha,'ac_K',ac_K); 
+request = {'spectral_features'};
+p = [];
 
 
 % Create a data object
@@ -63,5 +45,3 @@ if iscell(sOut)
 else
     sOut.plot;
 end
-set(gca,'YLim',[80 400])
-set(get(gca,'children'),'Marker','x')

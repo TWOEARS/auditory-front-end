@@ -2,7 +2,8 @@ clear;
 close all
 clc
 
-
+%% INITIALIZATION
+%
 % Load a signal
 load('TestBinauralCues');
 
@@ -32,118 +33,39 @@ orderMedFilt  = 3;
 % Parameters
 par = genParStruct('gt_lowFreqHz',80,'gt_highFreqHz',8000,'gt_nChannels',16,'ihc_method','dau','ac_wSizeSec',ac_wSizeSec,'ac_hSizeSec',ac_hSizeSec,'ac_clipAlpha',ac_clipAlpha,'ac_K',ac_K); 
 
+%% AFE PROCESSING
 % Create a data object
 dObj = dataObject(data,fsHz);
 
 % Create a manager
 mObj = manager(dObj,requests,par);
 
+
 % Request processing
 mObj.processSignal();
 
-% Get ACF and lag vector
-acf  = [dObj.autocorrelation{1}.Data(:)];
-lags = dObj.autocorrelation{1}.lags;
 
+%% PLOTTING RESULTS
+% Plot time-domain signal
+dObj.time{1}.plot;   
 
-%% Estimate Pitch
-% 
-% 
-% Estimate most dominant pitch within
-[pitchHz,confidence,thres,pitchRawHz] = estPitch_SACF(acf,lags,pitchRangeHz,confThresPerc,orderMedFilt);
-
-nFrames = numel(pitchHz);
-
-wSizeSamples = 0.5 * round((ac_wSizeSec * fsHz * 2));
-wStepSamples = round((ac_hSizeSec * fsHz));
-
-% timeSec = (wSizeSamples + (0:nFrames-1)*wStepSamples)/fsHz;
-% Replaced with the following, discuss with Tobias
-timeSec = 0:1/dObj.pitch{1}.FsHz:(size(dObj.pitch{1}.Data(:),1)-1)/dObj.pitch{1}.FsHz;
-
-timeSecSig = (1:numel(data))/fsHz;
-
-% Restrict lags to plausible pitch range
-rangeLags = 1./pitchRangeHz;
-
-% Find corresponding lags
-bValidLags = lags >= min(rangeLags) & lags <= min(max(rangeLags),size(acf,3));
-
-freqAxisHz = 1./lags(bValidLags);
-
-freqAxisHz = 1./lags;
-
-sacf = squeeze(mean(acf,2));
-
-
-% figure;
-% plot(timeSecSig,data);
-% xlim([timeSecSig(1) timeSec(end)])
-% ylim([-1 1])
-% xlabel('Time (s)');
-% ylabel('Amplitude');
-% title('Time domain signal')
-dObj.time{1}.plot;   % Can fiddle with the fontsize and YLim to have exactly same plot
-
- 
-% figure;
-% imagesc(timeSec,lags,sacf');
-% colorbar;
-dObj.autocorrelation{1}.plot;  
-
-hold on;
+% Autocorrelation with raw pitch overlay (in the lag domain)
+h2 = figure;
+dObj.autocorrelation{1}.plot(h2);  
 ylim([0 0.02])
-% for ii = 1 : nFrames
-%     plot(timeSec(ii),1/pitchRawHz(ii),'kx','linewidth',2,'markersize',8)
-% end
-plot(timeSec,1./dObj.pitch{1}.Data(:,2),'kx','linewidth',2,'markersize',8)
+hold on
+dObj.pitch{1}.plot(h2,'rawPitch','pitchRange',mObj.Processors{5}.pitchRangeHz,...
+                                 'lagDomain',1);
 
-% Picture valid pitch range
-plot([timeSec(1) timeSec(end)],[min(rangeLags) min(rangeLags)],'w--','linewidth',2)
-plot([timeSec(1) timeSec(end)],[max(rangeLags) max(rangeLags)],'w--','linewidth',2)
-% xlim([timeSec(1) timeSec(end)])
-% axis xy
-% title('SACF')
-% xlabel('Time (s)')
-% ylabel('Lag period (s)')
+% Confidence plot with threshold
+h3 = figure;
+dObj.pitch{1}.plot(h3,'confidence','confThres',mObj.Processors{5}.confThresPerc);
 
+% Final pitch estimation
+h4 = figure;
+dObj.pitch{1}.plot(h4,'pitch','pitchRange',mObj.Processors{5}.pitchRangeHz)
 
-figure;
-% plot(timeSec,confidence,'-k','linewidth',1.25);
-plot(timeSec,dObj.pitch{1}.Data(:,3),'-k','linewidth',1.25);ylim([0 1])
-hold on;
-% [maxVal,maxIdx] = max(confidence);
-[maxVal,maxIdx] = max(dObj.pitch{1}.Data(:,3));
-plot(timeSec(maxIdx),maxVal,'rx','linewidth',2,'markersize',12);
-thres = maxVal*mObj.Processors{5}.confThresPerc;    % We are "cheating" a bit here, this threshold should vary with time
-hp = plot([timeSec(1) timeSec(end)],[thres thres],'--k');
-hl = legend({'SACF magnitude' 'global maximum' 'confidence threshold'},'location','southeast');
-hlpos = get(hl,'position');
-hlpos(1) = hlpos(1) * 0.85;
-hlpos(2) = hlpos(2) * 1.35;
-set(hl,'position',hlpos);
-grid on;
-set(hp,'linewidth',2)
-xlabel('Time (s)')
-ylabel('Magnitude')
-xlim([timeSec(1) timeSec(end)])
-ylim([0 1])
-title('Confidence measure')
-
-
-figure; hold on
-% h = plot(timeSec,pitchHz,'o');
-h = plot(timeSec,dObj.pitch{1}.Data(:,1),'o');
-
-grid on;
-set(h,'markerfacecolor','k','color','k')
-xlabel('Time (s)')
-ylabel('Frequency (Hz)')
-xlim([timeSec(1) timeSec(end)])
-ylim(pitchRangeHz)
-title('Estimated pitch contour')
-
-
+% Save to latex
 if 0
    fig2LaTeX('Pitch_01',1,16);
    fig2LaTeX('Pitch_02',2,16);

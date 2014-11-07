@@ -171,7 +171,7 @@ classdef pitchProc < Processor
 %             pObj.pitchBuffer = pitchHzBuf(end-Npost-Npre:end);
             
             % Replace all zeros with NANs
-%             filtPitch(filtPitch==0) = NaN;
+            filtPitch(filtPitch==0) = NaN;
             
             % TODO: Solve the following
 %             filtPitch = [NaN;filtPitch;NaN];

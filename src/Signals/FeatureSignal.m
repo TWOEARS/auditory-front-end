@@ -57,7 +57,7 @@ classdef FeatureSignal < Signal
             
         end
         
-        function h = plot(sObj,h0,feature,overlay)
+        function h = plot(sObj,h0,feature,varargin)
             %plot   Plots the requested spectral features
             %
             %USAGE:
@@ -66,78 +66,199 @@ classdef FeatureSignal < Signal
             %
             %INPUT ARGUMENTS:
             %    sObj : Spectral features signal instance
-            %    mObj : Optional handle to the manager which computed the
-            %           signal. Allows, when provided, to superimpose the 
             %      h0 : Handle to already existing figure or subplot
             % feature : Name of a specific feature to plot
+            %
+            %OUTPUT ARGUMENTS:
+            %       h : Handle to the figure
+            %
+            %OPTIONAL ARGUMENTS:
+            % Keyvalues:
+            % 'overlay'  - Handle to a signal object to plot together with the feature
+            % 'pitchRange' - Vector of valid pitch range
+            % 'confThresh' - Confidence threshold in percent of the maximum
+            % 'lagDomain'  - True for plotting 1/pitch (i.e., in the lag domain)
             
-            % Access the ratemap representation, if handle to the manager
-            % was provided
-            if nargin>1 && ~isempty(mObj)
-                p_sf = sObj.findProcessor(mObj);
-                p_rm = p_sf.Dependencies{1};
-                rMap = p_rm.Output.Data(:);
-                fHz = p_rm.Output.cfHz;
-                bPlotRatemap = true;
-            else
-                bPlotRatemap = false;
-            end
-             
             % Manage handles
-            if nargin < 3 || isempty(h0)
-                    h = figure;             % Generate a new figure
-                elseif get(h0,'parent')~=0
-                    % Then it's a subplot
-                    figure(get(h0,'parent')),subplot(h0)
-                    h = h0;
-                else
-                    figure(h0)
-                    h = h0;
+            if nargin < 2 || isempty(h0)
+                h = figure;             % Generate a new figure
+            elseif get(h0,'parent')~=0
+                % Then it's a subplot
+                figure(get(h0,'parent')),subplot(h0)
+                h = h0;
+            else
+                figure(h0)
+                h = h0;
+            end
+            
+            % Manage parameters
+            % TODO: Do we want to use common plot parameters (e.g., fontsize)
+            
+            % Manage optional arguments
+            if nargin>3 && ~isempty(varargin)
+                opt = struct;
+                for ii = 1:2:size(varargin,2)
+                    opt.(varargin{ii}) = varargin{ii+1};
+                end
+            else
+                opt = [];
+            end
+            
+            if nargin<3||isempty(feature)
+                feature = sObj.fList;
+            end
+            
+            if ~iscell(feature)
+                feature = {feature};
             end
             
             % Number of subplots
-            nFeatures = size(sObj.fList,2);
-            nSubplots = ceil(sqrt(nFeatures));
+            nFeatures = size(feature,2);
+            
             
             % Time axis
             tSec = 0:1/sObj.FsHz:(size(sObj.Data(:,:),1)-1)/sObj.FsHz;
             
             % Plots
             for ii = 1 : nFeatures
-                ax(ii) = subplot(nSubplots,nSubplots,ii);
-                switch sObj.fList{ii}
-                    case {'variation' 'hfc' 'brightness' 'flatness' 'entropy'}
-                        if bPlotRatemap
-                            imagesc(tSec,(1:size(fHz,2))/size(fHz,2),10*log10(rMap'));axis xy;
-                            hold on;
-                        end
-                        plot(tSec,sObj.Data(:,ii),'k--','linewidth',2)
+                
+                % Find the feature
+                jj = find(ismember(sObj.fList,feature{ii}),1);
+                
+                if ~isempty(jj)
+                    
+                    % Create a subplot if more than one representation is needed
+                    if nFeatures > 1
+                        nSubplots = ceil(sqrt(nFeatures));
+                        ax(ii) = subplot(nSubplots,nSubplots,ii);
+                    end
+                    
+                    % Raw plot
+                    hp = plot(tSec,sObj.Data(:,jj));
+                     
+                    % Some feature dependent styling below
+                    switch feature{ii}
+                        % Spectral features...
+                        case {'variation' 'hfc' 'brightness' 'flatness' 'entropy'}
+                            
+                            if ~isempty(opt) && isfield(opt,'overlay')
+                                hold on;
+                                imagesc(tSec,(1:size(fHz,2))/size(fHz,2),10*log10(overlay.Data(:)'));axis xy;
+                            end
+                             
+                            % Linestyle
+                            set(hp,'LineStyle','--','LineWidth',2,'Color','k')
+
+                            xlabel('Time (s)')
+                            ylabel('Normalized frequency')
+                            title(['Spectral ',sObj.fList{ii}])
+                            
+                        case {'irregularity' 'skewness' 'kurtosis' 'flux' 'decrease' 'crest'}
+
+                            % Linestyle
+                            set(hp,'LineStyle','--','LineWidth',2,'Color','k')
+                            
+                            xlim([tSec(1) tSec(end)])
+
+                            xlabel('Time (s)')
+                            ylabel('Feature magnitude')
+                            title(['Spectral ',sObj.fList{ii}])
+
+                        case {'rolloff' 'spread' 'centroid'}
+                            
+                            if ~isempty(opt) && isfield(opt,'overlay')
+                                imagesc(tSec,fHz,10*log10(overlay.Data(:)'));axis xy;
+                                hold on;
+                            end
+                            
+                            % Linestyle
+                            set(hp,'LineStyle','--','LineWidth',2,'Color','k')
+
+                            xlabel('Time (s)')
+                            ylabel('Frequency (Hz)')
+                            title(['Spectral ',sObj.fList{ii}])
+                            
+                        % Pitch features
+                        case 'pitch'
                         
-                        xlabel('Time (s)')
-                        ylabel('Normalized frequency')
-                    case {'irregularity' 'skewness' 'kurtosis' 'flux' 'decrease' 'crest'}
-                        plot(tSec,sObj.Data(:,ii),'k--','linewidth',2)
-                        xlim([tSec(1) tSec(end)])
-
-                        xlabel('Time (s)')
-                        ylabel('Feature magnitude')
-
-                    case {'rolloff' 'spread' 'centroid'}
-                        if bPlotRatemap
-                            imagesc(tSec,fHz,10*log10(rMap'));axis xy;
-                            hold on;
-                        end
-                        plot(tSec,sObj.Data(:,ii),'k--','linewidth',2)
-
-                        xlabel('Time (s)')
-                        ylabel('Frequency (Hz)')
-                        
-                    otherwise
-                        error('Feature is not supported!')
+                            if ~isempty(opt) && isfield(opt,'lagDomain')
+                                if opt.lagDomain
+                                    % Plot in terms of lag period
+                                    set(hp,'YData',1./get(hp,'YData'));
+                                end
+                            end
+                            
+                            % Linestyle
+                            set(hp,'marker','o','markerfacecolor','k','color','k','linestyle','none')
+                            
+                            xlabel('Time (s)')
+                            ylabel('Frequency (Hz)')
+                            title('Estimated pitch contour')
+                            
+                            if ~isempty(opt) && isfield(opt,'pitchRange')
+                                ylim(opt.pitchRange)
+                            end
+                            
+                        case 'rawPitch'
+                            
+                            if ~isempty(opt) && isfield(opt,'lagDomain')
+                                if opt.lagDomain
+                                    % Plot in terms of lag period
+                                    set(hp,'YData',1./get(hp,'YData'));
+                                end
+                            end
+                            
+                            % Linestyle
+                            set(hp,'marker','x','markerfacecolor','k','color','k',...
+                                'linestyle','none','markersize',8,'linewidth',2)
+                            
+                            % Valid pitch indication
+                            if ~isempty(opt) && isfield(opt,'pitchRange')
+                                rangeLags = 1./opt.pitchRange;
+                                plot([tSec(1) tSec(end)],[rangeLags(1) rangeLags(1)],'w--','linewidth',2)
+                                plot([tSec(1) tSec(end)],[rangeLags(2) rangeLags(2)],'w--','linewidth',2)
+                            end
+                    
+                        case 'confidence'
+                            
+                            set(hp,'LineStyle','-','color','k','linewidth',1.25)
+                            
+                            % Plot the maximum
+                            [maxVal,maxIdx] = max(sObj.Data(:,jj));
+                            hold on
+                            plot(tSec(maxIdx),maxVal,'rx','linewidth',2,'markersize',12);
+                            
+                            % And the threshold if available
+                            if ~isempty(opt) && isfield(opt,'confThres')
+                                plot([tSec(1) tSec(end)],[opt.confThres opt.confThres],'--k','linewidth',2);
+                                hl = legend({'SACF magnitude' 'global maximum' 'confidence threshold'},'location','southeast');
+                            else
+                                hl = legend({'SACF magnitude' 'global maximum'},'location','southeast');
+                            end
+                            
+                            hlpos = get(hl,'position');
+                            hlpos(1) = hlpos(1) * 0.85;
+                            hlpos(2) = hlpos(2) * 1.35;
+                            set(hl,'position',hlpos);
+%                             grid on;
+                            xlabel('Time (s)')
+                            ylabel('Magnitude')
+                            ylim([0 1])
+                            title('Confidence measure')
+                    end
+                    
+                    
+                else
+                    warning('There is no feature names %s in the signal',feature{ii})
                 end
-                title(['Spectral ',sObj.fList{ii}])
+                
+                
+                
+                
             end
-            linkaxes(ax,'x');
+            if nFeatures > 1
+                linkaxes(ax,'x');
+            end
             set(gca,'xLim',[0 tSec(end)])
 %             set(h,'units','normalized','outerposition',[0 0 1 1])
             
