@@ -76,13 +76,13 @@ classdef TimeFrequencySignal < Signal
             
         end
         
-        function h = plot(sObj,h0,p)
+        function h = plot(sObj,h0,p,varargin)
             %plot       This method plots the data from a time-frequency
             %           domain signal object
             %
             %USAGE
             %       sObj.plot
-            %       sObj.plot(h_prev,p)
+            %       sObj.plot(h_prev,p,...)
             %       h = sObj.plot(...)
             %
             %INPUT ARGUMENT
@@ -93,6 +93,9 @@ classdef TimeFrequencySignal < Signal
             %
             %OUTPUT ARGUMENT
             %       h : Handle to the newly created figure
+            %
+            %OPTIONAL ARGUMENTS
+            % 'rangeSec' - Vector of time limits for the plot
             
             if ~isempty(sObj.Data)
             
@@ -115,6 +118,16 @@ classdef TimeFrequencySignal < Signal
                     p = parseParameters(p);
                 end
                 
+                % Manage optional arguments
+                if nargin>3 && ~isempty(varargin)
+                    opt = struct;
+                    for ii = 1:2:size(varargin,2)
+                        opt.(varargin{ii}) = varargin{ii+1};
+                    end
+                else
+                    opt = [];
+                end
+                
                 if do_dB
                     if strcmp(sObj.Name,'ratemap_power')
                         data = 10*log10(abs(sObj.Data(:).'));
@@ -126,8 +139,13 @@ classdef TimeFrequencySignal < Signal
                     data = sObj.Data(:).';
                 end
 
-                % Generate a time vector
-                t = 0:1/sObj.FsHz:(size(data,2)-1)/sObj.FsHz;
+                % Limit to a certain time period
+                if ~isempty(opt) && isfield(opt,'rangeSec')
+                    data = data(:,floor(opt.rangeSec(1)*sObj.FsHz):floor(opt.rangeSec(end)*sObj.FsHz));
+                    t = opt.rangeSec(1):1/sObj.FsHz:opt.rangeSec(1)+(size(data,2)-1)/sObj.FsHz;
+                else
+                    t = 0:1/sObj.FsHz:(size(data,2)-1)/sObj.FsHz;
+                end
 
                 % Manage handles
                 if nargin < 2 || isempty(h0)
@@ -174,7 +192,7 @@ classdef TimeFrequencySignal < Signal
                 % Plot the figure
                 switch sObj.Name
                     case {'gammatone','innerhaircell'}
-                        waveplot(data(:,1:p.wavPlotDS:end).',t(1:p.wavPlotDS:end),sObj.cfHz,p.wavPlotZoom,[]);
+                        waveplot(data(:,1:p.wavPlotDS:end).',t(1:p.wavPlotDS:end),sObj.cfHz,p.wavPlotZoom,1);
                     otherwise
                         imagesc(t,1:M,data)  % Plot the data
                         axis xy              % Use Cartesian coordinates

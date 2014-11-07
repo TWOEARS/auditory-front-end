@@ -71,12 +71,12 @@ classdef CorrelationSignal < Signal
             end
         end
         
-        function h = plot(sObj,h0,p)
+        function h = plot(sObj,h0,p,frameNb)
             %plot       This method plots the data from a correlation signal object
             %
             %USAGE
             %       sObj.plot
-            %       sObj.plot(h_prev,p)
+            %       sObj.plot(h_prev,p,frameNb)
             %       h = sObj.plot(...)
             %
             %INPUT ARGUMENT
@@ -84,6 +84,8 @@ classdef CorrelationSignal < Signal
             %           where the new plot should be placed
             %       p : Structure of non-default plot parameters (generated
             %           from genParStruct.m)
+            % frameNb : Specify a given time frame to plot. If none specified, the summary
+            %           correlation will be plotted as a 2D image.
             %
             %OUTPUT ARGUMENT
             %       h : Handle to the newly created figure
@@ -117,34 +119,60 @@ classdef CorrelationSignal < Signal
                     figure(h0)
                     h = h0;
             end
+            if nargin<4 || isempty(frameNb)
+                
+                % Set the colormap
+                try
+                    colormap(p.colormap)
+                catch
+                    warning('No colormap %s is available, using ''jet''.',p.colormap)
+                    colormap('jet')
+                end
+
+                % Plot
+                imagesc(t,sObj.lags,scorr.');
+                axis xy
+
+                if p.bColorbar
+                    colorbar
+                end
+
+                xlabel('Time (s)','fontsize',p.fsize_label,'fontname',p.ftype)
+                ylabel('Lag period (s)','fontsize',p.fsize_label,'fontname',p.ftype)
+
+                % Set up a title
+                if ~strcmp(sObj.Channel,'mono')
+                    pTitle = [sObj.Label ' summary -' sObj.Channel];
+                else
+                    pTitle = [sObj.Label ' summary'];
+                end
+                title(pTitle,'fontsize',p.fsize_title,'fontname',p.ftype)
             
-            % Set the colormap
-            try
-                colormap(p.colormap)
-            catch
-                warning('No colormap %s is available, using ''jet''.',p.colormap)
-                colormap('jet')
-            end
-            
-            % Plot
-            imagesc(t,sObj.lags,scorr.');
-            axis xy
-            
-            if p.bColorbar
-                colorbar
-            end
-            
-            xlabel('Time (s)','fontsize',p.fsize_label,'fontname',p.ftype)
-            ylabel('Lag period (s)','fontsize',p.fsize_label,'fontname',p.ftype)
-            
-            % Set up a title
-            if ~strcmp(sObj.Channel,'mono')
-                pTitle = [sObj.Label ' summary -' sObj.Channel];
             else
-                pTitle = [sObj.Label ' summary'];
+                
+                ax(1) = subplot(4,1,[1:3]);
+                waveplot(permute(sObj.Data(frameNb,:,:),[3 1 2]),sObj.lags*1E3,...
+                    sObj.cfHz,p.corPlotZoom,1)
+                xlabel('')
+                hy = ylabel('Center frequency (Hz)');
+                hypos = get(hy,'position');
+                hypos(1) = -2.15;
+                set(hy,'position',hypos);
+                ht = title(sObj.Label);
+                htpos = get(ht,'position');
+                htpos(2) = htpos(2) * 0.985;
+                set(ht,'position',htpos);
+                
+                ax(2) = subplot(4,1,4);
+                plot(sObj.lags*1E3,mean(permute(sObj.Data(frameNb,:,:),[3 1 2]),3),...
+                                        'k','linewidth',1.25)
+                grid on
+                xlim([sObj.lags(1)*1E3 sObj.lags(end)*1E3])
+                ylim([0 1])
+                xlabel('Lag period (ms)')
+                ylabel('Summary')
+                
             end
-            title(pTitle,'fontsize',p.fsize_title,'fontname',p.ftype)
-            
             
         end
         
