@@ -816,6 +816,50 @@ classdef manager < handle
                             mObj.Data.addSignal(sig);
                         end
                         
+                    case 'onset_map'
+                        if mObj.Data.isStereo
+                            % Instantiate left and right ear processors
+                            mObj.Processors{ii,1} = transientMapProc(dep_proc_l.FsHzOut,p);
+                            mObj.Processors{ii,2} = transientMapProc(dep_proc_r.FsHzOut,p);
+                            % Generate new signals
+                            cfHz = dep_proc_l.getDependentParameter('cfHz');    % Center frequencies
+                            sig_l = BinaryMask(mObj.Processors{ii,1}.FsHzOut,mObj.Data.bufferSize_s,'onset_map',cfHz,'Onset map',[],'left',dep_proc_l.Input);
+                            sig_r = BinaryMask(mObj.Processors{ii,2}.FsHzOut,mObj.Data.bufferSize_s,'onset_map',cfHz,'Onset map',[],'right',dep_proc_r.Input);
+                            % Add the signals to the data object
+                            mObj.Data.addSignal(sig_l);
+                            mObj.Data.addSignal(sig_r)
+                        else
+                            % Instantiate a processor
+                            mObj.Processors{ii,1} = transientMapProc(dep_proc.FsHzOut,p);
+                            % Generate a new signal
+                            cfHz = dep_proc.getDependentParameter('cfHz');    % Center frequencies
+                            sig = BinaryMask(mObj.Processors{ii,1}.FsHzOut,mObj.Data.bufferSize_s,'onset_map',cfHz,'Onset map',[],'mono',dep_proc.Input);
+                            % Add signal to the data object
+                            mObj.Data.addSignal(sig);
+                        end
+                        
+                    case 'offset_map'
+                        if mObj.Data.isStereo
+                            % Instantiate left and right ear processors
+                            mObj.Processors{ii,1} = transientMapProc(dep_proc_l.FsHzOut,p);
+                            mObj.Processors{ii,2} = transientMapProc(dep_proc_r.FsHzOut,p);
+                            % Generate new signals
+                            cfHz = dep_proc_l.getDependentParameter('cfHz');    % Center frequencies
+                            sig_l = BinaryMask(mObj.Processors{ii,1}.FsHzOut,mObj.Data.bufferSize_s,'offset_map',cfHz,'Offset map',[],'left',dep_proc_l.Input);
+                            sig_r = BinaryMask(mObj.Processors{ii,2}.FsHzOut,mObj.Data.bufferSize_s,'offset_map',cfHz,'Offset map',[],'right',dep_proc_r.Input);
+                            % Add the signals to the data object
+                            mObj.Data.addSignal(sig_l);
+                            mObj.Data.addSignal(sig_r)
+                        else
+                            % Instantiate a processor
+                            mObj.Processors{ii,1} = transientMapProc(dep_proc.FsHzOut,p);
+                            % Generate a new signal
+                            cfHz = dep_proc.getDependentParameter('cfHz');    % Center frequencies
+                            sig = BinaryMask(mObj.Processors{ii,1}.FsHzOut,mObj.Data.bufferSize_s,'offset_map',cfHz,'Offset map',[],'mono',dep_proc.Input);
+                            % Add signal to the data object
+                            mObj.Data.addSignal(sig);
+                        end
+                        
                     case 'spectral_features'
                         if mObj.Data.isStereo
                             % Get the center frequencies from dependent processors

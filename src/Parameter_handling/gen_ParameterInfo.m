@@ -60,8 +60,13 @@ clear pInfo
     % Onset strength
     addParameterInfo('ons','ons_maxOnsetdB',30,'Upper limit for onset value','Onset strength extraction')
     
-     % Onset strength
+    % Onset strength
     addParameterInfo('ofs','ofs_maxOffsetdB',30,'Upper limit for offset value','Offset strength extraction')
+    
+    % Transient mapping
+    addParameterInfo('trm','trm_minStrengthDB',3,'Minimum transient strength for mapping','Transient mapping')
+    addParameterInfo('trm','trm_minSpread',5,'Minimum spread of the transient over frequency channels')
+    addParameterInfo('trm','trm_fuseWithinSec',30E-3,'Events within that period (in sec) are fused together')
     
     % Auto-correlation
     addParameterInfo('ac','ac_wname','hann','Window name','Auto-correlation')
@@ -114,5 +119,5 @@ clear pInfo
     addParameterInfo('plotting','wavPlotDS',3,'Decimation ratio for plotting undecimated wave plot representations')
     addParameterInfo('plotting','wavPlotZoom',5,'Zoom factor in wave plot representations')
     addParameterInfo('plotting','corPlotZoom',3,'Zoom factor in correlation wave plots')
-
+    addParameterInfo('plotting','binaryMaskColor',[0 0 0],'Color for binary mask (in RGB value)')
 

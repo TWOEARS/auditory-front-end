@@ -20,7 +20,7 @@ end
 clear earSignals
 
 % Parameters
-request = {'spectral_features'};
+request = {'onset_map'};
 p = [];
 
 

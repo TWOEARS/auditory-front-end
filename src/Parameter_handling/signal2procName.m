@@ -49,6 +49,12 @@ switch signal
     case 'onset_strength'
         procName = 'onsetProc';
         
+    case 'onset_map'
+        procName = 'transientMapProc';
+        
+    case 'offset_map'
+        procName = 'transientMapProc';
+        
     case 'offset_strength'
         procName = 'offsetProc';
         

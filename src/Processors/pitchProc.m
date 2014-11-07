@@ -1,13 +1,13 @@
 classdef pitchProc < Processor
     
-    properties
+    properties (SetAccess = protected)
         pitchRangeHz    % Range in Hz for valid pitch estimation
         confThresPerc   % Threshold for pitch condidence measure (re. 1)
         orderMedFilt    % Median order filter for pitch smoothing
         lags            % Vector of auto-correlation lags
     end
     
-    properties %(Access = protected)
+    properties (Access = protected)
         bValidLags      % Which lags are in the pitch range
         pitchBuffer     % Buffer for online Median filtering
         maxConf         % Buffer interface for maximum confidence

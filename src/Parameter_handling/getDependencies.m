@@ -101,6 +101,12 @@ switch sig
     case 'pitch'
         dep = {'autocorrelation'};
         
+    case 'onset_map'
+        dep = {'onset_strength'};
+        
+    case 'offset_map'
+        dep = {'offset_strength'};
+        
     case 'valid'     % Dummy name to list all currently valid names
         dep = {'time' 'gammatone' 'innerhaircell' 'ams_features' ...
             'crosscorrelation' 'autocorrelation' 'rms' 'ratemap_magnitude' ...
