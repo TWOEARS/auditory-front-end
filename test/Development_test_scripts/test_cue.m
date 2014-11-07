@@ -20,8 +20,8 @@ end
 clear earSignals
 
 % Parameters
-request = {'onset_map'};
-p = [];
+request = {'offset_map'};
+p = genParStruct('ofs_minValuedB',-50);
 
 
 % Create a data object

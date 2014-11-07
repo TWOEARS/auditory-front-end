@@ -775,8 +775,8 @@ classdef manager < handle
                     case 'onset_strength'
                         if mObj.Data.isStereo
                             % Instantiate left and right ear processors
-                            mObj.Processors{ii,1} = onsetProc(dep_proc_l.FsHzOut,p.ons_maxOnsetdB);
-                            mObj.Processors{ii,2} = onsetProc(dep_proc_r.FsHzOut,p.ons_maxOnsetdB);
+                            mObj.Processors{ii,1} = onsetProc(dep_proc_l.FsHzOut,p);
+                            mObj.Processors{ii,2} = onsetProc(dep_proc_r.FsHzOut,p);
                             % Generate new signals
                             cfHz = dep_proc_l.getDependentParameter('cfHz');    % Center frequencies
                             sig_l = TimeFrequencySignal(mObj.Processors{ii,1}.FsHzOut,mObj.Data.bufferSize_s,'onset_strength',cfHz,'Onset strength',[],'left');
@@ -786,7 +786,7 @@ classdef manager < handle
                             mObj.Data.addSignal(sig_r)
                         else
                             % Instantiate a processor
-                            mObj.Processors{ii,1} = onsetProc(dep_proc.FsHzOut,p.ons_maxOnsetdB);
+                            mObj.Processors{ii,1} = onsetProc(dep_proc.FsHzOut,p);
                             % Generate a new signal
                             cfHz = dep_proc.getDependentParameter('cfHz');    % Center frequencies
                             sig = TimeFrequencySignal(mObj.Processors{ii,1}.FsHzOut,mObj.Data.bufferSize_s,'onset_strength',cfHz,'Onset strength',[],'mono');
@@ -797,8 +797,8 @@ classdef manager < handle
                     case 'offset_strength'
                         if mObj.Data.isStereo
                             % Instantiate left and right ear processors
-                            mObj.Processors{ii,1} = offsetProc(dep_proc_l.FsHzOut,p.ofs_maxOffsetdB);
-                            mObj.Processors{ii,2} = offsetProc(dep_proc_r.FsHzOut,p.ofs_maxOffsetdB);
+                            mObj.Processors{ii,1} = offsetProc(dep_proc_l.FsHzOut,p);
+                            mObj.Processors{ii,2} = offsetProc(dep_proc_r.FsHzOut,p);
                             % Generate new signals
                             cfHz = dep_proc_l.getDependentParameter('cfHz');    % Center frequencies
                             sig_l = TimeFrequencySignal(mObj.Processors{ii,1}.FsHzOut,mObj.Data.bufferSize_s,'offset_strength',cfHz,'Offset strength',[],'left');
@@ -808,7 +808,7 @@ classdef manager < handle
                             mObj.Data.addSignal(sig_r)
                         else
                             % Instantiate a processor
-                            mObj.Processors{ii,1} = offsetProc(dep_proc.FsHzOut,p.ofs_maxOffsetdB);
+                            mObj.Processors{ii,1} = offsetProc(dep_proc.FsHzOut,p);
                             % Generate a new signal
                             cfHz = dep_proc.getDependentParameter('cfHz');    % Center frequencies
                             sig = TimeFrequencySignal(mObj.Processors{ii,1}.FsHzOut,mObj.Data.bufferSize_s,'offset_strength',cfHz,'Offset strength',[],'mono');

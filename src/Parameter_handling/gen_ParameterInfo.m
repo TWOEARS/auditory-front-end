@@ -59,9 +59,11 @@ clear pInfo
 
     % Onset strength
     addParameterInfo('ons','ons_maxOnsetdB',30,'Upper limit for onset value','Onset strength extraction')
+    addParameterInfo('ons','ons_minValuedB',[],'Lower limit of the representation, below which its onset will not be considered')
     
     % Onset strength
     addParameterInfo('ofs','ofs_maxOffsetdB',30,'Upper limit for offset value','Offset strength extraction')
+    addParameterInfo('ofs','ofs_minValuedB',[],'Lower limit of the representation, below which its offset will not be considered')
     
     % Transient mapping
     addParameterInfo('trm','trm_minStrengthDB',3,'Minimum transient strength for mapping','Transient mapping')

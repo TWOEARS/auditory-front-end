@@ -101,7 +101,8 @@ classdef transientMapProc < Processor
         end
             
         function hp = hasParameters(pObj,p)
-            hp = 1;
+            % Should probably always return 0, investigate
+            hp = 0;
         end
         
     end
