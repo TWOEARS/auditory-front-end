@@ -71,7 +71,7 @@ classdef CorrelationSignal < Signal
             end
         end
         
-        function h = plot(sObj,h0,p,frameNb)
+        function h = plot(sObj,h0,p,frameNb,varargin)
             %plot       This method plots the data from a correlation signal object
             %
             %USAGE
@@ -89,6 +89,9 @@ classdef CorrelationSignal < Signal
             %
             %OUTPUT ARGUMENT
             %       h : Handle to the newly created figure
+            %
+            %OPTIONAL ARGUMENTS
+            % 'noTitle' - Flag to avoid displaying a title
             
             % TODO: Add an option to plot the correlation in a given frame instead of
             % the summary
@@ -100,6 +103,16 @@ classdef CorrelationSignal < Signal
             else
                 p.fs = sObj.FsHz;   % Add the sampling frequency to satisfy parseParameters
                 p = parseParameters(p);
+            end
+            
+            % Manage optional arguments
+            if nargin>3 && ~isempty(varargin)
+                opt = struct;
+                for ii = 1:2:size(varargin,2)
+                    opt.(varargin{ii}) = varargin{ii+1};
+                end
+            else
+                opt = [];
             end
             
             % Compute the summary correlation
@@ -146,7 +159,12 @@ classdef CorrelationSignal < Signal
                 else
                     pTitle = [sObj.Label ' summary'];
                 end
-                title(pTitle,'fontsize',p.fsize_title,'fontname',p.ftype)
+                
+                if ~isempty(opt) && isfield(opt,'noTitle')
+                    if opt.noTitle ~= 1
+                        title(pTitle,'fontsize',p.fsize_title,'fontname',p.ftype)
+                    end
+                end
             
             else
                 
@@ -158,10 +176,11 @@ classdef CorrelationSignal < Signal
 %                 hypos = get(hy,'position');
 %                 hypos(1) = -2.15;
 %                 set(hy,'position',hypos);
-                ht = title(sObj.Label);
-                htpos = get(ht,'position');
-                htpos(2) = htpos(2) * 0.985;
-                set(ht,'position',htpos);
+                if ~isempty(opt) && isfield(opt,'noTitle')
+                    if opt.noTitle ~= 1
+                        title(sObj.Label,'fontsize',p.fsize_title,'fontname',p.ftype)
+                    end
+                end
                 
                 ax(2) = subplot(4,1,4);
                 plot(sObj.lags*1E3,mean(permute(sObj.Data(frameNb,:,:),[3 1 2]),3),...

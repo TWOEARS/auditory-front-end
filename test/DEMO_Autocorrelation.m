@@ -52,31 +52,29 @@ samplesIdx = (1:wSizeSamples) + ((frameIdx2Plot-1) * wStepSamples);
 
 % Plot the IHC output in that frame
 par = genParStruct('wavPlotZoom',3,'wavPlotDS',1);
-dObj.innerhaircell{1}.plot([],par,'rangeSec',[samplesIdx(1) samplesIdx(end)]/fsHz)
+dObj.innerhaircell{1}.plot([],par,'rangeSec',[samplesIdx(1) samplesIdx(end)]/fsHz);
 
 % Plot the autocorrelation in that frame
-dObj.autocorrelation{1}.plot([],[],frameIdx2Plot)
+dObj.autocorrelation{1}.plot([],[],frameIdx2Plot);
 
 
 
 
 %% Show a ACF movie
 % 
-% y-axis is slightly moving in the movie, might consider fixing it
-if 1
+if 0
     h3 = figure;
     pauseSec = 0.0125;  % Pause between two consecutive plots
     dObj.autocorrelation{1}.plot(h3,par,1);
     
     % Loop over the number of frames
-    for ii = 2 : size(dObj.autocorrelation{1}.Data(:),1)
+    for ii = 1 : size(dObj.autocorrelation{1}.Data(:),1)
         h31=get(h3,'children');
         cla(h31(1)); cla(h31(2));
         
-        dObj.autocorrelation{1}.plot(h3,par,ii);
-
+        dObj.autocorrelation{1}.plot(h3,par,ii,'noTitle',1);
         pause(pauseSec);
-        title(['Frame number ',num2str(ii)])
+        title(h31(2),['Frame number ',num2str(ii)])
     end
 end
 
