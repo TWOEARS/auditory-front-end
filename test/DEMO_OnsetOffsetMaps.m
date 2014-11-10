@@ -40,18 +40,6 @@ minOffsetStrengthdB  = 3;
 minOffsetSize        = 5;
 fuseOffsetsWithinSec = 30E-3;
 
-
-% % Onset parameters
-% minOnsetStrengthdB  = 0;
-% minOnsetSpread      = 1;
-% fuseOnsetsWithinSec = 0;
-% 
-% % Offset parameters
-% minOffsetStrengthdB  = 0;
-% minOffsetSpread      = 1;
-% fuseOffsetsWithinSec = 0;
-
-
 % Parameters
 par = genParStruct('gt_lowFreqHz',80,'gt_highFreqHz',8000,'gt_nChannels',nChannels,'ihc_method','dau','rm_decaySec',rm_decaySec,'rm_wSizeSec',rm_wSizeSec,'rm_hSizeSec',rm_hSizeSec,'ons_minValuedB',minRatemapLeveldB,'ofs_minValuedB',minRatemapLeveldB); 
 

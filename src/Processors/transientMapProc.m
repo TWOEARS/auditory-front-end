@@ -32,7 +32,7 @@ classdef transientMapProc < Processor
             if isempty(fs)
                 error('Sampling frequency needs to be provided')
             end
-            if nargin<3||isempty(p)
+            if nargin<2||isempty(p)
                 p = getDefaultParameters(fs,'processing');
             else
                 p = parseParameters(p);

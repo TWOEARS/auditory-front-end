@@ -4,11 +4,11 @@
 clear 
 close all
 
-test_startup;
+% test_startup;
 
 % Request and parameters for feature extraction
 % request = {'modulation'};
-request = {'pitch'};
+request = {'onset_map'};
 p = [];
 % p = genParStruct('IHCMethod','breebart','am_type','filter');
 
@@ -35,6 +35,8 @@ data = [data;zeros(n_chunks*chunkSize-size(data,1),1)];
 % Create data objects
 dObj_off = dataObject(data,fsHz);
 dObj_on = dataObject(data,fsHz);
+
+p = genParStruct('trm_minStrengthDB',3,'trm_minSpread',5,'trm_fuseWithinSec',0.03);
 
 % Instantiate managers
 mObj_off = manager(dObj_off);
@@ -73,6 +75,9 @@ fprintf('\tNormalized RMS error in offline vs. online processing: %d dB\n',round
 % Timing
 fprintf('\tComputation time for online: %f s (%d%% of signal duration)\n',t_on,round(100*t_on*fsHz/size(data,1)))
 fprintf('\tComputation time for offline: %f s (%d%% of signal duration)\n',t_off,round(100*t_off*fsHz/size(data,1)))
+
+s_on.plot; title('Online')
+s_off.plot; title('Offline')
 
 % Try and plot the difference
 % Try to add your own case to the loop if it is missing
