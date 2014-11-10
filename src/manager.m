@@ -543,22 +543,10 @@ classdef manager < handle
                                 case 'cfHz'
                                     mObj.Processors{ii,1} = gammatoneProc(p.fs,[],[],[],[],p.gt_cfHz,p.gt_bAlign,p.gt_nGamma,p.gt_bwERBs);
                                     mObj.Processors{ii,2} = gammatoneProc(p.fs,[],[],[],[],p.gt_cfHz,p.gt_bAlign,p.gt_nGamma,p.gt_bwERBs);
-                                    
-                                    % Throw a warning if conflicting information was provided
-%                                     if isfield(p,'gt_lowFreqHz')||isfield(p,'gt_highFreqHz')||isfield(p,'gt_nERBs')||isfield(p,'gt_nChannels')
-%                                         warning(['Conflicting information was provided for the Gammatone filterbank instantiation. The filterbank '...
-%                                             'will be generated from the provided vector of center frequencies.'])
-%                                     end
-                                    
+                                   
                                 case 'nChannels'
                                     mObj.Processors{ii,1} = gammatoneProc(p.fs,p.gt_lowFreqHz,p.gt_highFreqHz,[],p.gt_nChannels,[],p.gt_bAlign,p.gt_nGamma,p.gt_bwERBs);
                                     mObj.Processors{ii,2} = gammatoneProc(p.fs,p.gt_lowFreqHz,p.gt_highFreqHz,[],p.gt_nChannels,[],p.gt_bAlign,p.gt_nGamma,p.gt_bwERBs);
-                                    
-                                    % Throw a warning if conflicting information was provided
-%                                     if isfield(p,'gt_nERBs')
-%                                         warning(['Conflicting information was provided for the Gammatone filterbank instantiation. The filterbank '...
-%                                             'will be generated from the provided frequency range and number of channels.'])
-%                                     end
                                     
                                 case 'standard'
                                     mObj.Processors{ii,1} = gammatoneProc(p.fs,p.gt_lowFreqHz,p.gt_highFreqHz,p.gt_nERBs,[],[],p.gt_bAlign,p.gt_nGamma,p.gt_bwERBs);
@@ -728,50 +716,28 @@ classdef manager < handle
                             clear lags n_lags origin n_lags_ds lags_ds
                         end
                         
-                    case 'ratemap_magnitude'
+                    case 'ratemap'
                         if mObj.Data.isStereo
                             % Instantiate left and right ear processors
-                            mObj.Processors{ii,1} = ratemapProc(dep_proc_l.FsHzOut,p,'magnitude',mObj.use_mex);
-                            mObj.Processors{ii,2} = ratemapProc(dep_proc_r.FsHzOut,p,'magnitude',mObj.use_mex);
+                            mObj.Processors{ii,1} = ratemapProc(dep_proc_l.FsHzOut,p,mObj.use_mex);
+                            mObj.Processors{ii,2} = ratemapProc(dep_proc_r.FsHzOut,p,mObj.use_mex);
                             % Generate new signals
                             cfHz = dep_proc_l.getDependentParameter('cfHz');    % Center frequencies
-                            sig_l = TimeFrequencySignal(mObj.Processors{ii,1}.FsHzOut,mObj.Data.bufferSize_s,'ratemap_magnitude',cfHz,'Ratemap (magnitude)',[],'left');
-                            sig_r = TimeFrequencySignal(mObj.Processors{ii,2}.FsHzOut,mObj.Data.bufferSize_s,'ratemap_magnitude',cfHz,'Ratemap (magnitude)',[],'right');
+                            sig_l = TimeFrequencySignal(mObj.Processors{ii,1}.FsHzOut,mObj.Data.bufferSize_s,'ratemap',cfHz,'Ratemap',[],'left',p.rm_scaling);
+                            sig_r = TimeFrequencySignal(mObj.Processors{ii,2}.FsHzOut,mObj.Data.bufferSize_s,'ratemap',cfHz,'Ratemap',[],'right',p.rm_scaling);
                             % Add the signals to the data object
                             mObj.Data.addSignal(sig_l);
                             mObj.Data.addSignal(sig_r)
                         else
                             % Instantiate a processor
-                            mObj.Processors{ii,1} = ratemapProc(dep_proc.FsHzOut,p,'magnitude',mObj.use_mex);
+                            mObj.Processors{ii,1} = ratemapProc(dep_proc.FsHzOut,p,mObj.use_mex);
                             % Generate a new signal
                             cfHz = dep_proc.getDependentParameter('cfHz');    % Center frequencies
-                            sig = TimeFrequencySignal(mObj.Processors{ii,1}.FsHzOut,mObj.Data.bufferSize_s,'ratemap_magnitude',cfHz,'Ratemap (magnitude)',[],'mono');
+                            sig = TimeFrequencySignal(mObj.Processors{ii,1}.FsHzOut,mObj.Data.bufferSize_s,'ratemap',cfHz,'Ratemap',[],'mono',p.rm_scaling);
                             % Add signal to the data object
                             mObj.Data.addSignal(sig);
                         end
-                        
-                    case 'ratemap_power'
-                        if mObj.Data.isStereo
-                            % Instantiate left and right ear processors
-                            mObj.Processors{ii,1} = ratemapProc(dep_proc_l.FsHzOut,p,'power',mObj.use_mex);
-                            mObj.Processors{ii,2} = ratemapProc(dep_proc_r.FsHzOut,p,'power',mObj.use_mex);
-                            % Generate new signals
-                            cfHz = dep_proc_l.getDependentParameter('cfHz');    % Center frequencies
-                            sig_l = TimeFrequencySignal(mObj.Processors{ii,1}.FsHzOut,mObj.Data.bufferSize_s,'ratemap_power',cfHz,'Ratemap (power)',[],'left');
-                            sig_r = TimeFrequencySignal(mObj.Processors{ii,2}.FsHzOut,mObj.Data.bufferSize_s,'ratemap_power',cfHz,'Ratemap (power)',[],'right');
-                            % Add the signals to the data object
-                            mObj.Data.addSignal(sig_l);
-                            mObj.Data.addSignal(sig_r)
-                        else
-                            % Instantiate a processor
-                            mObj.Processors{ii,1} = ratemapProc(dep_proc.FsHzOut,p,'power',mObj.use_mex);
-                            % Generate a new signal
-                            cfHz = dep_proc.getDependentParameter('cfHz');    % Center frequencies
-                            sig = TimeFrequencySignal(mObj.Processors{ii,1}.FsHzOut,mObj.Data.bufferSize_s,'ratemap_power',cfHz,'Ratemap (power)',[],'mono');
-                            % Add signal to the data object
-                            mObj.Data.addSignal(sig);
-                        end
-                        
+                                                
                     case 'onset_strength'
                         if mObj.Data.isStereo
                             % Instantiate left and right ear processors

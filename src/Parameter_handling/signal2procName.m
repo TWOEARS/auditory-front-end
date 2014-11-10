@@ -40,10 +40,7 @@ switch signal
     case 'autocorrelation'
         procName = 'autocorrelationProc';        
         
-    case 'ratemap_magnitude'
-        procName = 'ratemapProc';
-    
-    case 'ratemap_power'
+    case 'ratemap'
         procName = 'ratemapProc';
         
     case 'onset_strength'

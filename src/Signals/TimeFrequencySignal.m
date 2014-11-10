@@ -7,14 +7,15 @@ classdef TimeFrequencySignal < Signal
         cfHz        % Center frequencies of the frequency channels
     end
        
-    properties (GetAccess = protected)
+    properties %(GetAccess = protected)
 %         isSigned    % True for representations that are multi-channel 
                     % waveforms (e.g., a filterbank output) as opposed to
                     % spectrograms. Used for plotting only.
+        scaling
     end
     
     methods 
-        function sObj = TimeFrequencySignal(fs,bufferSize_s,name,cfHz,label,data,channel)
+        function sObj = TimeFrequencySignal(fs,bufferSize_s,name,cfHz,label,data,channel,scaling)
             %TimeFrequencySignal    Constructor for the "time-frequency
             %                       representation" children signal class
             %
@@ -48,6 +49,7 @@ classdef TimeFrequencySignal < Signal
                 warning(['A name tag should be assigned to the signal. '...
                     'The name %s was chosen by default'],name)
             end
+            if nargin<8; scaling = 'magnitude'; end
             if nargin<7; channel = 'mono'; end
             if nargin<6||isempty(data); data = []; end
             if nargin<5||isempty(label)
@@ -71,6 +73,7 @@ classdef TimeFrequencySignal < Signal
             sObj.cfHz = cfHz;
             sObj.setData( data );
             sObj.Channel = channel;
+            sObj.scaling = scaling;
             
             end
             
@@ -104,7 +107,7 @@ classdef TimeFrequencySignal < Signal
                     case {'gammatone','ild','ic','itd','onset_strength',...
                             'offset_strength','innerhaircell','onset_map'}
                         do_dB = 0;
-                    case {'ratemap_magnitude','ratemap_power'}
+                    case {'ratemap'}
                         do_dB = 1;
                     otherwise 
                         warning('Cannot plot this object')
@@ -130,7 +133,7 @@ classdef TimeFrequencySignal < Signal
                 end
                 
                 if do_dB
-                    if strcmp(sObj.Name,'ratemap_power')
+                    if strcmp(sObj.scaling,'power')
                         data = 10*log10(abs(sObj.Data(:).'));
                     else
                         % Get the data in dB
@@ -209,10 +212,19 @@ classdef TimeFrequencySignal < Signal
                 end
 
                 % Set up a title
-                if ~strcmp(sObj.Channel,'mono')
-                    pTitle = [sObj.Label ' - ' sObj.Channel];
+                if strcmp(sObj.Name,'ratemap')
+                    if strcmp(sObj.scaling,'power')
+                        label = [sObj.Label ' (power)'];
+                    else
+                        label = [sObj.Label ' (magnitude)'];
+                    end
                 else
-                    pTitle = sObj.Label;
+                    label = sObj.Label;
+                end
+                if ~strcmp(sObj.Channel,'mono')
+                    pTitle = [label ' - ' sObj.Channel];
+                else
+                    pTitle = label;
                 end
                 
                 % Set up axes labels
@@ -225,7 +237,7 @@ classdef TimeFrequencySignal < Signal
 
                 % Scaling the plot
                 switch sObj.Name
-                    case {'innerhaircell','ratemap_magnitude','ratemap_power'}
+                    case {'innerhaircell','ratemap'}
                         m = max(data(:));    % Get maximum value for scaling
                         set(gca,'CLim',[m-p.dynrange m])
 

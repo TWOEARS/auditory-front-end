@@ -88,8 +88,7 @@ switch s_off.Name
         colorbar
         
 
-    case {'innerhaircell' 'gammatone' 'onset_strength' 'offset_strength' 'ratemap_magnitude' ...
-            'ratemap_power'}
+    case {'innerhaircell' 'gammatone' 'onset_strength' 'offset_strength' 'ratemap'}
         figure,imagesc(20*log10(abs(s_off.Data(:)-s_on.Data(:))+eps).')
         colorbar
         title(['Chunk vs signal-based, ' s_off.Name])

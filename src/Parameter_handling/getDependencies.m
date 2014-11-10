@@ -49,10 +49,7 @@ switch sig
     case 'rms'
         dep = {'time'};
         
-     case 'ratemap_magnitude'
-        dep = {'innerhaircell'};
-    
-    case 'ratemap_power'
+     case 'ratemap'
         dep = {'innerhaircell'};
         
     case 'itd'
@@ -84,19 +81,19 @@ switch sig
         dep = {'crosscorrelation'};
 
     case 'spectral_features'
-        dep = {'ratemap_power'};
+        dep = {'ratemap'};
     
-    case 'ratemap_feature'
-        dep = {'ratemap_magnitude'};
+%     case 'ratemap_feature'
+%         dep = {'ratemap'};
         
-    case 'azimuth'
-        dep = {'itd'};
-        
-    case 'azimuth_hist'
-        dep = {'azimuth' 'ic'};
-        
-    case 'source_position'
-        dep = {'azimuth_hist'};
+%     case 'azimuth'
+%         dep = {'itd'};
+%         
+%     case 'azimuth_hist'
+%         dep = {'azimuth' 'ic'};
+%         
+%     case 'source_position'
+%         dep = {'azimuth_hist'};
         
     case 'pitch'
         dep = {'autocorrelation'};
@@ -109,15 +106,15 @@ switch sig
         
     case 'valid'     % Dummy name to list all currently valid names
         dep = {'time' 'gammatone' 'innerhaircell' 'ams_features' ...
-            'crosscorrelation' 'autocorrelation' 'rms' 'ratemap_magnitude' ...
-            'ratemap_power' 'itd' 'ic' 'ild' 'average_deviation' ...
-            'onset_strength' 'offset_strength' 'synchrony' ...
-            'spectral_features' 'ratemap_feature' 'azimuth' 'azimuth_hist' ...
-            'source_position' 'pitch'};
+            'crosscorrelation' 'autocorrelation' 'rms' 'ratemap' ...
+            'itd' 'ic' 'ild' ...
+            'onset_strength' 'offset_strength' ...
+            'spectral_features' ...
+            'pitch'};
         
     case 'available'    % Lists all currently implemented processors
          dep = {'time' 'gammatone' 'innerhaircell' 'ams_features' 'crosscorrelation' ...
-             'autocorrelation' 'ratemap_magnitude' 'ratemap_power' 'ild' ...
+             'autocorrelation' 'ratemap' 'ild' ...
              'itd' 'ic' 'spectral_features' 'crosscorrelation_feature' ...
              'onset_strength' 'offset_strength' 'pitch'};
         

@@ -6,7 +6,7 @@ close all
 test_startup;
 
 % Request and parameters for feature extraction
-request = {'ratemap_magnitude'};
+request = {'ratemap'};
 p = [];
 
 % Online processing parameters
