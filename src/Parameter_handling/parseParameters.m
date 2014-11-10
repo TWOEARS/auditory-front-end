@@ -65,4 +65,10 @@ switch request
             warning('Spectral features are based on power-scaled ratemap. Changing the ratemap scaling in the request from magnitude to power.')
         end
         
+    case {'onset_strength' 'offset_strength' 'onset_map' 'offset_map'}
+        if ~strcmp(p_full.rm_scaling,'power')
+            p_full.rm_scaling = 'power';
+            warning('Onset/offset detection is based on power-scaled ratemap. Changing the ratemap scaling in the request from magnitude to power.')
+        end
+        
 end

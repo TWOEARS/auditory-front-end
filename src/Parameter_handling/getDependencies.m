@@ -65,16 +65,13 @@ switch sig
         dep = {'innerhaircell'};
         
     case 'onset_strength'
-        dep = {'ratemap_power'};
+        dep = {'ratemap'};
         
     case 'offset_strength'
-        dep = {'ratemap_power'};
+        dep = {'ratemap'};
         
     case 'synchrony'
         dep = {'autocorrelation'};
-        
-%     case 'sacf'
-%         dep = {'autocorrelation'};
         
     % Features
     case 'crosscorrelation_feature'
@@ -82,27 +79,17 @@ switch sig
 
     case 'spectral_features'
         dep = {'ratemap'};
-    
-%     case 'ratemap_feature'
-%         dep = {'ratemap'};
-        
-%     case 'azimuth'
-%         dep = {'itd'};
-%         
-%     case 'azimuth_hist'
-%         dep = {'azimuth' 'ic'};
-%         
-%     case 'source_position'
-%         dep = {'azimuth_hist'};
-        
-    case 'pitch'
-        dep = {'autocorrelation'};
         
     case 'onset_map'
         dep = {'onset_strength'};
         
     case 'offset_map'
         dep = {'offset_strength'};
+        
+    case 'pitch'
+        dep = {'autocorrelation'};
+        
+
         
     case 'valid'     % Dummy name to list all currently valid names
         dep = {'time' 'gammatone' 'innerhaircell' 'ams_features' ...
@@ -116,7 +103,7 @@ switch sig
          dep = {'time' 'gammatone' 'innerhaircell' 'ams_features' 'crosscorrelation' ...
              'autocorrelation' 'ratemap' 'ild' ...
              'itd' 'ic' 'spectral_features' 'crosscorrelation_feature' ...
-             'onset_strength' 'offset_strength' 'pitch'};
+             'onset_strength' 'offset_strength' 'pitch' 'onset_map' 'offset_map'};
         
     % Otherwise it's not in the list, generate a list of valid names
     otherwise
