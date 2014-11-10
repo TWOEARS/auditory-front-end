@@ -218,6 +218,110 @@ classdef dataObject < dynamicprops
             end
         end
         
+        function h = plot(dObj,h0,p,varargin)
+            %plot       Plots the original waveforms of the signal
+            %
+            %USAGE
+            %       dObj.plot
+            %       dObj.plot(h_prev,p,...)
+            %       h = dObj.plot(...)
+            %
+            %INPUT ARGUMENT
+            %  h_prev : Handle to an already existing figure or subplot
+            %           where the new plot should be placed
+            %       p : Structure of non-default plot parameters (generated
+            %           from genParStruct.m)
+            %
+            %OUTPUT ARGUMENT
+            %       h : Handle to the newly created figure
+            %
+            %OPTIONAL PARAMETERS
+            % 'bGray' - Set to 1 for gray shades plot
+            % 'rangeSec' - Vector of time limits for the plot 
+            
+            % Manage plotting parameters
+            if nargin < 3 || isempty(p) 
+                % Get default plotting parameters
+                p = getDefaultParameters([],'plotting');
+            else
+                p.fs = sObj.FsHz;   % Add the sampling frequency to satisfy parseParameters
+                p = parseParameters(p);
+            end
+        
+            % Manage handles
+            if nargin < 2 || isempty(h0)
+                    h = figure;             % Generate a new figure
+                elseif get(h0,'parent')~=0
+                    % Then it's a subplot
+                    figure(get(h0,'parent')),subplot(h0)
+                    h = h0;
+                else
+                    figure(h0)
+                    h = h0;
+            end
+            
+            % Manage optional arguments
+            if nargin>3 && ~isempty(varargin)
+                opt = struct;
+                for ii = 1:2:size(varargin,2)
+                    opt.(varargin{ii}) = varargin{ii+1};
+                end
+            else
+                opt = [];
+            end
+            
+            % Colors
+            if ~isempty(opt) && isfield(opt,'bGray')
+                if opt.bGray
+                    colors = {[0 0 0] [.5 .5 .5]};
+                else
+                    colors = p.colors;
+                end
+            else
+                colors = p.colors;
+            end
+            
+            % Limit to a certain time period
+            if ~isempty(opt) && isfield(opt,'rangeSec')
+                data = dObj.time{1}.Data(floor(opt.rangeSec(1)*dObj.time{1}.FsHz):floor(opt.rangeSec(end)*dObj.time{1}.FsHz));
+                if size(dObj.time,2)>1
+                    data = [data dObj.time{2}.Data(floor(opt.rangeSec(1)*dObj.time{1}.FsHz):floor(opt.rangeSec(end)*dObj.time{1}.FsHz))];
+                end
+                t = opt.rangeSec(1):1/dObj.time{1}.FsHz:opt.rangeSec(1)+(size(data,1)-1)/dObj.time{1}.FsHz;
+            else
+                data = dObj.time{1}.Data(:);
+                if size(dObj.time,2)>1
+                    data = [data dObj.time{2}.Data(:)];
+                end
+                t = 0:1/dObj.time{1}.FsHz:(size(data,1)-1)/dObj.time{1}.FsHz;
+            end
+            
+            % Time vector
+%             t = 0:1/dObj.time{1}.FsHz:(size(dObj.time{1}.Data(:),1)-1)/dObj.time{1}.FsHz;
+            
+            % Plot channel with highest energy (or mono channel) first
+            if size(dObj.time,2)==1 || norm(data(:,1),2) > norm(data(:,2),2)
+                h1 = plot(t,data(:,1),'linewidth',p.linewidth_m,'color',colors{1});
+                
+                if size(dObj.time,2)>1
+                    hold on
+                    h2 = plot(t,data(:,2),'linewidth',p.linewidth_m,'color',colors{2});
+                    legend([dObj.time{1}.Channel ' ear'],[dObj.time{2}.Channel ' ear'],'location','NorthEast')
+                end
+            else
+                h1 = plot(t,data(:,2),'linewidth',p.linewidth_m,'color',colors{1});
+                hold on
+                h2 = plot(t,data(:,1),'linewidth',p.linewidth_m,'color',colors{2});
+                legend([dObj.time{2}.Channel ' ear'],[dObj.time{1}.Channel ' ear'],'location','NorthEast')
+            end
+            xlabel('Time (s)','fontsize',p.fsize_axes)
+            ylabel('Amplitude','fontsize',p.fsize_axes)
+            xlim([t(1) t(end)])
+            title('Time domain signals','fontsize',p.fsize_title)
+            set(gca,'fontname',p.ftype,'fontsize',p.fsize_label)
+            
+        end
+            
     end
     
     

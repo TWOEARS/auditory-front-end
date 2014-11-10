@@ -38,23 +38,9 @@ wStepSamples = round((cc_hSizeSec * fsHz));
 samplesIdx = (1:wSizeSamples) + ((frameIdx2Plot-1) * wStepSamples);
 
 lagsMS = dObj.crosscorrelation{1}.lags*1E3;
+
 % Plot the waveforms in that frame
-h1 = figure; hold on
-p1 = genParStruct('color','k','linewidth_s',2);
-p2 = genParStruct('color',[0.5 0.5 0.5],'linewidth_s',2);
-dObj.time{1}.plot(h1,p1,'rangeSec',[samplesIdx(1) samplesIdx(end)]/fsHz);
-dObj.time{2}.plot(h1,p2,'rangeSec',[samplesIdx(1) samplesIdx(end)]/fsHz);
-title('Time domain signals')    % Overwrite the title
-
-% Add a legend
-hl = legend({'Left ear' 'Right ear'});
-hpos = get(hl,'position');
-hpos(1) = hpos(1) * 0.95;
-hpos(2) = hpos(2) * 0.975;
-set(hl,'position',hpos);
-
-% Axes limits
-xlim([samplesIdx(1) samplesIdx(end)]/fsHz)
+dObj.plot([],[],'bGray',1,'rangeSec',[samplesIdx(1) samplesIdx(end)]/fsHz)
 ylim([-0.35 0.35])
 
 % Plot the cross-correlation in that frame
