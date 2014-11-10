@@ -409,7 +409,7 @@ classdef manager < handle
             end
             
             % Add default values for parameters not explicitly defined in p
-            p = parseParameters(p);
+            p = parseParameters(p,request);
             
             % Try/Catch to check that the request is valid
             try 

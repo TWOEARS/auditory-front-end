@@ -20,8 +20,8 @@ end
 clear earSignals
 
 % Parameters
-request = {'offset_map'};
-p = genParStruct('ofs_minValuedB',-50);
+request = {'spectral_features'};
+p = genParStruct('rm_scaling','magnitude');
 
 
 % Create a data object
