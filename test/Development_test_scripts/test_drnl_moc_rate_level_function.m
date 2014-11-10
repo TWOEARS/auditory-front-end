@@ -1,5 +1,6 @@
-% Test script to compare the output from TwoEars DRNL filterbank processor
-% to the I/O function in (Jepsen et al. 2008) (Figure 2, p425)
+% Test script to generate the AN firing rate-input level function using
+% DRNL and Adaptation loops
+% (Remember to change the dependency of innerhaircell)
 
 clear all
 % close all
@@ -25,7 +26,7 @@ duration = 0.05;                 % trying to unify the input characteristics
 beginSilence=0.75;
 endSilence=0.2;
 rampDuration=.0025;              % raised cosine ramp (seconds)
-leveldBSPL= (-20:10:100);   
+leveldBSPL= (-20:5:80);   
 mocFactordB = [-20 -10 0];
 mocFactor = 10.^(mocFactordB/20);
 
@@ -155,10 +156,10 @@ for ii=1:length(mocFactor)
             bmOutdB = 20*log10(bmOut);
             anOut = dObj.adaptation{1}.Data(:);
             anOutOnset = max(anOut);
-            anOutOffsetMean = mean(anOut(lastHalfPTR1:lastHalfPTR2));
+            anOutOffsetMean = mean(anOut(outputWindowStart:outputWindowEnd));
             
             anOut_noisy = dObj_noisy.adaptation{1}.Data(:);
-            anOutOnset_noisy = mean(anOut_noisy(onsetPTR1:lastHalfPTR2));
+            anOutOnset_noisy = max(anOut_noisy(outputWindowStart:outputWindowEnd));
             anOutOffsetMean_noisy = mean(anOut_noisy(outputWindowStart:outputWindowEnd));
 
             ioFunctionMatrix(jj, kk) = bmOutdB;
@@ -176,7 +177,7 @@ figure;
 % set(gcf,'DefaultAxesColorOrder',[0 0 0], ...
 %     'DefaultAxesLineStyleOrder','-o|--s|:x|-.*');
 plot(leveldBSPL, ioFunctionMatrix);
-xlabel('Input signal level (dB SPL)');
+xlabel('Input tone level (dB SPL)');
 ylabel('DRNL output (dB re 1 m/s)');
 title(sprintf('Input-output characteristics of  DRNL filterbank\nfor on-frequency stimulation at various CFs'));
 legendCell=cellstr(num2str(toneFrequency', '%-dHz'));
@@ -185,7 +186,7 @@ legend(legendCell, 'Location', 'NorthWest');
 figure;
 plot(leveldBSPL, rateLevelFunctionMatrix, '-x');
 set(gca, 'FontSize', 12);
-xlabel('Input signal level (dB SPL)', 'FontSize', 13);
+xlabel('Input tone level (dB SPL)', 'FontSize', 13);
 ylabel(sprintf('Auditory nerve model output\n(Adaptation loop Model Unit)'), 'FontSize', 13);
 title(sprintf('Rate-level characteristics of AN using DRNL filterbank\nfor on-frequency stimulation at %d Hz', toneFrequency), 'FontSize', 13);
 legendCell=cellstr(num2str(mocFactordB', 'MOC factor = %-d dB'));
@@ -194,7 +195,7 @@ legend(legendCell, 'Location', 'NorthWest', 'FontSize', 10);
 figure;
 plot(leveldBSPL, rateLevelFunctionMatrix_noisy, '-x');
 set(gca, 'FontSize', 12);
-xlabel('Input signal level (dB SPL)', 'FontSize', 13);
+xlabel('Input tone level (dB SPL)', 'FontSize', 13);
 ylabel(sprintf('Auditory nerve model output\n(Adaptation loop Model Unit)'), 'FontSize', 13);
 title(sprintf('Rate-level characteristics of AN using DRNL filterbank\nfor on-frequency stimulation at %d Hz (noisy background)', toneFrequency), 'FontSize', 13);
 legendCell=cellstr(num2str(mocFactordB', 'MOC factor = %-d dB'));
