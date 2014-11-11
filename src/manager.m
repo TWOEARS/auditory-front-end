@@ -371,12 +371,15 @@ classdef manager < handle
             end
             
             % Deal with multiple requests via pseudo-recursion
-            if iscell(request)
+            if iscell(request) || iscell(p)
                 
-                if ~iscell(p)
+                if iscell(request) && ~iscell(p)
                     % All the requests have the same parameters, replicate
                     % them
                     p = repmat({p},size(request));
+                elseif ~iscell(request) && iscell(p)
+                    % One request with different parameters, replicate the request
+                    request = repmat({request},size(p));
                 end
                 
                 if size(p,2)~=size(request,2)
