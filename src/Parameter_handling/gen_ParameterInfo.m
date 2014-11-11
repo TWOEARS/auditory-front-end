@@ -39,6 +39,16 @@ clear pInfo
     addParameterInfo('gammatone','gt_nGamma',4,'Gammatone rising slope order')
     addParameterInfo('gammatone','gt_bwERBs',1.018,'Bandwidth of the filters (ERBs)')
     addParameterInfo('gammatone','gt_bAlign',false,'Correction for filter alignment')
+    
+    % DRNL filterbank
+    addParameterInfo('drnl','drnl_lowFreqHz',80,'Lowest characteristic frequency (Hz)','DRNL filterbank')
+    addParameterInfo('drnl','drnl_highFreqHz',8000,'Highest characteristic frequency (Hz)')
+    addParameterInfo('drnl','drnl_nERBs',1,'Distance between neighboring characteristic frequency channels in ERBs')
+    addParameterInfo('drnl','drnl_nChannels',[],'Number of channels')
+    addParameterInfo('drnl','drnl_cfHz',[],'Vector of channels'' characteristic frequencies in Hz')
+    addParameterInfo('drnl','drnl_mocIpsi', 1, 'Ipsilateral MOC feedback factor as DRNL nonlinear path gain')
+    addParameterInfo('drnl','drnl_mocContra', 1, 'Contralateral MOC feedback factor as DRNL nonlinear path gain')
+    addParameterInfo('drnl','drnl_model', 'CASP', 'DRNL implementation model')
 
     % Inner hair-cell extraction
     addParameterInfo('ihc','ihc_method','dau','Inner hair-cell extraction method (''none'', ''halfwave'', ''fullwave'', ''square'', ''hilbert'', ''joergensen'', ''dau'', ''breebart'', ''berstein'')','Inner hair-cell extraction')
@@ -54,6 +64,11 @@ clear pInfo
     addParameterInfo('ams','ams_hSizeSec',16E-3,'Window step size (s)')
     addParameterInfo('ams','ams_wname','rectwin','Window name')
     
+    % Adaptation loop
+    addParameterInfo('adt','adpt_lim',10,'Adaptation loop overshoot limit', 'Adaptation loop')
+    addParameterInfo('adt','adpt_mindB',0,'Adaptation loop lowest signal level (dB)')
+    addParameterInfo('adt','adpt_tau',[0.005 0.050 0.129 0.253 0.500],'Adaptation loop time constants')
+   
     % Interaural Level Difference (ILD)
     addParameterInfo('ild','ild_wname','hann','Window name','Interaural Level Difference')
     addParameterInfo('ild','ild_wSizeSec',20E-3,'Window duration (s)')
@@ -106,6 +121,7 @@ clear pInfo
     
     % Interaural time difference
     addParameterInfo('itd',[],[],[],'Interaural Time Difference')
+    
     
     % Spectral features
     addParameterInfo('sf','sf_requests','all','List (cell array) of requested spectral features, type ''help SpectralFeaturesProc'' for a list','Spectral features')
