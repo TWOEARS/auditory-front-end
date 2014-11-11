@@ -41,7 +41,7 @@ mObj.processSignal();
 %% Plot ratemap, onset strength and onset map
 % 
 % 
-dObj.ratemap_power{1}.plot;
+dObj.ratemap{1}.plot;
 dObj.onset_strength{1}.plot;
 dObj.onset_map{1}.plot;
 
