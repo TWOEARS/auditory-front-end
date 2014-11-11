@@ -35,23 +35,12 @@ mObj = manager(dObj,requests,par);
 mObj.processSignal();
 
 
-%% Plot Gammatone response
+%% Plot Gammatone and IHC responses
 % 
 % 
-% Basilar membrane output
-bm   = [dObj.gammatone{1}.Data(:,:)];
-% Envelope
-env  = [dObj.innerhaircell{1}.Data(:,:)];
-fHz  = dObj.gammatone{1}.cfHz;
-tSec = (1:size(bm,1))/fsHz;
 
 zoom  = [];
-bNorm = [];
+p = genParStruct('wavPlotZoom',zoom);
 
-
-figure;
-waveplot(bm(1:3:end,:),tSec(1:3:end),fHz,zoom,bNorm);
-
-figure;
-waveplot(env(1:3:end,:),tSec(1:3:end),fHz,zoom,bNorm);
-
+dObj.gammatone{1}.plot([],p);
+dObj.innerhaircell{1}.plot([],p);

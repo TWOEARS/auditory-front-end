@@ -1,19 +1,19 @@
 % This script tests the capability of the manager to extract a specific
 % cue
 
-clear 
+% clear 
 close all
 
-test_startup;
+% test_startup;
 
 % Test on monoral or binaural signal
-do_stereo = 1;
+do_stereo = 0;
 
 % Load a signal
 load('TestBinauralCues');
 
 if ~do_stereo
-    data = earSignals(:,2);     % Right channel has higher energy
+    data = earSignals(1:62E3,2);     % Right channel has higher energy
 else
     data = earSignals;
 end
@@ -22,9 +22,10 @@ clear earSignals
 % Parameters
 request = {'innerhaircell'};
 % p = genParStruct('nChannels',15);
-p = genParStruct('drnl_cf', ...     % use this when testing with drnlProc
+p = genParStruct('drnl_cfHz', ...     % use this when testing with drnlProc
     1.0e+03 * [0.0800 0.1616 0.2648 0.3952 0.5601 0.7686 1.0321 1.3653 1.7866 ...
     2.3191 2.9924 3.8436 4.9197 6.2801 8.0000]); 
+
 
 
 % Create a data object

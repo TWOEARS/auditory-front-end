@@ -1,35 +1,42 @@
 classdef onsetProc < Processor
     
-    properties 
+    properties (SetAccess = protected)
         maxOnsetdB      % Upper limit for onset value
+        minValuedB      % Lower limit for the representation below which onset are discarded
     end
     
-    properties %(GetAccess = private)
+    properties (GetAccess = private)
         buffer          % Buffered last frame of the previous chunk
     end
     
     methods
-        function pObj = onsetProc(fs,maxOnsetdB)
+        function pObj = onsetProc(fs,p)
             %onsetProc      Instantiates an onset detector
             %
             %USAGE:
-            %       pObj = onsetProc(maxOnsetdB)
+            %       pObj = onsetProc(fs,p)
             %
             %INPUT ARGUMENTS:
-            % maxOnsetdB : Upper limit for the onset value in dB 
-            %              (default: maxOnsetdB = 30)
+            %  fs : Sampling frequency (Hz)
+            %   p : Non-default parameters
             %
             %OUTPUT ARGUMENTS:
             %       pObj : Processor instance
             
             if nargin>0
                 
-            if nargin<2||isempty(maxOnsetdB);maxOnsetdB=30;end
+            if nargin<2||isempty(p)
+                p = getDefaultParameters(fs,'processing');
+            else
+                p.fs = fs;
+                p = parseParameters(p);
+            end
                 
             pObj.Type = 'Onset detection';
             pObj.FsHzIn = fs;
             pObj.FsHzOut = fs;
-            pObj.maxOnsetdB = maxOnsetdB;
+            pObj.maxOnsetdB = p.ons_maxOnsetdB;
+            pObj.minValuedB = p.ons_minValuedB;
             
             % Initialize an empty buffer
             pObj.buffer = [];
@@ -56,10 +63,19 @@ classdef onsetProc < Processor
             end
             
             % Concatenate the input with the buffer
-            onset = diff(cat(1,pObj.buffer,10*log10(in)));
+            bufIn = cat(1,pObj.buffer,10*log10(in));
+            
+            % Compute onset
+            onset = diff(bufIn);
             
             % Discard offsets and limit onset strength
             out = min(max(onset,0),pObj.maxOnsetdB);
+            
+            % Discard onsets if the representation is below a threshold
+            if ~isempty(pObj.minValuedB)
+                bSet2zero = bufIn(1:end-1,:)  < pObj.minValuedB;
+                out(bSet2zero) = 0;
+            end
             
             % Update the buffer
             pObj.buffer = 10*log10(in(end,:));

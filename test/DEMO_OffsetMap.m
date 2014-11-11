@@ -19,7 +19,7 @@ data = resample(data,fsHzRef,fsHz);
 fsHz = fsHzRef;
 
 % Request ratemap    
-requests = {'offset_strength'};
+requests = {'offset_map'};
 
 rm_wSizeSec = 20E-3;
 rm_hSizeSec = 10E-3;
@@ -44,40 +44,6 @@ mObj.processSignal();
 dObj.ratemap_power{1}.plot;
 dObj.offset_strength{1}.plot;
 
-
-%% Compute binary offset map
-% 
-%
-% Onset strength
-onsetStrength = [dObj.offset_strength{1}.Data(:)];
-% Step size in seconds
-stepSizeSec = 1/dObj.offset_strength{1}.FsHz;
-
-% Detect offsets
-bOffsets = detectOnsetsOffsets(onsetStrength,stepSizeSec);
-
-
-%% Plot binary onset map
-% 
-% 
-% Determine size of onset map
-[nFrames,nChannels] = size(onsetStrength);
-
-% Time axis
-timeSec = rm_wSizeSec + ((0:nFrames-1) * stepSizeSec);
-
-figure;
-imagesc(timeSec,1:nChannels,10*log10([dObj.ratemap_power{1}.Data(:)]'),[-100 -25]);
-axis xy
-hold on;
-
-% Loop over number of channels
-for ii = 1 : nChannels
-    data = repmat(timeSec(bOffsets(:,ii) ~= 0)-0.5 * stepSizeSec,[2 1]);
-    if ~isempty(data)
-        plot(data,ii-0.5:ii+0.5,'Color','w','LineWidth',3);
-    end
-end
-
-
-
+% Plot offsets in white
+p = genParStruct('binaryMaskColor',[1 1 1]);
+dObj.offset_map{1}.plot([],p);

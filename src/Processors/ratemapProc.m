@@ -20,7 +20,7 @@ classdef ratemapProc < Processor
         
     
     methods
-        function pObj = ratemapProc(fs,p,scaling,do_mex)
+        function pObj = ratemapProc(fs,p,do_mex)
             %ratemapProc    Constructs a ratemap processor
             %
             %USAGE
@@ -38,12 +38,9 @@ classdef ratemapProc < Processor
             if nargin>0 % Safeguard for Matlab empty calls
                 
             % Checking input parameters
-            if nargin<4||isempty(do_mex);do_mex = 1; end
+            if nargin<3||isempty(do_mex);do_mex = 1; end
             if nargin<2||isempty(p)
                 p = getDefaultParameters(fs,'processing');
-            end
-            if nargin == 3 && ~isempty(scaling)
-                p.rm_scaling = scaling;
             end
             if isempty(fs)
                 error('Sampling frequency needs to be provided')

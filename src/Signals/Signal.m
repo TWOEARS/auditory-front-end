@@ -1,6 +1,6 @@
 classdef Signal < handle
     
-    properties
+    properties (SetAccess=protected)
         Label           % Used to label the signal (e.g., in plots)
         Name            % Used as an instance name in Matlab
         Dimensions      % String describing the dimensions of the signal

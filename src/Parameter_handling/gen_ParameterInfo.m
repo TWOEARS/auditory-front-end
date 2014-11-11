@@ -16,6 +16,15 @@ clear pInfo
 % Add all parameters
 
 % Processing:
+    % Pre-processor
+    addParameterInfo('preproc','pp_bRemoveDC',0,'Flag to activate DC-removal filter','Pre-processing')
+    addParameterInfo('preproc','pp_cutoffHzDC',20,'Cutoff frequency (Hz) of DC-removal high-pass filter')
+    addParameterInfo('preproc','pp_bPreEmphasis',0,'Flag to activate the pre-emphasis high-pass filter')
+    addParameterInfo('preproc','pp_coefPreEmphasis',0.97,'Coefficient for pre-emphasis compensation (usually between 0.9 and 1)')
+    addParameterInfo('preproc','pp_bNormalizeRMS',0,'Flag for activating automatic gain control')
+    addParameterInfo('preproc','pp_bBinauralAGC',1,'Flag indicating the use of unified automatic gain control over left and right channel, for preserving channel relative differences.')
+    addParameterInfo('preproc','pp_intTimeSecRMS',500E-3,'Time constant (s) for automatic gain control')
+
     % Time-domain framing processor
     addParameterInfo('fr','fr_wname','hamming','Window name descriptor (see window.m)','Time-domain signal framing processor')
     addParameterInfo('fr','fr_wSize',1024,'Window duration in samples')
@@ -41,23 +50,25 @@ clear pInfo
     addParameterInfo('drnl','drnl_mocContra', 1, 'Contralateral MOC feedback factor as DRNL nonlinear path gain')
     addParameterInfo('drnl','drnl_model', 'CASP', 'DRNL implementation model')
 
-    % Inner hair-cell envelope extraction
-    addParameterInfo('ihc','ihc_method','dau','Inner hair-cell envelope extraction method (''none'', ''halfwave'', ''fullwave'', ''square'', ''hilbert'', ''joergensen'', ''dau'', ''breebart'', ''berstein'')','Inner hair-cell envelope extraction')
+    % Inner hair-cell extraction
+    addParameterInfo('ihc','ihc_method','dau','Inner hair-cell extraction method (''none'', ''halfwave'', ''fullwave'', ''square'', ''hilbert'', ''joergensen'', ''dau'', ''breebart'', ''berstein'')','Inner hair-cell extraction')
 
+    % Amplitude modulation spectrogram features
+    addParameterInfo('ams','ams_fbType','log','Filterbank type (''lin'' or ''log'')','Amplitude modulation spectrogram features')
+    addParameterInfo('ams','ams_nFilters',[],'Requested number of modulation filters (integer)')
+    addParameterInfo('ams','ams_lowFreqHz',4,'Lowest modulation center frequency (Hz)','Modulation filterbank')
+    addParameterInfo('ams','ams_highFreqHz',1024,'Highest modulation center frequency (Hz)','Modulation filterbank')
+    addParameterInfo('ams','ams_cfHz',[],'Vector of channels'' center frequencies in Hz')
+    addParameterInfo('ams','ams_dsRatio',4,'Downsampling ratio of the envelope')
+    addParameterInfo('ams','ams_wSizeSec',32E-3,'Window duration (s)')
+    addParameterInfo('ams','ams_hSizeSec',16E-3,'Window step size (s)')
+    addParameterInfo('ams','ams_wname','rectwin','Window name')
+    
     % Adaptation loop
     addParameterInfo('adt','adpt_lim',10,'Adaptation loop overshoot limit', 'Adaptation loop')
     addParameterInfo('adt','adpt_mindB',0,'Adaptation loop lowest signal level (dB)')
     addParameterInfo('adt','adpt_tau',[0.005 0.050 0.129 0.253 0.500],'Adaptation loop time constants')
    
-    % Amplitude modulation filterbank
-    addParameterInfo('am','am_nFilters',15,'Requested number of filters (integer)','Amplitude modulation filterbank')
-    addParameterInfo('am','am_range',[0 400],'Modulation frequency range (Hz)')
-    addParameterInfo('am','am_win','rectwin','STFT/framing window type')
-    addParameterInfo('am','am_bSize',512,'STFT/framing block size')
-    addParameterInfo('am','am_olap',256,'STFT/framing overlap')
-    addParameterInfo('am','am_type','fft','Filterbank type (''fft'' or ''filter'')')
-    addParameterInfo('am','am_dsRatio',4,'Downsampling ratio')
-    
     % Interaural Level Difference (ILD)
     addParameterInfo('ild','ild_wname','hann','Window name','Interaural Level Difference')
     addParameterInfo('ild','ild_wSizeSec',20E-3,'Window duration (s)')
@@ -72,9 +83,16 @@ clear pInfo
 
     % Onset strength
     addParameterInfo('ons','ons_maxOnsetdB',30,'Upper limit for onset value','Onset strength extraction')
+    addParameterInfo('ons','ons_minValuedB',[],'Lower limit of the representation, below which its onset will not be considered')
     
-     % Onset strength
+    % Onset strength
     addParameterInfo('ofs','ofs_maxOffsetdB',30,'Upper limit for offset value','Offset strength extraction')
+    addParameterInfo('ofs','ofs_minValuedB',[],'Lower limit of the representation, below which its offset will not be considered')
+    
+    % Transient mapping
+    addParameterInfo('trm','trm_minStrengthDB',3,'Minimum transient strength for mapping','Transient mapping')
+    addParameterInfo('trm','trm_minSpread',5,'Minimum spread of the transient over frequency channels')
+    addParameterInfo('trm','trm_fuseWithinSec',30E-3,'Events within that period (in sec) are fused together')
     
     % Auto-correlation
     addParameterInfo('ac','ac_wname','hann','Window name','Auto-correlation')
@@ -84,6 +102,11 @@ clear pInfo
     addParameterInfo('ac','ac_clipAlpha',0.6,'Threshold in center clipping (between 0 and 1)')
     addParameterInfo('ac','ac_K',2,'Exponent in auto-correlation')
 
+    % Pitch
+    addParameterInfo('pi','pi_rangeHz',[80 400],'Range in Hz for valid pitch estimation','Pitch estimation')
+    addParameterInfo('pi','pi_confThres',0.7,'Threshold for pitch condidence measure (re. 1)')
+    addParameterInfo('pi','pi_medianOrder',3,'Median order filter for pitch smoothing (integer)')
+    
     % Cross-correlation
     addParameterInfo('cc','cc_wname','hann','Window name','Cross-correlation')
     addParameterInfo('cc','cc_wSizeSec',20E-3,'Window duration (s)')
@@ -120,6 +143,8 @@ clear pInfo
     addParameterInfo('plotting','bColorbar',1,'Boolean for displaying colorbar in time-frequency plots')
     addParameterInfo('plotting','dynrange',80,'Dynamic range for time-frequency plots (dB)')
     addParameterInfo('plotting','aud_ticks',[100 250 500 1000 2000 4000 8000 16000 32000],'Auditory ticks for ERB-based representations')
-
-
+    addParameterInfo('plotting','wavPlotDS',3,'Decimation ratio for plotting undecimated wave plot representations')
+    addParameterInfo('plotting','wavPlotZoom',5,'Zoom factor in wave plot representations')
+    addParameterInfo('plotting','corPlotZoom',3,'Zoom factor in correlation wave plots')
+    addParameterInfo('plotting','binaryMaskColor',[0 0 0],'Color for binary mask (in RGB value)')
 

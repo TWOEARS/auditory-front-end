@@ -58,7 +58,7 @@ classdef TimeDomainSignal < Signal
             end
         end
        
-        function h = plot(sObj,h0,p)
+        function h = plot(sObj,h0,p,varargin)
             %plot       This method plots the data from a time domain
             %           signal object
             %
@@ -75,6 +75,9 @@ classdef TimeDomainSignal < Signal
             %
             %OUTPUT ARGUMENT
             %       h : Handle to the newly created figure
+            %
+            %OPTIONAL ARGUMENTS
+            % 'rangeSec' - Vector of time limits for the plot
             
             if ~isempty(sObj.Data)
             
@@ -99,8 +102,25 @@ classdef TimeDomainSignal < Signal
                     p = parseParameters(p);
                 end
 
-                % Generate a time axis
-                t = 0:1/sObj.FsHz:(length(sObj.Data(:))-1)/sObj.FsHz;
+                % Manage optional arguments
+                if nargin>3 && ~isempty(varargin)
+                    opt = struct;
+                    for ii = 1:2:size(varargin,2)
+                        opt.(varargin{ii}) = varargin{ii+1};
+                    end
+                else
+                    opt = [];
+                end
+                
+                % Limit to a certain time period
+                if ~isempty(opt) && isfield(opt,'rangeSec')
+                    data = sObj.Data(floor(opt.rangeSec(1)*sObj.FsHz):floor(opt.rangeSec(end)*sObj.FsHz));
+                    t = opt.rangeSec(1):1/sObj.FsHz:opt.rangeSec(1)+(size(data,1)-1)/sObj.FsHz;
+                else
+                    data = sObj.Data(:);
+                    t = 0:1/sObj.FsHz:(size(data,1)-1)/sObj.FsHz;
+                end
+                
 
                 % Set up a title (include channel in the title)
                 if ~strcmp(sObj.Channel,'mono')
@@ -110,14 +130,16 @@ classdef TimeDomainSignal < Signal
                 end
                 
                 % Plot
-                plot(t,sObj.Data(:),'color',p.color,'linewidth',p.linewidth_s)
+                plot(t,data,'color',p.color,'linewidth',p.linewidth_s)
                 xlabel('Time (s)','fontsize',p.fsize_label,'fontname',p.ftype)
                 ylabel('Amplitude','fontsize',p.fsize_label,'fontname',p.ftype)
                 title(pTitle,'fontsize',p.fsize_title,'fontname',p.ftype)
                 set(gca,'fontsize',p.fsize_axes,'fontname',p.ftype)
                 
+                box on 
+                
                 % Center the waveform
-                m = max(abs(sObj.Data(:)));
+                m = max(abs(data));
                 set(gca,'XLim',[t(1) t(end)],'YLim',[-1.1*m 1.1*m])
             
             else

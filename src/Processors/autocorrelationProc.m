@@ -40,6 +40,8 @@ classdef autocorrelationProc < Processor
             if nargin<3||isempty(do_mex);do_mex = 1;end
             if nargin<2||isempty(p)
                 p = getDefaultParameters(fs,'processing');
+            else
+                p = parseParameters(p);
             end
             if isempty(fs)
                 error('Sampling frequency needs to be provided')
@@ -96,13 +98,12 @@ classdef autocorrelationProc < Processor
             % How many frames are in the buffered input?
             nFrames = floor((nSamples-(pObj.wSize-pObj.hSize))/pObj.hSize);
             
-            % Pre-allocate output
-            out = zeros(nFrames,nChannels,pObj.wSize);
-            
             % Determine maximum lag
             M = pObj.wSize;     % Frame size in samples
             maxLag = M-1;      % Maximum lag in computation
-            
+
+            % Pre-allocate output
+            out = zeros(nFrames,nChannels,maxLag);            
             
             if ~pObj.do_mex
                 % Loop on the frames
@@ -151,14 +152,25 @@ classdef autocorrelationProc < Processor
                     frames = applyCenterClipping(frames,pObj.clipMethod,pObj.alpha);
                     
                     % Auto-correlation analysis
-                    acf = calcACorr(frames,[],'coeff',pObj.K);
+                    acf = calcACorr(frames,maxLag,'unbiased',pObj.K);
                     
+                    % Normalize by lag zero
+                    acf = acf ./ repmat(acf(1,:),[M-1 1]) ;
+                    
+%                     % ACF of window
+%                     acfWin = calcACorr(pObj.win,maxLag,'coeff',pObj.K);
+%                     
+%                     % Normalize ACF pattern
+%                     acf = acf ./ repmat(acfWin + 1E-10,[1 nFrames]);
+                                        
                     % Store results for positive lags only
-                    out(:,jj,:) = permute(acf(maxLag+1:end,:),[2 3 1]);
-                    
+                    out(:,jj,:) = permute(acf,[2 3 1]);
                 end
             end
 
+            % Update the buffer: the input that was not extracted as a
+            % frame should be stored
+            pObj.buffer = in(nFrames*pObj.hSize+1:end,:);
             
         end
         

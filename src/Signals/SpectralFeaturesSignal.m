@@ -1,6 +1,6 @@
 classdef SpectralFeaturesSignal < Signal
     
-    properties
+    properties (SetAccess=protected)
         fList       % Ordered list of the features (cell array of strings)
     end
     

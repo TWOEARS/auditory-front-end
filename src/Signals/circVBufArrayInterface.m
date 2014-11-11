@@ -1,3 +1,25 @@
+% CIRCVBUFARRAYINTERFACE   This class is a class adding onto the functionality
+%  of the circVBuf class. It wraps the circular buffer and provides an array-like 
+%  interface for it.
+%
+%  Data can be accessed using indexing as with arrays, e.g.:
+%        buf(1) 
+%        buf(:) 
+%        buf(end)
+%        buf(2:5)
+%  The reference (1) of those indices is the oldest data point in the buffer. 'end'
+%  refers to the newest data point. Additionally the latest added "chunk" of data
+%  can be read by using 'new' as index:
+%        buf('new')
+%
+%  Construct the interface by handing over the circular buffer instance, then use
+%  the buffer through the interface object.
+%
+%
+% Ivo Trowitzsch, 04 Novembre 2014
+% Technical University of Berlin
+% ivot@ni.tu-berlin.de
+
 classdef circVBufArrayInterface < handle
 
     properties (Access = private)

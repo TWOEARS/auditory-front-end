@@ -4,7 +4,7 @@
 clear 
 % close all
 
-test_startup;
+% test_startup;
 
 % Request and parameters for feature extraction
 % request = {'modulation'};

@@ -2,11 +2,12 @@ classdef modulationProc < Processor
     
     properties
         modCfHz         % Modulation filters center frequencies
-        filterType      % 'fft' vs. 'filter'
-        rangeHz         % Modulation frequency range
+        filterType      % 'lin' vs. 'log'
+        
         winName         % Window
-        overlap         % Overlap
-        blockSize       % Block size
+        stepSec         % Step size in seconds
+        blockSec        % Block size in seconds
+        
         dsRatio         % Down-sampling ratio
         nAudioChan      % Number of audio frequency channels
     end
@@ -15,6 +16,12 @@ classdef modulationProc < Processor
         buffer          % Buffered input (for fft-based)
         nModChan        % Number of modulation channels
         
+        lowFreqHz       % Lowest modulation center frequency 
+        highFreqHz      % Highest modulation center frequency 
+        
+        overlap         % Overlap in samples
+        blockSize       % Block size in samples
+
         % Downsampling
         dsProc          % Downsampling processor
         fs_ds           % Input sampling frequency after downsampling
@@ -33,28 +40,29 @@ classdef modulationProc < Processor
         a               % Cell array of filter coefficients
         bw              % Filters bandwidths (necessary?)
         Filters         % Cell array of filter objects
-        
     end
     
     methods
         
-        function pObj = modulationProc(fs,nChan,nFilters,range,win,blockSize,overlap,filterType,downSamplingRatio)
+        function pObj = modulationProc(fs,nChan,cfHz,nFilters,lowFreqHz,highFreqHz,win,blockSec,stepSec,fbType,downSamplingRatio)
             %modulationProc     Instantiate an amplitude modulation
             %                   extractor
             %
             %USAGE:
-            %  pObj = modulationProc(fs,nChan,nFilters,range,win,bSize,olap,filterType,dsRatio)
+            %  pObj = modulationProc(fs,nChan,cfHz,nFilters,lowFreqHz,highFreqHz,win,blockSec,stepSec,fbType,dsRatio)
             %
             %INPUT ARGUMENTS:
             %         fs : Sampling frequency of the input (Hz)
             %      nChan : Number of audio frequency channels
+            %       cfHz : Vector of modulation center frequencies (Hz)
             %   nFilters : Number of modulation frequency bins
-            %      range : Modulation frequency range of interest
-            %        win : Window shape descriptor for STFT, or framing
-            %      bSize : Block size used in the STFT or in the framing (samples)
-            %       olap : Overlap between windows in STFT or framing (samples)
-            % filterType : Type of modulation filtering to use, 'STFT' for
-            %              STFT-based, or 'filter' for filterbank implementation
+            %  lowFreqHz : Lowest modulation center frequency (Hz)
+            % highFreqHz : Highest modulation center frequency (Hz)
+            %        win : Window shape used for framing
+            %   blockSec : Block size of AMS features (s)
+            %    stepSec : Step size of AMS features (s)
+            %     fbType : Type of modulation filterbank, 'lin' for
+            %              FFT-based, or 'log' for filter-based implementation
             %    dsRatio : Downsampling ratio 
             %
             %OUTPUT ARGUMENT:
@@ -73,9 +81,9 @@ classdef modulationProc < Processor
                 error('The down sampling ratio should be a positive integer')
             end
             
-            if ~strcmp(filterType,'fft') && ~strcmp(filterType,'filter')
-                warning('%s is an invalid argument for modulation filterbank instantiation, switching to ''fft''.')
-                filterType = 'fft';
+            if ~strcmp(fbType,'lin') && ~strcmp(fbType,'log')
+                warning('%s is an invalid argument for modulation filterbank instantiation, switching to ''log''.')
+                fbType = 'log';
             end
             
             % Instantiate a down-sampler if needed
@@ -84,33 +92,80 @@ classdef modulationProc < Processor
             end
             
             % Input sampling frequencies
-            pObj.FsHzIn = fs;               % Original input sampling frequency
-            pObj.fs_ds = fs/downSamplingRatio;   % Downsampled input sampling frequency
+            pObj.FsHzIn = fs;                   % Original input sampling frequency
+            pObj.fs_ds  = fs / downSamplingRatio;  % Downsampled input sampling frequency
+                     
+            if highFreqHz > pObj.fs_ds/2
+                error('Highest modulation center frequency is above nyquist frequency. Either reduce the downsampling ratio or decrease the upper frequency limit. ')
+            end
             
+            % Set default values
+            if isempty(blockSec)
+                blockSec = 32E-3;
+            end
+            if isempty(stepSec)
+                stepSec = blockSec/2;
+            end
+            if isempty(win)
+                win = 'hamming';
+            end
             
-            % Generate a window
-            pObj.winName = win;
-            pObj.win = window(win,blockSize);
+            % Compute framing parameters
+            blockSamples    = 2 * round(blockSec * pObj.fs_ds / 2);
+            stepSizeSamples = round(blockSamples / (blockSec/stepSec));
+            overlapSamples  = blockSamples - stepSizeSamples;
+            pObj.winName    = win;                 % Generate a window
+            pObj.win = window(win,blockSamples);
             
+            pObj.blockSec = blockSec;
+            pObj.stepSec  = stepSec;
             
             % Get filterbank properties
-            if strcmp(filterType,'fft')
+            if strcmp(fbType,'lin')
                 
-                % FFT-size
-                fftFactor = 2;  % TODO: Hard-coded here, should this be a parameter?
-                pObj.nfft = pow2(nextpow2(fftFactor*blockSize));
-                % Normalized lower and upper frequencies of the mod. filterbank
-                fLow = range(1)/pObj.fs_ds;
-                fHigh = range(2)/pObj.fs_ds;
-                [pObj.wts,pObj.modCfHz,pObj.mn,pObj.mx] = melbankm(nFilters,pObj.nfft,pObj.fs_ds,fLow,fHigh,'fs');
-                
-            elseif strcmp(filterType,'filter')
+                if isempty(cfHz)
+                    % FFT-size
+                    fftFactor = 2;  
+                    pObj.nfft = pow2(nextpow2(fftFactor*blockSamples));
+                    
+                    if isempty(lowFreqHz);
+                        lowFreqHz = 0;
+                    end
+                    if isempty(highFreqHz);
+                        highFreqHz = 400;
+                    end
+                    if isempty(nFilters)
+                        nFilters = 15;
+                    end
+                    
+                    % Normalized lower and upper frequencies of the mod. filterbank
+                    fLow  = lowFreqHz  / pObj.fs_ds;
+                    fHigh = highFreqHz / pObj.fs_ds;
+                    [pObj.wts,pObj.modCfHz,pObj.mn,pObj.mx] = melbankm(nFilters,pObj.nfft,pObj.fs_ds,fLow,fHigh,'fs');
+                else
+                    error('The specification of center frequencies is not supported by the FFT-based method')
+                end
+                    
+            elseif strcmp(fbType,'log')
                 
                 % Get center frequencies
-                cf = pow2(0:ceil(log2(pObj.fs_ds)));     % Vector of candidate center frequencies
-                pObj.modCfHz = cf(cf<=range(2));    % Only take cf's within range
-                pObj.modCfHz = pObj.modCfHz(pObj.modCfHz>=range(1));
-                
+                if isempty(cfHz)
+                     if isempty(lowFreqHz);
+                        lowFreqHz = 4;
+                    end
+                    if isempty(highFreqHz);
+                        highFreqHz = 1024;
+                    end
+                    
+                    pObj.modCfHz = createFreqAxisLog(lowFreqHz,highFreqHz,nFilters);
+                else
+                    % Overwrite frequency range
+                    pObj.modCfHz = cfHz;
+                    
+                    lowFreqHz  = min(cfHz);
+                    highFreqHz = max(cfHz);
+                end
+        
                 % Hard-coded filterbank properties
                 Q = 1;              % Q-factor
                 use_lp = true;      % Use low-pass filter as lowest filter
@@ -121,26 +176,25 @@ classdef modulationProc < Processor
                 
                 % Get bandwidths in hertz
                 pObj.bw = pObj.bw*(pObj.fs_ds/2);
-                
             end
             
             % Output sampling frequency (input was downsampled, and framed)
-            pObj.FsHzOut = pObj.fs_ds/(blockSize-overlap);
-            
-           
+            pObj.FsHzOut = pObj.fs_ds/stepSizeSamples;
+         
             
             % Populate additional properties
-            pObj.Type = 'Amplitude modulation extraction';
+            pObj.Type = 'Amplitude modulation spectrogram extraction';
             pObj.nAudioChan = nChan;
-            pObj.filterType = filterType;
-            pObj.rangeHz = range;
-            pObj.blockSize = blockSize;
-            pObj.overlap = overlap;
+            pObj.filterType = fbType;
+            pObj.lowFreqHz = lowFreqHz;
+            pObj.highFreqHz = highFreqHz;
+            pObj.blockSize = blockSamples;
+            pObj.overlap = overlapSamples;
             pObj.dsRatio = downSamplingRatio;
             pObj.nModChan = numel(pObj.modCfHz);
             
             % Instantiate the filters if needed
-            if strcmp(pObj.filterType,'filter')
+            if strcmp(pObj.filterType,'log')
                 pObj.Filters = pObj.populateFilters;
             end
             
@@ -169,7 +223,7 @@ classdef modulationProc < Processor
                 in = pObj.dsProc.processChunk(in);
             end
             
-            if strcmp(pObj.filterType,'fft')
+            if strcmp(pObj.filterType,'lin')
             
                 % 1- Append the buffer to the input
                 in = [pObj.buffer;in];  % Time spans the first dimension
@@ -189,6 +243,9 @@ classdef modulationProc < Processor
                         % Calculate the modulation pattern for this filter
                         ams = spectrogram(in(:,ii),pObj.win,pObj.overlap,pObj.nfft);
 
+                        % Normalize spectrogram
+                        ams = ams / pObj.nfft;
+                        
                         % Restrain the pattern to the required mod. frequency bins
                         output = pObj.wts*abs(ams(pObj.mn:pObj.mx,:));
 
@@ -211,7 +268,6 @@ classdef modulationProc < Processor
 
                         % Store the buffered input for that channel
                         temp_buffer(:,ii) = in(bstart:bend,ii);
-
                     end
 
                 % If not, then buffer the all input signal    
@@ -223,7 +279,7 @@ classdef modulationProc < Processor
                 pObj.buffer = temp_buffer;
                 
             
-            elseif strcmp(pObj.filterType,'filter')
+            elseif strcmp(pObj.filterType,'log')
                 
                 % Initialize the output
                 nbins = floor(((size(in,1)+size(pObj.buffer,1))-pObj.overlap)/(pObj.blockSize-pObj.overlap));
@@ -246,7 +302,7 @@ classdef modulationProc < Processor
                         end
                         
                         % Frame-based analysis...
-                        out(:,ii,jj) = sum(abs(frameData(currAMS,pObj.blockSize,pObj.blockSize-pObj.overlap,pObj.win,false)));
+                        out(:,ii,jj) = mean(abs(frameData(currAMS,pObj.blockSize,pObj.blockSize-pObj.overlap,pObj.win,false)));
 
                         % Initialize a temporary buffer
                         if (ii==1) && (jj==1)
@@ -304,15 +360,15 @@ classdef modulationProc < Processor
             
             % Only the parameters needed to instantiate the processor need
             % to be compared
-            p_list_proc = {'nModChan','rangeHz','filterType','winName','blockSize','overlap','dsRatio'};
-            p_list_par = {'am_nFilters','am_range','am_type','am_win','am_bSize','am_olap','am_dsRatio'};
+            p_list_proc = {'modCfHz','nModChan','lowFreqHz','highFreqHz','filterType','winName','blockSec','stepSec','dsRatio'};
+            p_list_par = {'ams_cfHz','ams_nFilters','ams_lowFreqHz','ams_highFreqHz','ams_fbType','ams_wname','ams_wSizeSec','ams_hSizeSec','ams_dsRatio'};
             
-            % Number of channels is irrelevant for 'filter'-based
-            % implementation, only the range matters
-            if strcmp(p.am_type,'filter')
-                p_list_proc = setdiff(p_list_proc,'nModChan','stable');
-                p_list_par = setdiff(p_list_par,'am_nFilters','stable');
-            end
+%             % Number of channels is irrelevant for 'filter'-based
+%             % implementation, only the range matters
+%             if strcmp(p.am_type,'filter')
+%                 p_list_proc = setdiff(p_list_proc,'nModChan','stable');
+%                 p_list_par = setdiff(p_list_par,'am_nFilters','stable');
+%             end
             
             % Initialization of a parameters difference vector
             delta = zeros(size(p_list_proc,2),1);

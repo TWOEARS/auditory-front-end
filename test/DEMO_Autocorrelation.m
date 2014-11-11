@@ -3,37 +3,30 @@ close all
 clc
 
 
+%% LOAD SIGNAL
+% 
+% 
 % Load a signal
-load('TestBinauralCues');
+load('AFE_earSignals_16kHz');
 
-% Take right ear signal
-data = earSignals(1:62E3,2);     
-% data = earSignals(1:15E3,2);     
+% Create a data object based on parts of the right ear signal
+dObj = dataObject(earSignals(1:20E3,2),fsHz);
 
-% New sampling frequency
-fsHzRef = 30E3;
 
-% Resample
-data = resample(data,fsHzRef,fsHz);
-
-% Copy fs
-fsHz = fsHzRef;
-
-% Request ratemap    
+%% PLACE REQUEST AND CONTROL PARAMETERS
+% 
+% 
+% Request auto-corrleation function (ACF)
 requests = {'autocorrelation'};
 
-
-ac_wSizeSec  = 0.02;
-ac_hSizeSec  = 0.01;
-ac_clipAlpha = 0;
+ac_wSizeSec  = 0.032;
+ac_hSizeSec  = 0.016;
+ac_clipAlpha = 0.0;
 ac_K         = 2;
+ac_wname     = 'hann';
 
-  
 % Parameters
-par = genParStruct('gt_lowFreqHz',80,'gt_highFreqHz',8000,'gt_nChannels',16,'ihc_method','dau','ac_wSizeSec',ac_wSizeSec,'ac_hSizeSec',ac_hSizeSec,'ac_clipAlpha',ac_clipAlpha,'ac_K',ac_K); 
-
-% Create a data object
-dObj = dataObject(data,fsHz);
+par = genParStruct('gt_lowFreqHz',80,'gt_highFreqHz',8000,'gt_nChannels',16,'ihc_method','dau','ac_wSizeSec',ac_wSizeSec,'ac_hSizeSec',ac_hSizeSec,'ac_clipAlpha',ac_clipAlpha,'ac_K',ac_K,'ac_wname',ac_wname); 
 
 % Create a manager
 mObj = manager(dObj,requests,par);
@@ -41,30 +34,42 @@ mObj = manager(dObj,requests,par);
 % Request processing
 mObj.processSignal();
 
-acf = [dObj.autocorrelation{1}.Data(:)];
+
+%% Plot the ACF
+
+frameIdx2Plot = 10;     % Plot the ACF in a single frame
+
+% Get the corresponding sample range for plotting the ihc in that range
+wSizeSamples = 0.5 * round((ac_wSizeSec * fsHz * 2));
+wStepSamples = round((ac_hSizeSec * fsHz));
+samplesIdx = (1:wSizeSamples) + ((frameIdx2Plot-1) * wStepSamples);
+
+% Plot the IHC output in that frame
+par = genParStruct('wavPlotZoom',3,'wavPlotDS',1);
+dObj.innerhaircell{1}.plot([],par,'rangeSec',[samplesIdx(1) samplesIdx(end)]/fsHz);
+
+% Plot the autocorrelation in that frame
+dObj.autocorrelation{1}.plot([],[],frameIdx2Plot);
 
 
-figure;
-waveplot(permute(acf(50,:,:),[3 1 2]))
 
 
-% %% Plot Gammatone response
-% % 
-% % 
-% % Basilar membrane output
-% bm   = [dObj.gammatone{1}.Data(:,:)];
-% % Envelope
-% env  = [dObj.innerhaircell{1}.Data(:,:)];
-% fHz  = dObj.gammatone{1}.cfHz;
-% tSec = (1:size(bm,1))/fsHz;
+%% Show a ACF movie
 % 
-% zoom  = [];
-% bNorm = [];
-% 
-% 
-% figure;
-% waveplot(bm(1:3:end,:),tSec(1:3:end),fHz,zoom,bNorm);
-% 
-% figure;
-% waveplot(env(1:3:end,:),tSec(1:3:end),fHz,zoom,bNorm);
+if 0
+    h3 = figure;
+    pauseSec = 0.0125;  % Pause between two consecutive plots
+    dObj.autocorrelation{1}.plot(h3,par,1);
+    
+    % Loop over the number of frames
+    for ii = 1 : size(dObj.autocorrelation{1}.Data(:),1)
+        h31=get(h3,'children');
+        cla(h31(1)); cla(h31(2));
+        
+        dObj.autocorrelation{1}.plot(h3,par,ii,'noTitle',1);
+        pause(pauseSec);
+        title(h31(2),['Frame number ',num2str(ii)])
+    end
+end
+
 
