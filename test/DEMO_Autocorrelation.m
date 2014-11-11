@@ -3,36 +3,30 @@ close all
 clc
 
 
+%% LOAD SIGNAL
+% 
+% 
 % Load a signal
-load('TestBinauralCues');
+load('AFE_earSignals_16kHz');
 
-% Take right ear signal
-data = earSignals(1:62E3,2); 
-% data = earSignals(1:15E3,2);     
+% Create a data object based on parts of the right ear signal
+dObj = dataObject(earSignals(1:20E3,2),fsHz);
 
-% New sampling frequency
-fsHzRef = 16E3;
 
-% Resample
-data = resample(data,fsHzRef,fsHz);
-
-% Copy fs
-fsHz = fsHzRef;
-
-% Request 
+%% PLACE REQUEST AND CONTROL PARAMETERS
+% 
+% 
+% Request auto-corrleation function (ACF)
 requests = {'autocorrelation'};
 
-ac_wSizeSec  = 0.02;
-ac_hSizeSec  = 0.01;
+ac_wSizeSec  = 0.032;
+ac_hSizeSec  = 0.016;
 ac_clipAlpha = 0.0;
 ac_K         = 2;
-
+ac_wname     = 'hann';
 
 % Parameters
-par = genParStruct('gt_lowFreqHz',80,'gt_highFreqHz',8000,'gt_nChannels',16,'ihc_method','dau','ac_wSizeSec',ac_wSizeSec,'ac_hSizeSec',ac_hSizeSec,'ac_clipAlpha',ac_clipAlpha,'ac_K',ac_K); 
-
-% Create a data object
-dObj = dataObject(data,fsHz);
+par = genParStruct('gt_lowFreqHz',80,'gt_highFreqHz',8000,'gt_nChannels',16,'ihc_method','dau','ac_wSizeSec',ac_wSizeSec,'ac_hSizeSec',ac_hSizeSec,'ac_clipAlpha',ac_clipAlpha,'ac_K',ac_K,'ac_wname',ac_wname); 
 
 % Create a manager
 mObj = manager(dObj,requests,par);

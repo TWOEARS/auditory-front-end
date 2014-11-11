@@ -152,11 +152,19 @@ classdef autocorrelationProc < Processor
                     frames = applyCenterClipping(frames,pObj.clipMethod,pObj.alpha);
                     
                     % Auto-correlation analysis
-                    acf = calcACorr(frames,maxLag,'coeff',pObj.K);
+                    acf = calcACorr(frames,maxLag,'unbiased',pObj.K);
                     
+                    % Normalize by lag zero
+                    acf = acf ./ repmat(acf(1,:),[M-1 1]) ;
+                    
+%                     % ACF of window
+%                     acfWin = calcACorr(pObj.win,maxLag,'coeff',pObj.K);
+%                     
+%                     % Normalize ACF pattern
+%                     acf = acf ./ repmat(acfWin + 1E-10,[1 nFrames]);
+                                        
                     % Store results for positive lags only
                     out(:,jj,:) = permute(acf,[2 3 1]);
-                    
                 end
             end
 
