@@ -13,7 +13,6 @@ load(['Test_signals',filesep,'TestBinauralCues']);
 earSignals = fliplr(earSignals);
 earSignals = earSignals(1:62E3,:);
 
-
 % Replicate signals at a higher level
 earSignals = cat(1,earSignals,5*earSignals)/5;
 
@@ -30,9 +29,6 @@ timeSec = (1:size(data,1))/fsHz;
 % Activate DC removal filter
 pp_bRemoveDC  = true;
 pp_cutoffHzDC = 20;
-
-% Reference sampling frequency
-pp_fsHzRef = 16E3;
 
 % Activate pre-emphasis
 pp_bPreEmphasis    = true;
@@ -94,34 +90,6 @@ if pp_bRemoveDC
 end
 
 
-%% Resampling
-%
-%
-if isempty(pp_fsHzRef) 
-    % Do nothing
-elseif fsHz > pp_fsHzRef
-    % Resample signal
-    data = resample(data,pp_fsHzRef,fsHz);
-    
-    fsHz = pp_fsHzRef;
-    
-    % Re-create time axis
-    timeSec = (1:size(data,1))/pp_fsHzRef;
-    
-    figure;
-    h = plot(timeSec(1:3:end),data(1:3:end,:));
-    set(h(1),'color',[0 0 0]);
-    set(h(2),'color',[0.5 0.5 0.5]);
-    title(sprintf('4. After resampling to %i Hz',fsHz))
-    xlabel('Time (s)')
-    ylabel('Amplitude')
-    xlim([timeSec(1) timeSec(end)])
-    ylim([-1.5 1.5])
-else
-    error('Upsampling of the input signal is not supported.')
-end        
-
-
 %% Pre-whitening
 % 
 %
@@ -137,7 +105,7 @@ if pp_bPreEmphasis
     h = plot(timeSec(1:3:end),data(1:3:end,:));
     set(h(1),'color',[0 0 0]);
     set(h(2),'color',[0.5 0.5 0.5]);
-    title('5. After pre-emphasis')
+    title('4. After pre-emphasis')
     xlabel('Time (s)')
     ylabel('Amplitude')
     xlim([timeSec(1) timeSec(end)])
@@ -159,7 +127,7 @@ if pp_bNormalizeRMS
     h = plot(timeSec(1:3:end),out1(1:3:end,:));
     set(h(1),'color',[0 0 0]);
     set(h(2),'color',[0.5 0.5 0.5]);
-    title('6. After monaural AGC')
+    title('5. After monaural AGC')
     xlabel('Time (s)')
     ylabel('Amplitude')
     xlim([timeSec(1) timeSec(end)])
@@ -169,7 +137,7 @@ if pp_bNormalizeRMS
     h = plot(timeSec(1:3:end),out2(1:3:end,:));
     set(h(1),'color',[0 0 0]);
     set(h(2),'color',[0.5 0.5 0.5]);
-    title('7. After binaural AGC')
+    title('6. After binaural AGC')
     xlabel('Time (s)')
     ylabel('Amplitude')
     xlim([timeSec(1) timeSec(end)])
@@ -184,5 +152,5 @@ if 1
    fig2LaTeX(['Pre_Processing_04'],4,mode)
    fig2LaTeX(['Pre_Processing_05'],5,mode)
    fig2LaTeX(['Pre_Processing_06'],6,mode)
-   fig2LaTeX(['Pre_Processing_07'],7,mode)
+%    fig2LaTeX(['Pre_Processing_07'],7,mode)
 end
