@@ -20,8 +20,8 @@ end
 clear earSignals
 
 % Parameters
-request = {'onset_map'};
-p = genParStruct('rm_scaling','magnitude');
+request = {'time'};
+p = genParStruct('pp_bNormalizeRMS',1);
 
 
 % Create a data object

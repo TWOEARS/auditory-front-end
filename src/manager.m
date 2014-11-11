@@ -135,13 +135,26 @@ classdef manager < handle
                                 );
                         end
                     else
-                        % If the processor extracts a binaural cue, inputs
-                        % from left and right channel should be routed
-                        mObj.OutputList{jj,1}.setData( ...
-                            mObj.Processors{jj,1}.processChunk(mObj.InputList{jj,1}.Data(:),...
-                            mObj.InputList{jj,2}.Data(:))...
-                            );
-
+                        if ~mObj.Processors{jj,1}.hasTwoOutputs
+                            % If the processor extracts a binaural cue, inputs
+                            % from left and right channel should be routed
+                            mObj.OutputList{jj,1}.setData( ...
+                                mObj.Processors{jj,1}.processChunk(mObj.InputList{jj,1}.Data(:),...
+                                mObj.InputList{jj,2}.Data(:))...
+                                );
+                        else
+                            if size(mObj.InputList,2)>1
+                                [out_l, out_r] = mObj.Processors{jj,1}.processChunk(mObj.InputList{jj,1}.Data(:),...
+                                    mObj.InputList{jj,2}.Data(:));
+                            else
+                                [out_l, out_r] = mObj.Processors{jj,1}.processChunk(mObj.InputList{jj,1}.Data(:),...
+                                    []);
+                            end
+                            mObj.OutputList{jj,1}.setData(out_l);
+                            if ~isempty(out_r)
+                                mObj.OutputList{jj,2}.setData(out_r);
+                            end
+                        end
                     end
                 end
             end
@@ -226,16 +239,40 @@ classdef manager < handle
                     
                     % Getting input signal handles for both channels
                     in_l = mObj.InputList{jj,1};
-                    in_r = mObj.InputList{jj,2};
                     
-                    % Perform the processing
-                    out = mObj.Processors{jj,1}.processChunk(...
-                        in_l.Data('new'),...
-                        in_r.Data('new'));
-                    
-                    % Store the result
-                    mObj.OutputList{jj,1}.appendChunk(out);
-                    
+                    if ~mObj.Processors{jj,1}.hasTwoOutputs
+                        
+                        in_r = mObj.InputList{jj,2};
+                        
+                        % Perform the processing
+                        out = mObj.Processors{jj,1}.processChunk(...
+                            in_l.Data('new'),...
+                            in_r.Data('new'));
+
+                        % Store the result
+                        mObj.OutputList{jj,1}.appendChunk(out);
+                    else
+                        
+                        if size(mObj.InputList,2)>1
+                            in_r = mObj.InputList{jj,2};
+                            
+                            % Perform the processing
+                            [out_l, out_r] = mObj.Processors{jj,1}.processChunk(...
+                                in_l.Data('new'),...
+                                in_r.Data('new'));
+                        else
+                            % Perform the processing
+                            [out_l, out_r] = mObj.Processors{jj,1}.processChunk(...
+                                in_l.Data('new'));
+                        end
+
+                        % Store the result
+                        mObj.OutputList{jj,1}.appendChunk(out_l);
+                        
+                        if ~isempty(out_r)
+                            mObj.OutputList{jj,2}.appendChunk(out_r);
+                        end
+                    end
                 end
                 
 %                 % Getting input signal handle (for code readability)
@@ -507,17 +544,17 @@ classdef manager < handle
                         % TO DO: Include actual time processor
                         if mObj.Data.isStereo
                             % Instantiate left and right ear processors
-                            mObj.Processors{ii,1} = identityProc(p.fs);
-                            mObj.Processors{ii,2} = identityProc(p.fs);
+                            mObj.Processors{ii,1} = preProc(p.fs,p);
+%                             mObj.Processors{ii,2} = identityProc(p.fs);
                             % Generate new signals
                             sig_l = TimeDomainSignal(mObj.Processors{ii,1}.FsHzOut,mObj.Data.bufferSize_s,'time','Time domain signal',[],'left');
-                            sig_r = TimeDomainSignal(mObj.Processors{ii,2}.FsHzOut,mObj.Data.bufferSize_s,'time','Time domain signal',[],'right');
+                            sig_r = TimeDomainSignal(mObj.Processors{ii,1}.FsHzOut,mObj.Data.bufferSize_s,'time','Time domain signal',[],'right');
                             % Add the signals to the data object
                             mObj.Data.addSignal(sig_l);
                             mObj.Data.addSignal(sig_r)
                         else
                             % Instantiate a processor
-                            mObj.Processors{ii} = identityProc(p.fs);
+                            mObj.Processors{ii} = preProc(p.fs,p);
                             % Generate a new signal
                             sig = TimeDomainSignal(mObj.Processors{ii,1}.FsHzOut,mObj.Data.bufferSize_s,'time','Time domain signal',[],'mono');
                             % Add signal to the data object
@@ -869,7 +906,7 @@ classdef manager < handle
                             warning('Manager cannot instantiate a binaural cue extractor for a single-channel signal')
                             proceed = 0;
                         else
-                            mObj.Processors{ii,1} = ildProc(p.fs,p);
+                            mObj.Processors{ii,1} = ildProc(dep_proc_l.FsHzOut,p);
                             cfHz = dep_proc_l.getDependentParameter('cfHz');    % Center frequencies
                             sig = TimeFrequencySignal(mObj.Processors{ii,1}.FsHzOut,mObj.Data.bufferSize_s,'ild',cfHz,'Interaural Level Difference',[],'mono');
                             mObj.Data.addSignal(sig);
@@ -913,20 +950,51 @@ classdef manager < handle
 
                     if mObj.Processors{ii}.isBinaural
 
-                        % 1-Then there are two inputs (left&right) and one output
-                        mObj.InputList{ii,1} = dep_sig_l;
-                        mObj.InputList{ii,2} = dep_sig_r;
-                        mObj.OutputList{ii,1} = sig;
-                        mObj.OutputList{ii,2} = [];
+                        if ~mObj.Processors{ii}.hasTwoOutputs
+                            % 1-Then there are two inputs (left&right) and one output
+                            mObj.InputList{ii,1} = dep_sig_l;
+                            mObj.InputList{ii,2} = dep_sig_r;
+                            mObj.OutputList{ii,1} = sig;
+                            mObj.OutputList{ii,2} = [];
 
-                        mObj.Processors{ii}.Input{1} = dep_sig_l;
-                        mObj.Processors{ii}.Input{2} = dep_sig_r;
-                        mObj.Processors{ii}.Output = sig;
+                            mObj.Processors{ii}.Input{1} = dep_sig_l;
+                            mObj.Processors{ii}.Input{2} = dep_sig_r;
+                            mObj.Processors{ii}.Output = sig;
 
-                        mObj.Processors{ii,1}.Dependencies = {dep_proc_l,dep_proc_r};
-                        dep_sig = sig;
-                        dep_proc = mObj.Processors{ii};
+                            mObj.Processors{ii,1}.Dependencies = {dep_proc_l,dep_proc_r};
+                            dep_sig = sig;
+                            dep_proc = mObj.Processors{ii};
+                        else
+                            if exist('sig','var')&&strcmp(sig.Channel,'mono')
+                                % 1bis - Two inputs and two outputs
+                                mObj.InputList{ii,1} = dep_sig;
+                                mObj.OutputList{ii,1} = sig;
 
+                                mObj.Processors{ii}.Input = dep_sig;
+                                mObj.Processors{ii}.Output = sig;
+
+                                mObj.Processors{ii,1}.Dependencies = {dep_proc};
+                                dep_sig = sig;
+                                dep_proc = mObj.Processors{ii};
+                            else
+                                % 1bis - Two inputs and two outputs
+                                mObj.InputList{ii,1} = dep_sig_l;
+                                mObj.InputList{ii,2} = dep_sig_r;
+                                mObj.OutputList{ii,1} = sig_l;
+                                mObj.OutputList{ii,2} = sig_r;
+
+                                mObj.Processors{ii}.Input{1} = dep_sig_l;
+                                mObj.Processors{ii}.Input{2} = dep_sig_r;
+                                mObj.Processors{ii}.Output{1} = sig_l;
+                                mObj.Processors{ii}.Output{2} = sig_r;
+
+                                mObj.Processors{ii,1}.Dependencies = {dep_proc_l,dep_proc_r};
+                                dep_sig_l = sig_l;
+                                dep_sig_r = sig_r;
+                                dep_proc_l = mObj.Processors{ii};
+                                dep_proc_r = mObj.Processors{ii};
+                            end
+                        end
                     elseif exist('sig','var')&&strcmp(sig.Channel,'mono') && proceed
 
                         % 2-Then there is a single input and single output
