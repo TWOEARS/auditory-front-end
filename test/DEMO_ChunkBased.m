@@ -1,8 +1,8 @@
 clear all
 close all
 
-% Basic script used throughout chapter 2 of deliverable 2.2
-% Using echo for copy/pasting to deliverable text
+% This script illustrates the chunk-based compatibility of the AFE framework.
+% It goes along the description in section 2.4 of the report
 
 % Loading a signal
 load('TestBinauralCues');

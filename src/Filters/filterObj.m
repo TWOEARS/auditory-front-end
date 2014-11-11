@@ -5,11 +5,11 @@ classdef filterObj < handle
     properties (GetAccess=public)       % Public properties
         Type                % Descriptor for type of filter (string)
         Structure           % Descriptor for structure of filter (string)
-        RealTF              % True if the transfer function is real-valued
+        RealTF = true;      % True if the transfer function is real-valued
         CascadeOrder =1     % Number of times the filter has to be cascaded
     end
    
-    properties (GetAccess=protected)    % Protected properties
+    properties %(GetAccess=protected)    % Protected properties
         FsHz        % Sampling frequency in Hertz
         b           % Numerator coefficients of transfer function
         a           % Denominator coefficients of transfer function
@@ -260,7 +260,7 @@ classdef filterObj < handle
             % Update size of data
             if isempty(fObj.nChan)
                 fObj.nChan = size(data,2);
-                fObj.reset
+%                 fObj.reset
             end
             
             % Select filtering method
@@ -308,15 +308,32 @@ classdef filterObj < handle
             end
         end
         
-        function reset(fObj)
-            % This method resets the filter's states to zero
+        function reset(fObj,states)
+            % This method resets the filter's states to zero or to states if specified
+            if nargin<2 || isempty(states)
+                states = [];
+            end
             if isempty(fObj.Order)
                 error('The filter transfer function must have been specified before initializing its states')
             else
-                % Create filter states
-                fObj.States = zeros(fObj.Order,fObj.nChan,fObj.CascadeOrder);
+                if isempty(states)
+                    % Create filter states
+                    fObj.States = zeros(fObj.Order,fObj.nChan,fObj.CascadeOrder);
+                else
+                    fObj.States = states;
+                end
             end
         end 
+        
+        function bInit = isInitialized(fObj)
+            %isInitialized      Returns true when filter states are non-empty
+            
+            if isempty(fObj.States)
+                bInit = 0;
+            else
+                bInit = 1;
+            end
+        end
         
     end
     

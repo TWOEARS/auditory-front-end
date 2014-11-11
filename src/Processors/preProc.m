@@ -8,6 +8,7 @@ classdef preProc < Processor
         coefPreEmphasis
         
         bNormalizeRMS
+        bBinauralAGC
         intTimeSecRMS
     end
     
@@ -16,6 +17,9 @@ classdef preProc < Processor
         dcFilter_r
         preEmphFilter_l
         preEmphFilter_r
+        agcFilter_l
+        agcFilter_r
+        epsilon = 1E-8;
     end
     
     
@@ -50,6 +54,7 @@ classdef preProc < Processor
             pObj.bPreEmphasis = p.pp_bPreEmphasis;
             pObj.coefPreEmphasis = p.pp_coefPreEmphasis;
             pObj.bNormalizeRMS = p.pp_bNormalizeRMS;
+            pObj.bBinauralAGC = p.pp_bBinauralAGC;
             pObj.intTimeSecRMS = p.pp_intTimeSecRMS;
             
             if pObj.bRemoveDC
@@ -68,6 +73,16 @@ classdef preProc < Processor
                 pObj.preEmphFilter_r = [];
             end
             
+            if pObj.bNormalizeRMS
+                a = [1 -exp(-1/(pObj.intTimeSecRMS*fs))];
+                b = sum(a);
+                pObj.agcFilter_l = genericFilter(b,a,fs);
+                pObj.agcFilter_r = genericFilter(b,a,fs);
+            else
+                pObj.agcFilter_l = [];
+                pObj.agcFilter_r = [];
+            end
+            
             pObj.Type = 'Pre-processor';
             pObj.FsHzIn = fs;
             pObj.FsHzOut = fs;
@@ -79,7 +94,7 @@ classdef preProc < Processor
     
         end
         
-        function [out_l out_r] = processChunk(pObj,in_l,in_r)
+        function [out_l, out_r] = processChunk(pObj,in_l,in_r)
             %processChunk       Apply the processor to a new chunk of input signal
             %
             %USAGE
@@ -114,9 +129,114 @@ classdef preProc < Processor
             end
             
             % 3- Automatic gain control
+            if pObj.bNormalizeRMS
+                % Initialize the filter states if empty
+                if ~pObj.agcFilter_l.isInitialized  %isempty(pObj.agcFilter_l.States)
+                    % Mean square of input over the time constant
+                    sm_l = mean(in_l(1:min(size(in_l,1),round(pObj.intTimeSecRMS*pObj.FsHzIn))).^2);
+                    sm_r = mean(in_r(1:min(size(in_r,1),round(pObj.intTimeSecRMS*pObj.FsHzIn))).^2);
+                    
+                    % Initial filter states
+                    s0_l = exp(-1/(pObj.intTimeSecRMS*pObj.FsHzIn))*sm_l;
+                    s0_r = exp(-1/(pObj.intTimeSecRMS*pObj.FsHzIn))*sm_r;
+                    
+                    pObj.agcFilter_l.reset(s0_l)
+                    pObj.agcFilter_r.reset(s0_r)
+                end
+                
+                % Estimate normalization constants
+                normFactor_l = sqrt(pObj.agcFilter_l.filter(in_l.^2))+pObj.epsilon;
+                normFactor_r = sqrt(pObj.agcFilter_r.filter(in_r.^2))+pObj.epsilon;
+                
+                % Preserve multi-channel differences
+                if ~isempty(normFactor_r) && pObj.bBinauralAGC
+                    normFactor_l = max(normFactor_l,normFactor_r);
+                    normFactor_r = normFactor_l;
+                end
+                
+                % Apply normalization
+                data_l = data_l./normFactor_l;
+                if ~isempty(normFactor_r)
+                    data_r = data_r./normFactor_r;
+                else
+                    data_r = [];
+                end
+                
+            end
             
+            % Return the output
+            out_l = data_l;
+            out_r = data_r;
             
+        end
+           
+        function hp = hasParameters(pObj,p)
+            %hasParameters  This method compares the parameters of the
+            %               processor with the parameters given as input
+            %
+            %USAGE
+            %    hp = pObj.hasParameters(p)
+            %
+            %INPUT ARGUMENTS
+            %  pObj : Processor instance
+            %     p : Structure containing parameters to test
             
+            % We want to look at the flags values, and bypass the parameter value if the
+            % flag is set to false.
+            
+            if pObj.bRemoveDC && p.pp_bRemoveDC
+                if pObj.cutoffHzDC ~= p.pp_cutoffHzDC
+                    hp = 0;
+                    return
+                end
+            end
+            
+            if ((pObj.bRemoveDC && p.pp_bRemoveDC) && (pObj.cutoffHzDC ~= p.pp_cutoffHzDC)) ...
+                    || ~(pObj.bRemoveDC && p.pp_bRemoveDC)
+                hp = 0;
+                return
+            end
+            
+            if ((pObj.bPreEmphasis && p.pp_bPreEmphasis) && (pObj.coefPreEmphasis ~= p.pp_coefPreEmphasis)) ...
+                    || ~(pObj.bPreEmphasis && p.pp_bPreEmphasis)
+                hp = 0;
+                return
+            end
+            
+            if ((pObj.bNormalizeRMS && p.pp_bNormalizeRMS) && ...
+                    ((pObj.intRimeSecRMS ~= p.pp_intRimeSecRMS) || ...
+                    (pObj.bBinauralAGC ~= p.pp_bBinauralAGC))) ...
+                    || ~(pObj.bPreEmphasis && p.pp_bPreEmphasis)
+                hp = 0;
+                return
+            end
+            
+            hp = 1;
+            
+        end
+        
+        function reset(pObj)
+            %reset     Resets the internal states of the pre-processor
+            %
+            %USAGE
+            %      pObj.reset
+            %
+            %INPUT ARGUMENTS
+            %  pObj : Pre-processor instance
+            
+            if pObj.bRemoveDC
+                pObj.dcFilter_l.reset;
+                pObj.dcFilter_r.reset;
+            end
+            if pObj.bPreEmphasis
+                pObj.preEmphFilter_l.reset;
+                pObj.preEmphFilter_r.reset;
+            end
+            if pObj.bNormalizeRMS
+                pObj.agcFilter_l.reset;
+               pObj.agcFilter_r.reset;
+            end
+        end
     
         
         

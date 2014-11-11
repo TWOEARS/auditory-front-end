@@ -35,6 +35,7 @@ classdef genericFilter < filterObj
                     'b',b,'a',a);
                 
                 obj.CascadeOrder = cascade;
+                obj.RealTF = true;
             end
         end
     end
