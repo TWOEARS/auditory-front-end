@@ -985,8 +985,11 @@ classdef manager < handle
 
                                 mObj.Processors{ii}.Input{1} = dep_sig_l;
                                 mObj.Processors{ii}.Input{2} = dep_sig_r;
-                                mObj.Processors{ii}.Output{1} = sig_l;
-                                mObj.Processors{ii}.Output{2} = sig_r;
+%                                 mObj.Processors{ii}.Output{1} = sig_l;
+%                                 mObj.Processors{ii}.Output{2} = sig_r;
+                                mObj.Processors{ii}.Output = sig_l;
+                                
+
 
                                 mObj.Processors{ii,1}.Dependencies = {dep_proc_l,dep_proc_r};
                                 dep_sig_l = sig_l;
