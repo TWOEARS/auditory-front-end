@@ -2,19 +2,20 @@
 % for a given feature
 
 clear 
-close all
+% close all
 
 % test_startup;
 
 % Request and parameters for feature extraction
 % request = {'modulation'};
-request = {'time'};
+request = {'drnl'};
+% request = {'adaptation'};
 p = [];
-% p = genParStruct('IHCMethod','breebart','am_type','filter');
+p = genParStruct('IHCMethod','fullwave');%,'am_win','rectwin');
 
 
 % Online processing parameters
-chunkSize = 1000;    % Chunk size in samples
+chunkSize = 10000;    % Chunk size in samples
 
 %% Signal
 % Load a signal
@@ -35,9 +36,6 @@ data = [data;zeros(n_chunks*chunkSize-size(data,1),1)];
 % Create data objects
 dObj_off = dataObject(data,fsHz);
 dObj_on = dataObject(data,fsHz);
-
-% p = genParStruct('trm_minStrengthDB',3,'trm_minSpread',5,'trm_fuseWithinSec',0.03);
-p = genParStruct('pp_bNormalizeRMS',0,'pp_bRemoveDC',1,'pp_bPreEmphasis',0);
 
 % Instantiate managers
 mObj_off = manager(dObj_off);
@@ -77,22 +75,21 @@ fprintf('\tNormalized RMS error in offline vs. online processing: %d dB\n',round
 fprintf('\tComputation time for online: %f s (%d%% of signal duration)\n',t_on,round(100*t_on*fsHz/size(data,1)))
 fprintf('\tComputation time for offline: %f s (%d%% of signal duration)\n',t_off,round(100*t_off*fsHz/size(data,1)))
 
-s_on.plot; title('Online')
-s_off.plot; title('Offline')
-
 % Try and plot the difference
 % Try to add your own case to the loop if it is missing
 switch s_off.Name
     case 'modulation'
-        delta = ModulationSignal(s_off.FsHz,dObj_on.bufferSize_s,'modulation',s_off.cfHz,s_off.modCfHz,['''' mObj_on.Processors{4,1}.filterType '''-based modulation: online vs offline'],s_off.Data(:)-s_on.Data(:)+eps);
+        delta = ModulationSignal(s_off.FsHz,'modulation',s_off.cfHz,s_off.modCfHz,['''' mObj_on.Processors{4,1}.filterType '''-based modulation: online vs offline'],s_off.Data(:)-s_on.Data(:)+eps);
         delta.plot;
         colorbar
         
 
-    case {'innerhaircell' 'gammatone' 'onset_strength' 'offset_strength' 'ratemap'}
+    case {'innerhaircell' 'gammatone' 'onset_strength' 'offset_strength' 'ratemap_magnitude' ...
+            'ratemap_power' 'drnl' 'adaptation'}
         figure,imagesc(20*log10(abs(s_off.Data(:)-s_on.Data(:))+eps).')
+        axis xy
         colorbar
-        title(['Chunk vs signal-based, ' s_off.Name])
+        title(['Error for chunk vs signal-based, ' s_off.Name])
         
     otherwise
         fprintf('\tCould not print the online vs. offline data difference\n')

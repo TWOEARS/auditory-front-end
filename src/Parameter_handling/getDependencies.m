@@ -33,8 +33,15 @@ switch sig
     case 'gammatone'
         dep = {'time'};
         
+    case 'drnl'
+        dep = {'time'};
+        
     case 'innerhaircell'
-        dep = {'gammatone'};
+%         dep = {'gammatone'};
+        dep = {'drnl'};
+        
+    case 'adaptation'
+        dep = {'innerhaircell'};
         
     case 'ams_features'
         dep = {'innerhaircell'};
@@ -44,7 +51,7 @@ switch sig
      
     case 'autocorrelation'
         dep = {'innerhaircell'};
-        
+                
     % Cues
     case 'rms'
         dep = {'time'};
@@ -92,18 +99,18 @@ switch sig
 
         
     case 'valid'     % Dummy name to list all currently valid names
-        dep = {'time' 'gammatone' 'innerhaircell' 'ams_features' ...
+        dep = {'time' 'gammatone' 'innerhaircell' 'adaptation' 'ams_features' ...
             'crosscorrelation' 'autocorrelation' 'rms' 'ratemap' ...
             'itd' 'ic' 'ild' ...
             'onset_strength' 'offset_strength' ...
             'spectral_features' ...
-            'pitch'};
+            'pitch' 'drnl'};
         
     case 'available'    % Lists all currently implemented processors
-         dep = {'time' 'gammatone' 'innerhaircell' 'ams_features' 'crosscorrelation' ...
+         dep = {'time' 'gammatone' 'innerhaircell' 'adaptation' 'ams_features' 'crosscorrelation' ...
              'autocorrelation' 'ratemap' 'ild' ...
              'itd' 'ic' 'spectral_features' 'crosscorrelation_feature' ...
-             'onset_strength' 'offset_strength' 'pitch' 'onset_map' 'offset_map'};
+             'onset_strength' 'offset_strength' 'pitch' 'onset_map' 'offset_map' 'drnl'};
         
     % Otherwise it's not in the list, generate a list of valid names
     otherwise

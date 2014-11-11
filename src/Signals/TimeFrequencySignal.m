@@ -79,6 +79,7 @@ classdef TimeFrequencySignal < Signal
             
         end
         
+
         function h = plot(sObj,h0,p,varargin)
             %plot       This method plots the data from a time-frequency
             %           domain signal object
@@ -105,7 +106,7 @@ classdef TimeFrequencySignal < Signal
                 % Decide if the plot should be on a linear or dB scale
                 switch sObj.Name
                     case {'gammatone','ild','ic','itd','onset_strength',...
-                            'offset_strength','innerhaircell','onset_map'}
+                            'offset_strength','innerhaircell','onset_map','drnl'}
                         do_dB = 0;
                     case {'ratemap'}
                         do_dB = 1;
@@ -195,8 +196,10 @@ classdef TimeFrequencySignal < Signal
                 
                 % Plot the figure
                 switch sObj.Name
-                    case {'gammatone','innerhaircell'}
+                    
+                    case {'gammatone','innerhaircell','drnl'}
                         waveplot(data(:,1:p.wavPlotDS:end).',t(1:p.wavPlotDS:end),sObj.cfHz,p.wavPlotZoom,1);
+                    
                     otherwise
                         imagesc(t,1:M,data)  % Plot the data
                         axis xy              % Use Cartesian coordinates

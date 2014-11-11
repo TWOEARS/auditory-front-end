@@ -30,6 +30,9 @@ switch signal
         
     case 'innerhaircell'
         procName = 'ihcProc';
+
+    case 'adaptation'
+        procName = 'adaptationProc';  
         
     case 'ams_features'
         procName = 'amsProc';
@@ -66,6 +69,9 @@ switch signal
         
     case 'spectral_features'
         procName = 'spectralFeaturesProc';
+
+    case 'drnl'
+        procName = 'drnlProc';
         
     case 'pitch'
         procName = 'pitchProc';
