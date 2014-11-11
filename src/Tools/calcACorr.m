@@ -120,7 +120,7 @@ switch lower(scale)
         acorr = c / M;
     case 'unbiased'
         scale = M-abs(lags'); scale(scale<=0)=1;
-        acorr = c./repmat(scale(:),[1 nChannels1]);
+        acorr = c./repmat(scale(:),[1 nChannels]);
     case 'coeff'
         % Normalization by autocorrelation at lag zero
         acorr = c ./ repmat(c(1,:),[length(lags) 1]);

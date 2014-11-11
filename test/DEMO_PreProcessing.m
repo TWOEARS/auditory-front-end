@@ -7,7 +7,7 @@ clc
 % 
 % 
 % Load a signal
-load(['Test_signals',filesep,'TestBinauralCues']);
+load AFE_earSignals_44p1kHz
 
 % Ear signals
 earSignals = fliplr(earSignals);

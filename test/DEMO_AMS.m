@@ -9,11 +9,8 @@ clc
 % Load a signal
 load('AFE_earSignals_16kHz');
 
-% Take right ear signal
-data = earSignals(:,2);     
-
-% Create a data object
-dObj = dataObject(data,fsHz);
+% Create a data object based on the right ear signal
+dObj = dataObject(earSignals(:,2),fsHz);
 
 
 %% PLACE REQUEST AND CONTROL PARAMETERS
@@ -48,12 +45,10 @@ parLog = genParStruct('gt_lowFreqHz',gt_lowFreqHz,'gt_highFreqHz',gt_highFreqHz,
 % 
 % 
 % Create a manager
-mObj1 = manager(dObj,requests,parLin);
-mObj2 = manager(dObj,requests,parLog);
+mObj = manager(dObj,{requests requests},{parLin parLog});
 
 % Request processing
-mObj1.processSignal();
-mObj2.processSignal();
+mObj.processSignal();
 
 
 %% PLOT RESULTS
@@ -71,7 +66,9 @@ figure;
 waveplot(env(1:3:end,:),tSec(1:3:end),fHz);
 title('IHC')
 
-% Plot AMS pattern
-dObj.ams_features{1}.plot
-dObj.ams_features{2}.plot
+% Plot linear AMS pattern
+dObj.ams_features{1}.plot;title('linear AMS features')
+
+% Plot logarithmic AMS pattern
+dObj.ams_features{2}.plot;title('logarithmic AMS features')
 

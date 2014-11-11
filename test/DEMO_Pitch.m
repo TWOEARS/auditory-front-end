@@ -1,5 +1,5 @@
 clear;
-close all
+% close all
 clc
 
 %% INITIALIZATION
@@ -22,8 +22,8 @@ fsHz = fsHzRef;
 % Request ratemap    
 requests = {'pitch'};
 
-ac_wSizeSec   = 0.032;
-ac_hSizeSec   = 0.016;
+ac_wSizeSec   = 0.02;
+ac_hSizeSec   = 0.01;
 ac_clipAlpha  = 0.0;
 ac_K          = 2;
 pitchRangeHz  = [80 400];
@@ -33,13 +33,13 @@ orderMedFilt  = 3;
 % Parameters
 par = genParStruct('gt_lowFreqHz',80,'gt_highFreqHz',8000,'gt_nChannels',16,'ihc_method','dau','ac_wSizeSec',ac_wSizeSec,'ac_hSizeSec',ac_hSizeSec,'ac_clipAlpha',ac_clipAlpha,'ac_K',ac_K); 
 
+
 %% AFE PROCESSING
 % Create a data object
 dObj = dataObject(data,fsHz);
 
 % Create a manager
 mObj = manager(dObj,requests,par);
-
 
 % Request processing
 mObj.processSignal();
