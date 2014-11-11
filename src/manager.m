@@ -77,6 +77,11 @@ classdef manager < handle
                             mObj.addProcessor(request{ii},p);
                         end
                     end
+                elseif iscell(p)
+                    % Then it is a same request but with multiple parameters
+                    for ii = 1:size(request,2)
+                        mObj.addProcessor(request,p{ii});
+                    end
                 else
                     % Then it is a single request
                      mObj.addProcessor(request,p);
