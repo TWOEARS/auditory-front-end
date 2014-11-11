@@ -59,8 +59,7 @@ classdef leakyIntegratorFilter < filterObj
                 intGain = 1 - intDecay;
 
                 % Set up standard filter object properties
-                obj = populateProperties(obj,'Type','Leaky Integrator',...
-                    'Structure','Direct-Form II Transposed','FsHz',fs,...
+                obj = populateProperties(obj,'Type','Leaky Integrator','FsHz',fs,...
                     'b',intGain,'a',[1 -intDecay]);
                 obj.CascadeOrder = cascade;
 

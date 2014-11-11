@@ -58,8 +58,8 @@ classdef preProc < Processor
             pObj.intTimeSecRMS = p.pp_intTimeSecRMS;
             
             if pObj.bRemoveDC
-                pObj.dcFilter_l = bwFilter(fs,4,pObj.cutoffHzDC,[],[],'high');
-                pObj.dcFilter_r = bwFilter(fs,4,pObj.cutoffHzDC,[],[],'high');
+                pObj.dcFilter_l = bwFilter(fs,4,pObj.cutoffHzDC,[],'high');
+                pObj.dcFilter_r = bwFilter(fs,4,pObj.cutoffHzDC,[],'high');
             else
                 pObj.dcFilter_l = [];
                 pObj.dcFilter_r = [];

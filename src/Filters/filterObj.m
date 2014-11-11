@@ -4,7 +4,6 @@ classdef filterObj < handle
     
     properties (GetAccess=public)       % Public properties
         Type                % Descriptor for type of filter (string)
-        Structure           % Descriptor for structure of filter (string)
         RealTF = true;      % True if the transfer function is real-valued
         CascadeOrder =1     % Number of times the filter has to be cascaded
     end
@@ -262,14 +261,6 @@ classdef filterObj < handle
                 fObj.nChan = size(data,2);
 %                 fObj.reset
             end
-            
-            % Select filtering method
-            switch fObj.Structure
-                case 'Direct-Form II Transposed'
-                    filteringMethod = 'filter';
-                otherwise
-                    error(['Filter structure "',fObj.structure,'" is not recognized.'])
-            end
 
             % Check if filter states are initialized
             if isempty(fObj.States) 
@@ -283,13 +274,13 @@ classdef filterObj < handle
             % Processing
             if fObj.CascadeOrder == 1
                 % Then apply the filter only once
-                [out,fObj.States] = feval(filteringMethod,fObj.b,fObj.a,data,fObj.States);
+                [out,fObj.States] = filter(fObj.b,fObj.a,data,fObj.States);
                 
             else
                 % Then cascade the filter
                 out = data;
                 for ii = 1:fObj.CascadeOrder
-                    [out,fObj.States(:,:,ii)] = feval(filteringMethod,fObj.b,fObj.a,out,fObj.States(:,:,ii));
+                    [out,fObj.States(:,:,ii)] = filter(fObj.b,fObj.a,out,fObj.States(:,:,ii));
                 end
             end
             
@@ -348,7 +339,6 @@ classdef filterObj < handle
             % List of valid properties % TO DO: should this be hardcoded
             % here?
             validProp = {'Type',...
-                         'Structure',...
                          'RealTF',...
                          'FsHz',...
                          'b',...
