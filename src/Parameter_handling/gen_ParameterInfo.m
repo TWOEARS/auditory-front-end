@@ -112,6 +112,9 @@ clear pInfo
     addParameterInfo('sf','sf_br_cf',1500,'Cutoff frequency for brightness computation')
     addParameterInfo('sf','sf_ro_perc',0.8,'Threshold (re. 1) for spectral rolloff computation')
     
+    % Gabor features
+    addParameterInfo('gb',[],[],[],'Gabor features')
+    
 % Plotting:
     addParameterInfo('plotting','ftype','Helvetica','Plots font name','Plot properties')
     addParameterInfo('plotting','fsize_label',12,'Labels font size')
