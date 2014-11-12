@@ -1,4 +1,4 @@
-clear all
+% clear all
 close all
 
 % This script illustrates the chunk-based compatibility of the AFE framework.
@@ -27,7 +27,7 @@ chunkStart = 0;
 chunkStop = 1;
 
 % Simulate a chunk-based aquisition of the input
-while chunkStart < L - chunkSizeMin
+while chunkStop < L
     
     % Generate new chunk boundaries
     chunkStart = chunkStop + 1;
