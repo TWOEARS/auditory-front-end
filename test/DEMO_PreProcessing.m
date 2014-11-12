@@ -38,7 +38,13 @@ pp_coefPreEmphasis = 0.97;
 pp_bNormalizeRMS = true;
 pp_intTimeSecRMS = 500E-3;   
     
+% Apply level scaling to reference
+pp_bApplyLevelScaling = true;
+pp_refSPLdB = 100;
 
+% Apply middle ear filtering
+pp_bMiddleEarFiltering = true;
+pp_midEarFilterModel = 'jepsenmiddleear';
 
 %% Plot signal
 % 
@@ -144,6 +150,44 @@ if pp_bNormalizeRMS
 %     ylim([-18 18])
 end
 
+%% Level scaling to reference
+
+if pp_bApplyLevelScaling
+    % Obtain what the current calibration reference is 
+    current_dboffset = dbspl(1);
+    % Adjust level corresponding to the given reference
+    data = gaindb(data, current_dboffset-pp_refSPLdB);
+    
+    % Simple scaling so no need for plotting
+    
+end
+
+
+%% Middle ear filtering
+
+data = earSignals;
+if pp_bMiddleEarFiltering
+    % Obtain the filter coefficients corresponding to the given model
+    a = 1;
+    b = middleearfilter(fsHz, pp_midEarFilterModel);
+    % Apply filtering
+    data = filter(b, a, data);
+ 
+    figure;
+    h = plot(timeSec(1:3:end),data(1:3:end,:));
+    set(h(1),'color',[0 0 0]);
+    set(h(2),'color',[0.5 0.5 0.5]);
+    title('7. After middle ear filtering (input from panel 1)')
+    xlabel('Time (s)')
+    ylabel('Amplitude')
+    xlim([timeSec(1) timeSec(end)])
+%     ylim([-18 18])
+    
+end
+
+
+
+
 if 0
    mode = 20;
    fig2LaTeX(['Pre_Processing_01'],1,mode)
@@ -152,5 +196,5 @@ if 0
    fig2LaTeX(['Pre_Processing_04'],4,mode)
    fig2LaTeX(['Pre_Processing_05'],5,mode)
    fig2LaTeX(['Pre_Processing_06'],6,mode)
-%    fig2LaTeX(['Pre_Processing_07'],7,mode)
+   fig2LaTeX(['Pre_Processing_07'],7,mode)
 end

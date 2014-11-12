@@ -10,6 +10,12 @@ classdef preProc < Processor
         bNormalizeRMS
         bBinauralAGC
         intTimeSecRMS
+        
+        bApplyLevelScaling
+        refSPLdB
+        
+        bMiddleEarFiltering
+        midEarFilterModel
     end
     
     properties (Access = private)
@@ -20,6 +26,7 @@ classdef preProc < Processor
         agcFilter_l
         agcFilter_r
         epsilon = 1E-8;
+        midEarFilter
     end
     
     
@@ -56,6 +63,10 @@ classdef preProc < Processor
             pObj.bNormalizeRMS = p.pp_bNormalizeRMS;
             pObj.bBinauralAGC = p.pp_bBinauralAGC;
             pObj.intTimeSecRMS = p.pp_intTimeSecRMS;
+            pObj.bApplyLevelScaling = p.pp_bApplyLevelScaling;
+            pObj.refSPLdB = p.pp_refSPLdB;
+            pObj.bMiddleEarFiltering = p.pp_bMiddleEarFiltering;
+            pObj.midEarFilterModel = p.pp_midEarFilterModel;
             
             if pObj.bRemoveDC
                 pObj.dcFilter_l = bwFilter(fs,4,pObj.cutoffHzDC,[],[],'high');
@@ -81,6 +92,14 @@ classdef preProc < Processor
             else
                 pObj.agcFilter_l = [];
                 pObj.agcFilter_r = [];
+            end
+            
+            if pObj.bMiddleEarFiltering
+                a = 1;
+                b = middleearfilter(fs, pObj.midEarFilterModel);
+                pObj.midEarFilter = genericFilter(b,a,fs);
+            else
+                pObj.midEarFilter = [];
             end
             
             pObj.Type = 'Pre-processor';
@@ -164,6 +183,17 @@ classdef preProc < Processor
                 
             end
             
+            if pObj.bApplyLevelScaling
+                current_dboffset = dbspl(1);
+                data_l = gaindb(data_l, current_dboffset-pObj.refSPLdB);
+                data_r = gaindb(data_r, current_dboffset-pObj.refSPLdB);
+            end
+            
+            if pObj.bMiddleEarFiltering
+                data_l = pObj.midEarFilter.filter(data_l);
+                data_r = pObj.midEarFilter.filter(data_r);
+            end
+            
             % Return the output
             out_l = data_l;
             out_r = data_r;
@@ -211,6 +241,20 @@ classdef preProc < Processor
                 return
             end
             
+            if ((pObj.bApplyLevelScaling && p.pp_bApplyLevelScaling) && ...
+                    (pObj.refSPLdB ~= p.pp_refSPLdB)) ...
+                    || ~(pObj.bApplyLevelScaling && p.pp_bApplyLevelScaling)
+                hp = 0;
+                return
+            end
+            
+            if ((pObj.bMiddleEarFiltering && p.pp_bMiddleEarFiltering) && ...
+                    (pObj.midEarFilterModel ~= p.pp_midEarFilterModel)) ...
+                    || ~(pObj.bMiddleEarFiltering && p.pp_bMiddleEarFiltering)
+                hp = 0;
+                return
+            end
+            
             hp = 1;
             
         end
@@ -234,8 +278,12 @@ classdef preProc < Processor
             end
             if pObj.bNormalizeRMS
                 pObj.agcFilter_l.reset;
-               pObj.agcFilter_r.reset;
+                pObj.agcFilter_r.reset;
             end
+            if pObj.bMiddleEarFiltering
+                pObj.midEarFilter.reset;
+            end
+            
         end
     
         

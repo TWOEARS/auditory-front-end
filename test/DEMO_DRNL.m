@@ -129,6 +129,7 @@ figure;
 plot(tSec, dObj.drnl{1}.Data(:, freqIndex));
 xlim([tSec(1) tSec(end)]);
 title(sprintf('DRNL filterbank output at %d-Hz BM characteristic frequency', dObj.drnl{1}.cfHz(freqIndex)));
+xlabel('Time (s)');
 
 
 
