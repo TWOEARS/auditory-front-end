@@ -27,8 +27,8 @@ switch sig
     case 'time'
         dep = {'time'};
         
-    case 'framedSignal'
-        dep = {'time'};
+%     case 'framedSignal'
+%         dep = {'time'};
         
     case 'gammatone'
         dep = {'time'};
@@ -81,8 +81,8 @@ switch sig
         dep = {'autocorrelation'};
         
     % Features
-    case 'crosscorrelation_feature'
-        dep = {'crosscorrelation'};
+%     case 'crosscorrelation_feature'
+%         dep = {'crosscorrelation'};
 
     case 'spectral_features'
         dep = {'ratemap'};
@@ -96,21 +96,24 @@ switch sig
     case 'pitch'
         dep = {'autocorrelation'};
         
-
+    case 'gabor'
+        dep = {'ratemap'};
         
     case 'valid'     % Dummy name to list all currently valid names
         dep = {'time' 'gammatone' 'innerhaircell' 'adaptation' 'ams_features' ...
             'crosscorrelation' 'autocorrelation' 'rms' 'ratemap' ...
             'itd' 'ic' 'ild' ...
-            'onset_strength' 'offset_strength' ...
+            'onset_strength' 'offset_strength' 'onset_map' 'offset_map' ...
             'spectral_features' ...
-            'pitch' 'drnl'};
+            'pitch' 'drnl' 'gabor'};
+
         
     case 'available'    % Lists all currently implemented processors
          dep = {'time' 'gammatone' 'innerhaircell' 'adaptation' 'ams_features' 'crosscorrelation' ...
              'autocorrelation' 'ratemap' 'ild' ...
-             'itd' 'ic' 'spectral_features' 'crosscorrelation_feature' ...
-             'onset_strength' 'offset_strength' 'pitch' 'onset_map' 'offset_map' 'drnl'};
+             'itd' 'ic' 'spectral_features'  ...
+             'onset_strength' 'offset_strength' 'pitch' 'onset_map' 'offset_map' 'drnl' 'gabor'};
+
         
     % Otherwise it's not in the list, generate a list of valid names
     otherwise

@@ -86,8 +86,7 @@ classdef gammatoneFilter < filterObj
                 
                 % Populate filter Object properties
                 %   1- Global properties
-                obj = populateProperties(obj,'Type','Gammatone Filter',...
-                    'Structure','Direct-Form II Transposed','FsHz',fs,...
+                obj = populateProperties(obj,'Type','Gammatone Filter','FsHz',fs,...
                     'b',b,'a',a,'RealTF',realTF);
                 %   2- Specific properties
                 obj.CenterFrequency = cf;

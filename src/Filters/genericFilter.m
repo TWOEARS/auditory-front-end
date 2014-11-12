@@ -1,7 +1,7 @@
 classdef genericFilter < filterObj
     
     methods 
-        function obj = genericFilter(b,a,fs,struct,cascade)
+        function obj = genericFilter(b,a,fs,cascade)
             % genericFilter Design a "generic" filter object from
             %               its transfer function coefficients
             %
@@ -26,12 +26,10 @@ classdef genericFilter < filterObj
                     error('Provide both numerator and denominator filter coefficients')
                 end
                 if nargin<3 || isempty(fs); fs=1; end
-                if nargin<4 || isempty(struct); struct = 'Direct-Form II Transposed'; end
-                if nargin<5 || isempty(cascade); cascade = 1; end
+                if nargin<4 || isempty(cascade); cascade = 1; end
 
                 % POPULATE THE FILTER OBJECT PROPERTIES
-                obj = populateProperties(obj,'Type','Generic Filter',...
-                    'Structure',struct,'FsHz',fs,...
+                obj = populateProperties(obj,'Type','Generic Filter','FsHz',fs,...
                     'b',b,'a',a);
                 
                 obj.CascadeOrder = cascade;
