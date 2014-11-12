@@ -1,4 +1,4 @@
-% clear all
+clear all
 close all
 
 % This script illustrates the chunk-based compatibility of the AFE framework.
@@ -16,7 +16,7 @@ chunkSizeMin = 100;
 chunkSizeMax = 20000;
 
 % Instantiation of data and manager objects
-dataObj = dataObject([],fsHz,10,1);
+dataObj = dataObject([],fsHz,10,2);
 managerObj = manager(dataObj);
 
 % Place a request

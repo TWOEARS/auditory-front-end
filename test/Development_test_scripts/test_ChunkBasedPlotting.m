@@ -29,7 +29,7 @@ data = [data;zeros(n_chunks*chunkSize-size(data,1),1)];
 %% Manager instantiation
 
 % Create data objects
-dObj = dataObject([],fsHz,10,0);
+dObj = dataObject([],fsHz,10,1);
 
 % Instantiate managers
 mObj = manager(dObj);
