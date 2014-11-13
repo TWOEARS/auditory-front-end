@@ -17,7 +17,8 @@ earSignals = earSignals(1:62E3,:);
 earSignals = cat(1,earSignals,5*earSignals)/5;
 
 % Add a sinus @ 0.5 Hz
-data = earSignals + repmat(0.5*sin(2*pi.*(0:size(earSignals,1)-1).' * 0.5/fsHz),[1 size(earSignals,2)]);
+% data = earSignals + repmat(0.5*sin(2*pi.*(0:size(earSignals,1)-1).' * 0.5/fsHz),[1 size(earSignals,2)]);
+data = earSignals;
 
 % Time axis
 timeSec = (1:size(data,1))/fsHz;
@@ -27,11 +28,11 @@ timeSec = (1:size(data,1))/fsHz;
 % 
 % 
 % Activate DC removal filter
-bRemoveDC  = true;
+bRemoveDC  = false;%true;
 cutoffHzDC = 20;
 
 % Activate pre-emphasis
-bPreEmphasis    = true;
+bPreEmphasis    = false;%true;
 coefPreEmphasis = 0.97;
 
 % Activate RMS normalization
@@ -71,9 +72,30 @@ mObj_DC = manager(dataObj,'time',p);
 mObj_DC.processSignal;
 
 % Plot the result
-dataObj.plot([],p_plot,'bGray',1,'decimateRatio',3);
-legend off, ylim([-1.5 1.5])
-title('3. After DC removal')
+% dataObj.plot([],p_plot,'bGray',1,'decimateRatio',3);
+% legend off, ylim([-1.5 1.5])
+% title('3. After DC removal')
+
+if bRemoveDC
+    % 4th order @ 20 Hz cutoff
+    [bDC,aDC] = butter(4,cutoffHzDC/(fsHz * 0.5),'high');
+    
+    if isstable(bDC,aDC)
+        data = filter(bDC,aDC,data);
+    else
+        error('IIR filter is not stable, reduce the filter order!')
+    end
+    
+%     figure;
+%     h = plot(timeSec(1:3:end),data(1:3:end,:));
+%     set(h(1),'color',[0 0 0]);
+%     set(h(2),'color',[0.5 0.5 0.5]);
+%     title('3. After DC removal')
+%     xlabel('Time (s)')
+%     ylabel('Amplitude')
+%     xlim([timeSec(1) timeSec(end)])
+%     ylim([-1.5 1.5])
+end
 
 
 %% Pre-whitening
@@ -91,9 +113,9 @@ mObj_PW = manager(dataObj,'time',p);
 mObj_PW.processSignal;
 
 % Plot the result
-dataObj.plot([],p_plot,'bGray',1,'decimateRatio',3);
-legend off, ylim([-1.5 1.5])
-title('4. After pre-emphasis')
+% dataObj.plot([],p_plot,'bGray',1,'decimateRatio',3);
+% legend off, ylim([-1.5 1.5])
+% title('4. After pre-emphasis')
 
 
 
@@ -106,7 +128,7 @@ if bPreEmphasis
     
     
     % Apply 1st order pre-whitening filter
-    data = filter(b, a, earSignals);
+    data = filter(b, a, data);
     
 %     figure; 
 %     h = plot(timeSec(1:3:end),data(1:3:end,:));
@@ -143,23 +165,23 @@ mObj_monoAGC = manager(dataObj,'time',pmono);
 mObj_binAGC = manager(dataObj2,'time',pbin);
 
 mObj_monoAGC.processSignal;
-mObj_binAGC.processSignal;
+% mObj_binAGC.processSignal;
 
 % Plot the result
 dataObj.plot([],p_plot,'bGray',1,'decimateRatio',3);
-legend off, ylim([-18 18])
+ylim([-18 18])
 title('5. After monaural AGC')
 
-dataObj2.plot([],p_plot,'bGray',1,'decimateRatio',3);
-legend off, ylim([-18 18])
-title('6. After binaural AGC')
+% dataObj2.plot([],p_plot,'bGray',1,'decimateRatio',3);
+% legend off, ylim([-18 18])
+% title('6. After binaural AGC')
 
 if bNormalizeRMS
     % Apply AGC to all channels independently
     out1 = agc(data,fsHz,intTimeSecRMS,false);
     
     % Preserve level differences across channels
-    out2 = agc(data,fsHz,intTimeSecRMS,true);
+%     out2 = agc(data,fsHz,intTimeSecRMS,true);
     
     figure;
     h = plot(timeSec(1:3:end),out1(1:3:end,:));
@@ -171,15 +193,15 @@ if bNormalizeRMS
     xlim([timeSec(1) timeSec(end)])
     ylim([-18 18])
 
-    figure;
-    h = plot(timeSec(1:3:end),out2(1:3:end,:));
-    set(h(1),'color',[0 0 0]);
-    set(h(2),'color',[0.5 0.5 0.5]);
-    title('6. After binaural AGC')
-    xlabel('Time (s)')
-    ylabel('Amplitude')
-    xlim([timeSec(1) timeSec(end)])
-    ylim([-18 18])
+%     figure;
+%     h = plot(timeSec(1:3:end),out2(1:3:end,:));
+%     set(h(1),'color',[0 0 0]);
+%     set(h(2),'color',[0.5 0.5 0.5]);
+%     title('6. After binaural AGC')
+%     xlabel('Time (s)')
+%     ylabel('Amplitude')
+%     xlim([timeSec(1) timeSec(end)])
+%     ylim([-18 18])
 end
 
 if 0
