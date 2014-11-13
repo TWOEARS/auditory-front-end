@@ -39,12 +39,12 @@ bNormalizeRMS = true;
 intTimeSecRMS = 500E-3;   
     
 % Apply level scaling to reference
-pp_bApplyLevelScaling = true;
+pp_bLevelScaling = true;
 pp_refSPLdB = 100;
 
 % Apply middle ear filtering
 pp_bMiddleEarFiltering = true;
-pp_midEarFilterModel = 'jepsenmiddleear';
+pp_middleEarModel = 'jepsen';
 
 % Plot properties
 p_plot = genParStruct('fsize_label',10,'fsize_axes',10,'fsize_title',10);
@@ -117,12 +117,12 @@ dataObj2 = dataObject(data,fsHz);
 pmono = genParStruct('pp_bRemoveDC',bRemoveDC,'pp_cutoffHzDC',cutoffHzDC,...
                  'pp_bPreEmphasis',bPreEmphasis,'pp_coefPreEmphasis',coefPreEmphasis,...
                  'pp_bNormalizeRMS',bNormalizeRMS,'pp_intTimeSecRMS',intTimeSecRMS,...
-                 'pp_bBinauralAGC',0);
+                 'pp_bBinauralRMS',0);
              
 pbin = genParStruct('pp_bRemoveDC',bRemoveDC,'pp_cutoffHzDC',cutoffHzDC,...
                  'pp_bPreEmphasis',bPreEmphasis,'pp_coefPreEmphasis',coefPreEmphasis,...
                  'pp_bNormalizeRMS',bNormalizeRMS,'pp_intTimeSecRMS',intTimeSecRMS,...
-                 'pp_bBinauralAGC',1);
+                 'pp_bBinauralRMS',1);
              
 mObj_monoAGC = manager(dataObj,'time',pmono);
 mObj_binAGC = manager(dataObj2,'time',pbin);
@@ -143,8 +143,11 @@ title('6. After binaural AGC')
 
 %% Level scaling to reference
 
-if pp_bApplyLevelScaling
+
+if pp_bLevelScaling
+    % Get the pre-processed data from earlier stage
     data = [dataObj2.time{1}.Data(:) dataObj2.time{2}.Data(:)];
+
     % Obtain what the current calibration reference is 
     current_dboffset = dbspl(1);
     % Adjust level corresponding to the given reference
@@ -160,8 +163,11 @@ end
 data = earSignals;
 if pp_bMiddleEarFiltering
     % Obtain the filter coefficients corresponding to the given model
+    if strcmp(pp_middleEarModel, 'jepsen')
+        pp_middleEarModel = 'jepsenmiddleear'; 
+    end
     a = 1;
-    b = middleearfilter(fsHz, pp_midEarFilterModel);
+    b = middleearfilter(fsHz, pp_middleEarModel);
     % Apply filtering
     data = filter(b, a, data);
  
