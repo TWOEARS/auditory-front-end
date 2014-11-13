@@ -20,12 +20,14 @@ dObj = dataObject(earSignals(1:20E3,2),fsHz);
 requests = {'filterbank'};
 
 % Parameters of Gammatone processor
+fb_type       = 'gammatone';
 fb_nChannels  = 16;  
 fb_lowFreqHz  = 80;
 fb_highFreqHz = 8000;
 
 % Parameters 
-par = genParStruct('fb_lowFreqHz',fb_lowFreqHz,...
+par = genParStruct('fb_type',fb_type,...
+                   'fb_lowFreqHz',fb_lowFreqHz,...
                    'fb_highFreqHz',fb_highFreqHz,...
                    'fb_nChannels',fb_nChannels);
                    
@@ -53,6 +55,7 @@ p = genParStruct('wavPlotZoom',wavPlotZoom,'wavPlotDS',wavPlotDS);
 % Plot time domain signal
 dObj.time{1}.plot
 
-% Plot gammatone signal
-dObj.gammatone{1}.plot([],p);
-title('Gamatone response')
+% Plot filterbank output
+dObj.(fb_type){1}.plot([],p);
+
+    
