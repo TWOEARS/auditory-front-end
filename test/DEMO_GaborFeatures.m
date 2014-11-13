@@ -1,24 +1,24 @@
-clear
+clear;
 close all
 clc
 
+
+%% LOAD SIGNAL
+% 
+% 
 % Load a signal
-load('TestBinauralCues');
+load('AFE_earSignals_16kHz');
 
-% Take right ear signal
-data = earSignals(1:62E3,2);     
+% Create a data object based on parts of the ear signals
+dObj = dataObject(earSignals(1:20E3,:),fsHz);
 
-% New sampling frequency
-fsHzRef = 16E3;
 
-% Resample
-data = resample(data,fsHzRef,fsHz);
-
-% Copy fs
-fsHz = fsHzRef;
-
-% Request ratemap    
+%% PLACE REQUEST AND CONTROL PARAMETERS
+% 
+% 
+% Request gabor features  
 requests = {'gabor'};
+
 
 % Following the ETSI standard
 nChannels  = [23];
@@ -35,22 +35,23 @@ par = genParStruct('gt_lowFreqHz',lowFreqHz,'gt_highFreqHz',highFreqHz,'gt_nChan
                    'rm_wSizeSec',rm_wSizeSec,'rm_hSizeSec',rm_wStepSec,'rm_scaling','power',...
                    'rm_decaySec',rm_decaySec); 
 
-% Create a data object
-dObj = dataObject(data,fsHz);
 
+%% PERFORM PROCESSING
+% 
+% 
 % Create a manager
 mObj = manager(dObj,requests,par);
 
 % Request processing
 mObj.processSignal();
 
-
 % Plot the results
 dObj.ratemap{1}.plot
 dObj.gabor{1}.plot
 
-
+ 
 if 0
     fig2LaTeX('Gabor_01',1,16);
     fig2LaTeX('Gabor_02',2,16);
 end
+

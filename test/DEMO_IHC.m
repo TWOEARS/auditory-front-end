@@ -3,31 +3,38 @@ close all
 clc
 
 
+%% LOAD SIGNAL
+% 
+% 
 % Load a signal
-load('TestBinauralCues');
+load('AFE_earSignals_16kHz');
 
-% Take right ear signal
-data = earSignals(1:62E3,2);     
-% data = earSignals(1:15E3,2);     
+% Create a data object based on parts of the right ear signal
+dObj = dataObject(earSignals(1:20E3,2),fsHz);
 
-% New sampling frequency
-fsHzRef = 16E3;
 
-% Resample
-data = resample(data,fsHzRef,fsHz);
+%% PLACE REQUEST AND CONTROL PARAMETERS
+% 
+% 
+% Request innerhaircell processor    
+requests = {'innerhaircell'};
 
-% Copy fs
-fsHz = fsHzRef;
+% Parameters of Gammatone processor
+gt_nChannels  = 16;  
+gt_lowFreqHz  = 80;
+gt_highFreqHz = 8000;
 
-% Request ratemap    
-requests = {'ratemap_power'};
+% Parameters of innerhaircell processor
+ihc_method    = 'dau';
 
-% Parameters
-par = genParStruct('gt_lowFreqHz',80,'gt_highFreqHz',8000,'gt_nChannels',16,'ihc_method','dau'); 
+% Parameters 
+par = genParStruct('gt_lowFreqHz',gt_lowFreqHz,'gt_highFreqHz',gt_highFreqHz,...
+                   'gt_nChannels',gt_nChannels,'ihc_method',ihc_method); 
+               
 
-% Create a data object
-dObj = dataObject(data,fsHz);
-
+%% PERFORM PROCESSING
+% 
+% 
 % Create a manager
 mObj = manager(dObj,requests,par);
 
@@ -35,12 +42,20 @@ mObj = manager(dObj,requests,par);
 mObj.processSignal();
 
 
-%% Plot Gammatone and IHC responses
+%% PLOT RESULTS
 % 
 % 
+% Plot-related parameters
+wavPlotZoom = 5; % Zoom factor
+wavPlotDS   = 3; % Down-sampling factor
 
-zoom  = [];
-p = genParStruct('wavPlotZoom',zoom);
+% Summarize plot parameters
+p = genParStruct('wavPlotZoom',wavPlotZoom,'wavPlotDS',wavPlotDS);
 
+% Plot gammatone responses
 dObj.gammatone{1}.plot([],p);
+title('Gamatone response')
+
+% Plot IHC responses
 dObj.innerhaircell{1}.plot([],p);
+title('IHC signal')

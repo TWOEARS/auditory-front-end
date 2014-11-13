@@ -3,53 +3,68 @@ close all
 clc
 
 
+%% LOAD SIGNAL
+% 
+% 
 % Load a signal
-load('TestBinauralCues');
+load('AFE_earSignals_16kHz');
 
-% Take right ear signal
-data = earSignals(1:62E3,2);     
+% Create a data object based on parts of the right ear signal
+dObj = dataObject(earSignals(1:20E3,2),fsHz);
 
-% New sampling frequency
-fsHzRef = 16E3;
 
-% Resample
-data = resample(data,fsHzRef,fsHz);
-
-% Copy fs
-fsHz = fsHzRef;
-
+%% PLACE REQUEST AND CONTROL PARAMETERS
+% 
+% 
 % Request ratemap    
 requests = {'ratemap'};
 
-% Parameters
-par = genParStruct('gt_lowFreqHz',80,'gt_highFreqHz',8000,'gt_nChannels',64,'ihc_method','dau'); 
-par2 = genParStruct('rm_scaling','magnitude','gt_lowFreqHz',80,'gt_highFreqHz',8000,'gt_nChannels',64,'ihc_method','dau'); 
+% Parameters of Gammatone processor
+gt_nChannels  = 64;  
+gt_lowFreqHz  = 80;
+gt_highFreqHz = 8000;
+
+% Parameters of innerhaircell processor
+ihc_method    = 'dau';
+
+% Parameters of ratemap processor
+rm_wSizeSec  = 0.02;
+rm_hSizeSec  = 0.01;
+rm_scaling   = 'magnitude';
+rm_decaySec  = 8E-3;
+rm_wname     = 'hann';
+
+% Parameters 
+par = genParStruct('gt_lowFreqHz',gt_lowFreqHz,'gt_highFreqHz',gt_highFreqHz,...
+                   'gt_nChannels',gt_nChannels,'ihc_method',ihc_method,...
+                   'ac_wSizeSec',rm_wSizeSec,'ac_hSizeSec',rm_hSizeSec,...
+                   'rm_scaling',rm_scaling,'rm_decaySec',rm_decaySec,...
+                   'ac_wname',rm_wname); 
 
 
-% Create a data object
-dObj = dataObject(data,fsHz);
-
+%% PERFORM PROCESSING
+% 
+% 
 % Create a manager
 mObj = manager(dObj,requests,par);
-mObj.addProcessor(requests,par2);
 
 % Request processing
 mObj.processSignal();
 
 
-%% Plot Gammatone response
+%% PLOT RESULTS
 % 
 % 
-% Envelope
-env  = [dObj.innerhaircell{1}.Data(:,:)];
-fHz  = dObj.gammatone{1}.cfHz;
-tSec = (1:size(env,1))/fsHz;
+% Plot-related parameters
+wavPlotZoom = 5; % Zoom factor
+wavPlotDS   = 3; % Down-sampling factor
 
-zoom  = [];
-bNorm = [];
+% Summarize plot parameters
+p = genParStruct('wavPlotZoom',wavPlotZoom,'wavPlotDS',wavPlotDS);
 
-figure;
-waveplot(env(1:3:end,:),tSec(1:3:end),fHz,zoom,bNorm);
-
-
+% Plot ratemap
 dObj.ratemap{1}.plot;
+
+% Plot IHC signal
+dObj.innerhaircell{1}.plot([],p);
+title('IHC signal')
