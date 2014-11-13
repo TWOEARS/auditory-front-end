@@ -54,7 +54,11 @@ ax2 = [1 -exp(-1/tau)];
 bx2 = sum(ax2);
 
 % Initialize filter using an average of 1 tau
-sm = mean(in(1:min(size(in,1),round(tau))).^2);
+if bMultiChannel
+    sm = repmat(max(mean(in(1:min(size(in,1),round(tau)),:).^2)),[1 size(in,2)]);
+else
+    sm = mean(in(1:min(size(in,1),round(tau)),:).^2);
+end
 
 % Estimate normalization constant
 normFactor = sqrt(filter(bx2,ax2,in.^2,-ax2(2)*sm)) + epsilon;

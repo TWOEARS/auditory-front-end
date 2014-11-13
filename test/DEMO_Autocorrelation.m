@@ -40,6 +40,10 @@ par = genParStruct('gt_lowFreqHz',gt_lowFreqHz,'gt_highFreqHz',gt_highFreqHz,...
                    'ac_wSizeSec',ac_wSizeSec,'ac_hSizeSec',ac_hSizeSec,...
                    'ac_clipAlpha',ac_clipAlpha,'ac_K',ac_K,'ac_wname',ac_wname); 
 
+
+%% PERFORM PROCESSING
+% 
+%                
 % Create a manager
 mObj = manager(dObj,requests,par);
 
@@ -50,7 +54,7 @@ mObj.processSignal();
 %% PLOT RESULTS
 % 
 % 
-% Plot the ACF in a single frame
+% Plot the ACF of a single frame
 frameIdx2Plot = 10;     
 
 % Get the corresponding sample range for plotting the ihc in that range
