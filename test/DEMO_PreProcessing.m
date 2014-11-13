@@ -165,11 +165,16 @@ if pp_bMiddleEarFiltering
     % Obtain the filter coefficients corresponding to the given model
     if strcmp(pp_middleEarModel, 'jepsen')
         pp_middleEarModel = 'jepsenmiddleear'; 
+        meFilterPeakdB = 55.9986;       % dB to add for unity gain at peak
+    elseif strcmp(pp_middleEarModel, 'lopezpoveda')
+        meFilterPeakdB = 66.2888;
     end
     a = 1;
     b = middleearfilter(fsHz, pp_middleEarModel);
     % Apply filtering
     data = filter(b, a, data);
+    % Compensation for unity gain (when DRNL is not used)
+    data = data * 10^(meFilterPeakdB/20);
  
     figure;
     h = plot(timeSec(1:3:end),data(1:3:end,:));

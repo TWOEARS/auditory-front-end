@@ -414,6 +414,14 @@ classdef drnlProc < Processor
                 p.fb_cfHz = erb2freq(ERBS);                                       % In Hz
             end
             
+            % Convert mocIpsi / mocContra if they are given as scalars
+            if isscalar(p.fb_mocIpsi)            
+                p.fb_mocIpsi = p.fb_mocIpsi*ones(size(p.fb_cfHz));
+            end
+            if isscalar(p.fb_mocContra)
+                p.fb_mocContra = p.fb_mocContra*ones(size(p.fb_cfHz));
+            end
+            
             % Initialization of a parameters difference vector
             delta = zeros(size(p_list,2),1);
             
