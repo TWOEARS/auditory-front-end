@@ -22,12 +22,12 @@ clear pInfo
     addParameterInfo('preproc','pp_bPreEmphasis',0,'Flag to activate the pre-emphasis high-pass filter')
     addParameterInfo('preproc','pp_coefPreEmphasis',0.97,'Coefficient for pre-emphasis compensation (usually between 0.9 and 1)')
     addParameterInfo('preproc','pp_bNormalizeRMS',0,'Flag for activating automatic gain control')
-    addParameterInfo('preproc','pp_bBinauralAGC',1,'Flag indicating the use of unified automatic gain control over left and right channel, for preserving channel relative differences.')
+    addParameterInfo('preproc','pp_bBinauralRMS',1,'Flag indicating the use of unified automatic gain control over left and right channel, for preserving channel relative differences.')
     addParameterInfo('preproc','pp_intTimeSecRMS',500E-3,'Time constant (s) for automatic gain control')
-    addParameterInfo('preproc','pp_bApplyLevelScaling',0,'Flag to apply level scaling to the given reference')
+    addParameterInfo('preproc','pp_bLevelScaling',0,'Flag to apply level scaling to the given reference')
     addParameterInfo('preproc','pp_refSPLdB',100,'Reference dB SPL value to correspond to input signal RMS value of 1')
     addParameterInfo('preproc','pp_bMiddleEarFiltering',0,'Flag to apply middle ear filtering')
-    addParameterInfo('preproc','pp_midEarFilterModel','jepsenmiddleear','Middle ear filter model (jepsenmiddleear or lopezpoveda)')
+    addParameterInfo('preproc','pp_middleEarModel','jepsen','Middle ear filter model (jepsen or lopezpoveda)')
 
     % Time-domain framing processor
 %     addParameterInfo('fr','fr_wname','hamming','Window name descriptor (see window.m)','Time-domain signal framing processor')
