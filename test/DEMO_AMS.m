@@ -57,7 +57,7 @@ mObj.processSignal();
 % Plot time domain signal
 dObj.time{1}.plot;grid on;ylim([-1 1]);title('Time domain signal')
 
-% Envelope
+% Plot IHC representation using waveplot
 env  = [dObj.innerhaircell{1}.Data(:,:)];
 fHz  = dObj.gammatone{1}.cfHz;
 tSec = (1:size(env,1))/fsHz;
