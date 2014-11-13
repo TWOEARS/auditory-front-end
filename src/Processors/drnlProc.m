@@ -264,7 +264,6 @@ classdef drnlProc < Processor
                         
             % Setting up global properties
             populateProperties(pObj,'Type','drnl filterbank',...
-                'Dependencies',getDependencies('drnl'),...
                 'FsHzIn',fs,'FsHzOut',fs);
             
 %             end
@@ -402,17 +401,17 @@ classdef drnlProc < Processor
             % Hence only this parameter is checked regarding
             % channel positionning.
             
-            p_list = {'drnl_cfHz','drnl_mocIpsi','drnl_mocContra'};
+            p_list = {'fb_cfHz','fb_mocIpsi','fb_mocContra'};
             p_list_proc = {'cfHz','mocIpsi','mocContra'};
             
             % The center frequency position needs to be computed for
             % scenario where it is not explicitely provided
-            if isempty(p.drnl_cfHz)&&~isempty(p.drnl_nChannels)
-                ERBS = linspace(freq2erb(p.drnl_lowFreqHz),freq2erb(p.drnl_highFreqHz),p.drnl_nChannels);    % In ERBS
-                p.drnl_cfHz = erb2freq(ERBS);                                              % In Hz
-            elseif isempty(p.drnl_cfHz)&&isempty(p.drnl_nChannels)
-                ERBS = freq2erb(p.drnl_lowFreqHz):double(p.drnl_nERBs):freq2erb(p.drnl_highFreqHz);   % In ERBS
-                p.drnl_cfHz = erb2freq(ERBS);                                       % In Hz
+            if isempty(p.fb_cfHz)&&~isempty(p.fb_nChannels)
+                ERBS = linspace(freq2erb(p.fb_lowFreqHz),freq2erb(p.fb_highFreqHz),p.fb_nChannels);    % In ERBS
+                p.fb_cfHz = erb2freq(ERBS);                                              % In Hz
+            elseif isempty(p.fb_cfHz)&&isempty(p.fb_nChannels)
+                ERBS = freq2erb(p.fb_lowFreqHz):double(p.fb_nERBs):freq2erb(p.fb_highFreqHz);   % In ERBS
+                p.fb_cfHz = erb2freq(ERBS);                                       % In Hz
             end
             
             % Initialization of a parameters difference vector
@@ -474,10 +473,10 @@ classdef drnlProc < Processor
             A=[ones(length(theta), 1), b1, b2];
             
             % Preallocate memory by instantiating last filter
-            obj(1,nFilter) = genericFilter(B(nFilter,:), A(nFilter, :), fs, [], cascadeOrder);
+            obj(1,nFilter) = genericFilter(B(nFilter,:), A(nFilter, :), fs, cascadeOrder);
             % Instantiating remaining filters
             for ii = 1:nFilter-1
-                obj(1,ii) = genericFilter(B(ii,:), A(ii,:), fs, [], cascadeOrder);
+                obj(1,ii) = genericFilter(B(ii,:), A(ii,:), fs, cascadeOrder);
             end                                  
             
 %             % Use gammatoneFilter object instead of genericFilter
@@ -522,10 +521,10 @@ classdef drnlProc < Processor
             A = [ones(length(theta), 1), D, E];
                                     
             % Preallocate memory by instantiating last filter
-            obj(1,nFilter) = genericFilter(B(nFilter,:), A(nFilter, :), fs,[],cascadeOrder);
+            obj(1,nFilter) = genericFilter(B(nFilter,:), A(nFilter, :), fs,cascadeOrder);
             % Instantiating remaining filters
             for ii = 1:nFilter-1
-                obj(1,ii) = genericFilter(B(ii,:), A(ii,:), fs,[],cascadeOrder);
+                obj(1,ii) = genericFilter(B(ii,:), A(ii,:), fs,cascadeOrder);
             end                        
             
 %             % use bwFilter instead of genericFilter

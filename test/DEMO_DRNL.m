@@ -59,7 +59,7 @@ requests_GT = {'gammatone'};
 % Parameters 
 par_DRNL = genParStruct('drnl_cfHz', [500 1000 2000 4000 8000], ...
     'drnl_mocIpsi', 1); 
-par_GT = genParStruct('gt_cfHz',[500 1000 2000 4000 8000]); 
+par_GT = genParStruct('fb_cfHz',[500 1000 2000 4000 8000]); 
 
 % Create data objects - here use dataStapes (stapes output, velocity)
 dObj = dataObject(dataStapes,fsHz);

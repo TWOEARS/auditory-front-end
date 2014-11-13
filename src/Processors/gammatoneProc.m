@@ -120,7 +120,6 @@ classdef gammatoneProc < Processor
             % Setting up additional properties
             % 1- Global properties
             populateProperties(pObj,'Type','Gammatone filterbank',...
-                'Dependencies',getDependencies('gammatone'),...
                 'FsHzIn',fs,'FsHzOut',fs);
             % 2- Specific properties
             pObj.cfHz = cfHz;
@@ -217,17 +216,17 @@ classdef gammatoneProc < Processor
             % common. Hence only this parameter is checked regarding
             % channel positionning.
             
-            p_list = {'gt_cfHz','gt_nGamma','gt_bwERBs'};
+            p_list = {'fb_cfHz','fb_nGamma','fb_bwERBs'};
             p_list_proc = {'cfHz','nGamma','bwERBs'};
             
             % The center frequency position needs to be computed for
             % scenario where it is not explicitely provided
-            if isempty(p.gt_cfHz)&&~isempty(p.gt_nChannels)
-                ERBS = linspace(freq2erb(p.gt_lowFreqHz),freq2erb(p.gt_highFreqHz),p.gt_nChannels);    % In ERBS
-                p.gt_cfHz = erb2freq(ERBS);                                              % In Hz
-            elseif isempty(p.gt_cfHz)&&isempty(p.gt_nChannels)
-                ERBS = freq2erb(p.gt_lowFreqHz):double(p.gt_nERBs):freq2erb(p.gt_highFreqHz);   % In ERBS
-                p.gt_cfHz = erb2freq(ERBS);                                       % In Hz
+            if isempty(p.fb_cfHz)&&~isempty(p.fb_nChannels)
+                ERBS = linspace(freq2erb(p.fb_lowFreqHz),freq2erb(p.fb_highFreqHz),p.fb_nChannels);    % In ERBS
+                p.fb_cfHz = erb2freq(ERBS);                                              % In Hz
+            elseif isempty(p.fb_cfHz)&&isempty(p.fb_nChannels)
+                ERBS = freq2erb(p.fb_lowFreqHz):double(p.fb_nERBs):freq2erb(p.fb_highFreqHz);   % In ERBS
+                p.fb_cfHz = erb2freq(ERBS);                                       % In Hz
             end
             
             

@@ -20,9 +20,9 @@ dObj = dataObject(earSignals(:,2),fsHz);
 requests = 'ams_features';
 
 % Parameters of Gammatone processor
-gt_nChannels  = 23;  
-gt_lowFreqHz  = 80;
-gt_highFreqHz = 8000;
+fb_nChannels  = 23;  
+fb_lowFreqHz  = 80;
+fb_highFreqHz = 8000;
 
 % Parameters of AMS processor
 ams_fbType_lin = 'lin';
@@ -31,13 +31,13 @@ ams_wSizeSec   = 32E-3;
 ams_hSizeSec   = 16E-3;
 
 % Parameters for linearly-scaled AMS
-parLin = genParStruct('gt_lowFreqHz',gt_lowFreqHz,'gt_highFreqHz',gt_highFreqHz,...
-                      'gt_nChannels',gt_nChannels,'ams_wSizeSec',ams_wSizeSec,...
+parLin = genParStruct('fb_lowFreqHz',fb_lowFreqHz,'fb_highFreqHz',fb_highFreqHz,...
+                      'fb_nChannels',fb_nChannels,'ams_wSizeSec',ams_wSizeSec,...
                       'ams_hSizeSec',ams_hSizeSec,'ams_fbType',ams_fbType_lin); 
                   
 % Parameters for logarithmically-scaled AMS                  
-parLog = genParStruct('gt_lowFreqHz',gt_lowFreqHz,'gt_highFreqHz',gt_highFreqHz,...
-                      'gt_nChannels',gt_nChannels,'ams_wSizeSec',ams_wSizeSec,...
+parLog = genParStruct('fb_lowFreqHz',fb_lowFreqHz,'fb_highFreqHz',fb_highFreqHz,...
+                      'fb_nChannels',fb_nChannels,'ams_wSizeSec',ams_wSizeSec,...
                       'ams_hSizeSec',ams_hSizeSec,'ams_fbType',ams_fbType_log);                   
 
                
@@ -59,7 +59,7 @@ dObj.time{1}.plot;grid on;ylim([-1 1]);title('Time domain signal')
 
 % Plot IHC representation using waveplot
 env  = [dObj.innerhaircell{1}.Data(:,:)];
-fHz  = dObj.gammatone{1}.cfHz;
+fHz  = mObj.Processors{2}.cfHz;
 tSec = (1:size(env,1))/fsHz;
 
 figure;

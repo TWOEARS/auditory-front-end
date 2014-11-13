@@ -20,9 +20,9 @@ dObj = dataObject(earSignals(1:20E3,2),fsHz);
 requests = {'pitch'};
 
 % Parameters of Gammatone processor
-gt_nChannels  = 16;  
-gt_lowFreqHz  = 80;
-gt_highFreqHz = 8000;
+fb_nChannels  = 16;  
+fb_lowFreqHz  = 80;
+fb_highFreqHz = 8000;
 
 % Parameters of innerhaircell processor
 ihc_method    = 'dau';
@@ -40,8 +40,8 @@ pi_confThres   = 0.7;
 pi_medianOrder = 3;
 
 % Parameters 
-par = genParStruct('gt_lowFreqHz',gt_lowFreqHz,'gt_highFreqHz',gt_highFreqHz,...
-                   'gt_nChannels',gt_nChannels,'ihc_method',ihc_method,...
+par = genParStruct('fb_lowFreqHz',fb_lowFreqHz,'fb_highFreqHz',fb_highFreqHz,...
+                   'fb_nChannels',fb_nChannels,'ihc_method',ihc_method,...
                    'ac_wSizeSec',ac_wSizeSec,'ac_hSizeSec',ac_hSizeSec,...
                    'ac_clipAlpha',ac_clipAlpha,'ac_K',ac_K,'ac_wname',ac_wname,...
                    'pi_rangeHz',pi_rangeHz,'pi_confThres',pi_confThres,...

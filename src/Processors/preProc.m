@@ -246,14 +246,14 @@ classdef preProc < Processor
             
             if ((pObj.bApplyLevelScaling && p.pp_bApplyLevelScaling) && ...
                     (pObj.refSPLdB ~= p.pp_refSPLdB)) ...
-                    || ~(pObj.bApplyLevelScaling && p.pp_bApplyLevelScaling)
+                    || ~(pObj.bApplyLevelScaling == p.pp_bApplyLevelScaling)
                 hp = 0;
                 return
             end
             
             if ((pObj.bMiddleEarFiltering && p.pp_bMiddleEarFiltering) && ...
                     (pObj.midEarFilterModel ~= p.pp_midEarFilterModel)) ...
-                    || ~(pObj.bMiddleEarFiltering && p.pp_bMiddleEarFiltering)
+                    || ~(pObj.bMiddleEarFiltering == p.pp_bMiddleEarFiltering)
                 hp = 0;
                 return
             end

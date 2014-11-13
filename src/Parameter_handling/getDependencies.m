@@ -30,15 +30,11 @@ switch sig
 %     case 'framedSignal'
 %         dep = {'time'};
         
-    case 'gammatone'
-        dep = {'time'};
-        
-    case 'drnl'
+    case 'filterbank'
         dep = {'time'};
         
     case 'innerhaircell'
-%         dep = {'gammatone'};
-        dep = {'drnl'};
+        dep = {'filterbank'};
         
     case 'adaptation'
         dep = {'innerhaircell'};
@@ -100,19 +96,19 @@ switch sig
         dep = {'ratemap'};
         
     case 'valid'     % Dummy name to list all currently valid names
-        dep = {'time' 'gammatone' 'innerhaircell' 'adaptation' 'ams_features' ...
+        dep = {'time' 'filterbank' 'innerhaircell' 'adaptation' 'ams_features' ...
             'crosscorrelation' 'autocorrelation' 'rms' 'ratemap' ...
             'itd' 'ic' 'ild' ...
             'onset_strength' 'offset_strength' 'onset_map' 'offset_map' ...
             'spectral_features' ...
-            'pitch' 'drnl' 'gabor'};
+            'pitch' 'gabor'};
 
         
     case 'available'    % Lists all currently implemented processors
-         dep = {'time' 'gammatone' 'innerhaircell' 'adaptation' 'ams_features' 'crosscorrelation' ...
+         dep = {'time' 'filterbank' 'innerhaircell' 'adaptation' 'ams_features' 'crosscorrelation' ...
              'autocorrelation' 'ratemap' 'ild' ...
              'itd' 'ic' 'spectral_features'  ...
-             'onset_strength' 'offset_strength' 'pitch' 'onset_map' 'offset_map' 'drnl' 'gabor'};
+             'onset_strength' 'offset_strength' 'pitch' 'onset_map' 'offset_map' 'gabor'};
 
         
     % Otherwise it's not in the list, generate a list of valid names

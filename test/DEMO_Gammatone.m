@@ -20,14 +20,14 @@ dObj = dataObject(earSignals(1:20E3,2),fsHz);
 requests = {'gammatone'};
 
 % Parameters of Gammatone processor
-gt_nChannels  = 16;  
-gt_lowFreqHz  = 80;
-gt_highFreqHz = 8000;
+fb_nChannels  = 16;  
+fb_lowFreqHz  = 80;
+fb_highFreqHz = 8000;
 
 % Parameters 
-par = genParStruct('gt_lowFreqHz',gt_lowFreqHz,...
-                   'gt_highFreqHz',gt_highFreqHz,...
-                   'gt_nChannels',gt_nChannels);
+par = genParStruct('fb_lowFreqHz',fb_lowFreqHz,...
+                   'fb_highFreqHz',fb_highFreqHz,...
+                   'fb_nChannels',fb_nChannels);
                    
 
 %% PERFORM PROCESSING

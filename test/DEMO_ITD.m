@@ -13,7 +13,7 @@ cc_wSizeSec = 0.02;
 cc_hSizeSec = 0.01;
 
 % Parameters
-par = genParStruct('gt_lowFreqHz',80,'gt_highFreqHz',8000,'gt_nChannels',32,'ihc_method','dau','cc_wSizeSec',cc_wSizeSec,'cc_hSizeSec',cc_hSizeSec); 
+par = genParStruct('fb_lowFreqHz',80,'fb_highFreqHz',8000,'fb_nChannels',32,'ihc_method','dau','cc_wSizeSec',cc_wSizeSec,'cc_hSizeSec',cc_hSizeSec); 
 
 % Create a data object
 dObj = dataObject(earSignals,fsHz);

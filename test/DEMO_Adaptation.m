@@ -51,7 +51,7 @@ fsHz = fsHzRef;
 requests = {'adaptation'};
 
 % Parameters
-par = genParStruct('gt_lowFreqHz',80,'gt_highFreqHz',8000,'gt_nChannels',16,'ihc_method','dau'); 
+par = genParStruct('fb_lowFreqHz',80,'fb_highFreqHz',8000,'fb_nChannels',16,'ihc_method','dau'); 
 
 % Create a data object
 dObj = dataObject(data,fsHz);

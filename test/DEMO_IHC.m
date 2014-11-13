@@ -20,16 +20,16 @@ dObj = dataObject(earSignals(1:20E3,2),fsHz);
 requests = {'innerhaircell'};
 
 % Parameters of Gammatone processor
-gt_nChannels  = 16;  
-gt_lowFreqHz  = 80;
-gt_highFreqHz = 8000;
+fb_nChannels  = 16;  
+fb_lowFreqHz  = 80;
+fb_highFreqHz = 8000;
 
 % Parameters of innerhaircell processor
 ihc_method    = 'dau';
 
 % Parameters 
-par = genParStruct('gt_lowFreqHz',gt_lowFreqHz,'gt_highFreqHz',gt_highFreqHz,...
-                   'gt_nChannels',gt_nChannels,'ihc_method',ihc_method); 
+par = genParStruct('fb_lowFreqHz',fb_lowFreqHz,'fb_highFreqHz',fb_highFreqHz,...
+                   'fb_nChannels',fb_nChannels,'ihc_method',ihc_method); 
                
 
 %% PERFORM PROCESSING

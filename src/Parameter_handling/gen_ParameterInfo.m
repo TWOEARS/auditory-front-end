@@ -34,25 +34,27 @@ clear pInfo
 %     addParameterInfo('fr','fr_wSize',1024,'Window duration in samples')
 %     addParameterInfo('fr','fr_hSize',512,'Step size between windows in samples')
 
-    % Gammatone filterbank
-    addParameterInfo('gammatone','gt_lowFreqHz',80,'Lowest center frequency (Hz)','Gammatone filterbank')
-    addParameterInfo('gammatone','gt_highFreqHz',8000,'Highest center frequency (Hz)')
-    addParameterInfo('gammatone','gt_nERBs',1,'Distance between neighbor filters in ERBs')
-    addParameterInfo('gammatone','gt_nChannels',[],'Number of channels')
-    addParameterInfo('gammatone','gt_cfHz',[],'Vector of channels'' center frequencies in Hz')
-    addParameterInfo('gammatone','gt_nGamma',4,'Gammatone rising slope order')
-    addParameterInfo('gammatone','gt_bwERBs',1.018,'Bandwidth of the filters (ERBs)')
-    addParameterInfo('gammatone','gt_bAlign',false,'Correction for filter alignment')
+    % Filterbank parameters
+    addParameterInfo('filterbank','fb_type','gammatone','Filterbank type (''gammatone'' or ''drnl'')','Auditory filterbank')
+    addParameterInfo('filterbank','fb_lowFreqHz',80,'Lowest center frequency (Hz)','Gammatone filterbank')
+    addParameterInfo('filterbank','fb_highFreqHz',8000,'Highest center frequency (Hz)')
+    addParameterInfo('filterbank','fb_nERBs',1,'Distance between neighbor filters in ERBs')
+    addParameterInfo('filterbank','fb_nChannels',[],'Number of channels')
+    addParameterInfo('filterbank','fb_cfHz',[],'Vector of channels'' center frequencies in Hz')
+    addParameterInfo('filterbank','fb_nGamma',4,'Gammatone rising slope order (Gammatone filterbank only)')
+    addParameterInfo('filterbank','fb_bwERBs',1.018,'Bandwidth of the filters (ERBs) (Gammatone filterbank only)')
+    addParameterInfo('filterbank','fb_bAlign',false,'Correction for filter alignment (Gammatone filterbank only)')
+    addParameterInfo('filterbank','fb_mocIpsi', 1, 'Ipsilateral MOC feedback factor as DRNL nonlinear path gain (DRNL filterbank only)')
+    addParameterInfo('filterbank','fb_mocContra', 1, 'Contralateral MOC feedback factor as DRNL nonlinear path gain (DRNL filterbank only)')
+    addParameterInfo('filterbank','fb_model', 'CASP', 'DRNL implementation model (DRNL filterbank only)')
     
     % DRNL filterbank
-    addParameterInfo('drnl','drnl_lowFreqHz',80,'Lowest characteristic frequency (Hz)','DRNL filterbank')
-    addParameterInfo('drnl','drnl_highFreqHz',8000,'Highest characteristic frequency (Hz)')
-    addParameterInfo('drnl','drnl_nERBs',1,'Distance between neighboring characteristic frequency channels in ERBs')
-    addParameterInfo('drnl','drnl_nChannels',[],'Number of channels')
-    addParameterInfo('drnl','drnl_cfHz',[],'Vector of channels'' characteristic frequencies in Hz')
-    addParameterInfo('drnl','drnl_mocIpsi', 1, 'Ipsilateral MOC feedback factor as DRNL nonlinear path gain')
-    addParameterInfo('drnl','drnl_mocContra', 1, 'Contralateral MOC feedback factor as DRNL nonlinear path gain')
-    addParameterInfo('drnl','drnl_model', 'CASP', 'DRNL implementation model')
+%     addParameterInfo('drnl','drnl_lowFreqHz',80,'Lowest characteristic frequency (Hz)','DRNL filterbank')
+%     addParameterInfo('drnl','drnl_highFreqHz',8000,'Highest characteristic frequency (Hz)')
+%     addParameterInfo('drnl','drnl_nERBs',1,'Distance between neighboring characteristic frequency channels in ERBs')
+%     addParameterInfo('drnl','drnl_nChannels',[],'Number of channels')
+%     addParameterInfo('drnl','drnl_cfHz',[],'Vector of channels'' characteristic frequencies in Hz')
+
 
     % Inner hair-cell extraction
     addParameterInfo('ihc','ihc_method','dau','Inner hair-cell extraction method (''none'', ''halfwave'', ''fullwave'', ''square'', ''hilbert'', ''joergensen'', ''dau'', ''breebart'', ''berstein'')','Inner hair-cell extraction')

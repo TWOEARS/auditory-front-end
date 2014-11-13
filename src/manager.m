@@ -450,10 +450,10 @@ classdef manager < handle
             end
             
             % Find out about the Gammatone definition
-            if isfield(p,'gt_cfHz')
+            if isfield(p,'fb_cfHz')
                 % Generated from provided center frequencies
                 gamma_init = 'cfHz';
-            elseif isfield(p,'gt_nChannels')
+            elseif isfield(p,'fb_nChannels')
                 % Generate from upper/lower frequencies and number of
                 % channels
                 gamma_init = 'nChannels';
@@ -464,17 +464,17 @@ classdef manager < handle
             end
             
             % Same applies to the DRNL processor
-            if isfield(p,'drnl_cfHz')
+            if isfield(p,'fb_cfHz')
                 % Generated from provided center frequencies
-                drnl_init = 'cfHz';
-            elseif isfield(p,'drnl_nChannels')
+                fb_init = 'cfHz';
+            elseif isfield(p,'fb_nChannels')
                 % Generate from upper/lower frequencies and number of
                 % channels
-                drnl_init = 'nChannels';
+                fb_init = 'nChannels';
             else
                 % Generate from upper/lower freqs. and distance between
                 % channels
-                drnl_init ='standard';
+                fb_init ='standard';
             end
 
             % Add default values for parameters not explicitly defined in p
@@ -605,91 +605,99 @@ classdef manager < handle
                             mObj.Data.addSignal(sig);
                         end
                         
-                    case 'gammatone'
-                        if mObj.Data.isStereo
-                            % Instantiate left and right ear processors
-                            switch gamma_init
-                                case 'cfHz'
-                                    mObj.Processors{ii,1} = gammatoneProc(p.fs,[],[],[],[],p.gt_cfHz,p.gt_bAlign,p.gt_nGamma,p.gt_bwERBs);
-                                    mObj.Processors{ii,2} = gammatoneProc(p.fs,[],[],[],[],p.gt_cfHz,p.gt_bAlign,p.gt_nGamma,p.gt_bwERBs);
-                                   
-                                case 'nChannels'
-                                    mObj.Processors{ii,1} = gammatoneProc(p.fs,p.gt_lowFreqHz,p.gt_highFreqHz,[],p.gt_nChannels,[],p.gt_bAlign,p.gt_nGamma,p.gt_bwERBs);
-                                    mObj.Processors{ii,2} = gammatoneProc(p.fs,p.gt_lowFreqHz,p.gt_highFreqHz,[],p.gt_nChannels,[],p.gt_bAlign,p.gt_nGamma,p.gt_bwERBs);
-                                    
-                                case 'standard'
-                                    mObj.Processors{ii,1} = gammatoneProc(p.fs,p.gt_lowFreqHz,p.gt_highFreqHz,p.gt_nERBs,[],[],p.gt_bAlign,p.gt_nGamma,p.gt_bwERBs);
-                                    mObj.Processors{ii,2} = gammatoneProc(p.fs,p.gt_lowFreqHz,p.gt_highFreqHz,p.gt_nERBs,[],[],p.gt_bAlign,p.gt_nGamma,p.gt_bwERBs);
-                            end
-                            % Generate new signals
-                            sig_l = TimeFrequencySignal(mObj.Processors{ii,1}.FsHzOut,mObj.Data.bufferSize_s,'gammatone',mObj.Processors{ii}.cfHz,'Gammatone filterbank output',[],'left');
-                            sig_r = TimeFrequencySignal(mObj.Processors{ii,2}.FsHzOut,mObj.Data.bufferSize_s,'gammatone',mObj.Processors{ii}.cfHz,'Gammatone filterbank output',[],'right');
-                            % Add the signals to the data object
-                            mObj.Data.addSignal(sig_l);
-                            mObj.Data.addSignal(sig_r)
-                        else
-                            % Instantiate a processor
-                            switch gamma_init
-                                case 'cfHz'
-                                    mObj.Processors{ii,1} = gammatoneProc(p.fs,p.gt_lowFreqHz,p.gt_highFreqHz,[],[],p.gt_cfHz,p.gt_bAlign,p.gt_nGamma,p.gt_bwERBs);
-                                case 'nChannels'
-                                    mObj.Processors{ii,1} = gammatoneProc(p.fs,p.gt_lowFreqHz,p.gt_highFreqHz,[],p.gt_nChannels,[],p.gt_bAlign,p.gt_nGamma,p.gt_bwERBs);
-                                case 'standard'
-                                    mObj.Processors{ii,1} = gammatoneProc(p.fs,p.gt_lowFreqHz,p.gt_highFreqHz,p.gt_nERBs,[],[],p.gt_bAlign,p.gt_nGamma,p.gt_bwERBs);
-                            end
-                            % Generate a new signal
-                            sig = TimeFrequencySignal(mObj.Processors{ii,1}.FsHzOut,mObj.Data.bufferSize_s,'gammatone',mObj.Processors{ii}.cfHz,'Gammatone filterbank output',[],'mono');
-                            % Add signal to the data object
-                            mObj.Data.addSignal(sig);
-                        end
+                    case 'filterbank'
                         
-                    case 'drnl'
-                        if mObj.Data.isStereo
-                            switch drnl_init
-                                case 'cfHz'
-                                    mObj.Processors{ii,1} = drnlProc(p.fs,[],[],[],[],p.drnl_cfHz,p.drnl_mocIpsi,p.drnl_mocContra,p.drnl_model);
-                                    mObj.Processors{ii,2} = drnlProc(p.fs,[],[],[],[],p.drnl_cfHz,p.drnl_mocIpsi,p.drnl_mocContra,p.drnl_model);
-                                    
-                                    % Throw a warning if conflicting information was provided
-%                                     if isfield(p,'drnl_lowFreqHz')||isfield(p,'drnl_highFreqHz')||isfield(p,'drnl_nERBs')||isfield(p,'drnl_nChannels')
-%                                         warning(['Conflicting information was provided for the DRNL filterbank instantiation. The filterbank '...
-%                                             'will be generated from the provided vector of center frequencies.'])
-%                                     end
-                                    
-                                case 'nChannels'
-                                    mObj.Processors{ii,1} = drnlProc(p.fs,p.drnl_lowFreqHz,p.drnl_highFreqHz,[],p.drnl_nChannels,[],p.drnl_mocIpsi,p.drnl_mocContra,p.drnl_model);
-                                    mObj.Processors{ii,2} = drnlProc(p.fs,p.drnl_lowFreqHz,p.drnl_highFreqHz,[],p.drnl_nChannels,[],p.drnl_mocIpsi,p.drnl_mocContra,p.drnl_model);
-                                    
-                                    % Throw a warning if conflicting information was provided
-%                                     if isfield(p,'drnl_nERBs')
-%                                         warning(['Conflicting information was provided for the DRNL filterbank instantiation. The filterbank '...
-%                                             'will be generated from the provided frequency range and number of channels.'])
-%                                     end
-                                    
-                                case 'standard'
-                                    mObj.Processors{ii,1} = drnlProc(p.fs,p.drnl_lowFreqHz,p.drnl_highFreqHz,p.drnl_nERBs,[],[],p.drnl_mocIpsi,p.drnl_mocContra,p.drnl_model);
-                                    mObj.Processors{ii,2} = drnlProc(p.fs,p.drnl_lowFreqHz,p.drnl_highFreqHz,p.drnl_nERBs,[],[],p.drnl_mocIpsi,p.drnl_mocContra,p.drnl_model);
-                            end
-                            % Generate new signals
-                            sig_l = TimeFrequencySignal(mObj.Processors{ii,1}.FsHzOut,mObj.Data.bufferSize_s,'drnl',mObj.Processors{ii}.cfHz,'DRNL filterbank output',[],'left');
-                            sig_r = TimeFrequencySignal(mObj.Processors{ii,2}.FsHzOut,mObj.Data.bufferSize_s,'drnl',mObj.Processors{ii}.cfHz,'DRNL filterbank output',[],'right');
-                            % Add the signals to the data object
-                            mObj.Data.addSignal(sig_l);
-                            mObj.Data.addSignal(sig_r)
-                        else
-                            % Instantiate a processor
-                            switch drnl_init
-                                case 'cfHz'
-                                    mObj.Processors{ii,1} = drnlProc(p.fs,[],[],[],[],p.drnl_cfHz,p.drnl_mocIpsi,p.drnl_mocContra,p.drnl_model);
-                                case 'nChannels'
-                                    mObj.Processors{ii,1} = drnlProc(p.fs,p.drnl_lowFreqHz,p.drnl_highFreqHz,[],p.drnl_nChannels,[],p.drnl_mocIpsi,p.drnl_mocContra,p.drnl_model);
-                                case 'standard'
-                                    mObj.Processors{ii,1} = drnlProc(p.fs,p.drnl_lowFreqHz,p.drnl_highFreqHz,p.drnl_nERBs,[],[],p.drnl_mocIpsi,p.drnl_mocContra,p.drnl_model);
-                            end
-                            % Generate a new signal
-                            sig = TimeFrequencySignal(mObj.Processors{ii,1}.FsHzOut,mObj.Data.bufferSize_s,'drnl',mObj.Processors{ii}.cfHz,'DRNL filterbank output',[],'mono');
-                            % Add signal to the data object
-                            mObj.Data.addSignal(sig);
+                        switch p.fb_type
+                            
+                            case 'gammatone'
+                                if mObj.Data.isStereo
+                                    % Instantiate left and right ear processors
+                                    switch gamma_init
+                                        case 'cfHz'
+                                            mObj.Processors{ii,1} = gammatoneProc(p.fs,[],[],[],[],p.fb_cfHz,p.fb_bAlign,p.fb_nGamma,p.fb_bwERBs);
+                                            mObj.Processors{ii,2} = gammatoneProc(p.fs,[],[],[],[],p.fb_cfHz,p.fb_bAlign,p.fb_nGamma,p.fb_bwERBs);
+
+                                        case 'nChannels'
+                                            mObj.Processors{ii,1} = gammatoneProc(p.fs,p.fb_lowFreqHz,p.fb_highFreqHz,[],p.fb_nChannels,[],p.fb_bAlign,p.fb_nGamma,p.fb_bwERBs);
+                                            mObj.Processors{ii,2} = gammatoneProc(p.fs,p.fb_lowFreqHz,p.fb_highFreqHz,[],p.fb_nChannels,[],p.fb_bAlign,p.fb_nGamma,p.fb_bwERBs);
+
+                                        case 'standard'
+                                            mObj.Processors{ii,1} = gammatoneProc(p.fs,p.fb_lowFreqHz,p.fb_highFreqHz,p.fb_nERBs,[],[],p.fb_bAlign,p.fb_nGamma,p.fb_bwERBs);
+                                            mObj.Processors{ii,2} = gammatoneProc(p.fs,p.fb_lowFreqHz,p.fb_highFreqHz,p.fb_nERBs,[],[],p.fb_bAlign,p.fb_nGamma,p.fb_bwERBs);
+                                    end
+                                    % Generate new signals
+                                    sig_l = TimeFrequencySignal(mObj.Processors{ii,1}.FsHzOut,mObj.Data.bufferSize_s,'gammatone',mObj.Processors{ii}.cfHz,'Gammatone filterbank output',[],'left');
+                                    sig_r = TimeFrequencySignal(mObj.Processors{ii,2}.FsHzOut,mObj.Data.bufferSize_s,'gammatone',mObj.Processors{ii}.cfHz,'Gammatone filterbank output',[],'right');
+                                    % Add the signals to the data object
+                                    mObj.Data.addSignal(sig_l);
+                                    mObj.Data.addSignal(sig_r)
+                                else
+                                    % Instantiate a processor
+                                    switch gamma_init
+                                        case 'cfHz'
+                                            mObj.Processors{ii,1} = gammatoneProc(p.fs,p.fb_lowFreqHz,p.fb_highFreqHz,[],[],p.fb_cfHz,p.fb_bAlign,p.fb_nGamma,p.fb_bwERBs);
+                                        case 'nChannels'
+                                            mObj.Processors{ii,1} = gammatoneProc(p.fs,p.fb_lowFreqHz,p.fb_highFreqHz,[],p.fb_nChannels,[],p.fb_bAlign,p.fb_nGamma,p.fb_bwERBs);
+                                        case 'standard'
+                                            mObj.Processors{ii,1} = gammatoneProc(p.fs,p.fb_lowFreqHz,p.fb_highFreqHz,p.fb_nERBs,[],[],p.fb_bAlign,p.fb_nGamma,p.fb_bwERBs);
+                                    end
+                                    % Generate a new signal
+                                    sig = TimeFrequencySignal(mObj.Processors{ii,1}.FsHzOut,mObj.Data.bufferSize_s,'gammatone',mObj.Processors{ii}.cfHz,'Gammatone filterbank output',[],'mono');
+                                    % Add signal to the data object
+                                    mObj.Data.addSignal(sig);
+                                end
+                        
+                            case 'drnl'
+                                if mObj.Data.isStereo
+                                    switch fb_init
+                                        case 'cfHz'
+                                            mObj.Processors{ii,1} = drnlProc(p.fs,[],[],[],[],p.fb_cfHz,p.fb_mocIpsi,p.fb_mocContra,p.fb_model);
+                                            mObj.Processors{ii,2} = drnlProc(p.fs,[],[],[],[],p.fb_cfHz,p.fb_mocIpsi,p.fb_mocContra,p.fb_model);
+
+                                            % Throw a warning if conflicting information was provided
+        %                                     if isfield(p,'fb_lowFreqHz')||isfield(p,'fb_highFreqHz')||isfield(p,'fb_nERBs')||isfield(p,'fb_nChannels')
+        %                                         warning(['Conflicting information was provided for the DRNL filterbank instantiation. The filterbank '...
+        %                                             'will be generated from the provided vector of center frequencies.'])
+        %                                     end
+
+                                        case 'nChannels'
+                                            mObj.Processors{ii,1} = drnlProc(p.fs,p.fb_lowFreqHz,p.fb_highFreqHz,[],p.fb_nChannels,[],p.fb_mocIpsi,p.fb_mocContra,p.fb_model);
+                                            mObj.Processors{ii,2} = drnlProc(p.fs,p.fb_lowFreqHz,p.fb_highFreqHz,[],p.fb_nChannels,[],p.fb_mocIpsi,p.fb_mocContra,p.fb_model);
+
+                                            % Throw a warning if conflicting information was provided
+        %                                     if isfield(p,'fb_nERBs')
+        %                                         warning(['Conflicting information was provided for the DRNL filterbank instantiation. The filterbank '...
+        %                                             'will be generated from the provided frequency range and number of channels.'])
+        %                                     end
+
+                                        case 'standard'
+                                            mObj.Processors{ii,1} = drnlProc(p.fs,p.fb_lowFreqHz,p.fb_highFreqHz,p.fb_nERBs,[],[],p.fb_mocIpsi,p.fb_mocContra,p.fb_model);
+                                            mObj.Processors{ii,2} = drnlProc(p.fs,p.fb_lowFreqHz,p.fb_highFreqHz,p.fb_nERBs,[],[],p.fb_mocIpsi,p.fb_mocContra,p.fb_model);
+                                    end
+                                    % Generate new signals
+                                    sig_l = TimeFrequencySignal(mObj.Processors{ii,1}.FsHzOut,mObj.Data.bufferSize_s,'drnl',mObj.Processors{ii}.cfHz,'DRNL filterbank output',[],'left');
+                                    sig_r = TimeFrequencySignal(mObj.Processors{ii,2}.FsHzOut,mObj.Data.bufferSize_s,'drnl',mObj.Processors{ii}.cfHz,'DRNL filterbank output',[],'right');
+                                    % Add the signals to the data object
+                                    mObj.Data.addSignal(sig_l);
+                                    mObj.Data.addSignal(sig_r)
+                                else
+                                    % Instantiate a processor
+                                    switch fb_init
+                                        case 'cfHz'
+                                            mObj.Processors{ii,1} = drnlProc(p.fs,[],[],[],[],p.fb_cfHz,p.fb_mocIpsi,p.fb_mocContra,p.fb_model);
+                                        case 'nChannels'
+                                            mObj.Processors{ii,1} = drnlProc(p.fs,p.fb_lowFreqHz,p.fb_highFreqHz,[],p.fb_nChannels,[],p.fb_mocIpsi,p.fb_mocContra,p.fb_model);
+                                        case 'standard'
+                                            mObj.Processors{ii,1} = drnlProc(p.fs,p.fb_lowFreqHz,p.fb_highFreqHz,p.fb_nERBs,[],[],p.fb_mocIpsi,p.fb_mocContra,p.fb_model);
+                                    end
+                                    % Generate a new signal
+                                    sig = TimeFrequencySignal(mObj.Processors{ii,1}.FsHzOut,mObj.Data.bufferSize_s,'drnl',mObj.Processors{ii}.cfHz,'DRNL filterbank output',[],'mono');
+                                    % Add signal to the data object
+                                    mObj.Data.addSignal(sig);
+                                end
+                                
+                            otherwise
+                                error('Incorrect filterbank name')
                         end
    
                     case 'innerhaircell'
@@ -1291,7 +1299,7 @@ classdef manager < handle
                 
                 % Move on to next level of dependency
                 ii = ii + 1;
-                dep = signal2procName(dep_list{ii});
+                dep = signal2procName(dep_list{ii},p);
                 hProc = mObj.hasProcessor(dep,p);
                 
             end

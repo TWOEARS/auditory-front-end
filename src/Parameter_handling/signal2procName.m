@@ -1,12 +1,14 @@
-function procName = signal2procName(signal)
+function procName = signal2procName(signal,p)
 %signal2procName    Returns name of last processor class for extracting a
 %                   signal of a given name
 %
 %USAGE:
-%   procName = signal2procName(signal)
+%   procName = signal2procName(signal,p)
 %
 %INPUT ARGUMENT:
 %     signal : Valid signal name (string)
+%          p : Parameter structure (used when multiple processor can generate a given
+%          representation, e.g. for 'filterbank')
 %
 %OUTPUT ARGUMENT:
 %   procName : Valid processor name
@@ -25,8 +27,15 @@ switch signal
     case 'framedSignal'
         procName = 'framingProc';
         
-    case 'gammatone'
-        procName = 'gammatoneProc';
+    case 'filterbank'
+        switch p.fb_type
+            case 'gammatone'
+                procName = 'gammatoneProc';
+            case 'drnl'
+                procName = 'drnl';
+            otherwise
+                error('Incorrect filterbank type name.')
+        end
         
     case 'innerhaircell'
         procName = 'ihcProc';
