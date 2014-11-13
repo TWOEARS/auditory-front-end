@@ -133,7 +133,7 @@ clear pInfo
     addParameterInfo('sf','sf_ro_perc',0.8,'Threshold (re. 1) for spectral rolloff computation')
     
     % Gabor features
-    addParameterInfo('gb',[],[],[],'Gabor features')
+    addParameterInfo('gb','gb_maxDynamicRangeDB',80,'Maximum dynamic range (dB) of input ratemap','Gabor features')
     
 % Plotting:
     addParameterInfo('plotting','ftype','Helvetica','Plots font name','Plot properties')

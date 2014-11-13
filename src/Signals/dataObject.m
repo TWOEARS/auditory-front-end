@@ -12,18 +12,16 @@ classdef dataObject < dynamicprops
             %
             %USAGE
             %       dObj = dataObject(s,fs,bufferSize)
-            %       dObj = dataObject(s,fs,bufferSize,is_stereo)
+            %       dObj = dataObject(s,fs,bufferSize,channelNb)
             %
             %INPUT ARGUMENTS
             %          s : Initial time-domain signal
             %         fs : Sampling frequency
             % bufferSize : length of the signal buffer in seconds
             %              default = 10;
-            %  is_stereo : Flag indicating if the ear signal is binaural
-            %              (true) or  monaural (false) (default:
-            %              is_stereo=false). Used in chunk-based scenario
-            %              when the dataObject is initialized with an empty
-            %              signal
+            %  channelNb : Number of channels, 1 (mono) or 2 (stereo) in the original
+            %              signal. Used in chunk-based scenario when the dataObject is 
+            %              initialized with an empty signal.
             %
             %OUTPUT ARGUMENTS
             %       dObj : Data object
@@ -117,11 +115,15 @@ classdef dataObject < dynamicprops
             
         end
         
-        function clearData(dObj)
+        function clearData(dObj,bClearSignal)
             %clearData  Clear data of all signals in the data structure
             %
             %USAGE:
             %    dObj.clearData
+            
+            if nargin<2 || isempty(bClearSignal)
+                bClearSignal = 1;
+            end
             
             % Get a list of the signals contained in the data object
             sig_list = fieldnames(dObj);
@@ -129,6 +131,11 @@ classdef dataObject < dynamicprops
             % Remove the "isStereo" and "bufferSize_s" properties from the list
             sig_list = setdiff(sig_list,{'isStereo' 'bufferSize_s'});
             
+            % Remove the signal from the list if needed
+            if ~bClearSignal
+                sig_list = setdiff(sig_list,{'signal'});
+            end
+                
             % Loop over all the signals
             for ii = 1:size(sig_list,1)
                 
@@ -197,7 +204,7 @@ classdef dataObject < dynamicprops
             
         end
         
-        function play(dObj)
+        function play(dObj,bPreProcessed)
             %play       Playback the audio from the ear signal in the data
             %           object
             %
@@ -207,23 +214,39 @@ classdef dataObject < dynamicprops
             %INPUT ARGUMENTS
             %   dObj : Data object
             
-            if ~isprop(dObj,'signal')||isempty(dObj.signal)||...
-                    isempty(dObj.signal{1}.Data)
-                warning('There is no audio in the data object to playback')
-            else
-                if size(dObj.signal,2)==1
-                    % Then mono playback
-                    sound(dObj.signal{1}.Data(:),dObj.signal{1}.FsHz)
+            if nargin<2 || isempty(bPreProcessed) || ~bPreProcessed
+                if ~isprop(dObj,'signal')||isempty(dObj.signal)||...
+                        isempty(dObj.signal{1}.Data)
+                    warning('There is no audio in the data object to playback')
                 else
-                    % Stereo playback
-                    temp_snd = [dObj.signal{1}.Data(:) dObj.signal{2}.Data(:)];
-                    sound(temp_snd,dObj.signal{1}.FsHz)
+                    if size(dObj.signal,2)==1
+                        % Then mono playback
+                        soundsc(dObj.signal{1}.Data(:),dObj.signal{1}.FsHz)
+                    else
+                        % Stereo playback
+                        temp_snd = [dObj.signal{1}.Data(:) dObj.signal{2}.Data(:)];
+                        soundsc(temp_snd,dObj.signal{1}.FsHz)
+                    end
+                end
+            else
+                if ~isprop(dObj,'time')||isempty(dObj.time)||...
+                        isempty(dObj.time{1}.Data)
+                    warning('There is no audio in the data object to playback')
+                else
+                    if size(dObj.time,2)==1
+                        % Then mono playback
+                        soundsc(dObj.time{1}.Data(:),dObj.time{1}.FsHz)
+                    else
+                        % Stereo playback
+                        temp_snd = [dObj.time{1}.Data(:) dObj.time{2}.Data(:)];
+                        soundsc(temp_snd,dObj.time{1}.FsHz)
+                    end
                 end
             end
         end
         
         function h = plot(dObj,h0,p,varargin)
-            %plot       Plots the original waveforms of the signal
+            %plot       Plots the time-domain waveforms of the signal after pre-processing
             %
             %USAGE
             %       dObj.plot
@@ -242,13 +265,15 @@ classdef dataObject < dynamicprops
             %OPTIONAL PARAMETERS
             % 'bGray' - Set to 1 for gray shades plot
             % 'rangeSec' - Vector of time limits for the plot 
+            % 'bSignal' - Set to 1 to plot the input signal before pre-processing
+            % 'decimateRatio' - Integer ratio to decimate the plot (for smaller files)
             
             % Manage plotting parameters
             if nargin < 3 || isempty(p) 
                 % Get default plotting parameters
                 p = getDefaultParameters([],'plotting');
             else
-                p.fs = sObj.FsHz;   % Add the sampling frequency to satisfy parseParameters
+                p.fs = dObj.signal{1}.FsHz;   % Add the sampling frequency to satisfy parseParameters
                 p = parseParameters(p);
             end
         
@@ -285,38 +310,56 @@ classdef dataObject < dynamicprops
                 colors = p.colors;
             end
             
+            % Plot before/after pre-processing
+            if ~isempty(opt) && isfield(opt,'bSignal')
+                if opt.bSignal
+                    sig = dObj.signal;
+                else
+                    sig = dObj.time;
+                end                
+            else
+                sig = dObj.time;
+            end
+            
+            % Decimate the waveforms for "lighter" plots
+            if ~isempty(opt) && isfield(opt,'decimateRatio')
+                dcR = opt.decimateRatio;
+            else
+                dcR = 1;
+            end
+            
             % Limit to a certain time period
             if ~isempty(opt) && isfield(opt,'rangeSec')
-                data = dObj.time{1}.Data(floor(opt.rangeSec(1)*dObj.time{1}.FsHz):floor(opt.rangeSec(end)*dObj.time{1}.FsHz));
-                if size(dObj.time,2)>1
-                    data = [data dObj.time{2}.Data(floor(opt.rangeSec(1)*dObj.time{1}.FsHz):floor(opt.rangeSec(end)*dObj.time{1}.FsHz))];
+                data = sig{1}.Data(floor(opt.rangeSec(1)*sig{1}.FsHz):dcR:floor(opt.rangeSec(end)*sig{1}.FsHz));
+                if size(sig,2)>1
+                    data = [data sig{2}.Data(floor(opt.rangeSec(1)*sig{1}.FsHz):dcR:floor(opt.rangeSec(end)*sig{1}.FsHz))];
                 end
-                t = opt.rangeSec(1):1/dObj.time{1}.FsHz:opt.rangeSec(1)+(size(data,1)-1)/dObj.time{1}.FsHz;
+                t = opt.rangeSec(1):dcR/sig{1}.FsHz:opt.rangeSec(1)+dcR*(size(data,1)-1)/sig{1}.FsHz;
             else
-                data = dObj.time{1}.Data(:);
-                if size(dObj.time,2)>1
-                    data = [data dObj.time{2}.Data(:)];
+                data = sig{1}.Data(1:dcR:end);
+                if size(sig,2)>1
+                    data = [data sig{2}.Data(1:dcR:end)];
                 end
-                t = 0:1/dObj.time{1}.FsHz:(size(data,1)-1)/dObj.time{1}.FsHz;
+                t = 0:dcR/sig{1}.FsHz:dcR*(size(data,1)-1)/sig{1}.FsHz;
             end
             
             % Time vector
-%             t = 0:1/dObj.time{1}.FsHz:(size(dObj.time{1}.Data(:),1)-1)/dObj.time{1}.FsHz;
+%             t = 0:1/sig{1}.FsHz:(size(sig{1}.Data(:),1)-1)/sig{1}.FsHz;
             
             % Plot channel with highest energy (or mono channel) first
-            if size(dObj.time,2)==1 || norm(data(:,1),2) > norm(data(:,2),2)
-                h1 = plot(t,data(:,1),'linewidth',p.linewidth_m,'color',colors{1});
+            if size(sig,2)==1 || norm(data(:,1),2) > norm(data(:,2),2)
+                h1 = plot(t,data(:,1),'linewidth',p.linewidth_s,'color',colors{1});
                 
-                if size(dObj.time,2)>1
+                if size(sig,2)>1
                     hold on
-                    h2 = plot(t,data(:,2),'linewidth',p.linewidth_m,'color',colors{2});
-                    legend([dObj.time{1}.Channel ' ear'],[dObj.time{2}.Channel ' ear'],'location','NorthEast')
+                    h2 = plot(t,data(:,2),'linewidth',p.linewidth_s,'color',colors{2});
+                    legend([sig{1}.Channel ' ear'],[sig{2}.Channel ' ear'],'location','NorthEast')
                 end
             else
-                h1 = plot(t,data(:,2),'linewidth',p.linewidth_m,'color',colors{1});
+                h1 = plot(t,data(:,2),'linewidth',p.linewidth_s,'color',colors{1});
                 hold on
-                h2 = plot(t,data(:,1),'linewidth',p.linewidth_m,'color',colors{2});
-                legend([dObj.time{2}.Channel ' ear'],[dObj.time{1}.Channel ' ear'],'location','NorthEast')
+                h2 = plot(t,data(:,1),'linewidth',p.linewidth_s,'color',colors{2});
+                legend([sig{2}.Channel ' ear'],[sig{1}.Channel ' ear'],'location','NorthEast')
             end
             xlabel('Time (s)','fontsize',p.fsize_axes)
             ylabel('Amplitude','fontsize',p.fsize_axes)

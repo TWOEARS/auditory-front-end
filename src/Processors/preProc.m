@@ -152,8 +152,8 @@ classdef preProc < Processor
                 % Initialize the filter states if empty
                 if ~pObj.agcFilter_l.isInitialized  %isempty(pObj.agcFilter_l.States)
                     % Mean square of input over the time constant
-                    sm_l = mean(in_l(1:min(size(in_l,1),round(pObj.intTimeSecRMS*pObj.FsHzIn))).^2);
-                    sm_r = mean(in_r(1:min(size(in_r,1),round(pObj.intTimeSecRMS*pObj.FsHzIn))).^2);
+                    sm_l = mean(data_l(1:min(size(data_l,1),round(pObj.intTimeSecRMS*pObj.FsHzIn))).^2);
+                    sm_r = mean(data_r(1:min(size(data_r,1),round(pObj.intTimeSecRMS*pObj.FsHzIn))).^2);
                     
                     % Initial filter states
                     s0_l = exp(-1/(pObj.intTimeSecRMS*pObj.FsHzIn))*sm_l;
@@ -164,8 +164,8 @@ classdef preProc < Processor
                 end
                 
                 % Estimate normalization constants
-                normFactor_l = sqrt(pObj.agcFilter_l.filter(in_l.^2))+pObj.epsilon;
-                normFactor_r = sqrt(pObj.agcFilter_r.filter(in_r.^2))+pObj.epsilon;
+                normFactor_l = sqrt(pObj.agcFilter_l.filter(data_l.^2))+pObj.epsilon;
+                normFactor_r = sqrt(pObj.agcFilter_r.filter(data_r.^2))+pObj.epsilon;
                 
                 % Preserve multi-channel differences
                 if ~isempty(normFactor_r) && pObj.bBinauralAGC
@@ -173,9 +173,12 @@ classdef preProc < Processor
                     normFactor_r = normFactor_l;
                 end
                 
+                
+                
                 % Apply normalization
                 data_l = data_l./normFactor_l;
                 if ~isempty(normFactor_r)
+%                     figure,plot(normFactor_r),title('preProc')
                     data_r = data_r./normFactor_r;
                 else
                     data_r = [];

@@ -76,6 +76,9 @@ switch signal
     case 'pitch'
         procName = 'pitchProc';
         
+    case 'gabor'
+        procName = 'gaborProc';
+        
     otherwise
         procName = '';
         warning('Signal named %s is invalid or not implemented yet.',signal)

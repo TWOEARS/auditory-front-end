@@ -2,36 +2,49 @@ clear;
 close all
 clc
 
+
+%% LOAD SIGNAL
+% 
+% 
 % Load a signal
-load('TestBinauralCues');
+load('AFE_earSignals_16kHz');
 
-% Take right ear signal
-data = earSignals(1:62E3,2);     
+% Create a data object based on parts of the right ear signal
+dObj = dataObject(earSignals(1:20E3,2),fsHz);
 
-% New sampling frequency
-fsHzRef = 16E3;
 
-% Resample
-data = resample(data,fsHzRef,fsHz);
-
-% Copy fs
-fsHz = fsHzRef;
-
-% Request ratemap    
+%% PLACE REQUEST AND CONTROL PARAMETERS
+% 
+% 
+% Request spectral feature processor
 requests = {'spectral_features'};
 
-% Ratemap parameters
-rm_wSizeSec = 20E-3;
-rm_hSizeSec = 10E-3;
-rm_decaySec = 8E-3;
-rm_scaling  = 'power';
+% Parameters of Gammatone processor
+gt_nChannels  = 64;  
+gt_lowFreqHz  = 80;
+gt_highFreqHz = 8000;
 
-% Parameters
-par = genParStruct('gt_lowFreqHz',80,'gt_highFreqHz',8000,'gt_nChannels',64,'ihc_method','dau','rm_decaySec',rm_decaySec,'rm_wSizeSec',rm_wSizeSec,'rm_hSizeSec',rm_hSizeSec,'rm_scaling',rm_scaling); 
+% Parameters of innerhaircell processor
+ihc_method    = 'dau';
 
-% Create a data object
-dObj = dataObject(data,fsHz);
+% Parameters of ratemap processor
+rm_wSizeSec  = 0.02;
+rm_hSizeSec  = 0.01;
+rm_scaling   = 'power';
+rm_decaySec  = 8E-3;
+rm_wname     = 'hann';
 
+% Parameters 
+par = genParStruct('gt_lowFreqHz',gt_lowFreqHz,'gt_highFreqHz',gt_highFreqHz,...
+                   'gt_nChannels',gt_nChannels,'ihc_method',ihc_method,...
+                   'ac_wSizeSec',rm_wSizeSec,'ac_hSizeSec',rm_hSizeSec,...
+                   'rm_scaling',rm_scaling,'rm_decaySec',rm_decaySec,...
+                   'ac_wname',rm_wname); 
+
+               
+%% PERFORM PROCESSING
+% 
+%                
 % Create a manager
 mObj = manager(dObj,requests,par);
 
@@ -39,18 +52,17 @@ mObj = manager(dObj,requests,par);
 mObj.processSignal();
 
 
-%% Plot spectral features
+%% PLOT RESULTS
 % 
 % 
-
 % Plot time domain signal
 dObj.time{1}.plot
 
+% Handle to the ratemap for plot overlay
+rmap = dObj.ratemap{1};   
+
 % Plot spectral features
-rmap = dObj.ratemap_power{1};   % Handle to the ratemap for plot overlay
 dObj.spectral_features{1}.plot([],[],'overlay',rmap,'noSubPlots',1);
-
-
 
 
 %% Save figures

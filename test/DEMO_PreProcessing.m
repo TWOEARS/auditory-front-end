@@ -1,4 +1,4 @@
-% clear;
+clear;
 close all
 clc
 
@@ -27,16 +27,16 @@ timeSec = (1:size(data,1))/fsHz;
 % 
 % 
 % Activate DC removal filter
-pp_bRemoveDC  = true;
-pp_cutoffHzDC = 20;
+bRemoveDC  = true;
+cutoffHzDC = 20;
 
 % Activate pre-emphasis
-pp_bPreEmphasis    = true;
-pp_coefPreEmphasis = 0.97;
+bPreEmphasis    = true;
+coefPreEmphasis = 0.97;
 
 % Activate RMS normalization
-pp_bNormalizeRMS = true;
-pp_intTimeSecRMS = 500E-3;   
+bNormalizeRMS = true;
+intTimeSecRMS = 500E-3;   
     
 % Apply level scaling to reference
 pp_bApplyLevelScaling = true;
@@ -46,113 +46,105 @@ pp_refSPLdB = 100;
 pp_bMiddleEarFiltering = true;
 pp_midEarFilterModel = 'jepsenmiddleear';
 
+% Plot properties
+p_plot = genParStruct('fsize_label',10,'fsize_axes',10,'fsize_title',10);
+
+
 %% Plot signal
 % 
 % 
 
-% figure;
-% h = plot(timeSec(1:3:end),earSignals(1:3:end,:));
-% set(h(1),'color',[0 0 0]);
-% set(h(2),'color',[0.5 0.5 0.5]);
-% title(sprintf('1. Ears signals sampled at %i Hz',fsHz))
-% xlabel('Time (s)')
-% ylabel('Amplitude')
-% xlim([timeSec(1) timeSec(end)])
-% ylim([-1.5 1.5])
-% 
-% figure;
-% h = plot(timeSec(1:3:end),data(1:3:end,:));
-% set(h(1),'color',[0 0 0]);
-% set(h(2),'color',[0.5 0.5 0.5]);
-% title('2. Ear signals + sinus at 0.5 Hz')
-% xlabel('Time (s)')
-% ylabel('Amplitude')
-% xlim([timeSec(1) timeSec(end)])
-% ylim([-1.5 1.5])
+% Instantiate signals
+dataObj_ear = dataObject(earSignals,fsHz); % Original signal (for plotting purpose)
+dataObj = dataObject(data,fsHz);       % Actual input signal
+
+% Plot the original ear signal
+dataObj_ear.plot([],p_plot,'bGray',1,'decimateRatio',3,'bSignal',1);
+legend off, ylim([-1.5 1.5])
+title(sprintf('1. Ears signals sampled at %i Hz',fsHz))
+
+% Plot the input to the pre-processor
+dataObj.plot([],p_plot,'bGray',1,'decimateRatio',3,'bSignal',1);
+legend off, ylim([-1.5 1.5])
+title('2. Ear signals + sinus at 0.5 Hz')
 
 
 %% DC removal filter
 %
 %
-if pp_bRemoveDC
-    % 4th order @ 20 Hz cutoff
-    [bDC,aDC] = butter(4,pp_cutoffHzDC/(fsHz * 0.5),'high');
-    
-    if isstable(bDC,aDC)
-        data = filter(bDC,aDC,data);
-    else
-        error('IIR filter is not stable, reduce the filter order!')
-    end
-    
-%     figure;
-%     h = plot(timeSec(1:3:end),data(1:3:end,:));
-%     set(h(1),'color',[0 0 0]);
-%     set(h(2),'color',[0.5 0.5 0.5]);
-%     title('3. After DC removal')
-%     xlabel('Time (s)')
-%     ylabel('Amplitude')
-%     xlim([timeSec(1) timeSec(end)])
-%     ylim([-1.5 1.5])
-end
+
+% Apply DC removal only
+p = genParStruct('pp_bRemoveDC',bRemoveDC,'pp_cutoffHzDC',cutoffHzDC);
+
+mObj_DC = manager(dataObj,'time',p);
+mObj_DC.processSignal;
+
+% Plot the result
+dataObj.plot([],p_plot,'bGray',1,'decimateRatio',3);
+legend off, ylim([-1.5 1.5])
+title('3. After DC removal')
 
 
 %% Pre-whitening
 % 
 %
-if pp_bPreEmphasis
-    % Common choices are between 0.9 and 1
-    b = [1 -abs(pp_coefPreEmphasis)];
-    a = 1;
-    
-    % Apply 1st order pre-whitening filter
-    data = filter(b, a, data);
-    
-%     figure; 
-%     h = plot(timeSec(1:3:end),data(1:3:end,:));
-%     set(h(1),'color',[0 0 0]);
-%     set(h(2),'color',[0.5 0.5 0.5]);
-%     title('4. After pre-emphasis')
-%     xlabel('Time (s)')
-%     ylabel('Amplitude')
-%     xlim([timeSec(1) timeSec(end)])
-%     ylim([-1.5 1.5])
-end
+
+% New data object
+dataObj = dataObject(data,fsHz);
+
+% Apply DC removal and pre-whitening
+p = genParStruct('pp_bRemoveDC',bRemoveDC,'pp_cutoffHzDC',cutoffHzDC,...
+                 'pp_bPreEmphasis',bPreEmphasis,'pp_coefPreEmphasis',coefPreEmphasis);
+             
+mObj_PW = manager(dataObj,'time',p);
+mObj_PW.processSignal;
+
+% Plot the result
+dataObj.plot([],p_plot,'bGray',1,'decimateRatio',3);
+legend off, ylim([-1.5 1.5])
+title('4. After pre-emphasis')
 
 
 %% Perform AGC
 %
 %
-if pp_bNormalizeRMS
-    % Apply AGC to all channels independently
-    out1 = agc(data,fsHz,pp_intTimeSecRMS,false);
-    
-    % Preserve level differences across channels
-    out2 = agc(data,fsHz,pp_intTimeSecRMS,true);
-    
-%     figure;
-%     h = plot(timeSec(1:3:end),out1(1:3:end,:));
-%     set(h(1),'color',[0 0 0]);
-%     set(h(2),'color',[0.5 0.5 0.5]);
-%     title('5. After monaural AGC')
-%     xlabel('Time (s)')
-%     ylabel('Amplitude')
-%     xlim([timeSec(1) timeSec(end)])
-%     ylim([-18 18])
-% 
-%     figure;
-%     h = plot(timeSec(1:3:end),out2(1:3:end,:));
-%     set(h(1),'color',[0 0 0]);
-%     set(h(2),'color',[0.5 0.5 0.5]);
-%     title('6. After binaural AGC')
-%     xlabel('Time (s)')
-%     ylabel('Amplitude')
-%     xlim([timeSec(1) timeSec(end)])
-%     ylim([-18 18])
-end
+
+% New data object
+dataObj = dataObject(data,fsHz);
+dataObj2 = dataObject(data,fsHz);
+
+% Apply DC removal, pre-whitening, and AGC
+pmono = genParStruct('pp_bRemoveDC',bRemoveDC,'pp_cutoffHzDC',cutoffHzDC,...
+                 'pp_bPreEmphasis',bPreEmphasis,'pp_coefPreEmphasis',coefPreEmphasis,...
+                 'pp_bNormalizeRMS',bNormalizeRMS,'pp_intTimeSecRMS',intTimeSecRMS,...
+                 'pp_bBinauralAGC',0);
+             
+pbin = genParStruct('pp_bRemoveDC',bRemoveDC,'pp_cutoffHzDC',cutoffHzDC,...
+                 'pp_bPreEmphasis',bPreEmphasis,'pp_coefPreEmphasis',coefPreEmphasis,...
+                 'pp_bNormalizeRMS',bNormalizeRMS,'pp_intTimeSecRMS',intTimeSecRMS,...
+                 'pp_bBinauralAGC',1);
+             
+mObj_monoAGC = manager(dataObj,'time',pmono);
+mObj_binAGC = manager(dataObj2,'time',pbin);
+
+mObj_monoAGC.processSignal;
+mObj_binAGC.processSignal;
+
+% Plot the result
+dataObj.plot([],p_plot,'bGray',1,'decimateRatio',3);
+legend off, ylim([-18 18])
+title('5. After monaural AGC')
+
+dataObj2.plot([],p_plot,'bGray',1,'decimateRatio',3);
+legend off, ylim([-18 18])
+title('6. After binaural AGC')
+
+
 
 %% Level scaling to reference
 
 if pp_bApplyLevelScaling
+    data = [dataObj2.time{1}.Data(:) dataObj2.time{2}.Data(:)];
     % Obtain what the current calibration reference is 
     current_dboffset = dbspl(1);
     % Adjust level corresponding to the given reference
@@ -188,6 +180,8 @@ end
 
 
 
+
+%% Save figures
 if 0
    mode = 20;
    fig2LaTeX(['Pre_Processing_01'],1,mode)

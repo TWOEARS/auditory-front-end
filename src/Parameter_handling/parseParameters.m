@@ -71,4 +71,14 @@ switch request
             warning('Onset/offset detection is based on power-scaled ratemap. Changing the ratemap scaling in the request from magnitude to power.')
         end
         
+    case 'gabor'
+        if ~strcmp(p_full.rm_scaling,'power')
+            p_full.rm_scaling = 'power';
+            warning('Gabor feature extraction is based on power-scaled ratemap. Changing the ratemap scaling in the request from magnitude to power.')
+        end
+        
+        if p_full.rm_hSizeSec ~= 10E-3
+            p_full.rm_hSizeSec = 10E-3;
+            warning('Gabor feature extraction is based on a given window step-size for ratemaps. Fixing the window size to 10ms.')
+        end
 end

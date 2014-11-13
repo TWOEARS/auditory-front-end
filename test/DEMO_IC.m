@@ -1,5 +1,5 @@
 clear;
-close all
+% close all
 clc
 
 
@@ -16,7 +16,6 @@ switch lower(preset)
     otherwise
         error('Preset is not supported')
 end
-
 
 % Take right ear signal
 data = earSignals(1:22494,:); 

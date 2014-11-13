@@ -60,7 +60,17 @@ classdef manager < handle
             
             % Instantiate the requested processors
             if ~isempty(request)
-                if iscell(request)
+                if iscell(request) && numel(request) == 1
+                    % Then we have a one request with multiple parameters
+                    if iscell(p)
+                        %... with individual parameters
+                        for ii = 1:size(p,2)
+                            mObj.addProcessor(request,p{ii});
+                        end
+                    else
+                        mObj.addProcessor(request,p);
+                    end
+                elseif iscell(request)
                     % Then we have a multiple request...
                     if iscell(p)
                         %... with individual parameters
@@ -79,7 +89,7 @@ classdef manager < handle
                     end
                 elseif iscell(p)
                     % Then it is a same request but with multiple parameters
-                    for ii = 1:size(request,2)
+                    for ii = 1:size(p,2)
                         mObj.addProcessor(request,p{ii});
                     end
                 else
@@ -1019,6 +1029,45 @@ classdef manager < handle
                             mObj.Data.addSignal(sig);
                         end
                         
+                    case 'gabor'
+                        if mObj.Data.isStereo
+                            % Get the center frequencies from dependent processors
+                            cfHz = dep_proc_l.getDependentParameter('cfHz');
+                            % Instantiate left and right ear processors
+                            mObj.Processors{ii,1} = gaborProc(dep_proc_l.FsHzOut,p,size(cfHz,2));
+                            mObj.Processors{ii,2} = gaborProc(dep_proc_l.FsHzOut,p,size(cfHz,2));
+                            
+                            
+                            nFeat = mObj.Processors{ii,1}.nFeat;
+                            fList = cell(1,nFeat);
+                            for jj = 1:nFeat
+                                fList{jj} = num2str(jj);
+                            end
+                        
+                            % Generate new signals
+                            sig_l = FeatureSignal(mObj.Processors{ii,1}.FsHzOut,fList,mObj.Data.bufferSize_s,'gabor','Gabor Features','left');
+                            sig_r = FeatureSignal(mObj.Processors{ii,2}.FsHzOut,fList,mObj.Data.bufferSize_s,'gabor','Gabor Features','right');
+                            % Add the signals to the data object
+                            mObj.Data.addSignal(sig_l);
+                            mObj.Data.addSignal(sig_r)
+                        else
+                            % Get the center frequencies from dependent processors
+                            cfHz = dep_proc.getDependentParameter('cfHz');
+                            % Instantiate a processor
+                            mObj.Processors{ii,1} = gaborProc(dep_proc.FsHzOut,p,size(cfHz,2));
+                            
+                            % List of features
+                            nFeat = mObj.Processors{ii,1}.nFeat;
+                            fList = cell(1,nFeat);
+                            for jj = 1:nFeat
+                                fList{jj} = num2str(jj);
+                            end
+                            
+                            % Generate a new signal
+                            sig = FeatureSignal(mObj.Processors{ii,1}.FsHzOut,fList,mObj.Data.bufferSize_s,'gabor','Gabor Features','mono');
+                            % Add signal to the data object
+                            mObj.Data.addSignal(sig);
+                        end
                     % TO DO: Populate that list further
                     
                     % N.B: No need for "otherwise" case once complete

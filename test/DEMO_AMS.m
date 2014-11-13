@@ -17,7 +17,7 @@ dObj = dataObject(earSignals(:,2),fsHz);
 % 
 % 
 % Request amplitude modulation spectrogram (AMS) feaures
-requests = {'ams_features'};
+requests = 'ams_features';
 
 % Parameters of Gammatone processor
 gt_nChannels  = 23;  
@@ -45,7 +45,7 @@ parLog = genParStruct('gt_lowFreqHz',gt_lowFreqHz,'gt_highFreqHz',gt_highFreqHz,
 % 
 % 
 % Create a manager
-mObj = manager(dObj,{requests requests},{parLin parLog});
+mObj = manager(dObj,requests,{parLin parLog});
 
 % Request processing
 mObj.processSignal();
@@ -57,7 +57,7 @@ mObj.processSignal();
 % Plot time domain signal
 dObj.time{1}.plot;grid on;ylim([-1 1]);title('Time domain signal')
 
-% Envelope
+% Plot IHC representation using waveplot
 env  = [dObj.innerhaircell{1}.Data(:,:)];
 fHz  = dObj.gammatone{1}.cfHz;
 tSec = (1:size(env,1))/fsHz;

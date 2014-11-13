@@ -3,30 +3,36 @@ close all
 clc
 
 
+%% LOAD SIGNAL
+% 
+% 
 % Load a signal
-load('TestBinauralCues');
+load('AFE_earSignals_16kHz');
 
-% Take right ear signal
-data = earSignals(1:62E3,2);     
+% Create a data object based on parts of the right ear signal
+dObj = dataObject(earSignals(1:20E3,2),fsHz);
 
-% New sampling frequency
-fsHzRef = 16E3;
 
-% Resample
-data = resample(data,fsHzRef,fsHz);
+%% PLACE REQUEST AND CONTROL PARAMETERS
+% 
+% 
+% Request gammatone processor
+requests = {'gammatone'};
 
-% Copy fs
-fsHz = fsHzRef;
+% Parameters of Gammatone processor
+gt_nChannels  = 16;  
+gt_lowFreqHz  = 80;
+gt_highFreqHz = 8000;
 
-% Request ratemap    
-requests = {'ratemap_power'};
+% Parameters 
+par = genParStruct('gt_lowFreqHz',gt_lowFreqHz,...
+                   'gt_highFreqHz',gt_highFreqHz,...
+                   'gt_nChannels',gt_nChannels);
+                   
 
-% Parameters
-par = genParStruct('gt_lowFreqHz',80,'gt_highFreqHz',8000,'gt_nChannels',16); 
-
-% Create a data object
-dObj = dataObject(data,fsHz);
-
+%% PERFORM PROCESSING
+% 
+% 
 % Create a manager
 mObj = manager(dObj,requests,par);
 
@@ -34,25 +40,19 @@ mObj = manager(dObj,requests,par);
 mObj.processSignal();
 
 
-%% Plot Gammatone response
+%% PLOT RESULTS
 % 
 % 
-% Basilar membrane output
-bm   = [dObj.gammatone{1}.Data(:,:)];
-fHz  = dObj.gammatone{1}.cfHz;
-tSec = (1:size(bm,1))/fsHz;
+% Plot-related parameters
+wavPlotZoom = 5; % Zoom factor
+wavPlotDS   = 3; % Down-sampling factor
 
-zoom  = [];
-bNorm = [];
+% Summarize plot parameters
+p = genParStruct('wavPlotZoom',wavPlotZoom,'wavPlotDS',wavPlotDS);
 
+% Plot time domain signal
+dObj.time{1}.plot
 
-figure;
-plot(tSec(1:3:end),data(1:3:end));
-xlabel('Time (s)')
-ylabel('Amplitude')
-xlim([tSec(1) tSec(end)]);
-ylim([-1 1])
-
-figure;
-waveplot(bm(1:3:end,:),tSec(1:3:end),fHz,zoom,bNorm);
-
+% Plot gammatone signal
+dObj.gammatone{1}.plot([],p);
+title('Gamatone response')

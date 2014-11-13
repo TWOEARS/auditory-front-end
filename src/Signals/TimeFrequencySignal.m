@@ -217,9 +217,11 @@ classdef TimeFrequencySignal < Signal
                 % Set up a title
                 if strcmp(sObj.Name,'ratemap')
                     if strcmp(sObj.scaling,'power')
-                        label = [sObj.Label ' (power)'];
+                        % label = [sObj.Label ' (power)'];
+                        label = sObj.Label;
                     else
-                        label = [sObj.Label ' (magnitude)'];
+                        % label = [sObj.Label ' (magnitude)'];
+                        label = sObj.Label;
                     end
                 else
                     label = sObj.Label;
