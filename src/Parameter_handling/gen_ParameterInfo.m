@@ -26,9 +26,9 @@ clear pInfo
     addParameterInfo('preproc','pp_intTimeSecRMS',500E-3,'Time constant (s) for automatic gain control')
 
     % Time-domain framing processor
-    addParameterInfo('fr','fr_wname','hamming','Window name descriptor (see window.m)','Time-domain signal framing processor')
-    addParameterInfo('fr','fr_wSize',1024,'Window duration in samples')
-    addParameterInfo('fr','fr_hSize',512,'Step size between windows in samples')
+%     addParameterInfo('fr','fr_wname','hamming','Window name descriptor (see window.m)','Time-domain signal framing processor')
+%     addParameterInfo('fr','fr_wSize',1024,'Window duration in samples')
+%     addParameterInfo('fr','fr_hSize',512,'Step size between windows in samples')
 
     % Gammatone filterbank
     addParameterInfo('gammatone','gt_lowFreqHz',80,'Lowest center frequency (Hz)','Gammatone filterbank')
@@ -99,7 +99,7 @@ clear pInfo
     addParameterInfo('cc','cc_maxDelaySec',1.1E-3,'Maximum delay in cross-correlation computation (s)')
 
     % Cross-correlation feature
-    addParameterInfo('ccf','ccf_factor',3,'Downsampling factor for the lag vector (positive integer)','Cross-correlation feature')
+%     addParameterInfo('ccf','ccf_factor',3,'Downsampling factor for the lag vector (positive integer)','Cross-correlation feature')
     
     % Interaural coherence
     addParameterInfo('ic',[],[],[],'Interaural coherence')
@@ -111,6 +111,9 @@ clear pInfo
     addParameterInfo('sf','sf_requests','all','List (cell array) of requested spectral features, type ''help SpectralFeaturesProc'' for a list','Spectral features')
     addParameterInfo('sf','sf_br_cf',1500,'Cutoff frequency for brightness computation')
     addParameterInfo('sf','sf_ro_perc',0.8,'Threshold (re. 1) for spectral rolloff computation')
+    
+    % Gabor features
+    addParameterInfo('gb',[],[],[],'Gabor features')
     
 % Plotting:
     addParameterInfo('plotting','ftype','Helvetica','Plots font name','Plot properties')

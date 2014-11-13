@@ -5,7 +5,7 @@
 close all
 clc
 
-test_startup;
+% test_startup;
 
 % Which demo(s) to run:
 demo = [1];
@@ -24,7 +24,7 @@ clear earSignals fsHz
 if ismember(1,demo)
     
 % requests = {'ild','itd_xcorr','ratemap'};
-requests = {'ild' 'itd_xcorr' 'ic_xcorr'};
+requests = {'ild' 'itd' 'ic'};
 % requests = {'ic_xcorr'}
 
 % Create a data object
@@ -38,8 +38,8 @@ mObj.processSignal();
 
 % Plot the results
 h1 = dObj.ild{1}.plot;
-h2 = dObj.itd_xcorr{1}.plot;
-h3 = dObj.ic_xcorr{1}.plot;
+h2 = dObj.itd{1}.plot;
+h3 = dObj.ic{1}.plot;
 
 % Position the figures
 set(h1,'Units','normalized','Position',[0.1 0.1 0.25 0.3])
@@ -72,7 +72,7 @@ mObj.processSignal
 
 % Plot the results
 h1 = dObj.ild{1}.plot;
-h2 = dObj.itd_xcorr{1}.plot;
+h2 = dObj.itd{1}.plot;
 h3 = dObj.ratemap{1}.plot;
 
 % Position the figures
@@ -109,7 +109,7 @@ mObj.processSignal
 
 % Plot the results
 h1 = dObj.ild{1}.plot;
-h2 = dObj.itd_xcorr{1}.plot;
+h2 = dObj.itd{1}.plot;
 h3 = dObj.ratemap{1}.plot;
 
 % Position the figures

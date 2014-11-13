@@ -7,7 +7,7 @@ classdef dataObject < dynamicprops
     end
     
     methods
-        function dObj = dataObject(s,fs,bufferSize_s,is_stereo)
+        function dObj = dataObject(s,fs,bufferSize_s,channelNumber)
             %dataObject     Constructs a data object
             %
             %USAGE
@@ -43,19 +43,23 @@ classdef dataObject < dynamicprops
             % Check number of channels of the provided signal
             if size(s,2)==2 
                 % Set to stereo when provided signal is
-                is_stereo = true;
-            elseif nargin<4||isempty(is_stereo)
+                channelNumber = 2;
+            elseif nargin<4||isempty(channelNumber)
                 % Set to default if stereo flag not provided
-                is_stereo = false;
+                channelNumber = 1;
+            end
+            
+            if channelNumber>2 || channelNumber<1
+                error('Provided number of channel is incorrect, should be 1 (mono) or 2 (stereo).')
             end
             
             % Set the is_stereo property
-            dObj.isStereo = is_stereo;
+            dObj.isStereo = channelNumber-1;
             
             % Populate the signal property
             
             % TO DO: Do something with the label of this signal?
-            if is_stereo
+            if dObj.isStereo
                 if ~isempty(s)
                     sig_l = TimeDomainSignal(fs,dObj.bufferSize_s,'signal','Ear Signal',s(:,1),'left');
                     sig_r = TimeDomainSignal(fs,dObj.bufferSize_s,'signal','Ear Signal',s(:,2),'right');

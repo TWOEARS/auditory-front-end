@@ -20,7 +20,7 @@ end
 
 switch signal
     case 'time'
-        procName = 'identityProc';  % To be changed!
+        procName = 'preProc';
         
     case 'framedSignal'
         procName = 'framingProc';

@@ -8,13 +8,13 @@ close all
 
 % Request and parameters for feature extraction
 % request = {'modulation'};
-request = {'onset_map'};
+request = {'time'};
 p = [];
 % p = genParStruct('IHCMethod','breebart','am_type','filter');
 
 
 % Online processing parameters
-chunkSize = 10000;    % Chunk size in samples
+chunkSize = 1000;    % Chunk size in samples
 
 %% Signal
 % Load a signal
@@ -36,7 +36,8 @@ data = [data;zeros(n_chunks*chunkSize-size(data,1),1)];
 dObj_off = dataObject(data,fsHz);
 dObj_on = dataObject(data,fsHz);
 
-p = genParStruct('trm_minStrengthDB',3,'trm_minSpread',5,'trm_fuseWithinSec',0.03);
+% p = genParStruct('trm_minStrengthDB',3,'trm_minSpread',5,'trm_fuseWithinSec',0.03);
+p = genParStruct('pp_bNormalizeRMS',0,'pp_bRemoveDC',1,'pp_bPreEmphasis',0);
 
 % Instantiate managers
 mObj_off = manager(dObj_off);

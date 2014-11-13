@@ -58,8 +58,8 @@ classdef preProc < Processor
             pObj.intTimeSecRMS = p.pp_intTimeSecRMS;
             
             if pObj.bRemoveDC
-                pObj.dcFilter_l = bwFilter(fs,4,pObj.cutoffHzDC,[],[],'high');
-                pObj.dcFilter_r = bwFilter(fs,4,pObj.cutoffHzDC,[],[],'high');
+                pObj.dcFilter_l = bwFilter(fs,4,pObj.cutoffHzDC,[],'high');
+                pObj.dcFilter_r = bwFilter(fs,4,pObj.cutoffHzDC,[],'high');
             else
                 pObj.dcFilter_l = [];
                 pObj.dcFilter_r = [];
@@ -192,13 +192,13 @@ classdef preProc < Processor
             end
             
             if ((pObj.bRemoveDC && p.pp_bRemoveDC) && (pObj.cutoffHzDC ~= p.pp_cutoffHzDC)) ...
-                    || ~(pObj.bRemoveDC && p.pp_bRemoveDC)
+                    || ~(pObj.bRemoveDC == p.pp_bRemoveDC)
                 hp = 0;
                 return
             end
             
             if ((pObj.bPreEmphasis && p.pp_bPreEmphasis) && (pObj.coefPreEmphasis ~= p.pp_coefPreEmphasis)) ...
-                    || ~(pObj.bPreEmphasis && p.pp_bPreEmphasis)
+                    || ~(pObj.bPreEmphasis == p.pp_bPreEmphasis)
                 hp = 0;
                 return
             end
@@ -206,7 +206,7 @@ classdef preProc < Processor
             if ((pObj.bNormalizeRMS && p.pp_bNormalizeRMS) && ...
                     ((pObj.intRimeSecRMS ~= p.pp_intRimeSecRMS) || ...
                     (pObj.bBinauralAGC ~= p.pp_bBinauralAGC))) ...
-                    || ~(pObj.bPreEmphasis && p.pp_bPreEmphasis)
+                    || ~(pObj.bPreEmphasis == p.pp_bPreEmphasis)
                 hp = 0;
                 return
             end

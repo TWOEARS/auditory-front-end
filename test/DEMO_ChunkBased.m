@@ -16,7 +16,7 @@ chunkSizeMin = 100;
 chunkSizeMax = 20000;
 
 % Instantiation of data and manager objects
-dataObj = dataObject([],fsHz,10,1);
+dataObj = dataObject([],fsHz,10,2);
 managerObj = manager(dataObj);
 
 % Place a request
@@ -27,7 +27,7 @@ chunkStart = 0;
 chunkStop = 1;
 
 % Simulate a chunk-based aquisition of the input
-while chunkStart < L - chunkSizeMin
+while chunkStop < L
     
     % Generate new chunk boundaries
     chunkStart = chunkStop + 1;

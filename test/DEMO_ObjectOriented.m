@@ -51,7 +51,7 @@ dObj.innerhaircell{1}.plot;
 % objects, each having specific methods, e.g.:
 fprintf('%s for %s signal was computed for %i frequency channels.\n',...
     dObj.innerhaircell{1}.Label,...
-    dObj.innerhaircell{1}.Canal,...
+    dObj.innerhaircell{1}.Channel,...
     size(dObj.innerhaircell{1}.cfHz,2))
 
 % Most objects are inheriting from the "handle" super-class, which allows
@@ -78,7 +78,7 @@ data = earSignals;
 
 % Create an empty data object. It will be filled up as new ear signal
 % chunks are "acquired". 
-dObj = dataObject([],fsHz,10,1);     % Last input (1) indicates a stereo signal
+dObj = dataObject([],fsHz,10,2);     % Last input (2) indicates a stereo signal
 mObj = manager(dObj,request);   % Instantiate a manager
 
 % From here on, simulating real-time chunk acquisition and processing
