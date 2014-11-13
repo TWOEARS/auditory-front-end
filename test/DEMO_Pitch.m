@@ -1,43 +1,56 @@
 clear;
-% close all
+close all
 clc
 
-%% INITIALIZATION
-%
+
+%% LOAD SIGNAL
+% 
+% 
 % Load a signal
-load('TestBinauralCues');
+load('AFE_earSignals_16kHz');
 
-% Take right ear signal
-data = earSignals(1:62E3,2); 
+% Create a data object based on parts of the right ear signal
+dObj = dataObject(earSignals(1:20E3,2),fsHz);
 
-% New sampling frequency
-fsHzRef = 16E3;
 
-% Resample
-data = resample(data,fsHzRef,fsHz);
-
-% Copy fs
-fsHz = fsHzRef;
-
-% Request ratemap    
+%% PLACE REQUEST AND CONTROL PARAMETERS
+% 
+% 
+% Request pitch processor
 requests = {'pitch'};
 
+% Parameters of Gammatone processor
+gt_nChannels  = 16;  
+gt_lowFreqHz  = 80;
+gt_highFreqHz = 8000;
+
+% Parameters of innerhaircell processor
+ihc_method    = 'dau';
+
+% Parameters of autocorrelation processor
 ac_wSizeSec   = 0.02;
 ac_hSizeSec   = 0.01;
 ac_clipAlpha  = 0.0;
 ac_K          = 2;
-pitchRangeHz  = [80 400];
-confThresPerc = 0.7;
-orderMedFilt  = 3;
+ac_wname      = 'hann';
 
-% Parameters
-par = genParStruct('gt_lowFreqHz',80,'gt_highFreqHz',8000,'gt_nChannels',16,'ihc_method','dau','ac_wSizeSec',ac_wSizeSec,'ac_hSizeSec',ac_hSizeSec,'ac_clipAlpha',ac_clipAlpha,'ac_K',ac_K); 
+% Parameters of pitch processor
+pi_rangeHz     = [80 400];
+pi_confThres   = 0.7;
+pi_medianOrder = 3;
 
+% Parameters 
+par = genParStruct('gt_lowFreqHz',gt_lowFreqHz,'gt_highFreqHz',gt_highFreqHz,...
+                   'gt_nChannels',gt_nChannels,'ihc_method',ihc_method,...
+                   'ac_wSizeSec',ac_wSizeSec,'ac_hSizeSec',ac_hSizeSec,...
+                   'ac_clipAlpha',ac_clipAlpha,'ac_K',ac_K,'ac_wname',ac_wname,...
+                   'pi_rangeHz',pi_rangeHz,'pi_confThres',pi_confThres,...
+                   'pi_medianOrder',pi_medianOrder); 
+               
 
-%% AFE PROCESSING
-% Create a data object
-dObj = dataObject(data,fsHz);
-
+%% PERFORM PROCESSING
+% 
+% 
 % Create a manager
 mObj = manager(dObj,requests,par);
 
@@ -45,7 +58,9 @@ mObj = manager(dObj,requests,par);
 mObj.processSignal();
 
 
-%% PLOTTING RESULTS
+%% PLOT RESULTS
+% 
+% 
 % Plot time-domain signal
 dObj.time{1}.plot;   
 
@@ -63,7 +78,7 @@ dObj.pitch{1}.plot(h3,'confidence','confThres',mObj.Processors{5}.confThresPerc)
 
 % Final pitch estimation
 h4 = figure;
-dObj.pitch{1}.plot(h4,'pitch','pitchRange',mObj.Processors{5}.pitchRangeHz)
+dObj.pitch{1}.plot(h4,'pitch','pitchRange',mObj.Processors{5}.pitchRangeHz);
 
 % Save to latex
 if 0

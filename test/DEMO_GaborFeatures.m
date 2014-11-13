@@ -1,24 +1,23 @@
-clear
+clear;
 close all
 clc
 
+
+%% LOAD SIGNAL
+% 
+% 
 % Load a signal
-load('TestBinauralCues');
+load('AFE_earSignals_16kHz');
 
-% Take right ear signal
-data = earSignals(1:62E3,2);     
+% Create a data object based on parts of the ear signals
+dObj = dataObject(earSignals(1:20E3,:),fsHz);
 
-% New sampling frequency
-fsHzRef = 16E3;
 
-% Resample
-data = resample(data,fsHzRef,fsHz);
-
-% Copy fs
-fsHz = fsHzRef;
-
+%% PLACE REQUEST AND CONTROL PARAMETERS
+% 
+% 
 % Request ratemap    
-requests = {'ratemap_power'};
+requests = {'ratemap'};
 
 % Following the ETSI standard
 nChannels  = [23];
@@ -35,9 +34,10 @@ par = genParStruct('gt_lowFreqHz',lowFreqHz,'gt_highFreqHz',highFreqHz,'gt_nChan
                    'rm_wSizeSec',rm_wSizeSec,'rm_hSizeSec',rm_wStepSec,...
                    'rm_decaySec',rm_decaySec); 
 
-% Create a data object
-dObj = dataObject(data,fsHz);
 
+%% PERFORM PROCESSING
+% 
+% 
 % Create a manager
 mObj = manager(dObj,requests,par);
 
@@ -52,7 +52,7 @@ mObj.processSignal();
 maxDynamicRangedB = 80;
 
 % Get ratemap representation
-rm_feat = transpose([dObj.ratemap_power{1}.Data(:,:)]);
+rm_feat = transpose([dObj.ratemap{1}.Data(:,:)]);
 
 % Maximum ratemap power
 max_pow = max(rm_feat(:));
@@ -102,7 +102,7 @@ xlabel('Time (s)')
 ylabel('\# feature dimensions')
 title('Gabor features')
 
-if 1
-    fig2LaTeX('Gabor_01',1,16);
-    fig2LaTeX('Gabor_02',2,16);
-end
+% if 1
+%     fig2LaTeX('Gabor_01',1,16);
+%     fig2LaTeX('Gabor_02',2,16);
+% end
