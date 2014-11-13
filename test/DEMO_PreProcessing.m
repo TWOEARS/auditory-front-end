@@ -39,12 +39,12 @@ pp_bNormalizeRMS = true;
 pp_intTimeSecRMS = 500E-3;   
     
 % Apply level scaling to reference
-pp_bApplyLevelScaling = true;
+pp_bLevelScaling = true;
 pp_refSPLdB = 100;
 
 % Apply middle ear filtering
 pp_bMiddleEarFiltering = true;
-pp_midEarFilterModel = 'jepsenmiddleear';
+pp_middleEarModel = 'jepsen';
 
 %% Plot signal
 % 
@@ -152,7 +152,7 @@ end
 
 %% Level scaling to reference
 
-if pp_bApplyLevelScaling
+if pp_bLevelScaling
     % Obtain what the current calibration reference is 
     current_dboffset = dbspl(1);
     % Adjust level corresponding to the given reference
@@ -168,8 +168,11 @@ end
 data = earSignals;
 if pp_bMiddleEarFiltering
     % Obtain the filter coefficients corresponding to the given model
+    if strcmp(pp_middleEarModel, 'jepsen')
+        pp_middleEarModel = 'jepsenmiddleear'; 
+    end
     a = 1;
-    b = middleearfilter(fsHz, pp_midEarFilterModel);
+    b = middleearfilter(fsHz, pp_middleEarModel);
     % Apply filtering
     data = filter(b, a, data);
  

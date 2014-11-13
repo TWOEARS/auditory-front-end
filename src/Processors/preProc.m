@@ -8,14 +8,14 @@ classdef preProc < Processor
         coefPreEmphasis
         
         bNormalizeRMS
-        bBinauralAGC
+        bBinauralRMS
         intTimeSecRMS
         
-        bApplyLevelScaling
+        bLevelScaling
         refSPLdB
         
         bMiddleEarFiltering
-        midEarFilterModel
+        middleEarModel
     end
     
     properties (Access = private)
@@ -61,12 +61,12 @@ classdef preProc < Processor
             pObj.bPreEmphasis = p.pp_bPreEmphasis;
             pObj.coefPreEmphasis = p.pp_coefPreEmphasis;
             pObj.bNormalizeRMS = p.pp_bNormalizeRMS;
-            pObj.bBinauralAGC = p.pp_bBinauralAGC;
+            pObj.bBinauralRMS = p.pp_bBinauralRMS;
             pObj.intTimeSecRMS = p.pp_intTimeSecRMS;
-            pObj.bApplyLevelScaling = p.pp_bApplyLevelScaling;
+            pObj.bLevelScaling = p.pp_bLevelScaling;
             pObj.refSPLdB = p.pp_refSPLdB;
             pObj.bMiddleEarFiltering = p.pp_bMiddleEarFiltering;
-            pObj.midEarFilterModel = p.pp_midEarFilterModel;
+            pObj.middleEarModel = p.pp_middleEarModel;
             
             if pObj.bRemoveDC
                 pObj.dcFilter_l = bwFilter(fs,4,pObj.cutoffHzDC,[],'high');
@@ -95,8 +95,11 @@ classdef preProc < Processor
             end
             
             if pObj.bMiddleEarFiltering
+                if strcmp(pObj.middleEarModel, 'jepsen')
+                    pObj.middleEarModel = 'jepsenmiddleear'; 
+                end
                 a = 1;
-                b = middleearfilter(fs, pObj.midEarFilterModel);
+                b = middleearfilter(fs, pObj.middleEarModel);
                 pObj.midEarFilter = genericFilter(b,a,fs);
             else
                 pObj.midEarFilter = [];
@@ -168,7 +171,7 @@ classdef preProc < Processor
                 normFactor_r = sqrt(pObj.agcFilter_r.filter(in_r.^2))+pObj.epsilon;
                 
                 % Preserve multi-channel differences
-                if ~isempty(normFactor_r) && pObj.bBinauralAGC
+                if ~isempty(normFactor_r) && pObj.bBinauralRMS
                     normFactor_l = max(normFactor_l,normFactor_r);
                     normFactor_r = normFactor_l;
                 end
@@ -183,7 +186,7 @@ classdef preProc < Processor
                 
             end
             
-            if pObj.bApplyLevelScaling
+            if pObj.bLevelScaling
                 current_dboffset = dbspl(1);
                 data_l = gaindb(data_l, current_dboffset-pObj.refSPLdB);
                 data_r = gaindb(data_r, current_dboffset-pObj.refSPLdB);
@@ -235,21 +238,21 @@ classdef preProc < Processor
             
             if ((pObj.bNormalizeRMS && p.pp_bNormalizeRMS) && ...
                     ((pObj.intRimeSecRMS ~= p.pp_intRimeSecRMS) || ...
-                    (pObj.bBinauralAGC ~= p.pp_bBinauralAGC))) ...
+                    (pObj.bBinauralRMS ~= p.pp_bBinauralRMS))) ...
                     || ~(pObj.bPreEmphasis == p.pp_bPreEmphasis)
                 hp = 0;
                 return
             end
             
-            if ((pObj.bApplyLevelScaling && p.pp_bApplyLevelScaling) && ...
+            if ((pObj.bLevelScaling && p.pp_bLevelScaling) && ...
                     (pObj.refSPLdB ~= p.pp_refSPLdB)) ...
-                    || ~(pObj.bApplyLevelScaling && p.pp_bApplyLevelScaling)
+                    || ~(pObj.bLevelScaling && p.pp_bLevelScaling)
                 hp = 0;
                 return
             end
             
             if ((pObj.bMiddleEarFiltering && p.pp_bMiddleEarFiltering) && ...
-                    (pObj.midEarFilterModel ~= p.pp_midEarFilterModel)) ...
+                    (pObj.middleEarModel ~= p.pp_middleEarModel)) ...
                     || ~(pObj.bMiddleEarFiltering && p.pp_bMiddleEarFiltering)
                 hp = 0;
                 return
