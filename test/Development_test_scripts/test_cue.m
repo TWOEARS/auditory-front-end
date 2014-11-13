@@ -20,8 +20,8 @@ end
 clear earSignals
 
 % Parameters
-request = {'time'};
-p = genParStruct('pp_bNormalizeRMS',1);
+request = {'gabor'};
+p = [];%genParStruct('pp_bNormalizeRMS',1);
 
 
 % Create a data object

@@ -61,12 +61,18 @@ classdef ildProc < Processor
         end
         
         function out = processChunk(pObj,in_l,in_r)
-            %processChunk
+            %processChunk       Requests the processing for a new chunk of
+            %                   signal
             %
-            %TO DO:
-            % - Do we need a h1 line here?
-            % - Do we need to check inputs dimensionality?
-            % - Better handling of dimensionality problem
+            %USAGE:
+            %    out = processChunk(in)
+            %
+            %INPUT ARGUMENTS:
+            %   pObj : Processor instance
+            %     in : Input chunk
+            %
+            %OUTPUT ARGUMENT:
+            %    out : Processor output for that chunk
             
             % Append provided input to the buffer
             if ~isempty(pObj.buffer_l)
