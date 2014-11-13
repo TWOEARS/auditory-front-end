@@ -17,7 +17,7 @@ dObj = dataObject(earSignals(1:20E3,2),fsHz);
 % 
 % 
 % Request gammatone processor
-requests = {'gammatone'};
+requests = {'filterbank'};
 
 % Parameters of Gammatone processor
 fb_nChannels  = 16;  

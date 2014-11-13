@@ -1286,7 +1286,7 @@ classdef manager < handle
             
             % Initialization of while loop
             ii = 1;
-            dep = signal2procName(dep_list{ii});
+            dep = signal2procName(dep_list{ii},p);
             hProc = mObj.hasProcessor(dep,p);
             list = {};
             
@@ -1323,7 +1323,7 @@ classdef manager < handle
                 
                 % Initialization of while loop
                 ii = 1;
-                dep = signal2procName(dep_list{ii});
+                dep = signal2procName(dep_list{ii},p);
                 hProc2 = mObj.hasProcessor(dep,p,Channel);
                 list = {};
 
@@ -1336,7 +1336,7 @@ classdef manager < handle
 
                     % Move on to next level of dependency
                     ii = ii + 1;
-                    dep = signal2procName(dep_list{ii});
+                    dep = signal2procName(dep_list{ii},p);
                     hProc2 = mObj.hasProcessor(dep,p,Channel);
 
                 end
