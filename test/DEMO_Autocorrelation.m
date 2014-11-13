@@ -1,5 +1,5 @@
 clear;
-close all
+% close all
 clc
 
 
@@ -19,8 +19,8 @@ dObj = dataObject(earSignals(1:20E3,2),fsHz);
 % Request auto-corrleation function (ACF)
 requests = {'autocorrelation'};
 
-ac_wSizeSec  = 0.032;
-ac_hSizeSec  = 0.016;
+ac_wSizeSec  = 0.02;
+ac_hSizeSec  = 0.01;
 ac_clipAlpha = 0.0;
 ac_K         = 2;
 ac_wname     = 'hann';
