@@ -19,7 +19,8 @@ dObj = dataObject(earSignals(1:20E3,2),fsHz);
 % Request auto-corrleation function (ACF)
 requests = {'autocorrelation'};
 
-% Parameters of Gammatone processor
+% Parameters of the auditory filterbank processor
+fb_type       = 'gammatone';
 fb_nChannels  = 16;  
 fb_lowFreqHz  = 80;
 fb_highFreqHz = 8000;
@@ -34,11 +35,12 @@ ac_clipAlpha = 0.0;
 ac_K         = 2;
 ac_wname     = 'hann';
 
-% Parameters 
-par = genParStruct('fb_lowFreqHz',fb_lowFreqHz,'fb_highFreqHz',fb_highFreqHz,...
-                   'fb_nChannels',fb_nChannels,'ihc_method',ihc_method,...
-                   'ac_wSizeSec',ac_wSizeSec,'ac_hSizeSec',ac_hSizeSec,...
-                   'ac_clipAlpha',ac_clipAlpha,'ac_K',ac_K,'ac_wname',ac_wname); 
+% Summary of parameters 
+par = genParStruct('fb_type',fb_type,'fb_lowFreqHz',fb_lowFreqHz,...
+                   'fb_highFreqHz',fb_highFreqHz,'fb_nChannels',fb_nChannels,...
+                   'ihc_method',ihc_method,'ac_wSizeSec',ac_wSizeSec,...
+                   'ac_hSizeSec',ac_hSizeSec,'ac_clipAlpha',ac_clipAlpha,...
+                   'ac_K',ac_K,'ac_wname',ac_wname); 
 
 
 %% PERFORM PROCESSING

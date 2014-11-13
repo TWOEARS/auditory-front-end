@@ -19,8 +19,9 @@ dObj = dataObject(earSignals(1:20E3,:),fsHz);
 % Request cross-corrleation function (CCF)
 requests = {'crosscorrelation'};
 
-% Parameters of Gammatone processor
-fb_nChannels  = 32;  
+% Parameters of the auditory filterbank processor
+fb_type       = 'gammatone';
+fb_nChannels  = 16;  
 fb_lowFreqHz  = 80;
 fb_highFreqHz = 8000;
 
@@ -32,11 +33,11 @@ cc_wSizeSec  = 0.02;
 cc_hSizeSec  = 0.01;
 cc_wname     = 'hann';
 
-% Parameters 
-par = genParStruct('fb_lowFreqHz',fb_lowFreqHz,'fb_highFreqHz',fb_highFreqHz,...
-                   'fb_nChannels',fb_nChannels,'ihc_method',ihc_method,...
-                   'cc_wSizeSec',cc_wSizeSec,'cc_hSizeSec',cc_hSizeSec,...
-                   'cc_wname',cc_wname); 
+% Summary of parameters 
+par = genParStruct('fb_type',fb_type,'fb_lowFreqHz',fb_lowFreqHz,...
+                   'fb_highFreqHz',fb_highFreqHz,'fb_nChannels',fb_nChannels,...
+                   'ihc_method',ihc_method,'cc_wSizeSec',cc_wSizeSec,...
+                   'cc_hSizeSec',cc_hSizeSec,'cc_wname',cc_wname); 
                
 
 %% PERFORM PROCESSING
