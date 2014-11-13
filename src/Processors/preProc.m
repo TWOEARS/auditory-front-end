@@ -133,8 +133,8 @@ classdef preProc < Processor
                 % Initialize the filter states if empty
                 if ~pObj.agcFilter_l.isInitialized  %isempty(pObj.agcFilter_l.States)
                     % Mean square of input over the time constant
-                    sm_l = mean(data_l(1:min(size(data_l,1),round(pObj.intTimeSecRMS*pObj.FsHzIn))).^2)
-                    sm_r = mean(data_r(1:min(size(data_r,1),round(pObj.intTimeSecRMS*pObj.FsHzIn))).^2)
+                    sm_l = mean(data_l(1:min(size(data_l,1),round(pObj.intTimeSecRMS*pObj.FsHzIn))).^2);
+                    sm_r = mean(data_r(1:min(size(data_r,1),round(pObj.intTimeSecRMS*pObj.FsHzIn))).^2);
                     
                     % Initial filter states
                     s0_l = exp(-1/(pObj.intTimeSecRMS*pObj.FsHzIn))*sm_l;
@@ -159,7 +159,7 @@ classdef preProc < Processor
                 % Apply normalization
                 data_l = data_l./normFactor_l;
                 if ~isempty(normFactor_r)
-                    figure,plot(normFactor_r),title('preProc')
+%                     figure,plot(normFactor_r),title('preProc')
                     data_r = data_r./normFactor_r;
                 else
                     data_r = [];

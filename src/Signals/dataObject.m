@@ -204,7 +204,7 @@ classdef dataObject < dynamicprops
             
         end
         
-        function play(dObj)
+        function play(dObj,bPreProcessed)
             %play       Playback the audio from the ear signal in the data
             %           object
             %
@@ -214,17 +214,33 @@ classdef dataObject < dynamicprops
             %INPUT ARGUMENTS
             %   dObj : Data object
             
-            if ~isprop(dObj,'signal')||isempty(dObj.signal)||...
-                    isempty(dObj.signal{1}.Data)
-                warning('There is no audio in the data object to playback')
-            else
-                if size(dObj.signal,2)==1
-                    % Then mono playback
-                    sound(dObj.signal{1}.Data(:),dObj.signal{1}.FsHz)
+            if nargin<2 || isempty(bPreProcessed) || ~bPreProcessed
+                if ~isprop(dObj,'signal')||isempty(dObj.signal)||...
+                        isempty(dObj.signal{1}.Data)
+                    warning('There is no audio in the data object to playback')
                 else
-                    % Stereo playback
-                    temp_snd = [dObj.signal{1}.Data(:) dObj.signal{2}.Data(:)];
-                    sound(temp_snd,dObj.signal{1}.FsHz)
+                    if size(dObj.signal,2)==1
+                        % Then mono playback
+                        soundsc(dObj.signal{1}.Data(:),dObj.signal{1}.FsHz)
+                    else
+                        % Stereo playback
+                        temp_snd = [dObj.signal{1}.Data(:) dObj.signal{2}.Data(:)];
+                        soundsc(temp_snd,dObj.signal{1}.FsHz)
+                    end
+                end
+            else
+                if ~isprop(dObj,'time')||isempty(dObj.time)||...
+                        isempty(dObj.time{1}.Data)
+                    warning('There is no audio in the data object to playback')
+                else
+                    if size(dObj.time,2)==1
+                        % Then mono playback
+                        soundsc(dObj.time{1}.Data(:),dObj.time{1}.FsHz)
+                    else
+                        % Stereo playback
+                        temp_snd = [dObj.time{1}.Data(:) dObj.time{2}.Data(:)];
+                        soundsc(temp_snd,dObj.time{1}.FsHz)
+                    end
                 end
             end
         end
