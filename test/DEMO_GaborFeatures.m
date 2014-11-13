@@ -18,7 +18,7 @@ data = resample(data,fsHzRef,fsHz);
 fsHz = fsHzRef;
 
 % Request ratemap    
-requests = {'ratemap_power'};
+requests = {'ratemap'};
 
 % Following the ETSI standard
 nChannels  = [23];
@@ -32,7 +32,7 @@ rm_decaySec = 8E-3;
 
 % Parameters
 par = genParStruct('gt_lowFreqHz',lowFreqHz,'gt_highFreqHz',highFreqHz,'gt_nChannels',nChannels,...
-                   'rm_wSizeSec',rm_wSizeSec,'rm_hSizeSec',rm_wStepSec,...
+                   'rm_wSizeSec',rm_wSizeSec,'rm_hSizeSec',rm_wStepSec,'rm_scaling','power',...
                    'rm_decaySec',rm_decaySec); 
 
 % Create a data object
@@ -52,7 +52,7 @@ mObj.processSignal();
 maxDynamicRangedB = 80;
 
 % Get ratemap representation
-rm_feat = transpose([dObj.ratemap_power{1}.Data(:,:)]);
+rm_feat = transpose([dObj.ratemap{1}.Data(:,:)]);
 
 % Maximum ratemap power
 max_pow = max(rm_feat(:));
@@ -102,7 +102,7 @@ xlabel('Time (s)')
 ylabel('\# feature dimensions')
 title('Gabor features')
 
-if 1
+if 0
     fig2LaTeX('Gabor_01',1,16);
     fig2LaTeX('Gabor_02',2,16);
 end
