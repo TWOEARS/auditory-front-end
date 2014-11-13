@@ -157,6 +157,8 @@ classdef autocorrelationProc < Processor
                     % Normalize by lag zero
                     acf = acf ./ repmat(acf(1,:),[M-1 1]) ;
                     
+%                     acf = acorrNorm(frames,maxLag-1,true);
+%                     
 %                     % ACF of window
 %                     acfWin = calcACorr(pObj.win,maxLag,'coeff',pObj.K);
 %                     

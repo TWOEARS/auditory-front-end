@@ -163,16 +163,6 @@ classdef crosscorrelationProc < Processor
 
                     % Cross-correlation analysis
                     output = calcXCorr(frames_L,frames_R,maxLag,'coeff');
-
-%                     % Cross-correlation analysis
-%                     [output,lags] = calcXCorr(frames_L,frames_R,maxLag,'none');
-% 
-%                     % Normalization
-%                     output = output ./ repmat(eps + sqrt(sum(frames_L.^2,1) .* sum(frames_R.^2,1)),[2*maxLag+1 1]);
-% 
-%                     scale = pObj.wSize-abs(lags'); scale(scale<=0)=1;
-%                     
-%                     output = output ./ repmat(scale(:)/max(scale),[1 nFrames]);
                     
                     % Store output
                     out(:,jj,:) = permute(output,[2 3 1]);

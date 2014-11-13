@@ -60,7 +60,17 @@ classdef manager < handle
             
             % Instantiate the requested processors
             if ~isempty(request)
-                if iscell(request)
+                if iscell(request) && numel(request) == 1
+                    % Then we have a one request with multiple parameters
+                    if iscell(p)
+                        %... with individual parameters
+                        for ii = 1:size(p,2)
+                            mObj.addProcessor(request,p{ii});
+                        end
+                    else
+                        mObj.addProcessor(request,p);
+                    end
+                elseif iscell(request)
                     % Then we have a multiple request...
                     if iscell(p)
                         %... with individual parameters
@@ -79,7 +89,7 @@ classdef manager < handle
                     end
                 elseif iscell(p)
                     % Then it is a same request but with multiple parameters
-                    for ii = 1:size(request,2)
+                    for ii = 1:size(p,2)
                         mObj.addProcessor(request,p{ii});
                     end
                 else

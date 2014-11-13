@@ -1,22 +1,10 @@
 clear;
-% close all
+close all
 clc
 
 
 % Load a signal
-load('TestBinauralCues');
-
-% Take right ear signal
-data = earSignals(1:62E3,:); 
-
-% New sampling frequency
-fsHzRef = 16E3;
-
-% Resample
-data = resample(data,fsHzRef,fsHz);
-
-% Copy fs
-fsHz = fsHzRef;
+load AFE_earSignals_16kHz
 
 % Request ratemap    
 requests = {'itd'};
@@ -28,7 +16,7 @@ cc_hSizeSec = 0.01;
 par = genParStruct('gt_lowFreqHz',80,'gt_highFreqHz',8000,'gt_nChannels',32,'ihc_method','dau','cc_wSizeSec',cc_wSizeSec,'cc_hSizeSec',cc_hSizeSec); 
 
 % Create a data object
-dObj = dataObject(data,fsHz);
+dObj = dataObject(earSignals,fsHz);
 
 % Create a manager
 mObj = manager(dObj,requests,par);

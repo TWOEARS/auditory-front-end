@@ -3,24 +3,45 @@ close all
 clc
 
 
+%% LOAD SIGNAL
+% 
+% 
 % Load a signal
-load('TestBinauralCues');
+load('AFE_earSignals_16kHz');
 
-% Take right ear signal
-data = earSignals(1:62E3,:); 
+% Create a data object based on parts of the ear signals
+dObj = dataObject(earSignals(1:20E3,:),fsHz);
 
-% Request 
+
+%% PLACE REQUEST AND CONTROL PARAMETERS
+% 
+% 
+% Request cross-corrleation function (CCF)
 requests = {'crosscorrelation'};
 
-cc_wSizeSec = 0.02;
-cc_hSizeSec = 0.01;
+% Parameters of Gammatone processor
+gt_nChannels  = 32;  
+gt_lowFreqHz  = 80;
+gt_highFreqHz = 8000;
 
-% Parameters
-par = genParStruct('gt_lowFreqHz',80,'gt_highFreqHz',8000,'gt_nChannels',32,'ihc_method','dau','cc_wSizeSec',cc_wSizeSec,'cc_hSizeSec',cc_hSizeSec); 
+% Parameters of innerhaircell processor
+ihc_method    = 'dau';
 
-% Create a data object
-dObj = dataObject(data,fsHz);
+% Parameters of autocorrelation processor
+cc_wSizeSec  = 0.02;
+cc_hSizeSec  = 0.01;
+cc_wname     = 'hann';
 
+% Parameters 
+par = genParStruct('gt_lowFreqHz',gt_lowFreqHz,'gt_highFreqHz',gt_highFreqHz,...
+                   'gt_nChannels',gt_nChannels,'ihc_method',ihc_method,...
+                   'cc_wSizeSec',cc_wSizeSec,'cc_hSizeSec',cc_hSizeSec,...
+                   'cc_wname',cc_wname); 
+               
+
+%% PERFORM PROCESSING
+% 
+% 
 % Create a manager
 mObj = manager(dObj,requests,par);
 
@@ -28,8 +49,10 @@ mObj = manager(dObj,requests,par);
 mObj.processSignal();
 
 
-%% Plot the CCF
-
+%% PLOT RESULTS
+% 
+% 
+% Plot the CCF of a single frame
 frameIdx2Plot = 10;
 
 % Get sample indexes in that frame to limit waveforms plot
@@ -48,7 +71,7 @@ p3 = genParStruct('corPlotZoom',5);
 dObj.crosscorrelation{1}.plot([],p3,frameIdx2Plot);
 
 
-%% Show a CCF movie
+%% SHOW CCF MOVIE
 % 
 % 
 if 0
