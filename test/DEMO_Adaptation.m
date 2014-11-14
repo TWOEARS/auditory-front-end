@@ -10,7 +10,7 @@ clc
 load('AFE_earSignals_16kHz');
 
 % Create a data object based on parts of the right ear signal
-dObj = dataObject(earSignals(1:20E3,2),fsHz);
+dObj = dataObject(earSignals(1:22495,2),fsHz);
 
 
 %% PLACE REQUEST AND CONTROL PARAMETERS
@@ -45,13 +45,13 @@ mObj.processSignal();
 % 
 % Plot-related parameters
 wavPlotZoom = 3; % Zoom factor
-wavPlotDS   = 1; % Down-sampling factor
+wavPlotDS   = 3; % Down-sampling factor
 
 % Summarize plot parameters
 p = genParStruct('wavPlotZoom',wavPlotZoom,'wavPlotDS',wavPlotDS);
 
 % Plot innerhaircell signal
-dObj.innerhaircell{1}.plot([],p)
+dObj.innerhaircell{1}.plot([])
 title('IHC signal')
 
 % Plot adaptation signal
