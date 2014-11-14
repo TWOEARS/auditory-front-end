@@ -53,20 +53,21 @@ dataMiddleEar = filter(oe_fir, 1, dataScaled);
 dataStapes = filter(me_fir, 1, dataMiddleEar);
 
 % Request DRNL / gammatone
-requests_DRNL = {'drnl'};
-requests_GT = {'gammatone'};
+requests = {'filterbank'};
+% requests_GT = {'gammatone'};
 
 % Parameters 
-par_DRNL = genParStruct('drnl_cfHz', [500 1000 2000 4000 8000], ...
-    'drnl_mocIpsi', 1); 
-par_GT = genParStruct('fb_cfHz',[500 1000 2000 4000 8000]); 
+par_DRNL = genParStruct('fb_type', 'drnl', 'fb_cfHz', [500 1000 2000 4000 8000], ...
+    'fb_mocIpsi', 1); 
+par_GT = genParStruct('fb_type', 'gammatone', 'fb_cfHz',[500 1000 2000 4000 8000]); 
 
 % Create data objects - here use dataStapes (stapes output, velocity)
-dObj = dataObject(dataStapes,fsHz);
+dObj_DRNL = dataObject(dataStapes,fsHz);
+dObj_GT = dataObject(dataStapes, fsHz);
 
 % Create a manager
-mObj_DRNL = manager(dObj, requests_DRNL, par_DRNL);
-mObj_GT = manager(dObj, requests_GT, par_GT);
+mObj_DRNL = manager(dObj_DRNL, requests, par_DRNL);
+mObj_GT = manager(dObj_GT, requests, par_GT);
 
 % Request processing
 mObj_DRNL.processSignal();
@@ -120,15 +121,15 @@ bNorm = [];
 freqIndex = 2;
 
 figure;
-plot(tSec, dObj.gammatone{1}.Data(:, freqIndex));
+plot(tSec, dObj_GT.gammatone{1}.Data(:, freqIndex));
 xlim([tSec(1) tSec(end)]);
 xlabel('Time (s)');
-title(sprintf('Gammatone filterbank output at %d-Hz center frequency', dObj.gammatone{1}.cfHz(freqIndex)));
+title(sprintf('Gammatone filterbank output at %d-Hz center frequency', dObj_GT.gammatone{1}.cfHz(freqIndex)));
 
 figure;
-plot(tSec, dObj.drnl{1}.Data(:, freqIndex));
+plot(tSec, dObj_DRNL.drnl{1}.Data(:, freqIndex));
 xlim([tSec(1) tSec(end)]);
-title(sprintf('DRNL filterbank output at %d-Hz BM characteristic frequency', dObj.drnl{1}.cfHz(freqIndex)));
+title(sprintf('DRNL filterbank output at %d-Hz BM characteristic frequency', dObj_DRNL.drnl{1}.cfHz(freqIndex)));
 xlabel('Time (s)');
 
 
