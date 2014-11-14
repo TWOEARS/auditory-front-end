@@ -18,18 +18,39 @@ data = resample(data,fsHzRef,fsHz);
 % Copy fs
 fsHz = fsHzRef;
 
-% Request ratemap    
+
+%% PLACE REQUEST AND CONTROL PARAMETERS
+% 
+% 
+% Request onset and offset maps
 requests = {'onset_map' 'offset_map'};
 
-% Minimum ratemap level in dB below which onsets or offsets are not considered
+% Parameters of auditory filterbank 
+fb_type       = 'gammatone';
+fb_lowFreqHz  = 80;
+fb_highFreqHz = 8000;
+fb_nChannels  = 64;  
+
+% Parameters of innerhaircell processor
+ihc_method    = 'dau';
+
+% Parameters of ratemap processor
+rm_wSizeSec  = 0.02;
+rm_hSizeSec  = 0.01;
+rm_decaySec  = 8E-3;
+rm_wname     = 'hann';
+
+% Parameters of onset and offset maps
 minRatemapLeveldB = -80;
 
-% Ratemap settings
-rm_wSizeSec = 20E-3;
-rm_hSizeSec = 10E-3;
-rm_decaySec = 8E-3;
-nChannels   = 64;
-
+% Summary of parameters 
+par = genParStruct('fb_type',fb_type,'fb_lowFreqHz',fb_lowFreqHz,...
+                   'fb_highFreqHz',fb_highFreqHz,'fb_nChannels',fb_nChannels,...
+                   'ihc_method',ihc_method,'ac_wSizeSec',rm_wSizeSec,...
+                   'ac_hSizeSec',rm_hSizeSec,'rm_decaySec',rm_decaySec,...
+                   'ac_wname',rm_wname); 
+               
+               
 % Onset parameters
 minOnsetStrengthdB  = 3;
 minOnsetSize        = 5;
@@ -41,7 +62,7 @@ minOffsetSize        = 5;
 fuseOffsetsWithinSec = 30E-3;
 
 % Parameters
-par = genParStruct('fb_lowFreqHz',80,'fb_highFreqHz',8000,'fb_nChannels',nChannels,'ihc_method','dau','rm_decaySec',rm_decaySec,'rm_wSizeSec',rm_wSizeSec,'rm_hSizeSec',rm_hSizeSec,'ons_minValuedB',minRatemapLeveldB,'ofs_minValuedB',minRatemapLeveldB); 
+% par = genParStruct('fb_lowFreqHz',80,'fb_highFreqHz',8000,'fb_nChannels',nChannels,'ihc_method','dau','rm_decaySec',rm_decaySec,'rm_wSizeSec',rm_wSizeSec,'rm_hSizeSec',rm_hSizeSec,'ons_minValuedB',minRatemapLeveldB,'ofs_minValuedB',minRatemapLeveldB); 
 
 % Create a data object
 dObj = dataObject(data,fsHz);
