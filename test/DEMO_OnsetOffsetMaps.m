@@ -53,6 +53,8 @@ mObj.addProcessor(requests,par);
 % Request processing
 mObj.processSignal();
 
+
+
 %% Plot onset and offset maps
 
 % Plot the onset
