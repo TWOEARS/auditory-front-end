@@ -54,7 +54,7 @@ for ii = 1:n_param
     p_full.(names{ii}) = p.(names{ii});
 end
 
-% Force some parameters depending on request
+% Override some parameters depending on request
 switch request
     case ''
         % Do nothing
@@ -81,9 +81,12 @@ switch request
             p_full.rm_hSizeSec = 10E-3;
             warning('Gabor feature extraction is based on a given window step-size for ratemaps. Fixing the window size to 10ms.')
         end
-
+        
+    
 end
 
+
+% Override some parameters depending on request dependencies,
 % Add parameters not controlled by the user
 
 % Compensation for middle-ear filtering
@@ -93,6 +96,14 @@ if isfield(p_full,'fb_type')
             p_full.pp_bUnityComp = 1;
         case 'drnl'
             p_full.pp_bUnityComp = 0;
+            if ~p_full.pp_bMiddleEarFiltering
+                p_full.pp_bMiddleEarFiltering = true;
+                warning('Middle ear filtering pre-processing is mandatory when using DRNL filterbank. Switching it on.')
+            end
+            if ~p_full.pp_bLevelScaling
+                p_full.pp_bLevelScaling = true;
+                warning('Level scaling pre-processing is mandatory when using DRNL filterbank. Switching it on.')
+            end
     end
 end
 end
