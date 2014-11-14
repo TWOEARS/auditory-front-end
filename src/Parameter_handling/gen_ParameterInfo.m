@@ -154,6 +154,5 @@ clear pInfo
     addParameterInfo('plotting','aud_ticks',[100 250 500 1000 2000 4000 8000 16000 32000],'Auditory ticks for ERB-based representations')
     addParameterInfo('plotting','wavPlotDS',3,'Decimation ratio for plotting undecimated wave plot representations')
     addParameterInfo('plotting','wavPlotZoom',5,'Zoom factor in wave plot representations')
-    addParameterInfo('plotting','corPlotZoom',3,'Zoom factor in correlation wave plots')
     addParameterInfo('plotting','binaryMaskColor',[0 0 0],'Color for binary mask (in RGB value)')
 

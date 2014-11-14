@@ -68,7 +68,7 @@ dObj.plot([],[],'bGray',1,'rangeSec',[samplesIdx(1) samplesIdx(end)]/fsHz)
 ylim([-0.35 0.35])
 
 % Plot the cross-correlation in that frame
-p3 = genParStruct('corPlotZoom',5);
+p3 = genParStruct('wavPlotZoom',5);
 dObj.crosscorrelation{1}.plot([],p3,frameIdx2Plot);
 
 

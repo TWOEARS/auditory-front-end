@@ -64,12 +64,3 @@ rmap = dObj.ratemap{1};
 % Plot spectral features
 dObj.spectral_features{1}.plot([],[],'overlay',rmap,'noSubPlots',1);
 
-
-%% Save figures
-if 0
-    listOfFeatures = dObj.spectral_features{1}.fList;
-    for ii = 1 : numel(listOfFeatures) + 1
-        fig2LaTeX(['SpectralFeature_',num2str(ii)],ii,20);
-    end
-end
-
