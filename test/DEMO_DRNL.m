@@ -2,70 +2,69 @@ clear;
 close all
 clc
 
+
+%% LOAD SIGNAL
+%
+%
 % Load a signal
-load(['Test_signals',filesep,'TestBinauralCues']);
+load('AFE_earSignals_16kHz');
 
-% Ear signals
-earSignals = fliplr(earSignals);
-earSignals = earSignals(1:62E3,:);
-
-% Take single channel (R or L)
-earSignal = earSignals(:,1);
-fprintf('1st half: %.1f dB(SPL), 2nd half: %.1f dB\n', dbspl(earSignal/3), ...
+% Take single channel (1- Left or 2 - Right)
+earSignal = earSignals(:,2);
+fprintf('1st half: %.1f dB(SPL), 2nd half: %.1f dB\n', dbspl(earSignal/5), ...
     dbspl(earSignal));
 
 % Replicate signals at a higher level
-earSignal = cat(1,earSignal,3*earSignal)/3;
+earSignal = cat(1,earSignal(1:22495),5*earSignal(1:22495))/5;
 fprintf('Overall: %.1f dB(SPL)\n', dbspl(earSignal));
 
-data = earSignal;     
-
-% New sampling frequency
-fsHzRef = 16E3;
-
-% Resample
-data = resample(data,fsHzRef,fsHz);
-
-% Copy fs
-fsHz = fsHzRef;
-
-% The level conversion and outer-middle ear filtering are added for DRNL
-% To compare the DRNL output directly corresponding to the gammatone
-% output, the input to both processors needs to be converted to the stapes output. 
-
-% Obtain the level convention 
-% (what dB SPL corresponds to signal level of 1)
-dboffset = dbspl(1);
-
-% Scale signal such that level 1 corresponds to 100 dB SPL
-% and apply additional gain (to find a level region where 
+% Apply additional gain (to find a level region where 
 % the compressive nonlinearity can be shown effectively)
-addGain = -15;              % Change this to adjust final input level
-dataScaled = gaindb(data, dboffset-100+addGain);
-fprintf('Scaled level: %.1f dB(SPL)\n', dbspl(dataScaled));
+addGain = -10;              % Change this to adjust final input level
+earSignalScaled = gaindb(earSignal, addGain);
+fprintf('Scaled level: %.1f dB(SPL)\n', dbspl(earSignalScaled));
 
-% Introduce outer/middle ear filters (imported tools from AMT)
-oe_fir = headphonefilter(fsHz);
-me_fir = middleearfilter(fsHz,'jepsenmiddleear');
+% Create data objects
+dObj_DRNL = dataObject(earSignalScaled,fsHz);
+dObj_GT = dataObject(earSignalScaled, fsHz);
 
-% Convert input to stapes output, through outer-middle ear filters
-dataMiddleEar = filter(oe_fir, 1, dataScaled);
-dataStapes = filter(me_fir, 1, dataMiddleEar);
+% Plot properties
+p_plot = genParStruct('fsize_label',10,'fsize_axes',10,'fsize_title',10);
 
+% Plot the original ear signal
+dObj_DRNL.plot([],p_plot,'bGray',1,'decimateRatio',3,'bSignal',1);
+legend off, ylim([-0.4 0.4])
+title(sprintf('Original input signal sampled at %i Hz',fsHz))
+
+%% PLACE REQUEST AND CONTROL PARAMETERS
+% 
+%
 % Request DRNL / gammatone
 requests = {'filterbank'};
-% requests_GT = {'gammatone'};
 
-% Parameters 
-par_DRNL = genParStruct('fb_type', 'drnl', 'fb_cfHz', [500 1000 2000 4000 8000], ...
-    'fb_mocIpsi', 1); 
-par_GT = genParStruct('fb_type', 'gammatone', 'fb_cfHz',[500 1000 2000 4000 8000]); 
+% Parameters of pre-processing
+pp_refSPLdB = 100;
+pp_middleEarModel = 'jepsen';
 
-% Create data objects - here use dataStapes (stapes output, velocity)
-dObj_DRNL = dataObject(dataStapes,fsHz);
-dObj_GT = dataObject(dataStapes, fsHz);
+% Parameters of auditory filterbank 
+% fb_cfHz = [500 1000 2000 4000 8000];
+fb_cfHz = 1000;
+% Summary of parameters 
+par_DRNL = genParStruct('pp_bLevelScaling', true, 'pp_refSPLdB', pp_refSPLdB, ...
+                        'pp_bMiddleEarFiltering', true, ...
+                        'pp_middleEarModel', pp_middleEarModel, ...
+                        'fb_type', 'drnl', 'fb_cfHz', fb_cfHz);
 
-% Create a manager
+par_GT = genParStruct('pp_bLevelScaling', true, 'pp_refSPLdB', pp_refSPLdB, ...
+                        'pp_bMiddleEarFiltering', true, ...
+                        'pp_middleEarModel', pp_middleEarModel, ...
+                        'fb_type', 'gammatone', 'fb_cfHz', fb_cfHz);
+
+                    
+%% PERFORM PROCESSING
+% 
+% 
+% Create managers
 mObj_DRNL = manager(dObj_DRNL, requests, par_DRNL);
 mObj_GT = manager(dObj_GT, requests, par_GT);
 
@@ -73,67 +72,38 @@ mObj_GT = manager(dObj_GT, requests, par_GT);
 mObj_DRNL.processSignal();
 mObj_GT.processSignal();
 
-tSec = (1:size(data,1))/fsHz;
 
-% % Plot the original input
-% figure;
-% subplot(3,1,1)
-% plot(tSec(1:3:end),data(1:3:end));
-% ylabel('Amplitude')
-% title('Input signal');
-% xlim([tSec(1) tSec(end)]);
-% ylim([-1 1])
+%% PLOT RESULTS
 % 
-% % Plot the middle ear "input" (to the stapes)
-% subplot(3,1,2)
-% plot(tSec(1:3:end),dataMiddleEar(1:3:end));
-% ylabel('Amplitude')
-% title('Input to the stapes');
-% xlim([tSec(1) tSec(end)]);
-% ylim([-1 1])
 % 
-% % Plot the stapes output
-% subplot(3,1,3)
-% plot(tSec(1:3:end),dataStapes(1:3:end));
-% xlabel('Time (s)')
-% ylabel('Amplitude')
-% title('Stapes output');
-% xlim([tSec(1) tSec(end)]);
-% % ylim([-1 1])
+% Plot time domain signal (after pre-processing)
+dObj_DRNL.time{1}.plot
+% 
+% % Plot-related parameters
+% wavPlotZoom = 2; % Zoom factor
+% wavPlotDS   = 3; % Down-sampling factor
+% 
+% % Summarize plot parameters
+% p = genParStruct('wavPlotZoom',wavPlotZoom,'wavPlotDS',wavPlotDS);
+% 
+% % Plot filterbank output
+% dObj_DRNL.drnl{1}.plot([],p);
+% dObj_GT.gammatone{1}.plot([],p);
 
-%% Plot responses
-  
-zoom_GT  = 3;
-zoom_DRNL  = 2;
-bNorm = [];
-
-% % Gammatone vs DRNL output for clean source
-% figure;
-% waveplot(dObj.gammatone{1}.Data(1:3:end,:),tSec(1:3:end),...
-%     dObj.gammatone{1}.cfHz,zoom_GT,bNorm);
-% title(sprintf('Gammatone filterbank output, clean input (zoom = %.1f)', zoom_GT));
-% figure;
-% waveplot(dObj.drnl{1}.Data(1:3:end,:),tSec(1:3:end),...
-%     dObj.drnl{1}.cfHz,zoom_DRNL,bNorm);
-% ylabel('Characteristic frequency (Hz)');
-% title(sprintf('DRNL filterbank output, clean input (zoom = %.1f)', zoom_DRNL));
-
-freqIndex = 2;
-
+tSec = (1:size(earSignalScaled,1))/fsHz;
 figure;
-plot(tSec, 1E5 * dObj_GT.gammatone{1}.Data(:, freqIndex));
+plot(tSec, 1E5 * dObj_GT.gammatone{1}.Data(:));
 xlim([tSec(1) tSec(end)]);
 xlabel('Time (s)');
 ylabel('Amplitude (x 1E$^{-5}$)')
-title(sprintf('Gammatone filterbank output at %d Hz', dObj_GT.gammatone{1}.cfHz(freqIndex)));
+title(sprintf('Gammatone filterbank output at %d Hz', dObj_GT.gammatone{1}.cfHz));
 
 figure;
-plot(tSec, dObj_DRNL.drnl{1}.Data(:, freqIndex));
+plot(tSec, dObj_DRNL.drnl{1}.Data(:));
 xlim([tSec(1) tSec(end)]);
-title(sprintf('DRNL filterbank output at %d Hz', dObj_DRNL.drnl{1}.cfHz(freqIndex)));
+title(sprintf('DRNL filterbank output at %d Hz', dObj_DRNL.drnl{1}.cfHz));
 xlabel('Time (s)');
 ylabel('Amplitude')
-
 
 
 
