@@ -103,7 +103,7 @@ classdef manager < handle
         function processSignal(mObj)
             %processSignal      Requests a manager object to extract its
             %                   required features for a full signal present
-            %                   in mObj.Data.signal
+            %                   in mObj.Data.input
             %
             %USAGE
             %    mObj.processSignal()
@@ -118,7 +118,7 @@ classdef manager < handle
             %SEE ALSO: processChunk
             
             % Check that there is an available signal
-            if isempty(mObj.Data.signal)
+            if isempty(mObj.Data.input)
                 warning('No signal available for processing')
             else            
                 % Reset the processors internal states
@@ -209,10 +209,10 @@ classdef manager < handle
             
             % Append the signal chunk
             if mObj.Data.isStereo
-               mObj.Data.signal{1}.appendChunk(sig_chunk(:,1));
-               mObj.Data.signal{2}.appendChunk(sig_chunk(:,2));
+               mObj.Data.input{1}.appendChunk(sig_chunk(:,1));
+               mObj.Data.input{2}.appendChunk(sig_chunk(:,2));
             else            
-               mObj.Data.signal{1}.appendChunk(sig_chunk);
+               mObj.Data.input{1}.appendChunk(sig_chunk);
             end
             
             % Number of processors
@@ -446,7 +446,7 @@ classdef manager < handle
             
             if ~isfield(p,'fs')
                 % Add sampling frequency to the parameter structure
-                p.fs = mObj.Data.signal{1}.FsHz;
+                p.fs = mObj.Data.input{1}.FsHz;
             end
             
             % Find out about the Gammatone definition
@@ -547,12 +547,12 @@ classdef manager < handle
                 % Then processing starts from scratch, need to assess the
                 % number of channels
                 if mObj.Data.isStereo
-                    dep_sig_l = mObj.Data.signal{1};
-                    dep_sig_r = mObj.Data.signal{2};
+                    dep_sig_l = mObj.Data.input{1};
+                    dep_sig_r = mObj.Data.input{2};
                     dep_proc_l = [];
                     dep_proc_r = [];
                 else
-                    dep_sig = mObj.Data.signal{1};
+                    dep_sig = mObj.Data.input{1};
                     dep_proc = [];
                 end
             end
@@ -1255,7 +1255,7 @@ classdef manager < handle
             end
             if ~isfield(p,'fs')
                 % Add sampling frequency to the parameter structure
-                p.fs = mObj.Data.signal{1}.FsHz;
+                p.fs = mObj.Data.input{1}.FsHz;
             end
             % Add default values for parameters not explicitly defined in p
             p = parseParameters(p);
