@@ -74,7 +74,7 @@ samplesIdx = (1:wSizeSamples) + ((frameIdx2Plot-1) * wStepSamples);
 dObj.innerhaircell{1}.plot([],p,'rangeSec',[samplesIdx(1) samplesIdx(end)]/fsHz);
 
 % Plot the autocorrelation in that frame
-dObj.autocorrelation{1}.plot([],[],frameIdx2Plot);
+dObj.autocorrelation{1}.plot([],p,frameIdx2Plot);
 
 
 %% SHOW ACF MOVIE
