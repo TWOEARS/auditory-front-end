@@ -36,18 +36,18 @@ clear pInfo
 %     addParameterInfo('fr','fr_hSize',512,'Step size between windows in samples')
 
     % Filterbank parameters
-    addParameterInfo('filterbank','fb_type','gammatone','Filterbank type (''gammatone'' or ''drnl'')','Auditory filterbank')
-    addParameterInfo('filterbank','fb_lowFreqHz',80,'Lowest center frequency (Hz)','Gammatone filterbank')
-    addParameterInfo('filterbank','fb_highFreqHz',8000,'Highest center frequency (Hz)')
-    addParameterInfo('filterbank','fb_nERBs',1,'Distance between neighbor filters in ERBs')
-    addParameterInfo('filterbank','fb_nChannels',[],'Number of channels')
-    addParameterInfo('filterbank','fb_cfHz',[],'Vector of channels'' center frequencies in Hz')
-    addParameterInfo('filterbank','fb_nGamma',4,'Gammatone rising slope order (Gammatone filterbank only)')
-    addParameterInfo('filterbank','fb_bwERBs',1.018,'Bandwidth of the filters (ERBs) (Gammatone filterbank only)')
-    addParameterInfo('filterbank','fb_bAlign',false,'Correction for filter alignment (Gammatone filterbank only)')
-    addParameterInfo('filterbank','fb_mocIpsi', 1, 'Ipsilateral MOC feedback factor as DRNL nonlinear path gain (DRNL filterbank only)')
-    addParameterInfo('filterbank','fb_mocContra', 1, 'Contralateral MOC feedback factor as DRNL nonlinear path gain (DRNL filterbank only)')
-    addParameterInfo('filterbank','fb_model', 'CASP', 'DRNL implementation model (DRNL filterbank only)')
+    addParameterInfo('audfilterbank','fb_type','gammatone','Filterbank type (''gammatone'' or ''drnl'')','Auditory filterbank')
+    addParameterInfo('audfilterbank','fb_lowFreqHz',80,'Lowest center frequency (Hz)','Gammatone filterbank')
+    addParameterInfo('audfilterbank','fb_highFreqHz',8000,'Highest center frequency (Hz)')
+    addParameterInfo('audfilterbank','fb_nERBs',1,'Distance between neighbor filters in ERBs')
+    addParameterInfo('audfilterbank','fb_nChannels',[],'Number of channels')
+    addParameterInfo('audfilterbank','fb_cfHz',[],'Vector of channels'' center frequencies in Hz')
+    addParameterInfo('audfilterbank','fb_nGamma',4,'Gammatone rising slope order (Gammatone filterbank only)')
+    addParameterInfo('audfilterbank','fb_bwERBs',1.018,'Bandwidth of the filters (ERBs) (Gammatone filterbank only)')
+    addParameterInfo('audfilterbank','fb_bAlign',false,'Correction for filter alignment (Gammatone filterbank only)')
+    addParameterInfo('audfilterbank','fb_mocIpsi', 1, 'Ipsilateral MOC feedback factor as DRNL nonlinear path gain (DRNL filterbank only)')
+    addParameterInfo('audfilterbank','fb_mocContra', 1, 'Contralateral MOC feedback factor as DRNL nonlinear path gain (DRNL filterbank only)')
+    addParameterInfo('audfilterbank','fb_model', 'CASP', 'DRNL implementation model (DRNL filterbank only)')
     
     % DRNL filterbank
 %     addParameterInfo('drnl','drnl_lowFreqHz',80,'Lowest characteristic frequency (Hz)','DRNL filterbank')
@@ -77,9 +77,9 @@ clear pInfo
     addParameterInfo('adt','adpt_tau',[0.005 0.050 0.129 0.253 0.500],'Adaptation loop time constants')
    
     % Interaural Level Difference (ILD)
-    addParameterInfo('ild','ild_wname','hann','Window name','Interaural Level Difference')
-    addParameterInfo('ild','ild_wSizeSec',20E-3,'Window duration (s)')
-    addParameterInfo('ild','ild_hSizeSec',10E-3,'Window step size (s)')
+    addParameterInfo('interld','ild_wname','hann','Window name','Interaural Level Difference')
+    addParameterInfo('interld','ild_wSizeSec',20E-3,'Window duration (s)')
+    addParameterInfo('interld','ild_hSizeSec',10E-3,'Window step size (s)')
 
     % Ratemap Extraction
     addParameterInfo('rm','rm_wname','hann','Window name','Ratemap extraction')
@@ -102,12 +102,12 @@ clear pInfo
     addParameterInfo('trm','trm_fuseWithinSec',30E-3,'Events within that period (in sec) are fused together')
     
     % Auto-correlation
-    addParameterInfo('ac','ac_wname','hann','Window name','Auto-correlation')
-    addParameterInfo('ac','ac_wSizeSec',20E-3,'Window duration (s)')
-    addParameterInfo('ac','ac_hSizeSec',10E-3,'Window step size (s)')
-    addParameterInfo('ac','ac_clipMethod','clp','Center clipping method (''clc'', ''clp'', or ''sgn'')')
-    addParameterInfo('ac','ac_clipAlpha',0.6,'Threshold in center clipping (between 0 and 1)')
-    addParameterInfo('ac','ac_K',2,'Exponent in auto-correlation')
+    addParameterInfo('autocor','ac_wname','hann','Window name','Auto-correlation')
+    addParameterInfo('autocor','ac_wSizeSec',20E-3,'Window duration (s)')
+    addParameterInfo('autocor','ac_hSizeSec',10E-3,'Window step size (s)')
+    addParameterInfo('autocor','ac_clipMethod','clp','Center clipping method (''clc'', ''clp'', or ''sgn'')')
+    addParameterInfo('autocor','ac_clipAlpha',0.6,'Threshold in center clipping (between 0 and 1)')
+    addParameterInfo('autocor','ac_K',2,'Exponent in auto-correlation')
 
     % Pitch
     addParameterInfo('pi','pi_rangeHz',[80 400],'Range in Hz for valid pitch estimation','Pitch estimation')
@@ -115,19 +115,19 @@ clear pInfo
     addParameterInfo('pi','pi_medianOrder',3,'Median order filter for pitch smoothing (integer)')
     
     % Cross-correlation
-    addParameterInfo('cc','cc_wname','hann','Window name','Cross-correlation')
-    addParameterInfo('cc','cc_wSizeSec',20E-3,'Window duration (s)')
-    addParameterInfo('cc','cc_hSizeSec',10E-3,'Window step size (s)')
-    addParameterInfo('cc','cc_maxDelaySec',1.1E-3,'Maximum delay in cross-correlation computation (s)')
+    addParameterInfo('crosscor','cc_wname','hann','Window name','Cross-correlation')
+    addParameterInfo('crosscor','cc_wSizeSec',20E-3,'Window duration (s)')
+    addParameterInfo('crosscor','cc_hSizeSec',10E-3,'Window step size (s)')
+    addParameterInfo('crosscor','cc_maxDelaySec',1.1E-3,'Maximum delay in cross-correlation computation (s)')
 
     % Cross-correlation feature
 %     addParameterInfo('ccf','ccf_factor',3,'Downsampling factor for the lag vector (positive integer)','Cross-correlation feature')
     
     % Interaural coherence
-    addParameterInfo('ic',[],[],[],'Interaural coherence')
+    addParameterInfo('intercor',[],[],[],'Interaural coherence')
     
     % Interaural time difference
-    addParameterInfo('itd',[],[],[],'Interaural Time Difference')
+    addParameterInfo('intertd',[],[],[],'Interaural Time Difference')
     
     
     % Spectral features
