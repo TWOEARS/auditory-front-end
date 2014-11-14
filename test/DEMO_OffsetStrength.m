@@ -17,7 +17,7 @@ dObj = dataObject(earSignals(1:23E3,2),fsHz);
 % 
 % 
 % Request offset map
-requests = {'offset_map'};
+requests = {'offset_strength'};
 
 % Parameters of auditory filterbank 
 fb_type       = 'gammatone';
@@ -58,6 +58,6 @@ mObj.processSignal();
 dObj.ratemap{1}.plot;
 dObj.offset_strength{1}.plot;
 
-% Plot offsets in white
-p = genParStruct('binaryMaskColor',[1 1 1]);
-dObj.offset_map{1}.plot([],p);
+% % Plot offsets in white
+% p = genParStruct('binaryMaskColor',[1 1 1]);
+% dObj.offset_map{1}.plot([],p);

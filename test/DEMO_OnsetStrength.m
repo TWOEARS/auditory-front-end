@@ -19,7 +19,7 @@ data = resample(data,fsHzRef,fsHz);
 fsHz = fsHzRef;
 
 % Request ratemap    
-requests = {'onset_map'};
+requests = {'onset_strength'};
 
 rm_wSizeSec = 20E-3;
 rm_hSizeSec = 10E-3;
@@ -43,6 +43,7 @@ mObj.processSignal();
 % 
 dObj.ratemap{1}.plot;
 dObj.onset_strength{1}.plot;
-dObj.onset_map{1}.plot;
+
+% dObj.onset_map{1}.plot;
 
 

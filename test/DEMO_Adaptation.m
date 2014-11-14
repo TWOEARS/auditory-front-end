@@ -52,6 +52,7 @@ p = genParStruct('wavPlotZoom',wavPlotZoom,'wavPlotDS',wavPlotDS);
 
 % Plot innerhaircell signal
 dObj.innerhaircell{1}.plot([],p)
+title('IHC signal')
 
 % Plot adaptation signal
 dObj.adaptation{1}.plot([],p)

@@ -136,58 +136,6 @@ legend off, ylim([-18 18])
 title('6. After binaural AGC')
 
 
-
-%% Middle ear filtering
-% 
-%
-% Apply DC removal, pre-whitening, AGC (binaural) and middle ear filtering
-p = genParStruct('pp_bRemoveDC',true,'pp_cutoffHzDC',cutoffHzDC,...
-                 'pp_bPreEmphasis',true,'pp_coefPreEmphasis',coefPreEmphasis,...
-                 'pp_bNormalizeRMS',true,'pp_intTimeSecRMS',intTimeSecRMS,...
-                 'pp_bBinauralRMS',true,...
-                 'pp_bMiddleEarFiltering',true,'pp_middleEarModel',middleEarModel);
-
-% New data objects
-dataObjMidEar = dataObject(mixture,fsHz);
-mObj_midEar  = manager(dataObjMidEar,requests,p); 
-
-% Request processing
-mObj_midEar.processSignal;
-
-% Plot the result
-dataObjMidEar.plot([],p_plot,'bGray',1,'decimateRatio',3);
-legend off, ylim([-2.25 2.25])
-title('7. After middle ear filtering')
-
-% Obtain the filter coefficients corresponding to the given model
-% if strcmp(middleEarModel, 'jepsen')
-%     pp_middleEarModel = 'jepsenmiddleear';
-%     meFilterPeakdB = 55.9986;       % dB to add for unity gain at peak
-% elseif strcmp(middleEarModel, 'lopezpoveda')
-%     meFilterPeakdB = 66.2888;
-% end
-% 
-% a = 1;
-% b = middleearfilter(fsHz, pp_middleEarModel);
-% 
-% % Get the pre-processed data from the binaural AGC
-% dataIn = [dataObjBin.time{1}.Data(:) dataObjBin.time{2}.Data(:)];
-% 
-% % Apply filtering
-% dataIn = filter(b, a, dataIn);
-% 
-% % Compensation for unity gain (when DRNL is not used)
-% dataIn = dataIn * 10^(meFilterPeakdB/20);
-% 
-% % New data object
-% dataObj = dataObject(dataIn,fsHz);
-% 
-% % Plot the result
-% dataObj.plot([],p_plot,'bSignal',1,'bGray',1,'decimateRatio',3)
-% legend off, ylim([-2.25 2.25])
-% title('7. After middle ear filtering')
-
-
 %% Level scaling to reference
 % 
 % 
@@ -195,8 +143,8 @@ title('7. After middle ear filtering')
 p = genParStruct('pp_bRemoveDC',true,'pp_cutoffHzDC',cutoffHzDC,...
                  'pp_bPreEmphasis',true,'pp_coefPreEmphasis',coefPreEmphasis,...
                  'pp_bNormalizeRMS',true,'pp_intTimeSecRMS',intTimeSecRMS,...
-                 'pp_bBinauralRMS',true,...
-                 'pp_bLevelScaling',true,'pp_refSPLdB',refSPLdB);
+                 'pp_bBinauralRMS',true,'pp_bLevelScaling',true,...
+                 'pp_refSPLdB',refSPLdB);
 
 % New data objects
 dataObjLevel = dataObject(mixture,fsHz);
@@ -208,38 +156,28 @@ mObj_Level.processSignal;
 % Plot the result
 dataObjLevel.plot([],p_plot,'bGray',1,'decimateRatio',3);
 legend off, ylim([-18 18])
-title('8. After level scaling')
+title('7. After level scaling')
 
 
-% % Get the pre-processed data from the binaural AGC
-% dataIn = [dataObjBin.time{1}.Data(:) dataObjBin.time{2}.Data(:)];
+%% Middle ear filtering
 % 
-% % Obtain what the current calibration reference is
-% current_dboffset = dbspl(1);
-% 
-% % Adjust level corresponding to the given reference
-% dataIn = gaindb(dataIn, current_dboffset-refSPLdB);
-% 
-% % New data object
-% dataObj = dataObject(dataIn,fsHz);
-% 
-% % Plot the result
-% dataObj.plot([],p_plot,'bSignal',1,'bGray',1,'decimateRatio',3)
-% legend off, ylim([-18 18])
-% title('8. After level scaling')
+%
+% Apply DC removal, pre-whitening, AGC (binaural) and middle ear filtering
+p = genParStruct('pp_bRemoveDC',true,'pp_cutoffHzDC',cutoffHzDC,...
+                 'pp_bPreEmphasis',true,'pp_coefPreEmphasis',coefPreEmphasis,...
+                 'pp_bNormalizeRMS',true,'pp_intTimeSecRMS',intTimeSecRMS,...
+                 'pp_bBinauralRMS',true,'pp_bLevelScaling',true,...
+                 'pp_refSPLdB',refSPLdB,'pp_bMiddleEarFiltering',true,...
+                 'pp_middleEarModel',middleEarModel);
 
+% New data objects
+dataObjMidEar = dataObject(mixture,fsHz);
+mObj_midEar  = manager(dataObjMidEar,requests,p); 
 
+% Request processing
+mObj_midEar.processSignal;
 
-
-%% Save figures
-if 0
-   mode = 20;
-   fig2LaTeX(['Pre_Processing_01'],1,mode)
-   fig2LaTeX(['Pre_Processing_02'],2,mode)
-   fig2LaTeX(['Pre_Processing_03'],3,mode)
-   fig2LaTeX(['Pre_Processing_04'],4,mode)
-   fig2LaTeX(['Pre_Processing_05'],5,mode)
-   fig2LaTeX(['Pre_Processing_06'],6,mode)
-   fig2LaTeX(['Pre_Processing_07'],7,mode)
-   fig2LaTeX(['Pre_Processing_08'],8,mode)
-end
+% Plot the result
+dataObjMidEar.plot([],p_plot,'bGray',1,'decimateRatio',3);
+legend off, ylim([-2.25 2.25])
+title('8. After middle ear filtering')

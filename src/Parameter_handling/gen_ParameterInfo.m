@@ -97,7 +97,7 @@ clear pInfo
     addParameterInfo('ofs','ofs_minValuedB',[],'Lower limit of the representation, below which its offset will not be considered')
     
     % Transient mapping
-    addParameterInfo('trm','trm_minStrengthDB',3,'Minimum transient strength for mapping','Transient mapping')
+    addParameterInfo('trm','trm_minStrengthdB',3,'Minimum transient strength for mapping','Transient mapping')
     addParameterInfo('trm','trm_minSpread',5,'Minimum spread of the transient over frequency channels')
     addParameterInfo('trm','trm_fuseWithinSec',30E-3,'Events within that period (in sec) are fused together')
     

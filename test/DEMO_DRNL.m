@@ -121,17 +121,18 @@ bNorm = [];
 freqIndex = 2;
 
 figure;
-plot(tSec, dObj_GT.gammatone{1}.Data(:, freqIndex));
+plot(tSec, 1E5 * dObj_GT.gammatone{1}.Data(:, freqIndex));
 xlim([tSec(1) tSec(end)]);
 xlabel('Time (s)');
-title(sprintf('Gammatone filterbank output at %d-Hz center frequency', dObj_GT.gammatone{1}.cfHz(freqIndex)));
+ylabel('Amplitude (x 1E$^{-5}$)')
+title(sprintf('Gammatone filterbank output at %d Hz', dObj_GT.gammatone{1}.cfHz(freqIndex)));
 
 figure;
 plot(tSec, dObj_DRNL.drnl{1}.Data(:, freqIndex));
 xlim([tSec(1) tSec(end)]);
-title(sprintf('DRNL filterbank output at %d-Hz BM characteristic frequency', dObj_DRNL.drnl{1}.cfHz(freqIndex)));
+title(sprintf('DRNL filterbank output at %d Hz', dObj_DRNL.drnl{1}.cfHz(freqIndex)));
 xlabel('Time (s)');
-
+ylabel('Amplitude')
 
 
 

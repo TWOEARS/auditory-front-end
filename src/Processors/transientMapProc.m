@@ -1,7 +1,7 @@
 classdef transientMapProc < Processor
     
     properties (SetAccess = protected)
-        minStrengthDB   % Minimum transient strength for mapping
+        minStrengthdB   % Minimum transient strength for mapping
         minSpread       % Minimum spread of the transient (number of frequency channels)
         fuseWithinSec   % Events within that period (in sec) are fused together
     end
@@ -39,7 +39,7 @@ classdef transientMapProc < Processor
             end
     
             % Populate properties
-            pObj.minStrengthDB = p.trm_minStrengthDB;
+            pObj.minStrengthdB = p.trm_minStrengthdB;
             pObj.minSpread = p.trm_minSpread;
             pObj.fuseWithinSec = p.trm_fuseWithinSec;
     
@@ -81,7 +81,7 @@ classdef transientMapProc < Processor
             else
                 
                 % This "valid" input is then processed
-                out = detectOnsetsOffsets(in,1/pObj.FsHzIn,pObj.minStrengthDB,...
+                out = detectOnsetsOffsets(in,1/pObj.FsHzIn,pObj.minStrengthdB,...
                             pObj.minSpread,pObj.fuseWithinSec);
                 
                 % The output for the first Lbuf samples was already provided in the
