@@ -2,12 +2,15 @@ clear;
 close all
 clc
 
-% Load a signal
-load(['Test_signals',filesep,'TestBinauralCues']);
 
-% Ear signals
-earSignals = fliplr(earSignals);
-earSignals = earSignals(1:62E3,:);
+%% LOAD SIGNAL
+% 
+% 
+% Load a signal
+load('AFE_earSignals_16kHz');
+
+% Shorten ear signals
+earSignals = earSignals(1:22494,:);
 
 % Take single channel (R or L)
 earSignal = earSignals(:,1);
@@ -18,16 +21,7 @@ fprintf('1st half: %.1f dB(SPL), 2nd half: %.1f dB\n', dbspl(earSignal/3), ...
 earSignal = cat(1,earSignal,3*earSignal)/3;
 fprintf('Overall: %.1f dB(SPL)\n', dbspl(earSignal));
 
-data = earSignal;     
 
-% New sampling frequency
-fsHzRef = 16E3;
-
-% Resample
-data = resample(data,fsHzRef,fsHz);
-
-% Copy fs
-fsHz = fsHzRef;
 
 % The level conversion and outer-middle ear filtering are added for DRNL
 % To compare the DRNL output directly corresponding to the gammatone
@@ -41,7 +35,7 @@ dboffset = dbspl(1);
 % and apply additional gain (to find a level region where 
 % the compressive nonlinearity can be shown effectively)
 addGain = -15;              % Change this to adjust final input level
-dataScaled = gaindb(data, dboffset-100+addGain);
+dataScaled = gaindb(earSignal, dboffset-100+addGain);
 fprintf('Scaled level: %.1f dB(SPL)\n', dbspl(dataScaled));
 
 % Introduce outer/middle ear filters (imported tools from AMT)
@@ -73,7 +67,7 @@ mObj_GT = manager(dObj_GT, requests, par_GT);
 mObj_DRNL.processSignal();
 mObj_GT.processSignal();
 
-tSec = (1:size(data,1))/fsHz;
+tSec = (1:size(earSignal,1))/fsHz;
 
 % % Plot the original input
 % figure;
