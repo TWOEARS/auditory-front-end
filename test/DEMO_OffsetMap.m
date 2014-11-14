@@ -3,34 +3,48 @@ close all
 clc
 
 
+%% LOAD SIGNAL
+% 
+% 
 % Load a signal
-load('TestBinauralCues');
+load('AFE_earSignals_16kHz');
 
-% Take right ear signal
-data = earSignals(1:62E3,2);     
+% Create a data object based on parts of the right ear signal
+dObj = dataObject(earSignals(1:23E3,2),fsHz);
 
-% New sampling frequency
-fsHzRef = 16E3;
 
-% Resample
-data = resample(data,fsHzRef,fsHz);
-
-% Copy fs
-fsHz = fsHzRef;
-
-% Request ratemap    
+%% PLACE REQUEST AND CONTROL PARAMETERS
+% 
+% 
+% Request offset map
 requests = {'offset_map'};
 
-rm_wSizeSec = 20E-3;
-rm_hSizeSec = 10E-3;
-rm_decaySec = 8E-3;
+% Parameters of auditory filterbank 
+fb_type       = 'gammatone';
+fb_lowFreqHz  = 80;
+fb_highFreqHz = 8000;
+fb_nChannels  = 64;  
 
-% Parameters
-par = genParStruct('fb_lowFreqHz',80,'fb_highFreqHz',8000,'fb_nChannels',64,'ihc_method','dau','rm_decaySec',rm_decaySec,'rm_wSizeSec',rm_wSizeSec,'rm_hSizeSec',rm_hSizeSec); 
+% Parameters of innerhaircell processor
+ihc_method    = 'dau';
 
-% Create a data object
-dObj = dataObject(data,fsHz);
+% Parameters of ratemap processor
+rm_wSizeSec  = 0.02;
+rm_hSizeSec  = 0.01;
+rm_decaySec  = 8E-3;
+rm_wname     = 'hann';
 
+% Summary of parameters 
+par = genParStruct('fb_type',fb_type,'fb_lowFreqHz',fb_lowFreqHz,...
+                   'fb_highFreqHz',fb_highFreqHz,'fb_nChannels',fb_nChannels,...
+                   'ihc_method',ihc_method,'ac_wSizeSec',rm_wSizeSec,...
+                   'ac_hSizeSec',rm_hSizeSec,'rm_decaySec',rm_decaySec,...
+                   'ac_wname',rm_wname); 
+               
+               
+%% PERFORM PROCESSING
+% 
+% 
 % Create a manager
 mObj = manager(dObj,requests,par);
 
@@ -41,7 +55,7 @@ mObj.processSignal();
 %% Plot offset strength in dB
 % 
 % 
-dObj.ratemap_power{1}.plot;
+dObj.ratemap{1}.plot;
 dObj.offset_strength{1}.plot;
 
 % Plot offsets in white
