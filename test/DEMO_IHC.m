@@ -54,7 +54,7 @@ p = genParStruct('wavPlotZoom',wavPlotZoom,'wavPlotDS',wavPlotDS);
 
 % Plot gammatone responses
 dObj.gammatone{1}.plot([],p);
-title('Gamatone response')
+% title('Gamatone response')
 
 % Plot IHC responses
 dObj.innerhaircell{1}.plot([],p);

@@ -19,17 +19,15 @@ dObj = dataObject(earSignals(1:20E3,2),fsHz);
 % Request gammatone processor
 requests = {'filterbank'};
 
-% Parameters of Gammatone processor
+% Parameters of auditory filterbank 
 fb_type       = 'gammatone';
 fb_nChannels  = 16;  
 fb_lowFreqHz  = 80;
 fb_highFreqHz = 8000;
 
-% Parameters 
-par = genParStruct('fb_type',fb_type,...
-                   'fb_lowFreqHz',fb_lowFreqHz,...
-                   'fb_highFreqHz',fb_highFreqHz,...
-                   'fb_nChannels',fb_nChannels);
+% Summary of parameters 
+par = genParStruct('fb_type',fb_type,'fb_lowFreqHz',fb_lowFreqHz,...
+                   'fb_highFreqHz',fb_highFreqHz,'fb_nChannels',fb_nChannels);
                    
 
 %% PERFORM PROCESSING

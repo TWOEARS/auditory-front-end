@@ -19,10 +19,11 @@ dObj = dataObject(earSignals(1:20E3,2),fsHz);
 % Request ratemap    
 requests = {'ratemap'};
 
-% Parameters of Gammatone processor
-fb_nChannels  = 64;  
+% Parameters of auditory filterbank 
+fb_type       = 'gammatone';
 fb_lowFreqHz  = 80;
 fb_highFreqHz = 8000;
+fb_nChannels  = 64;  
 
 % Parameters of innerhaircell processor
 ihc_method    = 'dau';
@@ -34,12 +35,12 @@ rm_scaling   = 'magnitude';
 rm_decaySec  = 8E-3;
 rm_wname     = 'hann';
 
-% Parameters 
-par = genParStruct('fb_lowFreqHz',fb_lowFreqHz,'fb_highFreqHz',fb_highFreqHz,...
-                   'fb_nChannels',fb_nChannels,'ihc_method',ihc_method,...
-                   'ac_wSizeSec',rm_wSizeSec,'ac_hSizeSec',rm_hSizeSec,...
-                   'rm_scaling',rm_scaling,'rm_decaySec',rm_decaySec,...
-                   'ac_wname',rm_wname); 
+% Summary of parameters 
+par = genParStruct('fb_type',fb_type,'fb_lowFreqHz',fb_lowFreqHz,...
+                   'fb_highFreqHz',fb_highFreqHz,'fb_nChannels',fb_nChannels,...
+                   'ihc_method',ihc_method,'ac_wSizeSec',rm_wSizeSec,...
+                   'ac_hSizeSec',rm_hSizeSec,'rm_scaling',rm_scaling,...
+                   'rm_decaySec',rm_decaySec,'ac_wname',rm_wname); 
 
 
 %% PERFORM PROCESSING
