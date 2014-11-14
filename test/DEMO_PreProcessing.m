@@ -10,7 +10,7 @@ clc
 load('AFE_earSignals_16kHz');
 
 % Replicate signals at a higher level
-earSignals = cat(1,earSignals,5*earSignals)/5;
+earSignals = cat(1,earSignals(1:22495,:),5*earSignals(1:22495,:))/5;
 
 % Add a sinus @ 0.5 Hz
 mixture = earSignals + repmat(0.5*sin(2*pi.*(0:size(earSignals,1)-1).' * 0.5/fsHz),[1 size(earSignals,2)]);
