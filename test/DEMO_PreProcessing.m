@@ -142,15 +142,14 @@ title('6. After binaural AGC')
 %
 
 % Apply DC removal, pre-whitening, AGC (binaural) and middle ear filtering
-p = genParStruct('pp_bRemoveDC',false,'pp_cutoffHzDC',cutoffHzDC,...
-                 'pp_bPreEmphasis',false,'pp_coefPreEmphasis',coefPreEmphasis,...
-                 'pp_bNormalizeRMS',false,'pp_intTimeSecRMS',intTimeSecRMS,...
-                 'pp_bBinauralRMS',false,...
+p = genParStruct('pp_bRemoveDC',true,'pp_cutoffHzDC',cutoffHzDC,...
+                 'pp_bPreEmphasis',true,'pp_coefPreEmphasis',coefPreEmphasis,...
+                 'pp_bNormalizeRMS',true,'pp_intTimeSecRMS',intTimeSecRMS,...
+                 'pp_bBinauralRMS',true,...
                  'pp_bMiddleEarFiltering',true,'pp_middleEarModel',middleEarModel);
 
 % New data objects
-% dataObj = dataObject(mixture,fsHz);
-dataObjMidEar = dataObject([dataObjBin.time{1}.Data(:) dataObjBin.time{2}.Data(:)],fsHz);
+dataObjMidEar = dataObject(mixture,fsHz);
 mObj_midEar  = manager(dataObjMidEar,requests,p); 
 
 % Request processing
@@ -193,22 +192,42 @@ title('7. After middle ear filtering')
 %% Level scaling to reference
 % 
 % 
-% Get the pre-processed data from the binaural AGC
-dataIn = [dataObjBin.time{1}.Data(:) dataObjBin.time{2}.Data(:)];
+% Apply DC removal, pre-whitening, AGC (binaural) andlevel scaling
+p = genParStruct('pp_bRemoveDC',true,'pp_cutoffHzDC',cutoffHzDC,...
+                 'pp_bPreEmphasis',true,'pp_coefPreEmphasis',coefPreEmphasis,...
+                 'pp_bNormalizeRMS',true,'pp_intTimeSecRMS',intTimeSecRMS,...
+                 'pp_bBinauralRMS',true,...
+                 'pp_bLevelScaling',true,'pp_refSPLdB',refSPLdB);
 
-% Obtain what the current calibration reference is
-current_dboffset = dbspl(1);
+% New data objects
+dataObjLevel = dataObject(mixture,fsHz);
+mObj_Level  = manager(dataObjLevel,requests,p); 
 
-% Adjust level corresponding to the given reference
-dataIn = gaindb(dataIn, current_dboffset-refSPLdB);
-
-% New data object
-dataObj = dataObject(dataIn,fsHz);
+% Request processing
+mObj_Level.processSignal;
 
 % Plot the result
-dataObj.plot([],p_plot,'bSignal',1,'bGray',1,'decimateRatio',3)
+dataObjLevel.plot([],p_plot,'bGray',1,'decimateRatio',3);
 legend off, ylim([-18 18])
 title('8. After level scaling')
+
+
+% % Get the pre-processed data from the binaural AGC
+% dataIn = [dataObjBin.time{1}.Data(:) dataObjBin.time{2}.Data(:)];
+% 
+% % Obtain what the current calibration reference is
+% current_dboffset = dbspl(1);
+% 
+% % Adjust level corresponding to the given reference
+% dataIn = gaindb(dataIn, current_dboffset-refSPLdB);
+% 
+% % New data object
+% dataObj = dataObject(dataIn,fsHz);
+% 
+% % Plot the result
+% dataObj.plot([],p_plot,'bSignal',1,'bGray',1,'decimateRatio',3)
+% legend off, ylim([-18 18])
+% title('8. After level scaling')
 
 
 
