@@ -16,10 +16,10 @@ classdef preProc < Processor
         
         bMiddleEarFiltering
         middleEarModel
-        bUnityComp
+        
     end
     
-    properties %(Access = private)
+    properties (Access = private)
         dcFilter_l
         dcFilter_r
         preEmphFilter_l
@@ -29,6 +29,7 @@ classdef preProc < Processor
         epsilon = 1E-8;
         midEarFilter_l
         midEarFilter_r
+        bUnityComp
         meFilterPeakdB
     end
     
@@ -70,7 +71,8 @@ classdef preProc < Processor
             pObj.refSPLdB = p.pp_refSPLdB;
             pObj.bMiddleEarFiltering = p.pp_bMiddleEarFiltering;
             pObj.middleEarModel = p.pp_middleEarModel;
-            if p.pp_bUnityComp
+            pObj.bUnityComp = p.pp_bUnityComp;
+            if pObj.bUnityComp
                 switch pObj.middleEarModel
                     case 'jepsen'
                         pObj.meFilterPeakdB = 55.9986;
@@ -110,9 +112,9 @@ classdef preProc < Processor
             if pObj.bMiddleEarFiltering
                 switch pObj.middleEarModel
                     case 'jepsen'
-                        model = 'jepsenmiddleear'
+                        model = 'jepsenmiddleear';
                     otherwise
-                        model = pObj.middleEarModel
+                        model = pObj.middleEarModel;
                 end
                 a = 1;
                 b = middleearfilter(fs, model);
@@ -274,6 +276,13 @@ classdef preProc < Processor
             if ((pObj.bMiddleEarFiltering && p.pp_bMiddleEarFiltering) && ...
                     ~strcmp(pObj.middleEarModel,p.pp_middleEarModel)) ...
                     || ~(pObj.bMiddleEarFiltering == p.pp_bMiddleEarFiltering)
+                hp = 0;
+                return
+            end
+
+            % Special section for unity gain compensation
+            if ((pObj.bMiddleEarFiltering && p.pp_bMiddleEarFiltering) && ...
+                    pObj.bUnityComp ~= p.pp_bUnityComp)
                 hp = 0;
                 return
             end
