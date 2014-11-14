@@ -2,7 +2,6 @@ classdef onsetProc < Processor
     
     properties (SetAccess = protected)
         maxOnsetdB      % Upper limit for onset value
-        minValuedB      % Lower limit for the representation below which onset are discarded
     end
     
     properties (GetAccess = private)
@@ -36,7 +35,6 @@ classdef onsetProc < Processor
             pObj.FsHzIn = fs;
             pObj.FsHzOut = fs;
             pObj.maxOnsetdB = p.ons_maxOnsetdB;
-            pObj.minValuedB = p.ons_minValuedB;
             
             % Initialize an empty buffer
             pObj.buffer = [];
@@ -70,13 +68,7 @@ classdef onsetProc < Processor
             
             % Discard offsets and limit onset strength
             out = min(max(onset,0),pObj.maxOnsetdB);
-            
-            % Discard onsets if the representation is below a threshold
-            if ~isempty(pObj.minValuedB)
-                bSet2zero = bufIn(1:end-1,:)  < pObj.minValuedB;
-                out(bSet2zero) = 0;
-            end
-            
+           
             % Update the buffer
             pObj.buffer = 10*log10(in(end,:));
             

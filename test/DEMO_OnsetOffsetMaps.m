@@ -41,7 +41,10 @@ minOffsetSize        = 5;
 fuseOffsetsWithinSec = 30E-3;
 
 % Parameters
-par = genParStruct('fb_lowFreqHz',80,'fb_highFreqHz',8000,'fb_nChannels',nChannels,'ihc_method','dau','rm_decaySec',rm_decaySec,'rm_wSizeSec',rm_wSizeSec,'rm_hSizeSec',rm_hSizeSec,'ons_minValuedB',minRatemapLeveldB,'ofs_minValuedB',minRatemapLeveldB); 
+par = genParStruct('fb_lowFreqHz',80,'fb_highFreqHz',8000,...
+    'fb_nChannels',nChannels,'ihc_method','dau','rm_decaySec',rm_decaySec,...
+    'rm_wSizeSec',rm_wSizeSec,'rm_hSizeSec',rm_hSizeSec,...
+    'trm_minValuedB',minRatemapLeveldB); 
 
 % Create a data object
 dObj = dataObject(data,fsHz);

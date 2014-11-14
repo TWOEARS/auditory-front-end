@@ -4,6 +4,7 @@ classdef transientMapProc < Processor
         minStrengthdB   % Minimum transient strength for mapping
         minSpread       % Minimum spread of the transient (number of frequency channels)
         fuseWithinSec   % Events within that period (in sec) are fused together
+        minValuedB      % Lower limit for the input representation below which transient are discarded
     end
     
     properties (GetAccess = private)
@@ -42,6 +43,7 @@ classdef transientMapProc < Processor
             pObj.minStrengthdB = p.trm_minStrengthdB;
             pObj.minSpread = p.trm_minSpread;
             pObj.fuseWithinSec = p.trm_fuseWithinSec;
+            pObj.minValuedB = p.trm_minValuedB;
     
             pObj.buffer = [];
             pObj.fuseWithinSamples = ceil(pObj.fuseWithinSec*fs);
@@ -79,6 +81,19 @@ classdef transientMapProc < Processor
                 pObj.buffer = in;
                 out = [];
             else
+                
+                % Discard transients if the representation is below a threshold
+                if ~isempty(pObj.minValuedB)
+                    try
+                        rmap = pObj.Dependencies{1}.Dependencies{1}.Output.Data(end-L+1:end);   
+                        bSet2zero = 10*log10(rmap) < pObj.minValuedB;
+                        in(bSet2zero) = 0;
+                    
+                    catch
+                        warning('Could not access the ratemap representation from which transients were derived. Skipping transient discarding ...')
+                    end
+                        
+                end
                 
                 % This "valid" input is then processed
                 out = detectOnsetsOffsets(in,1/pObj.FsHzIn,pObj.minStrengthdB,...
