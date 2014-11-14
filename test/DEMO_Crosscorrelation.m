@@ -21,14 +21,14 @@ requests = {'crosscorrelation'};
 
 % Parameters of the auditory filterbank processor
 fb_type       = 'gammatone';
-fb_nChannels  = 16;  
 fb_lowFreqHz  = 80;
 fb_highFreqHz = 8000;
+fb_nChannels  = 16;  
 
 % Parameters of innerhaircell processor
 ihc_method    = 'dau';
 
-% Parameters of autocorrelation processor
+% Parameters of crosscorrelation processor
 cc_wSizeSec  = 0.02;
 cc_hSizeSec  = 0.01;
 cc_wname     = 'hann';
@@ -53,6 +53,13 @@ mObj.processSignal();
 %% PLOT RESULTS
 % 
 % 
+% Plot-related parameters
+wavPlotZoom = 5; % Zoom factor
+wavPlotDS   = 1; % Down-sampling factor
+
+% Summarize plot parameters
+p = genParStruct('wavPlotZoom',wavPlotZoom,'wavPlotDS',wavPlotDS);
+
 % Plot the CCF of a single frame
 frameIdx2Plot = 10;
 
@@ -68,8 +75,7 @@ dObj.plot([],[],'bGray',1,'rangeSec',[samplesIdx(1) samplesIdx(end)]/fsHz)
 ylim([-0.35 0.35])
 
 % Plot the cross-correlation in that frame
-p3 = genParStruct('wavPlotZoom',5);
-dObj.crosscorrelation{1}.plot([],p3,frameIdx2Plot);
+dObj.crosscorrelation{1}.plot([],p,frameIdx2Plot);
 
 
 %% SHOW CCF MOVIE

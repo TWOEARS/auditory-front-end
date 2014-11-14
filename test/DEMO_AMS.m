@@ -19,11 +19,11 @@ dObj = dataObject(earSignals(:,2),fsHz);
 % Request amplitude modulation spectrogram (AMS) feaures
 requests = 'ams_features';
 
-% Parameters of Gammatone processor
+% Parameters of auditory filterbank
 fb_type       = 'gammatone';  
-fb_nChannels  = 23;  
 fb_lowFreqHz  = 80;
 fb_highFreqHz = 8000;
+fb_nChannels  = 23;  
 
 % Parameters of AMS processor
 ams_fbType_lin = 'lin';
@@ -57,17 +57,18 @@ mObj.processSignal();
 %% PLOT RESULTS
 % 
 % 
+% Plot-related parameters
+wavPlotZoom = 5; % Zoom factor
+wavPlotDS   = 1; % Down-sampling factor
+
+% Summarize plot parameters
+p = genParStruct('wavPlotZoom',wavPlotZoom,'wavPlotDS',wavPlotDS);
+
 % Plot time domain signal
 dObj.time{1}.plot;grid on;ylim([-1 1]);title('Time domain signal')
 
-% Plot IHC representation using waveplot
-env  = [dObj.innerhaircell{1}.Data(:,:)];
-fHz  = mObj.Processors{2}.cfHz;
-tSec = (1:size(env,1))/fsHz;
-
-figure;
-waveplot(env(1:3:end,:),tSec(1:3:end),fHz);
-title('IHC signal')
+% Plot IHC representation
+dObj.innerhaircell{1}.plot([],p);title('IHC signal')
 
 % Plot linear AMS pattern
 dObj.ams_features{1}.plot;title('linear AMS features')

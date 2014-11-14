@@ -3,85 +3,60 @@ close all
 clc
 
 
+%% LOAD SIGNAL
+% 
+% 
 % Load a signal
-load('TestBinauralCues');
+load('AFE_earSignals_16kHz');
 
-% Take right ear signal
-data = earSignals(1:62E3,:); 
+% Create a data object based on the ear signals
+dObj = dataObject(earSignals,fsHz);
 
-% New sampling frequency
-fsHzRef = 16E3;
 
-% Resample
-data = resample(data,fsHzRef,fsHz);
+%% PLACE REQUEST AND CONTROL PARAMETERS
+% 
+% 
+% Request interaural level differences (ILDs)
+requests = {'ild'};
 
-% Copy fs
-fsHz = fsHzRef;
+% Parameters of the auditory filterbank processor
+fb_type       = 'gammatone';
+fb_lowFreqHz  = 80;
+fb_highFreqHz = 8000;
+fb_nChannels  = 32;  
 
-% Request ratemap    
-requests = {'ild' 'itd'};
+% Parameters of innerhaircell processor
+ihc_method    = 'dau';
 
-cc_wSizeSec = 0.02;
-cc_hSizeSec = 0.01;
+% Parameters of crosscorrelation processor
+cc_wSizeSec  = 0.02;
+cc_hSizeSec  = 0.01;
+cc_wname     = 'hann';
 
-% Parameters
-par = genParStruct('fb_lowFreqHz',80,'fb_highFreqHz',8000,'fb_nChannels',32,'ihc_method','dau','cc_wSizeSec',cc_wSizeSec,'cc_hSizeSec',cc_hSizeSec); 
-
-% Create a data object
-dObj = dataObject(data,fsHz);
-
+% Summary of parameters 
+par = genParStruct('fb_type',fb_type,'fb_lowFreqHz',fb_lowFreqHz,...
+                   'fb_highFreqHz',fb_highFreqHz,'fb_nChannels',fb_nChannels,...
+                   'ihc_method',ihc_method,'cc_wSizeSec',cc_wSizeSec,...
+                   'cc_hSizeSec',cc_hSizeSec,'cc_wname',cc_wname); 
+               
+               
+%% PERFORM PROCESSING
+% 
+% 
 % Create a manager
 mObj = manager(dObj,requests,par);
 
 % Request processing
 mObj.processSignal();
 
-sigL = [dObj.time{1}.Data(:)];
-sigR = [dObj.time{2}.Data(:)];
 
-timeSec = (1:numel(sigL))/fsHz;
+%% PLOT RESULTS
+% 
+% 
+% Plot the original ear signal
+dObj.plot([],[],'bGray',1,'decimateRatio',3,'bSignal',1);
+ylim([-1.25 1.25]);
 
-ild = [dObj.ild{1}.Data(:)];
-freqHz = dObj.ild{1}.cfHz;
-
-[nFrames,nChannels] = size(ild);
-
-wSizeSamples = 0.5 * round((cc_wSizeSec * fsHz * 2));
-wStepSamples = round((cc_hSizeSec * fsHz));
-
-tSec = (wSizeSamples + (0:nFrames-1)*wStepSamples)/fsHz;
-
-figure;
-hp = plot(timeSec(1:3:end),[sigR(1:3:end) sigL(1:3:end)]');
-set(hp(1),'color',[0 0 0],'linewidth',2);
-set(hp(2),'color',[0.5 0.5 0.5],'linewidth',2);
-hl = legend({'Right ear' 'Left ear'});
-hpos = get(hl,'position');
-hpos(1) = hpos(1) * 0.95;
-hpos(2) = hpos(2) * 0.975;
-set(hl,'position',hpos);
-
-xlabel('Time (sec)')
-ylabel('Amplitude')
-grid on
-ylim([-1.25 1.25])
-xlim([timeSec(1) timeSec(end)])
-title('Time domain signals')
-
-figure;
-imagesc(tSec,1:nChannels,ild')
-axis xy;
-colorbar;
+% Plot ILDs
+dObj.ild{1}.plot;
 title('ILD')
-xlabel('Time (s)')
-ylabel('Center frequency (Hz)')
-
-nYLabels = 8;
- 
-% Find the spacing for the y-axis which evenly divides the y-axis
-set(gca,'ytick',linspace(1,nChannels,nYLabels));
-set(gca,'yticklabel',round(interp1(1:nChannels,freqHz,linspace(1,nChannels,nYLabels))));
-
-
-% fig2LaTeX(['ILD_01'],1,16);fig2LaTeX(['ILD_02'],2,16)
-

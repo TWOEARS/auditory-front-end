@@ -19,7 +19,7 @@ dObj = dataObject(earSignals(1:20E3,2),fsHz);
 % Request gammatone processor
 requests = {'adaptation'};
 
-% Parameters of Gammatone processor
+% Parameters of auditory filterbank
 fb_type       = 'gammatone';
 fb_lowFreqHz  = 80;
 fb_highFreqHz = 8000;
