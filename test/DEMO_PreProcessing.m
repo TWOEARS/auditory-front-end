@@ -140,6 +140,27 @@ title('6. After binaural AGC')
 %% Middle ear filtering
 % 
 %
+
+% Apply DC removal, pre-whitening, AGC (binaural) and middle ear filtering
+p = genParStruct('pp_bRemoveDC',false,'pp_cutoffHzDC',cutoffHzDC,...
+                 'pp_bPreEmphasis',false,'pp_coefPreEmphasis',coefPreEmphasis,...
+                 'pp_bNormalizeRMS',false,'pp_intTimeSecRMS',intTimeSecRMS,...
+                 'pp_bBinauralRMS',false,...
+                 'pp_bMiddleEarFiltering',true,'pp_middleEarModel',middleEarModel);
+
+% New data objects
+% dataObj = dataObject(mixture,fsHz);
+dataObjMidEar = dataObject([dataObjBin.time{1}.Data(:) dataObjBin.time{2}.Data(:)],fsHz);
+mObj_midEar  = manager(dataObjMidEar,requests,p); 
+
+% Request processing
+mObj_midEar.processSignal;
+
+% Plot the result
+dataObjMidEar.plot([],p_plot,'bGray',1,'decimateRatio',3);
+legend off, ylim([-18 18])
+title('7. After middle ear filtering')
+
 % Obtain the filter coefficients corresponding to the given model
 if strcmp(middleEarModel, 'jepsen')
     pp_middleEarModel = 'jepsenmiddleear';
