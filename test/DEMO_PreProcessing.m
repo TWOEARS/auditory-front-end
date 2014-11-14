@@ -3,49 +3,40 @@ close all
 clc
 
 
-%% Create binaural input signal
+%% LOAD SIGNAL
 % 
 % 
 % Load a signal
-load AFE_earSignals_44p1kHz
-
-% Ear signals
-earSignals = fliplr(earSignals);
-earSignals = earSignals(1:62E3,:);
+load('AFE_earSignals_16kHz');
 
 % Replicate signals at a higher level
 earSignals = cat(1,earSignals,5*earSignals)/5;
 
 % Add a sinus @ 0.5 Hz
-data = earSignals + repmat(0.5*sin(2*pi.*(0:size(earSignals,1)-1).' * 0.5/fsHz),[1 size(earSignals,2)]);
-
-% Time axis
-timeSec = (1:size(data,1))/fsHz;
+mixture = earSignals + repmat(0.5*sin(2*pi.*(0:size(earSignals,1)-1).' * 0.5/fsHz),[1 size(earSignals,2)]);
 
 
-%% Pre-processing settings
+%% PLACE REQUEST AND CONTROL PARAMETERS
 % 
 % 
-% Activate DC removal filter
-bRemoveDC  = true;
+% Request time domain representation
+requests = 'time';
+
+% Cutoff frequency of DC removal filter
 cutoffHzDC = 20;
 
-% Activate pre-emphasis
-bPreEmphasis    = true;
+% Pre-emphasis coefficient
 coefPreEmphasis = 0.97;
 
-% Activate RMS normalization
-bNormalizeRMS = true;
+% RMS integration constant
 intTimeSecRMS = 500E-3;   
-    
-% Apply level scaling to reference
-pp_bLevelScaling = true;
-pp_refSPLdB = 100;
 
-% Apply middle ear filtering
-pp_bMiddleEarFiltering = true;
-pp_middleEarModel = 'jepsen';
+% Reference level 
+refSPLdB = 100;
 
+% Middle ear model
+middleEarModel = 'jepsen';
+            
 % Plot properties
 p_plot = genParStruct('fsize_label',10,'fsize_axes',10,'fsize_title',10);
 
@@ -53,10 +44,9 @@ p_plot = genParStruct('fsize_label',10,'fsize_axes',10,'fsize_title',10);
 %% Plot signal
 % 
 % 
-
 % Instantiate signals
 dataObj_ear = dataObject(earSignals,fsHz); % Original signal (for plotting purpose)
-dataObj = dataObject(data,fsHz);       % Actual input signal
+dataObj = dataObject(mixture,fsHz);       % Actual input signal
 
 % Plot the original ear signal
 dataObj_ear.plot([],p_plot,'bGray',1,'decimateRatio',3,'bSignal',1);
@@ -72,11 +62,13 @@ title('2. Ear signals + sinus at 0.5 Hz')
 %% DC removal filter
 %
 %
-
 % Apply DC removal only
-p = genParStruct('pp_bRemoveDC',bRemoveDC,'pp_cutoffHzDC',cutoffHzDC);
+p = genParStruct('pp_bRemoveDC',true,'pp_cutoffHzDC',cutoffHzDC);
 
-mObj_DC = manager(dataObj,'time',p);
+% Create a manager
+mObj_DC = manager(dataObj,requests,p);
+
+% Request processing
 mObj_DC.processSignal;
 
 % Plot the result
@@ -88,15 +80,17 @@ title('3. After DC removal')
 %% Pre-whitening
 % 
 %
+% Apply DC removal and pre-whitening
+p = genParStruct('pp_bRemoveDC',true,'pp_cutoffHzDC',cutoffHzDC,...
+                 'pp_bPreEmphasis',true,'pp_coefPreEmphasis',coefPreEmphasis);
 
 % New data object
-dataObj = dataObject(data,fsHz);
+dataObj = dataObject(mixture,fsHz);
 
-% Apply DC removal and pre-whitening
-p = genParStruct('pp_bRemoveDC',bRemoveDC,'pp_cutoffHzDC',cutoffHzDC,...
-                 'pp_bPreEmphasis',bPreEmphasis,'pp_coefPreEmphasis',coefPreEmphasis);
-             
-mObj_PW = manager(dataObj,'time',p);
+% Create a manager
+mObj_PW = manager(dataObj,requests,p);
+
+% Request processing
 mObj_PW.processSignal;
 
 % Plot the result
@@ -108,87 +102,101 @@ title('4. After pre-emphasis')
 %% Perform AGC
 %
 %
-
-% New data object
-dataObj = dataObject(data,fsHz);
-dataObj2 = dataObject(data,fsHz);
-
-% Apply DC removal, pre-whitening, and AGC
-pmono = genParStruct('pp_bRemoveDC',bRemoveDC,'pp_cutoffHzDC',cutoffHzDC,...
-                 'pp_bPreEmphasis',bPreEmphasis,'pp_coefPreEmphasis',coefPreEmphasis,...
-                 'pp_bNormalizeRMS',bNormalizeRMS,'pp_intTimeSecRMS',intTimeSecRMS,...
-                 'pp_bBinauralRMS',0);
+% Apply DC removal, pre-whitening, and AGC (monaural)
+pMono = genParStruct('pp_bRemoveDC',true,'pp_cutoffHzDC',cutoffHzDC,...
+                     'pp_bPreEmphasis',true,'pp_coefPreEmphasis',coefPreEmphasis,...
+                     'pp_bNormalizeRMS',true,'pp_intTimeSecRMS',intTimeSecRMS,...
+                     'pp_bBinauralRMS',false);
              
-pbin = genParStruct('pp_bRemoveDC',bRemoveDC,'pp_cutoffHzDC',cutoffHzDC,...
-                 'pp_bPreEmphasis',bPreEmphasis,'pp_coefPreEmphasis',coefPreEmphasis,...
-                 'pp_bNormalizeRMS',bNormalizeRMS,'pp_intTimeSecRMS',intTimeSecRMS,...
-                 'pp_bBinauralRMS',1);
+% Apply DC removal, pre-whitening, and AGC (binaural)             
+pBin = genParStruct('pp_bRemoveDC',true,'pp_cutoffHzDC',cutoffHzDC,...
+                    'pp_bPreEmphasis',true,'pp_coefPreEmphasis',coefPreEmphasis,...
+                    'pp_bNormalizeRMS',true,'pp_intTimeSecRMS',intTimeSecRMS,...
+                    'pp_bBinauralRMS',true);
              
-mObj_monoAGC = manager(dataObj,'time',pmono);
-mObj_binAGC = manager(dataObj2,'time',pbin);
+% New data objects
+dataObjMono = dataObject(mixture,fsHz);
+dataObjBin  = dataObject(mixture,fsHz);
 
+% Create a managers
+mObj_monoAGC = manager(dataObjMono,requests,pMono);
+mObj_binAGC  = manager(dataObjBin,requests,pBin);
+
+% Request processing
 mObj_monoAGC.processSignal;
 mObj_binAGC.processSignal;
 
 % Plot the result
-dataObj.plot([],p_plot,'bGray',1,'decimateRatio',3);
+dataObjMono.plot([],p_plot,'bGray',1,'decimateRatio',3);
 legend off, ylim([-18 18])
 title('5. After monaural AGC')
 
-dataObj2.plot([],p_plot,'bGray',1,'decimateRatio',3);
+dataObjBin.plot([],p_plot,'bGray',1,'decimateRatio',3);
 legend off, ylim([-18 18])
 title('6. After binaural AGC')
+
+
+
+%% Middle ear filtering
+% 
+%
+% Obtain the filter coefficients corresponding to the given model
+if strcmp(middleEarModel, 'jepsen')
+    pp_middleEarModel = 'jepsenmiddleear';
+    meFilterPeakdB = 55.9986;       % dB to add for unity gain at peak
+elseif strcmp(middleEarModel, 'lopezpoveda')
+    meFilterPeakdB = 66.2888;
+end
+
+a = 1;
+b = middleearfilter(fsHz, pp_middleEarModel);
+
+% Apply filtering
+dataL = filter(b, a, [dataObjBin.time{1}.Data(:)]);
+dataR = filter(b, a, [dataObjBin.time{2}.Data(:)]);
+
+% Compensation for unity gain (when DRNL is not used)
+dataL = dataL * 10^(meFilterPeakdB/20);
+dataR = dataR * 10^(meFilterPeakdB/20);
+
+% New data object
+dataObj = dataObject(cat(2,dataL,dataR),fsHz);
+
+% dataObj.plot
+
+
+% % Plot the result
+% dataObj.plot([],p_plot,'bGray',1,'decimateRatio',3);
+% legend off, ylim([-18 18])
+% title('7. After middle ear filtering')
+
+
+% figure;
+% h = plot(timeSec(1:3:end),dataL(1:3:end,:));
+% set(h(1),'color',[0 0 0]);
+% set(h(2),'color',[0.5 0.5 0.5]);
+% title('7. After middle ear filtering')
+% xlabel('Time (s)')
+% ylabel('Amplitude')
+% xlim([timeSec(1) timeSec(end)])
+% %     ylim([-18 18])
+
 
 
 
 %% Level scaling to reference
 
 
-if pp_bLevelScaling
-    % Get the pre-processed data from earlier stage
-    data = [dataObj2.time{1}.Data(:) dataObj2.time{2}.Data(:)];
+% Get the pre-processed data from earlier stage
+dataL = [dataObjBin.time{1}.Data(:) dataObjBin.time{2}.Data(:)];
 
-    % Obtain what the current calibration reference is 
-    current_dboffset = dbspl(1);
-    % Adjust level corresponding to the given reference
-    data = gaindb(data, current_dboffset-pp_refSPLdB);
-    
-    % Simple scaling so no need for plotting
-    
-end
+% Obtain what the current calibration reference is
+current_dboffset = dbspl(1);
 
+% Adjust level corresponding to the given reference
+dataL = gaindb(dataL, current_dboffset-refSPLdB);
 
-%% Middle ear filtering
-
-data = earSignals;
-if pp_bMiddleEarFiltering
-    % Obtain the filter coefficients corresponding to the given model
-    if strcmp(pp_middleEarModel, 'jepsen')
-        pp_middleEarModel = 'jepsenmiddleear'; 
-        meFilterPeakdB = 55.9986;       % dB to add for unity gain at peak
-    elseif strcmp(pp_middleEarModel, 'lopezpoveda')
-        meFilterPeakdB = 66.2888;
-    end
-    a = 1;
-    b = middleearfilter(fsHz, pp_middleEarModel);
-    % Apply filtering
-    data = filter(b, a, data);
-    % Compensation for unity gain (when DRNL is not used)
-    data = data * 10^(meFilterPeakdB/20);
- 
-    figure;
-    h = plot(timeSec(1:3:end),data(1:3:end,:));
-    set(h(1),'color',[0 0 0]);
-    set(h(2),'color',[0.5 0.5 0.5]);
-    title('7. After middle ear filtering (input from panel 1)')
-    xlabel('Time (s)')
-    ylabel('Amplitude')
-    xlim([timeSec(1) timeSec(end)])
-%     ylim([-18 18])
-    
-end
-
-
+% Simple scaling so no need for plotting
 
 
 
