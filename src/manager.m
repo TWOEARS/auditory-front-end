@@ -777,8 +777,8 @@ classdef manager < handle
                             % Generate new signals
                             lags = ((1:(2 * round(mObj.Processors{ii,1}.wSizeSec * p.fs * 0.5)-1))-1)/p.fs;
                             cfHz = dep_proc_l.getDependentParameter('cfHz');         % Vector of center frequencies
-                            sig_l = CorrelationSignal(mObj.Processors{ii,1}.FsHzOut,mObj.Data.bufferSize_s,'autocorrelation',cfHz,lags,'Auto-correlation',[],'left');
-                            sig_r = CorrelationSignal(mObj.Processors{ii,2}.FsHzOut,mObj.Data.bufferSize_s,'autocorrelation',cfHz,lags,'Auto-correlation',[],'right');
+                            sig_l = CorrelationSignal(mObj.Processors{ii,1}.FsHzOut,mObj.Data.bufferSize_s,'autocorrelation',cfHz,lags,'Auto-correlation function',[],'left');
+                            sig_r = CorrelationSignal(mObj.Processors{ii,2}.FsHzOut,mObj.Data.bufferSize_s,'autocorrelation',cfHz,lags,'Auto-correlation function',[],'right');
                             % Add the signals to the data object
                             mObj.Data.addSignal(sig_l);
                             mObj.Data.addSignal(sig_r)
@@ -788,7 +788,7 @@ classdef manager < handle
                             % Generate a new signal
                             lags = ((1:(2 * round(mObj.Processors{ii,1}.wSizeSec * p.fs * 0.5)-1))-1)/p.fs;
                             cfHz = dep_proc.getDependentParameter('cfHz');         % Vector of center frequencies
-                            sig = CorrelationSignal(mObj.Processors{ii,1}.FsHzOut,mObj.Data.bufferSize_s,'autocorrelation',cfHz,lags,'Auto-correlation',[],'mono');
+                            sig = CorrelationSignal(mObj.Processors{ii,1}.FsHzOut,mObj.Data.bufferSize_s,'autocorrelation',cfHz,lags,'Auto-correlation function',[],'mono');
                             % Add signal to the data object
                             mObj.Data.addSignal(sig);
                         end
@@ -833,7 +833,7 @@ classdef manager < handle
                             maxLag = ceil(mObj.Processors{ii,1}.maxDelaySec*dep_proc_l.FsHzOut);
                             lags = (-maxLag:maxLag)/dep_proc_l.FsHzOut;                           % Lags
                             cfHz = dep_proc_l.getDependentParameter('cfHz');        % Center frequencies 
-                            sig = CorrelationSignal(mObj.Processors{ii,1}.FsHzOut,mObj.Data.bufferSize_s,'crosscorrelation',cfHz,lags,'Cross-correlation',[],'mono');
+                            sig = CorrelationSignal(mObj.Processors{ii,1}.FsHzOut,mObj.Data.bufferSize_s,'crosscorrelation',cfHz,lags,'Cross-correlation function',[],'mono');
                             mObj.Data.addSignal(sig);
                             clear maxLag lags
                         end
@@ -984,8 +984,8 @@ classdef manager < handle
                             % Generate new signals
 %                             sig_l = SpectralFeaturesSignal(mObj.Processors{ii,1}.FsHzOut,mObj.Processors{ii,1}.requestList,mObj.Data.bufferSize_s,'spectral_features','Spectral Features','left');
 %                             sig_r = SpectralFeaturesSignal(mObj.Processors{ii,2}.FsHzOut,mObj.Processors{ii,2}.requestList,mObj.Data.bufferSize_s,'spectral_features','Spectral Features','right');
-                            sig_l = FeatureSignal(mObj.Processors{ii,1}.FsHzOut,mObj.Processors{ii,1}.requestList,mObj.Data.bufferSize_s,'spectral_features','Spectral Features','left');
-                            sig_r = FeatureSignal(mObj.Processors{ii,2}.FsHzOut,mObj.Processors{ii,2}.requestList,mObj.Data.bufferSize_s,'spectral_features','Spectral Features','right');
+                            sig_l = FeatureSignal(mObj.Processors{ii,1}.FsHzOut,mObj.Processors{ii,1}.requestList,mObj.Data.bufferSize_s,'spectral_features','Spectral features','left');
+                            sig_r = FeatureSignal(mObj.Processors{ii,2}.FsHzOut,mObj.Processors{ii,2}.requestList,mObj.Data.bufferSize_s,'spectral_features','Spectral features','right');
                             % Add the signals to the data object
                             mObj.Data.addSignal(sig_l);
                             mObj.Data.addSignal(sig_r)
@@ -1011,7 +1011,7 @@ classdef manager < handle
                         else
                             mObj.Processors{ii,1} = ildProc(dep_proc_l.FsHzOut,p);
                             cfHz = dep_proc_l.getDependentParameter('cfHz');    % Center frequencies
-                            sig = TimeFrequencySignal(mObj.Processors{ii,1}.FsHzOut,mObj.Data.bufferSize_s,'ild',cfHz,'Interaural Level Difference',[],'mono');
+                            sig = TimeFrequencySignal(mObj.Processors{ii,1}.FsHzOut,mObj.Data.bufferSize_s,'ild',cfHz,'Interaural level difference',[],'mono');
                             mObj.Data.addSignal(sig);
                         end
                         
@@ -1033,7 +1033,7 @@ classdef manager < handle
                         else
                             mObj.Processors{ii,1} = itdProc(dep_proc.FsHzOut,p);
                             cfHz = dep_proc.getDependentParameter('cfHz');    % Center frequencies
-                            sig = TimeFrequencySignal(mObj.Processors{ii,1}.FsHzOut,mObj.Data.bufferSize_s,'itd',cfHz,'Interaural Time Difference',[],'mono');
+                            sig = TimeFrequencySignal(mObj.Processors{ii,1}.FsHzOut,mObj.Data.bufferSize_s,'itd',cfHz,'Interaural time difference',[],'mono');
                             mObj.Data.addSignal(sig);
                         end
                         
@@ -1053,8 +1053,8 @@ classdef manager < handle
                             end
                         
                             % Generate new signals
-                            sig_l = FeatureSignal(mObj.Processors{ii,1}.FsHzOut,fList,mObj.Data.bufferSize_s,'gabor','Gabor Features','left');
-                            sig_r = FeatureSignal(mObj.Processors{ii,2}.FsHzOut,fList,mObj.Data.bufferSize_s,'gabor','Gabor Features','right');
+                            sig_l = FeatureSignal(mObj.Processors{ii,1}.FsHzOut,fList,mObj.Data.bufferSize_s,'gabor','Gabor features','left');
+                            sig_r = FeatureSignal(mObj.Processors{ii,2}.FsHzOut,fList,mObj.Data.bufferSize_s,'gabor','Gabor features','right');
                             % Add the signals to the data object
                             mObj.Data.addSignal(sig_l);
                             mObj.Data.addSignal(sig_r)
@@ -1072,7 +1072,7 @@ classdef manager < handle
                             end
                             
                             % Generate a new signal
-                            sig = FeatureSignal(mObj.Processors{ii,1}.FsHzOut,fList,mObj.Data.bufferSize_s,'gabor','Gabor Features','mono');
+                            sig = FeatureSignal(mObj.Processors{ii,1}.FsHzOut,fList,mObj.Data.bufferSize_s,'gabor','Gabor features','mono');
                             % Add signal to the data object
                             mObj.Data.addSignal(sig);
                         end
