@@ -151,52 +151,44 @@ end
 a = 1;
 b = middleearfilter(fsHz, pp_middleEarModel);
 
+% Get the pre-processed data from the binaural AGC
+dataIn = [dataObjBin.time{1}.Data(:) dataObjBin.time{2}.Data(:)];
+
 % Apply filtering
-dataL = filter(b, a, [dataObjBin.time{1}.Data(:)]);
-dataR = filter(b, a, [dataObjBin.time{2}.Data(:)]);
+dataIn = filter(b, a, dataIn);
 
 % Compensation for unity gain (when DRNL is not used)
-dataL = dataL * 10^(meFilterPeakdB/20);
-dataR = dataR * 10^(meFilterPeakdB/20);
+dataIn = dataIn * 10^(meFilterPeakdB/20);
 
 % New data object
-dataObj = dataObject(cat(2,dataL,dataR),fsHz);
+dataObj = dataObject(dataIn,fsHz);
 
-% dataObj.plot
-
-
-% % Plot the result
-% dataObj.plot([],p_plot,'bGray',1,'decimateRatio',3);
-% legend off, ylim([-18 18])
-% title('7. After middle ear filtering')
-
-
-% figure;
-% h = plot(timeSec(1:3:end),dataL(1:3:end,:));
-% set(h(1),'color',[0 0 0]);
-% set(h(2),'color',[0.5 0.5 0.5]);
-% title('7. After middle ear filtering')
-% xlabel('Time (s)')
-% ylabel('Amplitude')
-% xlim([timeSec(1) timeSec(end)])
-% %     ylim([-18 18])
-
-
+% Plot the result
+dataObj.plot([],p_plot,'bSignal',1,'bGray',1,'decimateRatio',3)
+legend off, ylim([-2.25 2.25])
+title('7. After middle ear filtering')
 
 
 %% Level scaling to reference
-
-
-% Get the pre-processed data from earlier stage
-dataL = [dataObjBin.time{1}.Data(:) dataObjBin.time{2}.Data(:)];
+% 
+% 
+% Get the pre-processed data from the binaural AGC
+dataIn = [dataObjBin.time{1}.Data(:) dataObjBin.time{2}.Data(:)];
 
 % Obtain what the current calibration reference is
 current_dboffset = dbspl(1);
 
 % Adjust level corresponding to the given reference
-dataL = gaindb(dataL, current_dboffset-refSPLdB);
+dataIn = gaindb(dataIn, current_dboffset-refSPLdB);
 
-% Simple scaling so no need for plotting
+% New data object
+dataObj = dataObject(dataIn,fsHz);
+
+% Plot the result
+dataObj.plot([],p_plot,'bSignal',1,'bGray',1,'decimateRatio',3)
+legend off, ylim([-18 18])
+title('8. After level scaling')
+
 
 
 
@@ -210,4 +202,5 @@ if 0
    fig2LaTeX(['Pre_Processing_05'],5,mode)
    fig2LaTeX(['Pre_Processing_06'],6,mode)
    fig2LaTeX(['Pre_Processing_07'],7,mode)
+   fig2LaTeX(['Pre_Processing_08'],8,mode)
 end
