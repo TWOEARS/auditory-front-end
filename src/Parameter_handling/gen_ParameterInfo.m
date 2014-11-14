@@ -77,9 +77,9 @@ clear pInfo
     addParameterInfo('adt','adpt_tau',[0.005 0.050 0.129 0.253 0.500],'Adaptation loop time constants')
    
     % Interaural Level Difference (ILD)
-    addParameterInfo('ild','ild_wname','hann','Window name','Interaural Level Difference')
-    addParameterInfo('ild','ild_wSizeSec',20E-3,'Window duration (s)')
-    addParameterInfo('ild','ild_hSizeSec',10E-3,'Window step size (s)')
+    addParameterInfo('interld','ild_wname','hann','Window name','Interaural Level Difference')
+    addParameterInfo('interld','ild_wSizeSec',20E-3,'Window duration (s)')
+    addParameterInfo('interld','ild_hSizeSec',10E-3,'Window step size (s)')
 
     % Ratemap Extraction
     addParameterInfo('rm','rm_wname','hann','Window name','Ratemap extraction')
@@ -127,7 +127,7 @@ clear pInfo
     addParameterInfo('intercor',[],[],[],'Interaural coherence')
     
     % Interaural time difference
-    addParameterInfo('itd',[],[],[],'Interaural Time Difference')
+    addParameterInfo('intertd',[],[],[],'Interaural Time Difference')
     
     
     % Spectral features
