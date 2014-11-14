@@ -16,6 +16,7 @@ classdef preProc < Processor
         
         bMiddleEarFiltering
         middleEarModel
+        
     end
     
     properties (Access = private)
@@ -26,7 +27,10 @@ classdef preProc < Processor
         agcFilter_l
         agcFilter_r
         epsilon = 1E-8;
-        midEarFilter
+        midEarFilter_l
+        midEarFilter_r
+        bUnityComp
+        meFilterPeakdB
     end
     
     
@@ -67,6 +71,17 @@ classdef preProc < Processor
             pObj.refSPLdB = p.pp_refSPLdB;
             pObj.bMiddleEarFiltering = p.pp_bMiddleEarFiltering;
             pObj.middleEarModel = p.pp_middleEarModel;
+            pObj.bUnityComp = p.pp_bUnityComp;
+            if pObj.bUnityComp
+                switch pObj.middleEarModel
+                    case 'jepsen'
+                        pObj.meFilterPeakdB = 55.9986;
+                    case 'lopezpoveda'
+                        pObj.meFilterPeakdB = 66.2888;
+                end
+            else
+                pObj.meFilterPeakdB = 0;
+            end
             
             if pObj.bRemoveDC
                 pObj.dcFilter_l = bwFilter(fs,4,pObj.cutoffHzDC,[],'high');
@@ -95,16 +110,22 @@ classdef preProc < Processor
             end
             
             if pObj.bMiddleEarFiltering
-                if strcmp(pObj.middleEarModel, 'jepsen')
-                    pObj.middleEarModel = 'jepsenmiddleear'; 
+                switch pObj.middleEarModel
+                    case 'jepsen'
+                        model = 'jepsenmiddleear';
+                    otherwise
+                        model = pObj.middleEarModel;
                 end
                 a = 1;
-                b = middleearfilter(fs, pObj.middleEarModel);
-                pObj.midEarFilter = genericFilter(b,a,fs);
+                b = middleearfilter(fs, model);
+                pObj.midEarFilter_l = genericFilter(b,a,fs);
+                pObj.midEarFilter_r = genericFilter(b,a,fs);
             else
-                pObj.midEarFilter = [];
+                pObj.midEarFilter_l = [];
+                pObj.midEarFilter_r = [];
             end
             
+           
             pObj.Type = 'Pre-processor';
             pObj.FsHzIn = fs;
             pObj.FsHzOut = fs;
@@ -176,12 +197,9 @@ classdef preProc < Processor
                     normFactor_r = normFactor_l;
                 end
                 
-                
-                
                 % Apply normalization
                 data_l = data_l./normFactor_l;
                 if ~isempty(normFactor_r)
-%                     figure,plot(normFactor_r),title('preProc')
                     data_r = data_r./normFactor_r;
                 else
                     data_r = [];
@@ -196,8 +214,9 @@ classdef preProc < Processor
             end
             
             if pObj.bMiddleEarFiltering
-                data_l = pObj.midEarFilter.filter(data_l);
-                data_r = pObj.midEarFilter.filter(data_r);
+                data_l = pObj.midEarFilter_l.filter(data_l)* 10^(pObj.meFilterPeakdB/20);
+                data_r = pObj.midEarFilter_r.filter(data_r)* 10^(pObj.meFilterPeakdB/20);
+                
             end
             
             % Return the output
@@ -255,8 +274,15 @@ classdef preProc < Processor
             end
             
             if ((pObj.bMiddleEarFiltering && p.pp_bMiddleEarFiltering) && ...
-                    (pObj.middleEarModel ~= p.pp_middleEarModel)) ...
+                    ~strcmp(pObj.middleEarModel,p.pp_middleEarModel)) ...
                     || ~(pObj.bMiddleEarFiltering == p.pp_bMiddleEarFiltering)
+                hp = 0;
+                return
+            end
+
+            % Special section for unity gain compensation
+            if ((pObj.bMiddleEarFiltering && p.pp_bMiddleEarFiltering) && ...
+                    pObj.bUnityComp ~= p.pp_bUnityComp)
                 hp = 0;
                 return
             end
@@ -287,7 +313,8 @@ classdef preProc < Processor
                 pObj.agcFilter_r.reset;
             end
             if pObj.bMiddleEarFiltering
-                pObj.midEarFilter.reset;
+                pObj.midEarFilter_l.reset;
+                pObj.midEarFilter_r.reset;
             end
             
         end

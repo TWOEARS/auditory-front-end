@@ -54,7 +54,7 @@ for ii = 1:n_param
     p_full.(names{ii}) = p.(names{ii});
 end
 
-% Special cases depending on request
+% Force some parameters depending on request
 switch request
     case ''
         % Do nothing
@@ -81,4 +81,18 @@ switch request
             p_full.rm_hSizeSec = 10E-3;
             warning('Gabor feature extraction is based on a given window step-size for ratemaps. Fixing the window size to 10ms.')
         end
+
+end
+
+% Add parameters not controlled by the user
+
+% Compensation for middle-ear filtering
+if isfield(p_full,'fb_type')
+    switch p_full.fb_type
+        case 'gammatone'
+            p_full.pp_bUnityComp = 1;
+        case 'drnl'
+            p_full.pp_bUnityComp = 0;
+    end
+end
 end

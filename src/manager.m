@@ -1022,7 +1022,7 @@ classdef manager < handle
                         else
                             mObj.Processors{ii,1} = icProc(dep_proc.FsHzOut,p);
                             cfHz = dep_proc.getDependentParameter('cfHz');    % Center frequencies
-                            sig = TimeFrequencySignal(mObj.Processors{ii,1}.FsHzOut,mObj.Data.bufferSize_s,'ic',cfHz,'Interaural correlation',[],'mono');
+                            sig = TimeFrequencySignal(mObj.Processors{ii,1}.FsHzOut,mObj.Data.bufferSize_s,'ic',cfHz,'Interaural coherence',[],'mono');
                             mObj.Data.addSignal(sig);
                         end
                         

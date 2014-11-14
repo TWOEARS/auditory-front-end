@@ -9,8 +9,8 @@ clc
 % Load a signal
 load('AFE_earSignals_16kHz');
 
-% Create a data object based on parts of the ear signals
-dObj = dataObject(earSignals(1:20E3,:),fsHz);
+% Create a data object based on parts of the right ear signal
+dObj = dataObject(earSignals(1:20E3,2),fsHz);
 
 
 %% PLACE REQUEST AND CONTROL PARAMETERS
@@ -19,20 +19,21 @@ dObj = dataObject(earSignals(1:20E3,:),fsHz);
 % Request gabor features  
 requests = {'gabor'};
 
-
-% Following the ETSI standard
-nChannels  = [23];
-lowFreqHz  = 124;
-highFreqHz = 3657;
+% Parameters of auditory filterbank following the ETSI standard
+fb_type       = 'gammatone';
+fb_lowFreqHz  = 124;
+fb_highFreqHz = 3657;
+fb_nChannels  = 23;  
 
 % Window size in seconds
 rm_wSizeSec = 25E-3;
 rm_wStepSec = 10E-3; % DO NOT CHANGE!!!
 rm_decaySec = 8E-3;
 
-% Parameters
-par = genParStruct('fb_lowFreqHz',lowFreqHz,'fb_highFreqHz',highFreqHz,'fb_nChannels',nChannels,...
-                   'rm_wSizeSec',rm_wSizeSec,'rm_hSizeSec',rm_wStepSec,'rm_scaling','power',...
+% Summary of parameters 
+par = genParStruct('fb_type',fb_type,'fb_lowFreqHz',fb_lowFreqHz,...
+                   'fb_highFreqHz',fb_highFreqHz,'fb_nChannels',fb_nChannels,...
+                   'rm_wSizeSec',rm_wSizeSec,'rm_hSizeSec',rm_wStepSec,...
                    'rm_decaySec',rm_decaySec); 
 
 
@@ -45,13 +46,14 @@ mObj = manager(dObj,requests,par);
 % Request processing
 mObj.processSignal();
 
-% Plot the results
-dObj.ratemap{1}.plot
-dObj.gabor{1}.plot
+
+%% PLOT RESULTS
+% 
+% 
+% Ratemap
+dObj.ratemap{1}.plot;
+
+% Gabor features
+dObj.gabor{1}.plot;
 
  
-if 0
-    fig2LaTeX('Gabor_01',1,16);
-    fig2LaTeX('Gabor_02',2,16);
-end
-

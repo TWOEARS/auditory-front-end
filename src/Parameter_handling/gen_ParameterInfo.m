@@ -28,7 +28,8 @@ clear pInfo
     addParameterInfo('preproc','pp_refSPLdB',100,'Reference dB SPL value to correspond to input signal RMS value of 1')
     addParameterInfo('preproc','pp_bMiddleEarFiltering',0,'Flag to apply middle ear filtering')
     addParameterInfo('preproc','pp_middleEarModel','jepsen','Middle ear filter model (jepsen or lopezpoveda)')
-
+%     addParameterInfo('preproc','pp_bUnityComp',[],'Compensation to have maximum of unity gain for middle ear filter (automatically true for Gammatone and false for drnl filterbanks)')
+    
     % Time-domain framing processor
 %     addParameterInfo('fr','fr_wname','hamming','Window name descriptor (see window.m)','Time-domain signal framing processor')
 %     addParameterInfo('fr','fr_wSize',1024,'Window duration in samples')
@@ -154,6 +155,5 @@ clear pInfo
     addParameterInfo('plotting','aud_ticks',[100 250 500 1000 2000 4000 8000 16000 32000],'Auditory ticks for ERB-based representations')
     addParameterInfo('plotting','wavPlotDS',3,'Decimation ratio for plotting undecimated wave plot representations')
     addParameterInfo('plotting','wavPlotZoom',5,'Zoom factor in wave plot representations')
-    addParameterInfo('plotting','corPlotZoom',3,'Zoom factor in correlation wave plots')
     addParameterInfo('plotting','binaryMaskColor',[0 0 0],'Color for binary mask (in RGB value)')
 
