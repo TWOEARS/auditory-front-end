@@ -19,7 +19,6 @@ dObj = dataObject(earSignals(1:20E3,:),fsHz);
 % Request gabor features  
 requests = {'gabor'};
 
-
 % Following the ETSI standard
 nChannels  = [23];
 lowFreqHz  = 124;
@@ -31,9 +30,9 @@ rm_wStepSec = 10E-3; % DO NOT CHANGE!!!
 rm_decaySec = 8E-3;
 
 % Parameters
-par = genParStruct('fb_lowFreqHz',lowFreqHz,'fb_highFreqHz',highFreqHz,'fb_nChannels',nChannels,...
-                   'rm_wSizeSec',rm_wSizeSec,'rm_hSizeSec',rm_wStepSec,'rm_scaling','power',...
-                   'rm_decaySec',rm_decaySec); 
+par = genParStruct('fb_lowFreqHz',lowFreqHz,'fb_highFreqHz',highFreqHz,...
+                   'fb_nChannels',nChannels,'rm_wSizeSec',rm_wSizeSec,...
+                   'rm_hSizeSec',rm_wStepSec,'rm_decaySec',rm_decaySec); 
 
 
 %% PERFORM PROCESSING
@@ -50,8 +49,3 @@ dObj.ratemap{1}.plot
 dObj.gabor{1}.plot
 
  
-if 0
-    fig2LaTeX('Gabor_01',1,16);
-    fig2LaTeX('Gabor_02',2,16);
-end
-

@@ -21,15 +21,13 @@ requests = {'adaptation'};
 
 % Parameters of Gammatone processor
 fb_type       = 'gammatone';
-fb_nChannels  = 16;  
 fb_lowFreqHz  = 80;
 fb_highFreqHz = 8000;
+fb_nChannels  = 16;  
 
-% Parameters 
-par = genParStruct('fb_type',fb_type,...
-                   'fb_lowFreqHz',fb_lowFreqHz,...
-                   'fb_highFreqHz',fb_highFreqHz,...
-                   'fb_nChannels',fb_nChannels);
+% Summary of parameters 
+par = genParStruct('fb_type',fb_type,'fb_lowFreqHz',fb_lowFreqHz,...
+                   'fb_highFreqHz',fb_highFreqHz,'fb_nChannels',fb_nChannels);
                
 
 %% PERFORM PROCESSING

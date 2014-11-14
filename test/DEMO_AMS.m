@@ -67,7 +67,7 @@ tSec = (1:size(env,1))/fsHz;
 
 figure;
 waveplot(env(1:3:end,:),tSec(1:3:end),fHz);
-title('IHC')
+title('IHC signal')
 
 % Plot linear AMS pattern
 dObj.ams_features{1}.plot;title('linear AMS features')
