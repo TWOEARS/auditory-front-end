@@ -106,7 +106,7 @@ classdef TimeFrequencySignal < Signal
                 % Decide if the plot should be on a linear or dB scale
                 switch sObj.Name
                     case {'gammatone','ild','ic','itd','onset_strength',...
-                            'offset_strength','innerhaircell','onset_map','drnl'}
+                            'offset_strength','innerhaircell','adaptation','onset_map','drnl'}
                         do_dB = 0;
                     case {'ratemap'}
                         do_dB = 1;
@@ -197,7 +197,7 @@ classdef TimeFrequencySignal < Signal
                 % Plot the figure
                 switch sObj.Name
                     
-                    case {'gammatone','innerhaircell','drnl'}
+                    case {'gammatone','innerhaircell','drnl','adaptation'}
                         waveplot(data(:,1:p.wavPlotDS:end).',t(1:p.wavPlotDS:end),sObj.cfHz,p.wavPlotZoom,1);
                     
                     otherwise
