@@ -10,7 +10,7 @@ clc
 load('AFE_earSignals_16kHz');
 
 % Create a data object based on the ear signals
-dObj = dataObject(earSignals,fsHz);
+dObj = dataObject(earSignals(1:22494,:),fsHz);
 
 
 %% PLACE REQUEST AND CONTROL PARAMETERS

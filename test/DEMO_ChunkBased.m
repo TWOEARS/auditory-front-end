@@ -49,4 +49,7 @@ sOutOff = managerObjOff.addProcessor('ild');
 managerObjOff.processSignal;
 
 % Plot the difference between the two representations
-figure,imagesc(sOut.Data(:)-sOutOff.Data(:)),colorbar
+figure;imagesc((sOut.Data(:)-sOutOff.Data(:))'),colorbar;
+axis xy;
+xlabel('\# frames')
+ylabel('\# frequency channels')
