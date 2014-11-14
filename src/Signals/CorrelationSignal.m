@@ -170,7 +170,7 @@ classdef CorrelationSignal < Signal
                 
                 ax(1) = subplot(4,1,[1:3]);
                 waveplot(permute(sObj.Data(frameNb,:,:),[3 1 2]),sObj.lags*1E3,...
-                    sObj.cfHz,p.corPlotZoom,1)
+                    sObj.cfHz,p.wavPlotZoom,1)
                 xlabel('')
                 hy = ylabel('Center frequency (Hz)');
 %                 hypos = get(hy,'position');
