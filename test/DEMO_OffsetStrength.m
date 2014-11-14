@@ -10,13 +10,13 @@ clc
 load('AFE_earSignals_16kHz');
 
 % Create a data object based on parts of the right ear signal
-dObj = dataObject(earSignals(1:23E3,2),fsHz);
+dObj = dataObject(earSignals(1:22494,2),fsHz);
 
 
 %% PLACE REQUEST AND CONTROL PARAMETERS
 % 
 % 
-% Request offset map
+% Request offset strength
 requests = {'offset_strength'};
 
 % Parameters of auditory filterbank 
@@ -52,12 +52,12 @@ mObj = manager(dObj,requests,par);
 mObj.processSignal();
 
 
-%% Plot offset strength in dB
+%% PLOT RESULTS
 % 
-% 
+%
+% Plot ratemap
 dObj.ratemap{1}.plot;
+
+%Plot offset strength in dB
 dObj.offset_strength{1}.plot;
 
-% % Plot offsets in white
-% p = genParStruct('binaryMaskColor',[1 1 1]);
-% dObj.offset_map{1}.plot([],p);

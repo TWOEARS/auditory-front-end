@@ -3,20 +3,14 @@ close all
 clc
 
 
+%% LOAD SIGNAL
+% 
+% 
 % Load a signal
-load('TestBinauralCues');
+load('AFE_earSignals_16kHz');
 
-% Take right ear signal
-data = earSignals(1:62E3,2);     
-
-% New sampling frequency
-fsHzRef = 16E3;
-
-% Resample
-data = resample(data,fsHzRef,fsHz);
-
-% Copy fs
-fsHz = fsHzRef;
+% Create a data object based on parts of the right ear signal
+dObj = dataObject(earSignals(1:22494,2),fsHz);
 
 
 %% PLACE REQUEST AND CONTROL PARAMETERS
@@ -40,45 +34,52 @@ rm_hSizeSec  = 0.01;
 rm_decaySec  = 8E-3;
 rm_wname     = 'hann';
 
-% Parameters of onset and offset maps
-minRatemapLeveldB = -80;
+% Parameters for switching off the transient detector
+trm_off_minValuedB    = -inf;
+trm_off_minStrengthdB = 0;
+trm_off_minSpread     = 0;
+trm_off_fuseWithinSec = 0;
 
-% Summary of parameters 
-par = genParStruct('fb_type',fb_type,'fb_lowFreqHz',fb_lowFreqHz,...
-                   'fb_highFreqHz',fb_highFreqHz,'fb_nChannels',fb_nChannels,...
-                   'ihc_method',ihc_method,'ac_wSizeSec',rm_wSizeSec,...
-                   'ac_hSizeSec',rm_hSizeSec,'rm_decaySec',rm_decaySec,...
-                   'ac_wname',rm_wname); 
-               
-% Onset parameters
-minOnsetStrengthdB  = 3;
-minOnsetSize        = 5;
-fuseOnsetsWithinSec = 30E-3;
+% Parameters of transient detector (same parameters for onsets & offests)
+trm_on_minValuedB    = -80;
+trm_on_minStrengthdB = 3;
+trm_on_minSpread     = 5;
+trm_on_fuseWithinSec = 30E-3;
 
-% Offset parameters
-minOffsetStrengthdB  = 3;
-minOffsetSize        = 5;
-fuseOffsetsWithinSec = 30E-3;
+% Summary of parameters without transient detector
+parOff = genParStruct('fb_type',fb_type,'fb_lowFreqHz',fb_lowFreqHz,...
+                      'fb_highFreqHz',fb_highFreqHz,'fb_nChannels',fb_nChannels,...
+                      'ihc_method',ihc_method,'ac_wSizeSec',rm_wSizeSec,...
+                      'ac_hSizeSec',rm_hSizeSec,'rm_decaySec',rm_decaySec,...
+                      'ac_wname',rm_wname,'trm_minValuedB',trm_off_minValuedB,...
+                      'trm_minStrengthdB',trm_off_minStrengthdB,'trm_minSpread',trm_off_minSpread,...
+                      'trm_fuseWithinSec',trm_off_fuseWithinSec); 
 
-
-
-% Parameters
-% par = genParStruct('fb_lowFreqHz',80,'fb_highFreqHz',8000,'fb_nChannels',nChannels,'ihc_method','dau','rm_decaySec',rm_decaySec,'rm_wSizeSec',rm_wSizeSec,'rm_hSizeSec',rm_hSizeSec,'ons_minValuedB',minRatemapLeveldB,'ofs_minValuedB',minRatemapLeveldB); 
-
-% Create a data object
-dObj = dataObject(data,fsHz);
-
-% Create a manager
-mObj = manager(dObj);
-mObj.addProcessor(requests,par);
+% Summary of parameters for transient detector
+parOn = genParStruct('fb_type',fb_type,'fb_lowFreqHz',fb_lowFreqHz,...
+                     'fb_highFreqHz',fb_highFreqHz,'fb_nChannels',fb_nChannels,...
+                     'ihc_method',ihc_method,'ac_wSizeSec',rm_wSizeSec,...
+                     'ac_hSizeSec',rm_hSizeSec,'rm_decaySec',rm_decaySec,...
+                     'ac_wname',rm_wname,'trm_minValuedB',trm_on_minValuedB,...
+                     'trm_minStrengthdB',trm_on_minStrengthdB,'trm_minSpread',trm_on_minSpread,...
+                     'trm_fuseWithinSec',trm_on_fuseWithinSec); 
+                    
+                    
+%% PERFORM PROCESSING
+% 
+% 
+% Create managers
+mObj1 = manager(dObj,requests,parOff);
+mObj2 = manager(dObj,requests,parOn);
 
 % Request processing
-mObj.processSignal();
+mObj1.processSignal();
+mObj2.processSignal();
 
 
-
-%% Plot onset and offset maps
-
+%% PLOT RESULTS
+% 
+% 
 % Plot the onset
 h = dObj.onset_map{1}.plot;
 hold on
@@ -90,7 +91,14 @@ dObj.offset_map{1}.plot(h,p,1);
 % Replace the title
 title('Onset (black) and offset (white) maps')
 
-% Find the spacing for the y-axis which evenly divides the y-axis
-% set(gca,'ytick',linspace(1,nChannels,nYLabels));
-% set(gca,'yticklabel',round(interp1(1:nChannels,dObj.onset_strength{1}.cfHz,linspace(1,nChannels,nYLabels))));
+% Plot the onset
+h = dObj.onset_map{2}.plot;
+hold on
+
+% Superimposed the offset (in white)
+p = genParStruct('binaryMaskColor',[1 1 1]);   % White mask
+dObj.offset_map{2}.plot(h,p,1);
+
+% Replace the title
+title('Onset (black) and offset (white) maps')
 
