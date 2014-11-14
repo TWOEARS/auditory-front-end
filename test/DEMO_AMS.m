@@ -59,7 +59,7 @@ mObj.processSignal();
 % 
 % Plot-related parameters
 wavPlotZoom = 5; % Zoom factor
-wavPlotDS   = 1; % Down-sampling factor
+wavPlotDS   = 3; % Down-sampling factor
 
 % Summarize plot parameters
 p = genParStruct('wavPlotZoom',wavPlotZoom,'wavPlotDS',wavPlotDS);
@@ -72,7 +72,9 @@ dObj.innerhaircell{1}.plot([],p);title('IHC signal')
 
 % Plot linear AMS pattern
 dObj.ams_features{1}.plot;title('linear AMS features')
+delete(findobj( 0, 'tag', 'Colorbar' ));
 
 % Plot logarithmic AMS pattern
 dObj.ams_features{2}.plot;title('logarithmic AMS features')
+delete(findobj( 0, 'tag', 'Colorbar' ))
 

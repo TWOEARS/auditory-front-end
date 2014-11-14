@@ -4,8 +4,8 @@ clc
 
 
 %% LOAD SIGNAL
-%
-%
+% 
+% 
 % Load a signal
 load('AFE_earSignals_16kHz');
 
@@ -31,10 +31,10 @@ dObj_GT = dataObject(earSignalScaled, fsHz);
 % Plot properties
 p_plot = genParStruct('fsize_label',10,'fsize_axes',10,'fsize_title',10);
 
-% Plot the original ear signal
-dObj_DRNL.plot([],p_plot,'bGray',1,'decimateRatio',3,'bSignal',1);
-legend off, ylim([-0.4 0.4])
-title(sprintf('Original input signal sampled at %i Hz',fsHz))
+% % Plot the original ear signal
+% dObj_DRNL.plot([],p_plot,'bGray',1,'decimateRatio',3,'bSignal',1);
+% legend off, ylim([-0.4 0.4])
+% title(sprintf('Original input signal sampled at %i Hz',fsHz))
 
 %% PLACE REQUEST AND CONTROL PARAMETERS
 % 
@@ -76,8 +76,9 @@ mObj_GT.processSignal();
 %% PLOT RESULTS
 % 
 % 
-% Plot time domain signal (after pre-processing)
-dObj_DRNL.time{1}.plot
+% % Plot time domain signal (after pre-processing)
+% dObj_DRNL.time{1}.plot
+% 
 % 
 % % Plot-related parameters
 % wavPlotZoom = 2; % Zoom factor
@@ -103,7 +104,7 @@ plot(tSec, dObj_DRNL.drnl{1}.Data(:));
 xlim([tSec(1) tSec(end)]);
 title(sprintf('DRNL filterbank output at %d Hz', dObj_DRNL.drnl{1}.cfHz));
 xlabel('Time (s)');
-ylabel('Amplitude')
+ylabel('Amplitude (x 1E$^{-5}$)')
 
 
 
