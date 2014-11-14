@@ -59,19 +59,19 @@ classdef dataObject < dynamicprops
             % TO DO: Do something with the label of this signal?
             if dObj.isStereo
                 if ~isempty(s)
-                    sig_l = TimeDomainSignal(fs,dObj.bufferSize_s,'signal','Ear Signal',s(:,1),'left');
-                    sig_r = TimeDomainSignal(fs,dObj.bufferSize_s,'signal','Ear Signal',s(:,2),'right');
+                    sig_l = TimeDomainSignal(fs,dObj.bufferSize_s,'input','Ear Signal',s(:,1),'left');
+                    sig_r = TimeDomainSignal(fs,dObj.bufferSize_s,'input','Ear Signal',s(:,2),'right');
                 else
-                    sig_l = TimeDomainSignal(fs,dObj.bufferSize_s,'signal','Ear Signal',[],'left');
-                    sig_r = TimeDomainSignal(fs,dObj.bufferSize_s,'signal','Ear Signal',[],'right');
+                    sig_l = TimeDomainSignal(fs,dObj.bufferSize_s,'input','Ear Signal',[],'left');
+                    sig_r = TimeDomainSignal(fs,dObj.bufferSize_s,'input','Ear Signal',[],'right');
                 end
                 dObj.addSignal(sig_l);
                 dObj.addSignal(sig_r);
             else
                 if ~isempty(s)
-                    sig = TimeDomainSignal(fs,dObj.bufferSize_s,'signal','Ear signal (mono)',s);
+                    sig = TimeDomainSignal(fs,dObj.bufferSize_s,'input','Ear signal (mono)',s);
                 else
-                    sig = TimeDomainSignal(fs,dObj.bufferSize_s,'signal','Ear signal (mono)',[]);
+                    sig = TimeDomainSignal(fs,dObj.bufferSize_s,'input','Ear signal (mono)',[]);
                 end
                 dObj.addSignal(sig);
             end          
@@ -133,7 +133,7 @@ classdef dataObject < dynamicprops
             
             % Remove the signal from the list if needed
             if ~bClearSignal
-                sig_list = setdiff(sig_list,{'signal'});
+                sig_list = setdiff(sig_list,{'input'});
             end
                 
             % Loop over all the signals
@@ -215,17 +215,17 @@ classdef dataObject < dynamicprops
             %   dObj : Data object
             
             if nargin<2 || isempty(bPreProcessed) || ~bPreProcessed
-                if ~isprop(dObj,'signal')||isempty(dObj.signal)||...
-                        isempty(dObj.signal{1}.Data)
+                if ~isprop(dObj,'input')||isempty(dObj.input)||...
+                        isempty(dObj.input{1}.Data)
                     warning('There is no audio in the data object to playback')
                 else
-                    if size(dObj.signal,2)==1
+                    if size(dObj.input,2)==1
                         % Then mono playback
-                        soundsc(dObj.signal{1}.Data(:),dObj.signal{1}.FsHz)
+                        soundsc(dObj.input{1}.Data(:),dObj.input{1}.FsHz)
                     else
                         % Stereo playback
-                        temp_snd = [dObj.signal{1}.Data(:) dObj.signal{2}.Data(:)];
-                        soundsc(temp_snd,dObj.signal{1}.FsHz)
+                        temp_snd = [dObj.input{1}.Data(:) dObj.input{2}.Data(:)];
+                        soundsc(temp_snd,dObj.input{1}.FsHz)
                     end
                 end
             else
@@ -273,7 +273,7 @@ classdef dataObject < dynamicprops
                 % Get default plotting parameters
                 p = getDefaultParameters([],'plotting');
             else
-                p.fs = dObj.signal{1}.FsHz;   % Add the sampling frequency to satisfy parseParameters
+                p.fs = dObj.input{1}.FsHz;   % Add the sampling frequency to satisfy parseParameters
                 p = parseParameters(p);
             end
         
@@ -313,7 +313,7 @@ classdef dataObject < dynamicprops
             % Plot before/after pre-processing
             if ~isempty(opt) && isfield(opt,'bSignal')
                 if opt.bSignal
-                    sig = dObj.signal;
+                    sig = dObj.input;
                 else
                     sig = dObj.time;
                 end                
