@@ -23,7 +23,7 @@ requests = {'crosscorrelation'};
 fb_type       = 'gammatone';
 fb_lowFreqHz  = 80;
 fb_highFreqHz = 8000;
-fb_nChannels  = 16;  
+fb_nChannels  = 32;  
 
 % Parameters of innerhaircell processor
 ihc_method    = 'dau';

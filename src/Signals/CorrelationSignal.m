@@ -180,6 +180,8 @@ classdef CorrelationSignal < Signal
                     if opt.noTitle ~= 1
                         title(sObj.Label,'fontsize',p.fsize_title,'fontname',p.ftype)
                     end
+                else
+                    title(sObj.Label,'fontsize',p.fsize_title,'fontname',p.ftype)
                 end
                 
                 ax(2) = subplot(4,1,4);
