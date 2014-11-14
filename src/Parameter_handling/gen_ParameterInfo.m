@@ -90,16 +90,15 @@ clear pInfo
 
     % Onset strength
     addParameterInfo('ons','ons_maxOnsetdB',30,'Upper limit for onset value','Onset strength extraction')
-    addParameterInfo('ons','ons_minValuedB',[],'Lower limit of the representation, below which its onset will not be considered')
     
     % Onset strength
     addParameterInfo('ofs','ofs_maxOffsetdB',30,'Upper limit for offset value','Offset strength extraction')
-    addParameterInfo('ofs','ofs_minValuedB',[],'Lower limit of the representation, below which its offset will not be considered')
     
     % Transient mapping
     addParameterInfo('trm','trm_minStrengthdB',3,'Minimum transient strength for mapping','Transient mapping')
     addParameterInfo('trm','trm_minSpread',5,'Minimum spread of the transient over frequency channels')
     addParameterInfo('trm','trm_fuseWithinSec',30E-3,'Events within that period (in sec) are fused together')
+    addParameterInfo('trm','trm_minValuedB',[],'Lower limit of the original representation, below which its transient will not be considered')
     
     % Auto-correlation
     addParameterInfo('autocor','ac_wname','hann','Window name','Auto-correlation')
