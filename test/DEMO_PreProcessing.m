@@ -1,4 +1,4 @@
-clear;
+% clear;
 close all
 clc
 
@@ -158,36 +158,36 @@ mObj_midEar.processSignal;
 
 % Plot the result
 dataObjMidEar.plot([],p_plot,'bGray',1,'decimateRatio',3);
-legend off, ylim([-18 18])
+legend off, ylim([-2.25 2.25])
 title('7. After middle ear filtering')
 
 % Obtain the filter coefficients corresponding to the given model
-if strcmp(middleEarModel, 'jepsen')
-    pp_middleEarModel = 'jepsenmiddleear';
-    meFilterPeakdB = 55.9986;       % dB to add for unity gain at peak
-elseif strcmp(middleEarModel, 'lopezpoveda')
-    meFilterPeakdB = 66.2888;
-end
-
-a = 1;
-b = middleearfilter(fsHz, pp_middleEarModel);
-
-% Get the pre-processed data from the binaural AGC
-dataIn = [dataObjBin.time{1}.Data(:) dataObjBin.time{2}.Data(:)];
-
-% Apply filtering
-dataIn = filter(b, a, dataIn);
-
-% Compensation for unity gain (when DRNL is not used)
-dataIn = dataIn * 10^(meFilterPeakdB/20);
-
-% New data object
-dataObj = dataObject(dataIn,fsHz);
-
-% Plot the result
-dataObj.plot([],p_plot,'bSignal',1,'bGray',1,'decimateRatio',3)
-legend off, ylim([-2.25 2.25])
-title('7. After middle ear filtering')
+% if strcmp(middleEarModel, 'jepsen')
+%     pp_middleEarModel = 'jepsenmiddleear';
+%     meFilterPeakdB = 55.9986;       % dB to add for unity gain at peak
+% elseif strcmp(middleEarModel, 'lopezpoveda')
+%     meFilterPeakdB = 66.2888;
+% end
+% 
+% a = 1;
+% b = middleearfilter(fsHz, pp_middleEarModel);
+% 
+% % Get the pre-processed data from the binaural AGC
+% dataIn = [dataObjBin.time{1}.Data(:) dataObjBin.time{2}.Data(:)];
+% 
+% % Apply filtering
+% dataIn = filter(b, a, dataIn);
+% 
+% % Compensation for unity gain (when DRNL is not used)
+% dataIn = dataIn * 10^(meFilterPeakdB/20);
+% 
+% % New data object
+% dataObj = dataObject(dataIn,fsHz);
+% 
+% % Plot the result
+% dataObj.plot([],p_plot,'bSignal',1,'bGray',1,'decimateRatio',3)
+% legend off, ylim([-2.25 2.25])
+% title('7. After middle ear filtering')
 
 
 %% Level scaling to reference
