@@ -21,9 +21,9 @@ requests = {'autocorrelation'};
 
 % Parameters of the auditory filterbank processor
 fb_type       = 'gammatone';
-fb_nChannels  = 16;  
 fb_lowFreqHz  = 80;
 fb_highFreqHz = 8000;
+fb_nChannels  = 16;  
 
 % Parameters of innerhaircell processor
 ihc_method    = 'dau';
@@ -56,6 +56,13 @@ mObj.processSignal();
 %% PLOT RESULTS
 % 
 % 
+% Plot-related parameters
+wavPlotZoom = 3; % Zoom factor
+wavPlotDS   = 1; % Down-sampling factor
+
+% Summarize plot parameters
+p = genParStruct('wavPlotZoom',wavPlotZoom,'wavPlotDS',wavPlotDS);
+
 % Plot the ACF of a single frame
 frameIdx2Plot = 10;     
 
@@ -64,9 +71,7 @@ wSizeSamples = 0.5 * round((ac_wSizeSec * fsHz * 2));
 wStepSamples = round((ac_hSizeSec * fsHz));
 samplesIdx = (1:wSizeSamples) + ((frameIdx2Plot-1) * wStepSamples);
 
-% Plot the IHC output in that frame
-par = genParStruct('wavPlotZoom',3,'wavPlotDS',1);
-dObj.innerhaircell{1}.plot([],par,'rangeSec',[samplesIdx(1) samplesIdx(end)]/fsHz);
+dObj.innerhaircell{1}.plot([],p,'rangeSec',[samplesIdx(1) samplesIdx(end)]/fsHz);
 
 % Plot the autocorrelation in that frame
 dObj.autocorrelation{1}.plot([],[],frameIdx2Plot);

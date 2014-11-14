@@ -1,124 +1,78 @@
 clear;
-% close all
+close all
 clc
 
 
-% preset = 'anechoic';
-preset = 'reverberant';
+%% LOAD SIGNAL
+% 
+% 
+% Load anechoic signal
+load('DEMO_Speech_Anechoic');
+
+% Create a data object based on the ear signals
+dObj1 = dataObject(earSignals(1:22494,:),fsHz);
+
+% Load erverberant signal
+load('DEMO_Speech_Room_D');
+
+% Create a data object based on the ear signals
+dObj2 = dataObject(earSignals(1:22494,:),fsHz);
 
 
-% Load a signal
-switch lower(preset)
-    case 'anechoic'
-        load('DEMO_Speech_Anechoic');
-    case 'reverberant'
-        load('DEMO_Speech_Room_D');
-    otherwise
-        error('Preset is not supported')
-end
+%% PLACE REQUEST AND CONTROL PARAMETERS
+% 
+% 
+% Request interaural coherence (IC)
+requests = {'ic'};
 
-% Take right ear signal
-data = earSignals(1:22494,:); 
+% Parameters of the auditory filterbank processor
+fb_type       = 'gammatone';
+fb_lowFreqHz  = 80;
+fb_highFreqHz = 8000;
+fb_nChannels  = 32;  
 
-% Request ratemap    
-requests = {'ic' 'itd'};
+% Parameters of innerhaircell processor
+ihc_method    = 'dau';
 
-cc_wSizeSec = 0.02;
-cc_hSizeSec = 0.01;
+% Parameters of crosscorrelation processor
+cc_wSizeSec  = 0.02;
+cc_hSizeSec  = 0.01;
+cc_wname     = 'hann';
 
-% Parameters
-par = genParStruct('fb_lowFreqHz',80,'fb_highFreqHz',8000,'fb_nChannels',32,'ihc_method','dau','cc_wSizeSec',cc_wSizeSec,'cc_hSizeSec',cc_hSizeSec); 
-
-% Create a data object
-dObj = dataObject(data,fsHz);
-
-% Create a manager
-mObj = manager(dObj,requests,par);
+% Summary of parameters 
+par = genParStruct('fb_type',fb_type,'fb_lowFreqHz',fb_lowFreqHz,...
+                   'fb_highFreqHz',fb_highFreqHz,'fb_nChannels',fb_nChannels,...
+                   'ihc_method',ihc_method,'cc_wSizeSec',cc_wSizeSec,...
+                   'cc_hSizeSec',cc_hSizeSec,'cc_wname',cc_wname); 
+               
+               
+%% PERFORM PROCESSING
+% 
+% 
+% Create two managers
+mObj1 = manager(dObj1,requests,par);
+mObj2 = manager(dObj2,requests,par);
 
 % Request processing
-mObj.processSignal();
-
-sigL = [dObj.time{1}.Data(:)];
-sigR = [dObj.time{2}.Data(:)];
-
-timeSec = (1:numel(sigL))/fsHz;
-
-ic = [dObj.ic{1}.Data(:)];
-itd = [dObj.itd{1}.Data(:)];
-freqHz = dObj.ic{1}.cfHz;
-
-[nFrames,nChannels] = size(ic);
-
-wSizeSamples = 0.5 * round((cc_wSizeSec * fsHz * 2));
-wStepSamples = round((cc_hSizeSec * fsHz));
-
-tSec = (wSizeSamples + (0:nFrames-1)*wStepSamples)/fsHz;
-
-figure;
-hp = plot(timeSec(1:3:end),[sigR(1:3:end) sigL(1:3:end)]');
-set(hp(1),'color',[0 0 0],'linewidth',2);
-set(hp(2),'color',[0.5 0.5 0.5],'linewidth',2);
-hl = legend({'Right ear' 'Left ear'});
-hpos = get(hl,'position');
-hpos(1) = hpos(1) * 0.95;
-hpos(2) = hpos(2) * 0.975;
-set(hl,'position',hpos);
-
-xlabel('Time (sec)')
-ylabel('Amplitude')
-grid on
-ylim([-1.25 1.25])
-xlim([timeSec(1) timeSec(end)])
-title(['Time domain signals',' (',preset,')'])
-
-figure;
-imagesc(tSec,1:nChannels,ic')
-axis xy;
-colorbar;
-title(['IC',' (',preset,')'])
-xlabel('Time (s)')
-ylabel('Center frequency (Hz)')
-
-set(gca,'CLim',[0 1])
-
-nYLabels = 8;
- 
-% Find the spacing for the y-axis which evenly divides the y-axis
-set(gca,'ytick',linspace(1,nChannels,nYLabels));
-set(gca,'yticklabel',round(interp1(1:nChannels,freqHz,linspace(1,nChannels,nYLabels))));
+mObj1.processSignal();
+mObj2.processSignal();
 
 
-% bReliable = ic(:) > 0.985;
+%% PLOT RESULTS
 % 
-% theGrid = linspace(-1,1,15);
 % 
-% input1 = 1E3*itd(:);
-% input2 = input1(bReliable);
-% 
-% data1 = hist(input1,theGrid)/numel(input1);
-% data2 = hist(input2,theGrid)/numel(input2);
-% 
-% figure;
-% bar(theGrid,data1);
-% figure;
-% bar(theGrid,data2);
-% 
-% figure;
-% imagesc(tSec,1:nChannels,1E3*itd')
-% axis xy;
-% colorbar;
-% title('ITD')
-% xlabel('Time (s)')
-% ylabel('Center frequency (Hz)')
-% 
-% nYLabels = 8;
-%  
-% % Find the spacing for the y-axis which evenly divides the y-axis
-% set(gca,'ytick',linspace(1,nChannels,nYLabels));
-% set(gca,'yticklabel',round(interp1(1:nChannels,freqHz,linspace(1,nChannels,nYLabels))));
+% Plot the original ear signal
+dObj1.plot([],[],'bGray',1,'decimateRatio',3,'bSignal',1);
+ylim([-1.25 1.25]);
 
+% Plot IC
+dObj1.ic{1}.plot;
+title('Interaural coherence (anechoic)')
 
+% Plot the original ear signal
+dObj2.plot([],[],'bGray',1,'decimateRatio',3,'bSignal',1);
+ylim([-1.25 1.25]);
 
-
-% fig2LaTeX(['IC_01'],1,16);fig2LaTeX(['IC_02'],2,16)
-
+% Plot IC
+dObj2.ic{1}.plot;
+title('Interaural coherence (reverberant)')

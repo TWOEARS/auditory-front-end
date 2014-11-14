@@ -140,7 +140,6 @@ title('6. After binaural AGC')
 %% Middle ear filtering
 % 
 %
-
 % Apply DC removal, pre-whitening, AGC (binaural) and middle ear filtering
 p = genParStruct('pp_bRemoveDC',true,'pp_cutoffHzDC',cutoffHzDC,...
                  'pp_bPreEmphasis',true,'pp_coefPreEmphasis',coefPreEmphasis,...
