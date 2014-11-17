@@ -64,7 +64,9 @@ if bZeroPad
     input = [input; zeros(nZeros,1)];
     
     % Increase frame counter
-    nFrames = nFrames + 1;
+    if nZeros ~= 0
+        nFrames = nFrames + 1;
+    end
 end
  
 % Check if window is a window in samples or a string
