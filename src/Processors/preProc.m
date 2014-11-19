@@ -68,6 +68,9 @@ classdef preProc < Processor
             pObj.bBinauralRMS = p.pp_bBinauralRMS;
             pObj.intTimeSecRMS = p.pp_intTimeSecRMS;
             pObj.bLevelScaling = p.pp_bLevelScaling;
+            if numel(p.pp_refSPLdB)>2
+                fprintf('More than two refSPLdB values given - only the first two will be used (L/R)');
+            end
             pObj.refSPLdB = p.pp_refSPLdB;
             pObj.bMiddleEarFiltering = p.pp_bMiddleEarFiltering;
             pObj.middleEarModel = p.pp_middleEarModel;
@@ -209,8 +212,13 @@ classdef preProc < Processor
             
             if pObj.bLevelScaling
                 current_dboffset = dbspl(1);
-                data_l = gaindb(data_l, current_dboffset-pObj.refSPLdB);
-                data_r = gaindb(data_r, current_dboffset-pObj.refSPLdB);
+                if isscalar(pObj.refSPLdB)
+                    data_l = gaindb(data_l, current_dboffset-pObj.refSPLdB);
+                    data_r = gaindb(data_r, current_dboffset-pObj.refSPLdB);
+                else
+                    data_l = gaindb(data_l, current_dboffset-pObj.refSPLdB(1));
+                    data_r = gaindb(data_r, current_dboffset-pObj.refSPLdB(2));
+                end
             end
             
             if pObj.bMiddleEarFiltering
@@ -267,7 +275,7 @@ classdef preProc < Processor
             end
             
             if ((pObj.bLevelScaling && p.pp_bLevelScaling) && ...
-                    (pObj.refSPLdB ~= p.pp_refSPLdB)) ...
+                    ~isequal(pObj.refSPLdB, p.pp_refSPLdB)) ...
                     || ~(pObj.bLevelScaling == p.pp_bLevelScaling)
                 hp = 0;
                 return
