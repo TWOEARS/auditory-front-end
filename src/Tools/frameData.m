@@ -53,20 +53,21 @@ end
 % 
 % 
 % Compute number of frames
-nFrames = max(floor((size(input,1)-(blockSize-stepSize))/(stepSize)),1);
+nFrames = (nSamples-(blockSize-stepSize))/(stepSize);
 
 % Append zeros
 if bZeroPad
+    % Number of frames (at least one)
+    nFrames = ceil(max(1,nFrames));
+    
     % Compute number of required zeros
-    nZeros = nSamples-(blockSize + (nFrames-1) * stepSize);
+    nZeros = (stepSize * nFrames + (blockSize-stepSize)) - nSamples;
     
     % Pad zeros
     input = [input; zeros(nZeros,1)];
-    
-    % Increase frame counter
-    if nZeros ~= 0
-        nFrames = nFrames + 1;
-    end
+else
+    % No zero padding, exclude elementes that do not fit into last frame
+    nFrames = max(0,floor(nFrames));
 end
  
 % Check if window is a window in samples or a string
@@ -77,8 +78,8 @@ else
        error('Mismatch between blocksize and window size.') 
     end
 end
-
-
+        
+    
 %% ***********************  FRAME-BASED PROCESSING  ***********************
 % 
 % 
