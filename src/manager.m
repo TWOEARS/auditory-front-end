@@ -1,43 +1,92 @@
 classdef manager < handle
+%MANAGER: Processor managing class for the auditory front-end (AFE) framework.
+%   A manager object is necessary for running the AFE framework. It is responsible for
+%   instantiating the necessary and sufficient processors as well as correctly routing
+%   their respective inputs/outputs, given a request from the user. It is also through
+%   manager methods that the user can request a new representation or ask for the
+%   processing to be performed. Hence it is with this object that the user mostly 
+%   interacts when using the AFE framework.
+%
+%   MANAGER properties:
+%       Processors - Cell array of processor objects.
+%       InputList  - Handles to the input of each processors.
+%       OutputList - Handles to the output of each processors.
+%       Data       - Handle to the data object containing all computed signals.
+%
+%   MANAGER methods:
+%       manager       - Constructor for the class. Requires a dataObject instance.
+%       addProcessor  - Request a new auditory representation to extract.
+%       processSignal - Requests the (offline) processing of an input signal.
+%       processChunk  - Requests the (online) processing for a new chunk of signal..
+%       hasProcessor  - Test if a given processor is already instantiated.
+%       reset         - Resets internal states of all processors.
+%       
+%
+%   See also dataObject, requestList, parameterHelper
     
-    properties
-        Processors      % Array of processor objects
-        InputList       % Array of input "adresses" to each processors
-        OutputList      % Array of output "adresses" to each processors
-        Map             % Vector mapping the processing order to the 
-                        % processors order. Allows for avoiding to reorder
-                        % the processors array when new processors are
-                        % added.
-        Data            % Pointer to the data object
+    
+    properties (SetAccess = protected)
+        % Processors - Cell array of processor objects. First column of the array contains
+        % processors in charge of the left (or single) channel, second column of the
+        % right channel. Different lines in the array are for different processor
+        % instances.
+        Processors      
+        
+        % InputList - Cell array of handles to the input signal of each processors. A
+        % signal at a given position in the array is the input to the processor stored
+        % at the same position in the Processors property.
+        InputList       
+        
+        % OutputList - Cell array of handles to the output signal of each processors. A
+        % signal at a given position in the array is the output from the processor stored
+        % at the same position in the Processors property.
+        OutputList      
+        
+        % Data - Handle to the data object associated with this instance of the manager.
+        Data
         
     end
     
     properties (GetAccess = protected)
         use_mex         % Flag for using mex files to speed up computation 
                         % when available
+        Map             % Vector mapping the processing order to the 
+                        % processors order. Allows for avoiding to reorder
+                        % the processors array when new processors are
+                        % added.
     end
+    
     
     methods
         function mObj = manager(data,request,p,use_mex)
-            %manager        Constructs a manager object
+            %manager    Constructs a manager object
             %
             %USAGE
-            %       mObj = manager(data,request)
-            %       mObj = manager(data,request,p)
+            %     mObj = manager(data)
+            %     mObj = manager(data,request)
+            %     mObj = manager(data,request,p)
             %
             %INPUT ARGUMENTS
             %     data : Handle of an existing data structure
-            %  request : Single request as a string (e.g., 'ild'), OR
-            %            cell array of requested signals, cues or features
-            %            (e.g., request = {'ild','itd'})
-            %        p : Single parameter structure, if all requests share
-            %            the same parameters, OR cell array of individual
-            %            parameter structures corresponding to the request.
+            %  request : Single request as a string (e.g., 'ild'), OR cell array of
+            %            requested signals, cues or features.
+            %        p : Single parameter structure, if all requests share the same 
+            %            parameters, OR cell array of individual parameter structures 
+            %            corresponding to each request.
             %
             %OUTPUT ARGUMENTS
             %     mObj : Manager instance
             %
-            %SEE ALSO: dataObject.m requestList.m genParStruct.m
+            %EXAMPLE USE (given an instance of dataObject, dObj)
+            %- 'Empty' manager:
+            %   mObj = manager(dObj)
+            %- Single request, default parameters:
+            %   mObj = manager(dObj,'autocorrelation')
+            %- Multiple request with same parameters
+            %   mObj = manager(dObj,{'ild','itd'},genParStruct('fb_nChannels',16))
+            %  
+            %
+            %SEE ALSO: dataObject requestList genParStruct
             
             if nargin>0     % Failproof for Matlab empty calls
             
@@ -101,9 +150,8 @@ classdef manager < handle
         end
         
         function processSignal(mObj)
-            %processSignal      Requests a manager object to extract its
-            %                   required features for a full signal present
-            %                   in mObj.Data.input
+            %processSignal      Requests a manager object to extract the requested 
+            %                   features for the complete signal in mObj.Data.input
             %
             %USAGE
             %    mObj.processSignal()
@@ -171,8 +219,8 @@ classdef manager < handle
         end
         
         function processChunk(mObj,sig_chunk,do_append)
-            %processChunk   Update the signal with a new chunk of data and
-            %               calls the processing chain for this new chunk
+            %processChunk   Update the signal with a new chunk of data and calls the 
+            %               processing chain for this new chunk.
             %
             %USAGE
             %   mObj.processChunk(sig_chunk)
@@ -187,7 +235,7 @@ classdef manager < handle
             %             default)
             %
             %NB: Even if the previous output is overwritten, the
-            %processChunk method allows for real-time processing by keeping
+            %processChunk method allows for chunk-based processing by keeping
             %track of the processors' internal states between chunks.
             %
             %SEE ALSO: processSignal
@@ -298,8 +346,8 @@ classdef manager < handle
         end
         
         function hProc = hasProcessor(mObj,name,p,channel)
-            %hasProcessor       Determines if a processor (including its
-            %                   dependencies) already exists
+            %hasProcessor    Determines if a processor with a given set of parameters
+            %                (including those of its dependencies) is already instantiated
             %
             %USAGE
             %   hProc = mObj.hasProcessor(name,p)
@@ -315,7 +363,6 @@ classdef manager < handle
             %
             %OUTPUT ARGUMENT
             %   hProc : Handle to an existing processor, if any, 0 else
-            
             
             ch_name = {'left','right','mono'};
             
@@ -390,13 +437,12 @@ classdef manager < handle
         end
         
         function [out,varargout] = addProcessor(mObj,request,p)
-            %addProcessor       Add new processor needed to compute a
-            %                   single request. Optionally returns a handle
-            %                   for the requested signal for convenience.
+            %addProcessor   Add new processor(s) needed to compute a user request.
+            %               Optionally returns a handle to the corresponding output signal
             %
             %USAGE:
-            %     mObj.addProcessor(request,p)
-            %     out = mObj.addProcessor(...)
+            %           mObj.addProcessor(request,p)
+            %    sOut = mObj.addProcessor(...)
             %
             %INPUT ARGUMENTS
             %    mObj : Manager instance
@@ -404,14 +450,14 @@ classdef manager < handle
             %       p : Structure of non-default parameters
             %
             %OUTPUT ARGUMENTS
-            %     out : Handle for the requested signal
+            %    sOut : Handle to the requested signal
             %
-            % TODO:
-            %   - Add support for multiple requests
-            %   - Current bug in .cfHz property of signals. This cannot be
-            %   taken from p.cfHz but needs to be fetch from dependent
-            %   processors. Only affects labeling of the channels.
-            
+            %EXAMPLE USE
+            %- Single request, default parameters:
+            %   sOut = mObj.addProcessor('autocorrelation');
+            %- Multiple request with same non-default parameters
+            %   [sOut1,sOut2] = manager({'ild','itd'}, genParStruct('fb_nChannels',16));
+           
             if nargin<3 || isempty(p)
                 % Initialize parameter structure
                 p = struct;
@@ -1225,6 +1271,47 @@ classdef manager < handle
             
         end
         
+        function reset(mObj)
+            %reset  Resets the internal states of all instantiated processors
+            %
+            %USAGE:
+            %  mObj.reset
+            %
+            %INPUT ARGUMENTS
+            %  mObj : Manager instance
+            
+            % Is the manager working on a binaural signal?
+            if size(mObj.Processors,2)==2
+                
+                % Then loop over the processors
+                for ii = 1:size(mObj.Processors,1)
+                   
+                    % There should always be a processor for left/mono
+                    mObj.Processors{ii,1}.reset;
+                    
+                    % Though there might not be a right-channel processor
+                    if isa(mObj.Processors{ii,2},'Processor')
+                        mObj.Processors{ii,2}.reset;
+                    end
+                        
+                end
+                
+            else
+            
+                % Loop over the processors
+                for ii = 1:size(mObj.Processors,1)
+                    
+                    mObj.Processors{ii,1}.reset;
+                        
+                end
+            end
+            
+        end
+        
+    end
+    
+    methods (Access = protected)
+       
         function [hProc,list] = findInitProc(mObj,request,p)
             %findInitProc   Find an initial compatible processor for a new
             %               request
@@ -1355,46 +1442,6 @@ classdef manager < handle
             
         end
         
-        function reset(mObj)
-            %reset  Reset the internal states of all instantiated
-            %processors
-            %
-            %USAGE:
-            %  mObj.reset
-            %
-            %INPUT ARGUMENTS
-            %  mObj : Manager instance
-            
-            % Is the manager working on a binaural signal?
-            if size(mObj.Processors,2)==2
-                
-                % Then loop over the processors
-                for ii = 1:size(mObj.Processors,1)
-                   
-                    % There should always be a processor for left/mono
-                    mObj.Processors{ii,1}.reset;
-                    
-                    % Though there might not be a right-channel processor
-                    if isa(mObj.Processors{ii,2},'Processor')
-                        mObj.Processors{ii,2}.reset;
-                    end
-                        
-                end
-                
-            else
-            
-                % Loop over the processors
-                for ii = 1:size(mObj.Processors,1)
-                    
-                    mObj.Processors{ii,1}.reset;
-                        
-                end
-            end
-            
-        end
-        
-        
     end
-    
     
 end
