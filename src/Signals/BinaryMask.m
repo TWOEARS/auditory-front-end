@@ -1,6 +1,11 @@
 classdef BinaryMask < TimeFrequencySignal
+%BINARYMASK: Signal class for time-frequency boolean distributions.
+%   This class inherits the TimeFrequencySignal class only to overload the plot routine
+%   and allow the binary mask to be plotted on top of the time-frequency representation it
+%   was computed from.
+%
+% See also TimeFrequencySignal
     
-    % This class inherits the TimeFrequencySignal only to overload the plot routine
     
     properties (GetAccess = protected)
         maskedSignal
@@ -17,6 +22,17 @@ classdef BinaryMask < TimeFrequencySignal
         end
         
         function h = plot(sObj,h0,p,bOverlay)
+            %plot   Plots a binary mask
+            %
+            %USAGE
+            %     sObj.plot
+            % h = sObj.plot(h0,p,bOverlay)
+            %
+            %INPUT ARGUMENTS
+            %     sObj : Binary mask signal object instance
+            %       h0 : Handle of existing figure or subplot to place the plot in
+            %        p : Plotting parameters
+            % bOverlay : Set to 1 to overlay the mask to an existing figure.
             
 
             if nargin < 4 || isempty(bOverlay)
