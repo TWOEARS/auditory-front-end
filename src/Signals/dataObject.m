@@ -385,17 +385,17 @@ classdef dataObject < dynamicprops
             
             % Plot channel with highest energy (or mono channel) first
             if size(sig,2)==1 || norm(data(:,1),2) > norm(data(:,2),2)
-                h1 = plot(t,data(:,1),'linewidth',p.linewidth_s,'color',colors{1});
+                plot(t,data(:,1),'linewidth',p.linewidth_s,'color',colors{1});
                 
                 if size(sig,2)>1
                     hold on
-                    h2 = plot(t,data(:,2),'linewidth',p.linewidth_s,'color',colors{2});
+                    plot(t,data(:,2),'linewidth',p.linewidth_s,'color',colors{2});
                     legend([sig{1}.Channel ' ear'],[sig{2}.Channel ' ear'],'location','NorthEast')
                 end
             else
-                h1 = plot(t,data(:,2),'linewidth',p.linewidth_s,'color',colors{1});
+                plot(t,data(:,2),'linewidth',p.linewidth_s,'color',colors{1});
                 hold on
-                h2 = plot(t,data(:,1),'linewidth',p.linewidth_s,'color',colors{2});
+                plot(t,data(:,1),'linewidth',p.linewidth_s,'color',colors{2});
                 legend([sig{2}.Channel ' ear'],[sig{1}.Channel ' ear'],'location','NorthEast')
             end
             xlabel('Time (s)','fontsize',p.fsize_axes)

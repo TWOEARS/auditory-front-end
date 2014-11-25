@@ -534,7 +534,7 @@ classdef manager < handle
                 list = getDependencies('available');
                 str = [];
                 for ii = 1:size(list,2)-1
-                    str = [str list{ii} ', '];
+                    str = [str list{ii} ', '];  %#ok
                 end
                 % Return the list
                 error(['One of the requested signal, cue, or feature '...
@@ -1354,7 +1354,7 @@ classdef manager < handle
                 list = getDependencies('available');
                 str = [];
                 for ii = 1:size(list,2)-1
-                    str = [str list{ii} ', '];
+                    str = [str list{ii} ', ']; %#ok
                 end
                 % Return the list
                 error(['The requested signal, %s is unknown. '...
@@ -1381,7 +1381,7 @@ classdef manager < handle
             while hProc == 0 && ii<size(dep_list,2)
                 
                 % Then we will need to re-compute that signal
-                list = [list dep_list{ii}];
+                list = [list dep_list{ii}]; %#ok
                 
                 % Move on to next level of dependency
                 ii = ii + 1;
@@ -1418,7 +1418,7 @@ classdef manager < handle
                 while hProc2 == 0 && ii<size(dep_list,2)
 
                     % Then we will need to re-compute that signal
-                    list = [list dep_list{ii}];
+                    list = [list dep_list{ii}];     %#ok
 
                     % Move on to next level of dependency
                     ii = ii + 1;
