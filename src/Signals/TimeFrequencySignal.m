@@ -1,13 +1,19 @@
 classdef TimeFrequencySignal < Signal
-    % This children signal class regroups all signal that are some sort of
-    % time frequency representation (e.g., spectrograms, filterbank
-    % outputs, etc...)
+%TIMEFREQUENCYSIGNAL: Signal class for two-dimensional, time-frequency representations.
+%   This children signal class regroups all signal that are some sort of time frequency 
+%   representation, including representation that were decimated in time.
+%
+%   TIMEFREQUENCYSIGNAL properties:
+%       cfHz - Center frequencies of audio frequency channels (Hz)
+%
+% See also Signal, gammatoneProc, drnlProc, ihcProc, icProc, ildProc, itdProc, onsetProc, 
+% offsetProc
     
     properties (SetAccess=protected)
         cfHz        % Center frequencies of the frequency channels
     end
        
-    properties %(GetAccess = protected)
+    properties (GetAccess = protected)
 %         isSigned    % True for representations that are multi-channel 
                     % waveforms (e.g., a filterbank output) as opposed to
                     % spectrograms. Used for plotting only.

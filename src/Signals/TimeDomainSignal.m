@@ -1,4 +1,7 @@
 classdef TimeDomainSignal < Signal
+%TIMEDOMAINSIGNAL: Signal class for simple, one dimensional, time-domain signals.
+%
+% See also Signal, preProc
     
     properties
         % Only inherited properties

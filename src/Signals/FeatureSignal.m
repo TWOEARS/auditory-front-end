@@ -1,9 +1,18 @@
 classdef FeatureSignal < Signal
+%FEATURESIGNAL: Signal class for groups of related time-domain signals ('features')
+%   This class is used for grouping related individual time-domain features into a unique
+%   signal (e.g., spectral features). Data is stored in a matrix where first dimension
+%   corresponds to time and the second dimension stores different features. The features
+%   are labeled by the fList property of the signal.
+%
+%   FEATURESIGNAL properties:
+%       fList - Cell array of features names, ordered as features are arranged in the data
+%
+% See also Signal, spectralFeaturesProc, pitchProc, gaborProc
     
     properties (SetAccess=protected)
         fList       % Ordered list of the features (cell array of strings)
     end
-    
     
     methods
         
@@ -282,20 +291,6 @@ classdef FeatureSignal < Signal
             end
         end
         
-        
-        
-        
     end
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
     
 end

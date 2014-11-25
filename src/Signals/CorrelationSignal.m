@@ -1,10 +1,19 @@
 classdef CorrelationSignal < Signal
-    % This children class collects all signals resulting from a correlation
-    % computation (i.e., auto-correlation, cross-correlation)
+%CORRELATIONSIGNAL: Signal class for three-dimensional correlation signals.
+%   This class collects all signals resulting from a correlation computation on a
+%   time-frequency representation in short time windows (e.g., auto-correlation, 
+%   cross-correlation). Its data is therefore three dimensional, with first to third
+%   dimension respectively related to time, frequency, and lag.
+%
+%   CORRELATIONSIGNAL properties:
+%       cfHz - Center frequencies of the frequency channels (Hz)
+%       lags - Lag values (in seconds)
+%
+% See also Signal, crosscorrelationProc, autocorrelationProc
     
     properties (SetAccess=protected)
         cfHz    % Center frequencies of the frequency channels (Hz)
-        lags    % Lags values (in s if specified, else in samples)
+        lags    % Lag values 
     end
     
     methods

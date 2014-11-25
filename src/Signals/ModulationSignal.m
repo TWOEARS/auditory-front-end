@@ -1,5 +1,13 @@
 classdef ModulationSignal < Signal
-% This class collects three-dimensional outputs of a modulation filterbank    
+%MODULATIONSIGNAL: Signal class for three-dimensional amplitude modulation signals
+%   This class collects three-dimensional outputs of a modulation filterbank, respectively
+%   time, audio frequency, and modulation frequency.
+%
+%   MODULATIONSIGNAL properties:
+%       cfHz    - Center frequencies of audio frequency channels (Hz)
+%       modCfHz - Center frequencies of modulation frequency channels (Hz)
+%
+% See also Signal, modulationProc
     
     properties (SetAccess=protected)
         cfHz    % Audio center frequencies of the channels (Hz)
