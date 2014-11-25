@@ -1,27 +1,61 @@
 classdef dataObject < dynamicprops
-
+%DATAOBJECT: Signal container class for the auditory front-end (AFE) framework.
+%   A data object is necessary for running the AFE framework. It contains as individual
+%   properties all signals: the input signal, the output signal(s) requested by the user, 
+%   but also all the intermediary representations necessary to compute the request.
+%   All signals are individual objects inheriting the Signal class.
+%
+%   DATAOBJECT properties:
+%       bufferSize_s - Global buffer size for all signals in seconds.
+%       isStereo     - Flag indicating a binaural signal.
+%       'signalname' - All the contained signals are defined as dynamic properties. The
+%                      property name is taken from the signal object name property.
+%                      Multiple signals with same names are arranged in a cell array, with
+%                      columns spanning left/right channels.
+%
+%   DATAOBJECT methods:
+%       dataObject          - Constructor for the class.
+%       addsignal           - Adds a signal to the data object.
+%       clearData           - Clears buffered data in all contained signals.
+%       getParameterSummary - Returns the parameters used for computing all signals.
+%       play                - Plays back the audio from the input signal.
+%       plot                - Plots the input signal waveform.
+%                      
+%
+% See also Signal, signals (folder)
+    
+    
     properties
+        % bufferSize_s - Global buffer size for all signals (seconds). Due to the
+        % compatibility with chunk-based processing, all signals need to be buffered to a
+        % certain duration as the duration of the input signal is unknown and assumed
+        % infinite.
+        % See also circVBuf, circVBufArrayInterface
         bufferSize_s;
-        isStereo;   % Flag indicating if the data structure will be based
-                    %   on a stereo (binaural) signal
+        % isStereo - Flag indicating if the data structure will be based on a stereo 
+        % (binaural) signal. This is necessary in online scenario, when an empty
+        % dataObject is initialized and there is no explicit information about the number
+        % of channels in the input signal.
+        isStereo;
     end
+    
     
     methods
         function dObj = dataObject(s,fs,bufferSize_s,channelNumber)
-            %dataObject     Constructs a data object
+            %dataObject     Constructs a data object from an (optional) input signal
             %
             %USAGE
+            %       dObj = dataObject(s,fs)
             %       dObj = dataObject(s,fs,bufferSize)
-            %       dObj = dataObject(s,fs,bufferSize,channelNb)
+            %       dObj = dataObject([],fs,[],channelNb)
             %
             %INPUT ARGUMENTS
             %          s : Initial time-domain signal
             %         fs : Sampling frequency
-            % bufferSize : length of the signal buffer in seconds
-            %              default = 10;
-            %  channelNb : Number of channels, 1 (mono) or 2 (stereo) in the original
-            %              signal. Used in chunk-based scenario when the dataObject is 
-            %              initialized with an empty signal.
+            % bufferSize : length of the signal buffer in seconds (default = 10)
+            %  channelNb : Number of channels, 1 (mono-default) or 2 (stereo) in the 
+            %              original signal. Used in chunk-based scenario when the 
+            %              dataObject is initialized with an empty signal (third example)
             %
             %OUTPUT ARGUMENTS
             %       dObj : Data object
@@ -43,7 +77,7 @@ classdef dataObject < dynamicprops
                 % Set to stereo when provided signal is
                 channelNumber = 2;
             elseif nargin<4||isempty(channelNumber)
-                % Set to default if stereo flag not provided
+                % Set to default if channel number not provided
                 channelNumber = 1;
             end
             
@@ -78,22 +112,21 @@ classdef dataObject < dynamicprops
         end
         
         function addSignal(dObj,sObj)
-            %addSignal      Appends an additional signal object to a data 
-            %                 object as a new property
+            %addSignal  Incorporates an additional signal object to a data object
             %
             %USAGE
             %     dObj.addSignal(sObj)
-            %     addSignal(dObj,sObj)
             %
             %INPUT ARGUMENTS
-            %      dObj : Data object to append the signal to
+            %      dObj : Data object to add the signal to
             %      sObj : Signal object to add
             %
-            %This method uses dynamic property names. The data object dObj
-            %will then contain the signal sObj as a new property, named 
-            %after sObj.Name
+            %N.B. This method uses dynamic property names. The data object dObj will
+            %     contain the signal sObj as a new property, named after sObj.Name. If
+            %     such a property existed beforehand, the new signal will be incorporated
+            %     in a cell array under that property name.
             
-            % N.B.: Left/right channel handling works here only because
+            % TODO: Left/right channel handling works here only because
             % left channel is always instantiated first. Might want to
             % check if that is a limitation.
             
@@ -116,10 +149,12 @@ classdef dataObject < dynamicprops
         end
         
         function clearData(dObj,bClearSignal)
-            %clearData  Clear data of all signals in the data structure
+            %clearData  Clears data of all signals in the data structure
             %
             %USAGE:
-            %    dObj.clearData
+            %   dObj.clearData
+            %   
+            %N.B. Use dObj.clearData(0) to clear all signals BUT the input signal.
             
             if nargin<2 || isempty(bClearSignal)
                 bClearSignal = 1;
@@ -158,11 +193,11 @@ classdef dataObject < dynamicprops
         end
         
         function p = getParameterSummary(dObj,mObj)
-            %getParameterSummary  Returns a structure parameters used for
-            %computing each signal in the data object.
+            %getParameterSummary  Returns a structure parameters used for computing each 
+            %                     signal in the data object.
             %
             %USAGE:
-            %   dObj.getParameterSummary(mObj)
+            %   p = dObj.getParameterSummary(mObj)
             %
             %INPUT ARGUMENTS: 
             %   dObj : Data object instance
@@ -205,14 +240,16 @@ classdef dataObject < dynamicprops
         end
         
         function play(dObj,bPreProcessed)
-            %play       Playback the audio from the ear signal in the data
-            %           object
+            %play   Playback the audio from the input signal contained in the data object
             %
             %USAGE
-            %   dObj.play()
+            %   dObj.play
             %
             %INPUT ARGUMENTS
             %   dObj : Data object
+            %
+            %
+            %N.B. Use dObj.play(1) to play the pre-processed input signal, if available
             
             if nargin<2 || isempty(bPreProcessed) || ~bPreProcessed
                 if ~isprop(dObj,'input')||isempty(dObj.input)||...
@@ -262,10 +299,10 @@ classdef dataObject < dynamicprops
             %OUTPUT ARGUMENT
             %       h : Handle to the newly created figure
             %
-            %OPTIONAL PARAMETERS
-            % 'bGray' - Set to 1 for gray shades plot
-            % 'rangeSec' - Vector of time limits for the plot 
-            % 'bSignal' - Set to 1 to plot the input signal before pre-processing
+            %OPTIONAL PARAMETERS - (key,value) pair
+            % 'bGray'         - Set to 1 for gray shades plot
+            % 'rangeSec'      - Vector of time limits for the plot 
+            % 'bSignal'       - Set to 1 to plot the input signal before pre-processing
             % 'decimateRatio' - Integer ratio to decimate the plot (for smaller files)
             
             % Manage plotting parameters
