@@ -1,5 +1,29 @@
 classdef Signal < handle
-    
+%SIGNAL: Master class for all signals involved in the auditory front-end (AFE) framework.
+%   All signals involved in the AFE are inheriting this class, which defines properties
+%   and methods shared among all signals.
+%
+%   SIGNAL properties:
+%       Label      - Short and plain description of the signal (used e.g., as plot titles)
+%       Name       - Single-word nametag for the signal
+%       Dimensions - String describing signal's dimensions
+%       FsHz       - Sampling frequency of the signal (in Hz)
+%       Channel    - String indicating which audio channel the signal corresponds to
+%
+%   SIGNAL abstract method:
+%       plot - Plots the signal. Should be implemented by any children class.
+%
+%   SIGNAL methods:
+%       Signal         - Super-constructor for all signal objects
+%       appendChunk    - Append a chunk of data to a signal buffer
+%       setData        - Initialize the signal buffer
+%       clearData      - Clears a signal buffer
+%       getSignalBlock - Returns a data block from signal buffer
+%       findProcessor  - Finds the processor that computed the signal
+%       getParameters  - Returns the parameters used to compute the signal
+%
+% See also signals (folder), circVBuf, circVBufArrayInterface
+
     properties (SetAccess=protected)
         Label           % Used to label the signal (e.g., in plots)
         Name            % Used as an instance name in Matlab
@@ -56,8 +80,7 @@ classdef Signal < handle
         end
         
         function appendChunk(sObj,data)
-            %appendChunk   This method appends the chunk in data to the
-            %               signal object
+            %appendChunk   This method appends the chunk in data to the signal object
             %
             %USAGE
             %   sObj.appendChunk(data)
