@@ -20,8 +20,16 @@ classdef manager < handle
 %       hasProcessor  - Test if a given processor is already instantiated.
 %       reset         - Resets internal states of all processors.
 %       
-%
 %   See also dataObject, requestList, parameterHelper
+%
+% Disclamer: Known limitations that will be addressed in a future release
+%   - When a processor becomes obsolete, its instance is not cleared from memory
+%   - Few processors are not fully compatible with chunk-based processing (will return
+%     erroneous representations in the vicinity of chunk boundaries):
+%       * IHC methods involving Hilbert envelope extraction ('hilbert', 'joergensen', 
+%         and 'bernstein')
+%       * Spectro-temporal modulation extraction
+%       * Pitch estimation (possible but very unlikely errors at boundaries)
     
     
     properties (SetAccess = protected)
