@@ -22,14 +22,15 @@ classdef manager < handle
 %       
 %   See also dataObject, requestList, parameterHelper
 %
-% Disclamer: Known limitations that will be addressed in a future release
+% Disclamer: Known limitations that will be addressed in future releases
 %   - When a processor becomes obsolete, its instance is not cleared from memory
 %   - Few processors are not fully compatible with chunk-based processing (will return
 %     erroneous representations in the vicinity of chunk boundaries):
 %       * IHC methods involving Hilbert envelope extraction ('hilbert', 'joergensen', 
 %         and 'bernstein')
 %       * Spectro-temporal modulation extraction
-%       * Pitch estimation (possible but very unlikely errors at boundaries)
+%   - Pitch estimation might (though highely unlikely) be misestimated at chunk boundaries
+%     in chunk-based processing scenarios
     
     
     properties (SetAccess = protected)
