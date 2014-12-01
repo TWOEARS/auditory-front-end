@@ -37,21 +37,31 @@ classdef drnlProc < Processor
         % nonlinearity section - the parameters a, b, and c may have 
         % different definitions depending on the implementation model (CASP? MAP?)
         aNonlinPath                         % nonlinear path parameter 'a'
-        bNonlinPath                         % parameter 'b'
+        bNonlinPath                         % parameter 'b'(CASP) or 'ctBMdB'(MAP)
         cNonlinPath                         % parameter 'c'
         % 
         nCascadeNonlinPathGammatoneFilter2  % nonlinear path GT filter AFTER BROKEN STICK STAGE, # of cascades
         cutoffNonlinPathLowPassFilter       % nonlinear path LPF cutoff
         nCascadeNonlinPathLowPassFilter     % nonlinear path LPF # of cascades
+        
+        % MAP1_14h-specific parameters (only used with MAP model)
+        % highpass stapes filter (1st order HP filter)
+        mapStapesHPcutoff = 1000;
+        %  set scalar. NB Huber gives 2e-9 m at 80 dB, 1 kHz. (==2e-13 at 0 dB SPL)
+        mapStapesScalar = 45e-9;
 
     end
     
-    properties % (GetAccess = private)
-        GTFilters_lin           % GT filters for linear path
-        GTFilters_nlin          % GT filters for nonlinear path 
-        GTFilters_nlin2         % GT filters for nonlinear path, AFTER BROKEN STICK STAGE
-        LPFilters_lin           % Low Pass Filters for linear path
-        LPFilters_nlin          % Low Pass Filters for nonlinear path
+    properties (GetAccess = private)
+        
+        mapTMLowpassFilter = [];    % Tympanic Membrane(TM) low pass filter    
+        mapMEHighpassFilter = [];   % Middle Ear high pass filter to simulate stapes inertia
+        
+        GTFilters_lin               % GT filters for linear path
+        GTFilters_nlin              % GT filters for nonlinear path 
+        GTFilters_nlin2             % GT filters for nonlinear path, AFTER BROKEN STICK STAGE
+        LPFilters_lin               % Low Pass Filters for linear path
+        LPFilters_nlin              % Low Pass Filters for nonlinear path
         
     end
         
@@ -221,9 +231,32 @@ classdef drnlProc < Processor
                 case 'MAP'
                     % set parameters based on MAP1_14h implementation
                     % (MAPparamsNormal)
+                    
+                    % Middle Ear filter (specific to MAP)
+                    % pressure to displacement conversion using smoothing filter (50 Hz cutoff)
+                    tau = 1/(2*pi*50);
+                    dt = 1/fs;
+                    a1 = dt/tau-1; a0 = 1;
+                    b0 = 1+a1;
+                    TMdisp_b = b0; TMdisp_a = [a0 a1]; % filter coeffs
+                    pObj.mapTMLowpassFilter = genericFilter(...
+                        TMdisp_b, TMdisp_a, fs, 1);
+                    % figure(9), freqz(TMdisp_b, TMdisp_a)
+%                     OME_TMdisplacementBndry=[];                 % saved boundary
+                    % OME high pass (simulates poor low frequency stapes response)
+                    G = 1/(1+tan(pi*pObj.mapStapesHPcutoff*dt));
+                    H = (1-tan(pi*pObj.mapStapesHPcutoff*dt))...
+                        /(1+tan(pi*pObj.mapStapesHPcutoff*dt));
+                    stapesDisp_b=[G -G];
+                    stapesDisp_a=[1 -H];
+                    pObj.mapMEHighpassFilter = genericFilter(...
+                        stapesDisp_b, stapesDisp_a, fs, 1);
+%                     OMEhighPassBndry=[];                        % saved boundary
+                    % figure(10), freqz(stapesDisp_b, stapesDisp_a)
+                    
                     % linear path parameters
-                    pObj.gainLinearPath = 500; % linear path gain g, grabbed from MAP1.14h
-                    pObj.fcLinPathGammatoneFilter = 0.62*cfHz + 266; % Hz, CF_lin,  grabbed from MAP1.14h
+                    pObj.gainLinearPath = 500; % linear path gain g, from MAP1.14h
+                    pObj.fcLinPathGammatoneFilter = 0.62*cfHz + 266; % Hz, CF_lin, from MAP1.14h
                     pObj.nCascadeLinPathGammatoneFilter = 3; % number of cascaded gammatone filters (termed "Order" in MAP? - needs double checking)
                     pObj.bwLinPathGammatoneFilter = 0.2*cfHz + 235; % Hz, bwLinPathGammatoneFilter, MAP1.14h defines in a new way
                     % the following two parameters do not appear in MAP1_14h 
@@ -237,8 +270,8 @@ classdef drnlProc < Processor
                     pObj.bwNonlinPathGammatoneFilter = 0.14*cfHz + 180; % Hz, bwNonlinPathGammatoneFilter, MAP defines in a new way
                     % broken stick compression - note that MAP has changed the
                     % formula from CASP2008 version!! 
-                    pObj.aNonlinPath = 4e3*ones(size(cfHz)); % a
-                    pObj.bNonlinPath = 10^(1.61912-.81867*log10(cfHz)); % b [(m/s)^(1-c)]
+                    pObj.aNonlinPath = 4e3; %*ones(size(cfHz)); % a
+                    pObj.bNonlinPath = 25; % Using b for ctBMdB of MAP
                     pObj.cNonlinPath = .25; % c, compression coeff
                     pObj.nCascadeNonlinPathGammatoneFilter2 = 3; % number of cascaded gammatone filters AFTER BROKEN STICK NONLINEARITY STAGE
                     % the following two parameters do not appear in MAP1_14h 
@@ -297,65 +330,150 @@ classdef drnlProc < Processor
                 error('The input should be a one-dimensional array')
             end
             
-            % The current implementation of the DRNL works with
-            % dboffset=100, so we must change to this setting.
-            % The output is always the same, so there is no need for changing back.
-
-            % Obtain the dboffset currently used
-            dboffset=dbspl(1);
-
-            % Switch signal to the correct scaling
-            in=gaindb(in, dboffset-100);
-
             % Turn input into column vector
             in = in(:);
             
             % Get number of channels (CFs)
             nFilter = length(pObj.cfHz);
-            
+
             % Pre-allocate memory
             out_lin = zeros(length(in),nFilter);
             out_nlin = zeros(length(in),nFilter);
-            
-            % Loop through the CF channels (places on BM)
-            % depending on the number of CF elements, all the parameters
-            % (a, b, g, BW, etc.) can be single values or vectors
-            % TODO: modify calculation when model = 'MAP'
-            for ii = 1:nFilter
-                % linear path
-                % apply linear gain
-                out_lin(:, ii) = in.*pObj.gainLinearPath(ii);
-                % linear path GT filtering - cascaded "nCascadeLinPathGammatoneFilter" times
-                % already (when the filter objects were initiated)
-                    out_lin(:, ii) = ...
-                        pObj.GTFilters_lin(ii).filter(out_lin(:, ii));
-                % linear path LP filtering - cascaded "nCascadeLinPathLowPassFilter" times
-                    out_lin(:, ii) = ...
-                        pObj.LPFilters_lin(ii).filter(out_lin(:, ii));
-                
-                % nonlinear path
-                % MOC attenuation applied (as gain factor)
-                out_nlin(:, ii) = in.*pObj.mocIpsi(ii).*pObj.mocContra(ii);
-                % nonlinear path GT filtering - cascaded "nCascadeNonlinPathGammatoneFilter"
-                % times
-                    out_nlin(:, ii) = ...
-                        pObj.GTFilters_nlin(ii).filter(out_nlin(:, ii));
-                % broken stick nonlinearity
-                % refer to (Lopez-Poveda and Meddis, 2001) 
-                % note that out_nlin(:, ii) is a COLUMN vector!
-                % TODO: implement MAP version using switch-case
-                y_decide = [pObj.aNonlinPath(ii).*abs(out_nlin(:, ii)) ...
-                    pObj.bNonlinPath(ii).*abs(out_nlin(:, ii)).^pObj.cNonlinPath];
-                out_nlin(:, ii) = sign(out_nlin(:, ii)).*min(y_decide, [], 2);
-                % nonlinear path GT filtering again afterwards - cascaded
-                % "nCascadeNonlinPathGammatoneFilter2" times
-                    out_nlin(:, ii) = ...
-                        pObj.GTFilters_nlin2(ii).filter(out_nlin(:, ii));
-                % nonlinear path LP filtering - cascaded "nCascadeNonlinPathLowPassFilter" times
-                    out_nlin(:, ii) = ...
-                        pObj.LPFilters_nlin(ii).filter(out_nlin(:, ii));
-                
-            end
+
+            switch pObj.model
+                case 'CASP'
+                    % Assuming level scaling and middle ear filtering have already
+                    % been taken care of (Preprocessing)
+                    
+                    % The current implementation of the DRNL works with
+                    % dboffset=100, so we must change to this setting.
+                    % The output is always the same, so there is no need for changing back.
+
+%                     % Obtain the dboffset currently used
+%                     dboffset=dbspl(1);
+% 
+%                     % Switch signal to the correct scaling
+%                     in=gaindb(in, dboffset-100);
+
+                    % Loop through the CF channels (places on BM)
+                    % depending on the number of CF elements, all the parameters
+                    % (a, b, g, BW, etc.) can be single values or vectors
+                    % TODO: modify calculation when model = 'MAP'
+                    for ii = 1:nFilter
+                        % linear path
+                        % apply linear gain
+                        out_lin(:, ii) = in.*pObj.gainLinearPath(ii);
+                        % linear path GT filtering - cascaded "nCascadeLinPathGammatoneFilter" times
+                        % already (when the filter objects were initiated)
+                            out_lin(:, ii) = ...
+                                pObj.GTFilters_lin(ii).filter(out_lin(:, ii));
+                        % linear path LP filtering - cascaded "nCascadeLinPathLowPassFilter" times
+                            out_lin(:, ii) = ...
+                                pObj.LPFilters_lin(ii).filter(out_lin(:, ii));
+
+                        % nonlinear path
+                        % MOC attenuation applied (as gain factor)
+                        out_nlin(:, ii) = in.*pObj.mocIpsi(ii).*pObj.mocContra(ii);
+                        % nonlinear path GT filtering - cascaded "nCascadeNonlinPathGammatoneFilter"
+                        % times
+                            out_nlin(:, ii) = ...
+                                pObj.GTFilters_nlin(ii).filter(out_nlin(:, ii));
+                        % broken stick nonlinearity
+                        % refer to (Lopez-Poveda and Meddis, 2001) 
+                        % note that out_nlin(:, ii) is a COLUMN vector!
+                        % TODO: implement MAP version using switch-case
+                        y_decide = [pObj.aNonlinPath(ii).*abs(out_nlin(:, ii)) ...
+                            pObj.bNonlinPath(ii).*abs(out_nlin(:, ii)).^pObj.cNonlinPath];
+                        out_nlin(:, ii) = sign(out_nlin(:, ii)).*min(y_decide, [], 2);
+                        % nonlinear path GT filtering again afterwards - cascaded
+                        % "nCascadeNonlinPathGammatoneFilter2" times
+                            out_nlin(:, ii) = ...
+                                pObj.GTFilters_nlin2(ii).filter(out_nlin(:, ii));
+                        % nonlinear path LP filtering - cascaded "nCascadeNonlinPathLowPassFilter" times
+                            out_nlin(:, ii) = ...
+                                pObj.LPFilters_nlin(ii).filter(out_nlin(:, ii));
+
+                    end
+                case 'MAP'
+                    % In this case the original input must be represented
+                    % in pascals and transformed into stapes DISPLACEMENT
+                    % through a dedicated middle ear filtering process
+                    % Assume level scaling is done but middle ear filtering
+                    % (at preprocessing) is not
+                    
+                    % Convert signal into pascals
+                    % Obtain the dboffset currently used
+                    dboffset=dbspl(1);    
+                    % Represent in pascals
+                    in = in * 20e-5 * 10^(dboffset/20);
+
+                    % Middle Ear filtering 1: convert input pressure (velocity) to
+                    %  tympanic membrane(TM) displacement using low pass filter
+                %     [TMdisplacementSegment  OME_TMdisplacementBndry] = ...
+                %         filter(TMdisp_b,TMdisp_a,in, ...
+                %         OME_TMdisplacementBndry);
+                    TMdisplacement = pObj.mapTMLowpassFilter.filter(in);
+
+                    % ME filtering 2: middle ear high pass filter simulate stapes inertia
+                    stapesDisplacement = pObj.mapMEHighpassFilter.filter(TMdisplacement);
+                %     [stapesDisplacement  OMEhighPassBndry] = ...
+                %         filter(stapesDisp_b,stapesDisp_a,TMdisplacementSegment, ...
+                %         OMEhighPassBndry);
+
+                    % ME stage 3:  apply stapes scala
+                    % in now becomes diplacement (m)
+                    in = stapesDisplacement*pObj.mapStapesScalar;
+                    
+                    % set nonlinear compression-related constants
+                    referenceDisplacement = 1e-9;
+                    ctBM = referenceDisplacement*10^(pObj.bNonlinPath/20);
+                    % CtBM is the displacement knee point (m)
+                    % CtS is computed here to avoid repeated division by a later
+                    % a==0 means no nonlinear path active
+                    if pObj.aNonlinPath>0
+                        CtS = ctBM/pObj.aNonlinPath; 
+                    else CtS = inf(length(nFilter),1); 
+                    end
+                    
+                    % Loop through the CF channels (places on BM)
+                    % depending on the number of CF elements, all the parameters
+                    % (a, b, g, BW, etc.) can be single values or vectors
+                    for ii = 1:nFilter
+                        % linear path
+                        % apply linear gain
+                        out_lin(:, ii) = in.*pObj.gainLinearPath;
+                        % linear path GT filtering - cascaded "nCascadeLinPathGammatoneFilter" times
+                        % already (when the filter objects were initiated)
+                            out_lin(:, ii) = ...
+                                pObj.GTFilters_lin(ii).filter(out_lin(:, ii));
+
+                        % nonlinear path
+                        % MOC attenuation applied (as gain factor)
+                        out_nlin(:, ii) = in.*pObj.mocIpsi(ii).*pObj.mocContra(ii);
+                        % nonlinear path GT filtering - cascaded "nCascadeNonlinPathGammatoneFilter"
+                        % times
+                            out_nlin(:, ii) = ...
+                                pObj.GTFilters_nlin(ii).filter(out_nlin(:, ii));
+                        % Nick Clark's compression algorithm
+                        % note that out_nlin(:, ii) is a COLUMN vector!
+                        abs_x = abs(out_nlin(:, ii));
+                        signs = sign(out_nlin(:, ii));
+                        % below ct threshold= abs_x<CtS;
+                        % (CtS= ctBM/DRNLa -> abs_x*DRNLa<ctBM)
+                        belowThreshold = abs_x<CtS(ii);
+                        out_nlin(belowThreshold, ii) = ...
+                            pObj.aNonlinPath.*out_nlin(belowThreshold, ii);
+                        aboveThreshold = ~belowThreshold;
+                        out_nlin(aboveThreshold, ii) = signs(aboveThreshold) *ctBM .* ...
+                            exp(pObj.cNonlinPath * log(pObj.aNonlinPath(ii)*abs_x(aboveThreshold)/ctBM) );                                              
+                        % nonlinear path GT filtering again afterwards - cascaded
+                        % "nCascadeNonlinPathGammatoneFilter2" times
+                            out_nlin(:, ii) = ...
+                                pObj.GTFilters_nlin2(ii).filter(out_nlin(:, ii));
+
+                    end                 
+            end     % end switch                  
+                    
             % now add the outputs
             out = out_lin + out_nlin;
         end
