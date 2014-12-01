@@ -1,5 +1,5 @@
 classdef TimeFrequencySignal < Signal
-%TIMEFREQUENCYSIGNAL: Signal class for two-dimensional, time-frequency representations.
+%TIMEFREQUENCYSIGNAL Signal class for two-dimensional, time-frequency representations.
 %   This children signal class regroups all signal that are some sort of time frequency 
 %   representation, including representation that were decimated in time.
 %

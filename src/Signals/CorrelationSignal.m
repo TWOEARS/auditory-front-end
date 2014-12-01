@@ -1,5 +1,5 @@
 classdef CorrelationSignal < Signal
-%CORRELATIONSIGNAL: Signal class for three-dimensional correlation signals.
+%CORRELATIONSIGNAL Signal class for three-dimensional correlation signals.
 %   This class collects all signals resulting from a correlation computation on a
 %   time-frequency representation in short time windows (e.g., auto-correlation, 
 %   cross-correlation). Its data is therefore three dimensional, with first to third

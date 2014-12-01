@@ -1,5 +1,5 @@
 classdef Signal < handle
-%SIGNAL: Master class for all signals involved in the auditory front-end (AFE) framework.
+%SIGNAL Superclass for all signals involved in the auditory front-end (AFE) framework.
 %   All signals involved in the AFE are inheriting this class, which defines properties
 %   and methods shared among all signals.
 %

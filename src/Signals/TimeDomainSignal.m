@@ -1,5 +1,5 @@
 classdef TimeDomainSignal < Signal
-%TIMEDOMAINSIGNAL: Signal class for simple, one dimensional, time-domain signals.
+%TIMEDOMAINSIGNAL Signal class for simple, one dimensional, time-domain signals.
 %
 % See also Signal, preProc
     

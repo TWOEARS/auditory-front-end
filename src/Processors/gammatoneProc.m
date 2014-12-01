@@ -1,4 +1,32 @@
 classdef gammatoneProc < Processor
+%GAMMATONEPROC Gammatone auditory filterbank processor.
+%   The Gammatone filterbank models the frequency selectivity of the peripheral auditory
+%   system according following [1]. It operates on a time-domain signal and returns a
+%   time-frequency representation of the signal. 
+%
+%   GAMMATONEPROC properties:
+%       cfHz       - Channels center frequencies (Hz)
+%       nERBs      - Distance between neighboring filters in ERBS (see [1])
+%       nGamma     - Gammatone order of the filters (2 or 4)
+%       bwERBs     - Bandwidth of the filters in ERBs (see [1])
+%       lowFreqHz  - Requested center frequency of lowest channel (Hz)
+%       highFreqHz - Requested approximate center frequency of highest channel (Hz)
+%
+%   There are three different ways of setting up a vector of channel center frequencies
+%   (cfHz) when instantiating this processor:
+%       1- By providing the lower and upper center frequencies (lowFreqHz and highFreqHz),
+%          and the distance between neighboring filters (nERBs).
+%       2- By providing the lower and upper center frequencies (lowFreqHz and highFreqHz),
+%          and the number of channels that the representation should have.
+%       3- By directly providing a vector of center frequencies (cfHz).
+%   In case of conflicting arguments, cfHz is generated from one of the three method above
+%   with priority order 3 > 2 > 1.
+%
+%   See also: Processor, drnlProc
+%
+%   Reference:
+%   [1] Glasberg, B.R. and Moore, B.C.J. (1990), "Derivation of auditory filter shapes
+%       from notched-noise data", Hearing Research 47(1-2), pp. 103-138.
     
     properties
         cfHz            % Filters center frequencies
