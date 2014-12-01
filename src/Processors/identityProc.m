@@ -1,7 +1,7 @@
 classdef identityProc < Processor
-    % A processor that does not do anything. Used for e.g., instantiating
-    % arrays of processors in the manager. Processor parent class cannot be
-    % used for that purpose as it is abstract.
+%IDENTITYPROC A processor that copies the input directly to the output.
+%   Used mainly for place holder, e.g., for instantiating arrays of processors in the 
+%   manager. 
     
     methods
         function pObj = identityProc(fs)

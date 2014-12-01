@@ -1,5 +1,5 @@
 classdef FeatureSignal < Signal
-%FEATURESIGNAL: Signal class for groups of related time-domain signals ('features')
+%FEATURESIGNAL Signal class for groups of related time-domain signals ('features')
 %   This class is used for grouping related individual time-domain features into a unique
 %   signal (e.g., spectral features). Data is stored in a matrix where first dimension
 %   corresponds to time and the second dimension stores different features. The features

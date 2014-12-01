@@ -1,5 +1,5 @@
 classdef gammatoneProc < Processor
-%GAMMATONEPROC: Gammatone auditory filterbank processor.
+%GAMMATONEPROC Gammatone auditory filterbank processor.
 %   The Gammatone filterbank models the frequency selectivity of the peripheral auditory
 %   system according following [1]. It operates on a time-domain signal and returns a
 %   time-frequency representation of the signal. 

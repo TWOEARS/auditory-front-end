@@ -1,5 +1,5 @@
 classdef manager < handle
-%MANAGER: Processor managing class for the auditory front-end (AFE) framework. A manager 
+%MANAGER Processor managing class for the auditory front-end (AFE) framework. A manager 
 %   object controls the processing of the AFE framework. It is responsible for 
 %   instantiating the required processors as well as correctly routing their respective 
 %   inputs/outputs, given a request from the user. In addition, the manager methods allow 

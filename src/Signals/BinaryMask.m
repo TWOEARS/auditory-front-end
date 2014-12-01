@@ -1,5 +1,5 @@
 classdef BinaryMask < TimeFrequencySignal
-%BINARYMASK: Signal class for time-frequency boolean distributions.
+%BINARYMASK Signal class for time-frequency boolean distributions.
 %   This class inherits the TimeFrequencySignal class only to overload the plot routine
 %   and allow the binary mask to be plotted on top of the time-frequency representation it
 %   was computed from.

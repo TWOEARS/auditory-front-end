@@ -1,5 +1,5 @@
 classdef ModulationSignal < Signal
-%MODULATIONSIGNAL: Signal class for three-dimensional amplitude modulation signals
+%MODULATIONSIGNAL Signal class for three-dimensional amplitude modulation signals
 %   This class collects three-dimensional outputs of a modulation filterbank, respectively
 %   time, audio frequency, and modulation frequency.
 %
