@@ -8,6 +8,9 @@ classdef identityProc < Processor
             pObj.Type = 'Empty processor';
             pObj.FsHzIn = fs;
             pObj.FsHzOut = fs;
+
+            % Hide the processor from the list of processors
+            pObj.bHidden = 1;
         end
         
         function out = processChunk(pObj,in)
