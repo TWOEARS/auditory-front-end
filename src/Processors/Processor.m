@@ -34,6 +34,11 @@ classdef Processor < handle
         FsHzOut
         Dependencies
     end
+
+    properties (GetAccess = private)
+        parameters
+        bHidden = 0;
+    end
     
     methods (Abstract = true)
         out = processChunk(pObj,in)
@@ -215,6 +220,133 @@ classdef Processor < handle
             
             
         end 
+    end
+
+    methods (Static)
+       
+        function parObj = getParameterValues(processorName,request)
+            %getParameterValues    Returns the default parameter values for a given
+            %                      processor, optionally given a specific request
+            %
+            %USAGE:
+            %  values = Processor.getParameterValues(procName,request)
+            %
+            %INPUT ARGUMENTS:
+            %    procName : Name of the processor
+            %     request : Structure of non-default requested parameter
+            %                values. Returns default values if empty.
+            %
+            %OUTPUT ARGUMENTS:
+            %      values : Map object of parameter values, indexed by
+            %                parameter names
+            %
+            %NB: As overriding of static methods is not possible, getParameterValues
+            %methods of subclasses will explicitely call this superclass method for easier
+            %code maintenance.
+            
+            if nargin<2; request = []; end
+            
+            % Load parameter names and default values
+            fhandle = str2func([processorName '.getParameterInfo']);
+            
+            if ~isempty(request)
+                [names,defaultValues] = fhandle(request);
+            else
+                [names,defaultValues] = fhandle();
+            end
+            
+%             values = containers.Map(names,defaultValues);
+
+            % Put these in a parameter object
+            parObj = Parameters(names,defaultValues);
+            
+            % Override the non-default values given in the request
+%             for ii = 1:size(names,2)
+%                 if isfield(request,names{ii})
+%                     parObj(names{ii}) = request.(names{ii});
+%                 end
+%             end
+            
+        end
+        
+        function pList = processorList()
+            %Processor.processorList    Returns a list of valid processor object names
+            %
+            %USAGE:
+            %  pList = Processor.processorList
+            %
+            %OUTPUT ARGUMENT:
+            %  pList : Cell array of valid processor names
+            
+            % Processors directory
+            processorDir = mfilename('fullpath');
+            
+            % Get file information
+            fileList = listFiles(processorDir(1:end-10),'*.m',-1);
+            
+            % Extract name only
+            pList = cell(size(fileList));
+            for ii = 1:size(fileList)
+                % Get file name
+                [~,fName] = fileparts(fileList(ii).name);
+                
+                % Check if it is a valid processor
+                try
+                    p = feval(str2func(fName));
+                    if isa(p,'Processor') && ~p.bHidden
+                        pList{ii} = fName;
+                    else
+                        pList{ii} = [];
+                    end
+                catch   % In case fName is not executable without inputs
+                    pList{ii} = [];
+                end
+                
+            end
+                
+            % Remove empty elements
+            pList = pList(~cellfun('isempty',pList));
+             
+        end
+
+        function procName = findProcessorFromParameter(parameterName)
+            %Processor.findProcessorFromParameter   Finds the processor that uses a given parameter
+            %
+            %USAGE:
+            %   procName = Processor.findProcessorFromParameter(parName)
+            %
+            %INPUT ARGUMENT:
+            %   parName : Name of the parameter
+            %
+            %OUTPUT ARGUMENT:
+            %  procName : Name of the processor using that parameter
+
+            % Get a list of processor
+            procList = Processor.processorList;
+
+            % Loop over each processor
+            for ii = 1:size(procList,1)
+                try
+                    procParNames = feval([procList{ii} '.getParameterInfo']);
+                    
+                    if ismember(parameterName,procParNames)
+                        procName = procList{ii};
+                        return
+                    end
+                    
+                catch
+                    % Do not return a warning here, as this is called in a loop
+                end
+
+            end
+
+            % If still running, then we haven't found it
+            warning(['Could not find a processor which uses parameter ''%s'''],...
+                    parameterName)
+            procName = [];
+
+        end
+        
     end
     
     
