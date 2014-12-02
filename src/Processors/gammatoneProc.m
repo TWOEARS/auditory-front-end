@@ -306,5 +306,136 @@ classdef gammatoneProc < Processor
             
         end
     end
+
+    methods (Static)
+        
+        function dep = getDependency()
+            dep = 'time';
+        end
+        
+        function values = getParameterValues(request)
+            %getParameterValues    Returns the default parameter values for
+            %                      this processor, given a specific request
+            %
+            %USAGE:
+            %  values = gammatoneProc.getParameterValues(request)
+            %
+            %INPUT ARGUMENTS:
+            %     request : Structure of non-default requested parameter
+            %                values. Returns default values if empty.
+            %
+            %OUTPUT ARGUMENTS:
+            %      values : Map object of parameter values, indexed by
+            %                parameter names
+            
+            if nargin<1 || isempty(request); request = []; end
+            
+            values = Processor.getParameterValues( 'gammatoneProc',...
+                                                    request);
+            
+            % Because of the three different types of requests for
+            % generating the filterbank, we need to ensure consistency of
+            % the center frequencies-related parameters:
+            
+            if ~isempty(values('cfHz'))
+                % Highest priority case: a vector of channels center 
+                %   frequencies is provided
+                centerFreq = values('cfHz');
+                
+                values('f_low') = centerFreq(1);
+                values('f_high') = centerFreq(end);
+                values('nChannels') = numel(centerFreq);
+                values('nERBs') = 'n/a';
+                
+                
+            elseif ~isempty(values('nChannels'))
+                % Medium priority: frequency range and number of channels
+                %   are provided
+               
+                % Build a vector of center ERB frequencies
+                ERBS = linspace( freq2erb(values('f_low')), ...
+                                freq2erb(values('f_high')), ...
+                                values('nChannels') );  
+                centerFreq = erb2freq(ERBS);    % Convert to Hz
+                
+                values('nERBs') = (ERBS(end)-ERBS(1))/values('nChannels');
+                values('cfHz') = centerFreq;
+                
+                
+            else
+                % Lowest (default) priority: frequency range and distance 
+                %   between channels is provided (or taken by default)
+                
+                % Build vector of center ERB frequencies
+                ERBS = freq2erb(values('f_low')): ...
+                                double(values('nERBs')): ...
+                                            freq2erb(values('f_high'));
+                centerFreq = erb2freq(ERBS);    % Convert to Hz
+                
+                values('nChannels') = numel(centerFreq);
+                values('cfHz') = centerFreq;
+                
+            end
+            
+        end
+        
+        function [names, defaultValues, descriptions] = getParameterInfo()
+            %getParameterInfo   Returns the parameter names, default values
+            %                   and descriptions for that processor
+            %
+            %USAGE:
+            %  [names, defaultValues, description] =  ...
+            %                           gammatoneProc.getParameterInfo;
+            %
+            %OUTPUT ARGUMENTS:
+            %         names : Parameter names
+            % defaultValues : Parameter default values
+            %  descriptions : Parameter descriptions
+            
+            
+            names = {'f_low',...
+                    'f_high',...
+                    'nERBs',...
+                    'nChannels',...
+                    'cfHz',...
+                    'IRtype',...
+                    'n_gamma',...
+                    'bwERBs',...
+                    'durSec',...
+                    'bAlign'};
+            
+            descriptions = {'Lowest center frequency (Hz)',...
+                    'Highest center frequency (Hz)',...
+                    'Distance between neighbor filters in ERBs',...
+                    'Number of channels',...
+                    'Channels center frequencies (Hz)',...
+                    'Gammatone filter impulse response type (''IIR'' or ''FIR'')',...
+                    'Gammatone rising slope order',...
+                    'Bandwidth of the filters (ERBs)',...
+                    'Duration of FIR (s)',...
+                    'Correction for filter alignment'};
+            
+            defaultValues = {80,...
+                            8000,...
+                            1,...
+                            [],...
+                            [],...
+                            'IIR',...
+                            4,...
+                            1.018,...
+                            0.128,...
+                            0};
+                
+        end
+        
+        function [name,description] = getProcessorInfo
+            
+            %Returns a very short name and a short description of the processor function
+            name = 'Gammatone filterbank';
+            description = 'Gammatone filterbank';
+            
+        end
+        
+    end
         
 end
