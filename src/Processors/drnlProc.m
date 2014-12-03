@@ -1,8 +1,44 @@
 classdef drnlProc < Processor
-    
+%DRNLPROC Dual-Resonance Non-Linear auditory filterbank processor.
+%   The DRNL filterbank models the frequency selectivity of the peripheral auditory
+%   system incorporating basilar membrane nonlinearity, in attempts to 
+%   more closely follow the human physiological findings [1,2]. 
+%   It operates on a time-domain signal and returns a
+%   time-frequency representation of the signal. For each frequency
+%   channel, the signal passes through a linear and nonlinear processing
+%   paths which consist of combinations of gain, gammatone filters, nonlinear
+%   compression, and/or low-pass filters. The Medial Olivo-Cochlear (MOC)
+%   efferent feedback path is also realised as the gain at the nonlinear
+%   path [1], which can be adjusted by the user for simulations.
+%
+%   DRNLPROC properties:
+%       cfHz       - Characteristic frequencies (Hz)
+%       mocIpsi    - Ipsilateral MOC feedback (as nonlinear gain factor)
+%       mocContra  - Contralateral MOC feedback (as nonlinear gain factor)
+%       model      - DRNL implementation model (based on CASP [2] or MAP [1])
+%
+%   There are three different ways of setting up a vector of characteristic frequencies
+%   (cfHz) when instantiating this processor:
+%       1- By providing the lower and upper characteristic frequencies (lowFreqHz and highFreqHz),
+%          and the distance between neighboring filters (nERBs).
+%       2- By providing the lower and upper characteristic frequencies (lowFreqHz and highFreqHz),
+%          and the number of channels that the representation should have.
+%       3- By directly providing a vector of characteristic frequencies (cfHz).
+%   In case of conflicting arguments, cfHz is generated from one of the three method above
+%   with priority order 3 > 2 > 1.
+%
+%   See also: Processor, gammatoneProc
+%
+%   Reference:
+%   [1] Clark, N. R., Brown, G. J., J?rgens, T., & Meddis, R. (2012). 
+%    A frequency-selective feedback model of auditory efferent suppression 
+%    and its implications for the recognition of speech in noise. 
+%   The Journal of the Acoustical Society of America, 132(3), 1535?41. 
+%   [2] Jepsen, M. L., Ewert, S. D., & Dau, T. (2008). 
+%   A computational model of human auditory signal processing and perception.
+%   The Journal of the Acoustical Society of America, 124(1), 422?38. 
+
     properties
-        % Firstly follow Jepsen et al. 2008 and then accept MAP1_14-style
-        % manual parameter input
         cfHz                % Characteristic Frequencies 
         % NOTE: parameter cfHz here is DIFFERENT FROM cfHz as used in
         % gammatoneProc! - cfHz in gammatoneProc means CENTER FREQUENCY
@@ -26,8 +62,8 @@ classdef drnlProc < Processor
         fcLinPathGammatoneFilter            % linear path GT filter centre frequency (Hz)
         nCascadeLinPathGammatoneFilter      % linear path GT filter # of cascades
         bwLinPathGammatoneFilter            % linear path GT filter bandwidth                   
-        cutoffLinPathLowPassFilter          % linear path LP filter cutoff frequency (Hz)
-        nCascadeLinPathLowPassFilter        % linear path LP filter # of cascades
+        cutoffLinPathLowPassFilter = [];    % linear path LP filter cutoff frequency (Hz)
+        nCascadeLinPathLowPassFilter = 0;   % linear path LP filter # of cascades
         
         % nonlinear path: has two [cascaded] GT filter stages before and
         % after nonlinearity       
@@ -41,13 +77,13 @@ classdef drnlProc < Processor
         cNonlinPath                         % parameter 'c'
         % 
         nCascadeNonlinPathGammatoneFilter2  % nonlinear path GT filter AFTER BROKEN STICK STAGE, # of cascades
-        cutoffNonlinPathLowPassFilter       % nonlinear path LPF cutoff
-        nCascadeNonlinPathLowPassFilter     % nonlinear path LPF # of cascades
+        cutoffNonlinPathLowPassFilter = []; % nonlinear path LPF cutoff
+        nCascadeNonlinPathLowPassFilter = 0;% nonlinear path LPF # of cascades
         
         % MAP1_14h-specific parameters (only used with MAP model)
         % highpass stapes filter (1st order HP filter)
         mapStapesHPcutoff = 1000;
-        %  set scalar. NB Huber gives 2e-9 m at 80 dB, 1 kHz. (==2e-13 at 0 dB SPL)
+        % set scalar. NB Huber gives 2e-9 m at 80 dB, 1 kHz. (==2e-13 at 0 dB SPL)
         mapStapesScalar = 45e-9;
 
     end
@@ -60,8 +96,8 @@ classdef drnlProc < Processor
         GTFilters_lin               % GT filters for linear path
         GTFilters_nlin              % GT filters for nonlinear path 
         GTFilters_nlin2             % GT filters for nonlinear path, AFTER BROKEN STICK STAGE
-        LPFilters_lin               % Low Pass Filters for linear path
-        LPFilters_nlin              % Low Pass Filters for nonlinear path
+        LPFilters_lin = [];         % Low Pass Filters for linear path
+        LPFilters_nlin = [];        % Low Pass Filters for nonlinear path
         
     end
         
@@ -105,7 +141,7 @@ classdef drnlProc < Processor
             
 %             if nargin>0
             % Checking input arguments - should be between 3 and 9,
-            % otherwise error so if nargin>0 not necessary
+            % otherwise error so "if nargin>0" not necessary
             narginchk(3, 9)
             
             if nargin < 9 || isempty(model); model = 'CASP'; end
@@ -227,8 +263,11 @@ classdef drnlProc < Processor
                         pObj.bwNonlinPathGammatoneFilter, pObj.nCascadeNonlinPathGammatoneFilter); 
                     pObj.GTFilters_nlin2 = pObj.populateGTFilters(pObj.cutoffNonlinPathLowPassFilter, fs,...
                         pObj.bwNonlinPathGammatoneFilter, pObj.nCascadeNonlinPathGammatoneFilter2); 
+                    % Instantiating the LPFs
+                    pObj.LPFilters_lin = pObj.populateLPFilters(pObj.cutoffLinPathLowPassFilter, fs, pObj.nCascadeLinPathLowPassFilter);
+                    pObj.LPFilters_nlin = pObj.populateLPFilters(pObj.cutoffNonlinPathLowPassFilter, fs, pObj.nCascadeNonlinPathLowPassFilter);           
                     
-                case 'MAP'
+                case 'MAP' 
                     % set parameters based on MAP1_14h implementation
                     % (MAPparamsNormal)
                     
@@ -259,10 +298,10 @@ classdef drnlProc < Processor
                     pObj.fcLinPathGammatoneFilter = 0.62*cfHz + 266; % Hz, CF_lin, from MAP1.14h
                     pObj.nCascadeLinPathGammatoneFilter = 3; % number of cascaded gammatone filters (termed "Order" in MAP? - needs double checking)
                     pObj.bwLinPathGammatoneFilter = 0.2*cfHz + 235; % Hz, bwLinPathGammatoneFilter, MAP1.14h defines in a new way
-                    % the following two parameters do not appear in MAP1_14h 
-                    % (LPF parameters) but appear in previous versions
-                    pObj.cutoffLinPathLowPassFilter = 10^(-0.06762+1.01*log10(cfHz)); % Hz, LP_lin cutoff
-                    pObj.nCascadeLinPathLowPassFilter = 4; % no. of cascaded LP filters
+%                     % the following two parameters do not appear in MAP1_14h 
+%                     % (LPF parameters) but appear in previous versions
+%                     pObj.cutoffLinPathLowPassFilter = 10^(-0.06762+1.01*log10(cfHz)); % Hz, LP_lin cutoff
+%                     pObj.nCascadeLinPathLowPassFilter = 4; % no. of cascaded LP filters
 
                     % nonlinear path parameters
                     pObj.fcNonlinPathGammatoneFilter = cfHz; % Hz, CF_nlin, grabbed from MAP
@@ -274,10 +313,10 @@ classdef drnlProc < Processor
                     pObj.bNonlinPath = 25; % Using b for ctBMdB of MAP
                     pObj.cNonlinPath = .25; % c, compression coeff
                     pObj.nCascadeNonlinPathGammatoneFilter2 = 3; % number of cascaded gammatone filters AFTER BROKEN STICK NONLINEARITY STAGE
-                    % the following two parameters do not appear in MAP1_14h 
-                    % (LPF parameters) but appear in previous versions
-                    pObj.cutoffNonlinPathLowPassFilter = 10^(-0.05252+1.01*log10(cfHz)); % LP_nlincutoff
-                    pObj.nCascadeNonlinPathLowPassFilter = 3; % no. of cascaded LP filters in nlin path 
+%                     % the following two parameters do not appear in MAP1_14h 
+%                     % (LPF parameters) but appear in previous versions
+%                     pObj.cutoffNonlinPathLowPassFilter = 10^(-0.05252+1.01*log10(cfHz)); % LP_nlincutoff
+%                     pObj.nCascadeNonlinPathLowPassFilter = 3; % no. of cascaded LP filters in nlin path 
                     
                     % initialise GTFs (using corresponding centre freqs)
                     pObj.GTFilters_lin = pObj.populateGTFilters(pObj.fcLinPathGammatoneFilter, fs,...
@@ -291,15 +330,15 @@ classdef drnlProc < Processor
                     error('Model not recognised - CASP or MAP supported only');
             end
 
-            % Instantiating the LPFs
-            pObj.LPFilters_lin = pObj.populateLPFilters(pObj.cutoffLinPathLowPassFilter, fs, pObj.nCascadeLinPathLowPassFilter);
-            pObj.LPFilters_nlin = pObj.populateLPFilters(pObj.cutoffNonlinPathLowPassFilter, fs, pObj.nCascadeNonlinPathLowPassFilter);           
+%             % Instantiating the LPFs
+%             pObj.LPFilters_lin = pObj.populateLPFilters(pObj.cutoffLinPathLowPassFilter, fs, pObj.nCascadeLinPathLowPassFilter);
+%             pObj.LPFilters_nlin = pObj.populateLPFilters(pObj.cutoffNonlinPathLowPassFilter, fs, pObj.nCascadeNonlinPathLowPassFilter);           
                         
             % Setting up global properties
             populateProperties(pObj,'Type','drnl filterbank',...
                 'FsHzIn',fs,'FsHzOut',fs);
             
-%             end
+%             end       % end 'if nargin>0'
         end
       
         function out = processChunk(pObj,in)
@@ -358,7 +397,6 @@ classdef drnlProc < Processor
                     % Loop through the CF channels (places on BM)
                     % depending on the number of CF elements, all the parameters
                     % (a, b, g, BW, etc.) can be single values or vectors
-                    % TODO: modify calculation when model = 'MAP'
                     for ii = 1:nFilter
                         % linear path
                         % apply linear gain
@@ -381,7 +419,6 @@ classdef drnlProc < Processor
                         % broken stick nonlinearity
                         % refer to (Lopez-Poveda and Meddis, 2001) 
                         % note that out_nlin(:, ii) is a COLUMN vector!
-                        % TODO: implement MAP version using switch-case
                         y_decide = [pObj.aNonlinPath(ii).*abs(out_nlin(:, ii)) ...
                             pObj.bNonlinPath(ii).*abs(out_nlin(:, ii)).^pObj.cNonlinPath];
                         out_nlin(:, ii) = sign(out_nlin(:, ii)).*min(y_decide, [], 2);
@@ -497,8 +534,10 @@ classdef drnlProc < Processor
                 pObj.GTFilters_lin(ii).reset();
                 pObj.GTFilters_nlin(ii).reset();
                 pObj.GTFilters_nlin2(ii).reset();
-                pObj.LPFilters_lin(ii).reset();
-                pObj.LPFilters_nlin(ii).reset();
+                if strcmp(pObj.model, 'CASP')
+                    pObj.LPFilters_lin(ii).reset();
+                    pObj.LPFilters_nlin(ii).reset();
+                end
             end
             
         end
@@ -604,28 +643,7 @@ classdef drnlProc < Processor
             for ii = 1:nFilter-1
                 obj(1,ii) = genericFilter(B(ii,:), A(ii,:), fs, cascadeOrder);
             end                                  
-            
-%             % Use gammatoneFilter object instead of genericFilter
-%             % In this case bw is fixed as 1.08 ERBs
-% 
-%             % default parameters for gammatone filters
-%             % or maybe consider ignoring these and call gammatoneFilter with only
-%             % necessary parameters (fc, fs)
-%             irType = 'IIR';     % filter type
-%             n = 4;              % filter order
-%             bw = 1.08;          % bandwidth in ERBs
-%             bAlign = false;
-%             durSec = 0.128;
-
-%             % Preallocate memory by instantiating last filter
-%             obj(1,nFilter) = gammatoneFilter(cfHz(nFilter),fs,irType,n,...
-%                                         bw(nFilter),bAlign,durSec,cascadeOrder);
-%             % Instantiating remaining filters
-%             for ii = 1:nFilter-1
-%                 obj(1,ii) = gammatoneFilter(cfHz(ii),fs,irType,n,...
-%                                         bw(ii),bAlign,durSec,cascadeOrder);
-%             end                        
-            
+                        
         end
         
         function obj = populateLPFilters(pObj,cfHz,fs,cascadeOrder)
@@ -652,16 +670,6 @@ classdef drnlProc < Processor
             for ii = 1:nFilter-1
                 obj(1,ii) = genericFilter(B(ii,:), A(ii,:), fs,cascadeOrder);
             end                        
-            
-%             % use bwFilter instead of genericFilter
-%             cfHz = cfHz(:);
-%             nFilter = numel(cfHz);
-%             bwFilter_order = 2;         % default LPF order
-%             obj(1,nFilter) = bwFilter(fs, bwFilter_order, cfHz(nFilter));
-%             for ii = 1:nFilter-1
-%                 obj(1,ii) = bwFilter(fs, bwFilter_order, cfHz(ii));
-%             end
-            
 
         end
     end

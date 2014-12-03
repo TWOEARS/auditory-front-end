@@ -1,11 +1,33 @@
 classdef adaptationProc < Processor
+%ADAPTATIONPROC Adaptation loop processor.
+%   The Adaptation loop models corresponds to the adaptive response of 
+%   the auditory nerve fibers, in which abrupt changes in the input 
+%   result in emphasised overshoots followed by gradual decay to 
+%   compressed steady-state level. This is a chain of feedback
+%   loops in series, each of which consists of a low-pass filter and a
+%   division operator [1,2]. The input to the processor is a time-frequency signal
+%   from the inner hair cell, and the output is a time-frequency signal.
+%
+%   ADAPTATIONPROC properties:
+%       overshootLimit      - a limit to the overshoot caused by the loops
+%       minLeveldB          - the lowest audible threshhold of the signal (dB)
+%       tau                 - Time constants of the loops
+%
+%   See also: Processor, ihcProc
+%
+%   Reference:
+%   [1] Puschel, D. (1988). Prinzipien der zeitlichen Analyse beim H?ren. University of G?ttingen.
+%   [2] Dau, T., Puschel, D., & Kohlrausch, A. (1996). 
+%       A quantitative model of the "effective" signal processing 
+%       in the auditory system. I. Model structure. 
+%       The Journal of the Acoustical Society of America, 99(6), 3615?3622. 
     
      properties
          overshootLimit      % limit to the overshoot of the output
          minLeveldB          % the lowest audible threshhold of the signal 
          tau                 % time constants involved in the adaptation loops 
                              % the number of adaptation loops is determined
-                             % by the length of tau (?)
+                             % by the length of tau
      end
      
      properties (GetAccess = private)
@@ -47,11 +69,8 @@ classdef adaptationProc < Processor
             %                      model. This consists of 5 adaptation loops without
             %                      overshoot limiting. The adapation loops have a linear spacing.
             %
-            %     'adt_breebaart'  As `'puschel'`, but with overshoot limiting.
+            %     'adt_breebaart'  As 'puschel', but with overshoot limiting.
             % 
-             
-            % TODO: input level scaling, once a convention is given 
-            % (What dB SPL corresponds to signal level 1?)
             
             % check input arguments and set default values
             narginchk(2, 4) % support 2 to 4 input arguments
@@ -101,13 +120,11 @@ classdef adaptationProc < Processor
                 error('%s: "lim" must be a scalar.',upper(mfilename));
             end 
                      
-            % Prepare to scale the input signal following level convention
-            % convention: 100 dB SPL corresponds to signal amplitude of 1
+            % Prepare to convert minLeveldB following level convention
+            % convention: 100 dB SPL corresponds to rms 1
             % calibration factor (see Jepsen et al. 2008)
             dBSPLCal = 100;         % signal amplitude 1 should correspond to max SPL 100 dB
             ampCal = 1;             % signal amplitude to correspond to dBSPLRef
-%             pRef = 2e-5;            % reference sound pressure (p0)
-%             pCal = pRef*10^(dBSPLCal/20);
 
             % Populate the object's properties
             % 1- Global properties
