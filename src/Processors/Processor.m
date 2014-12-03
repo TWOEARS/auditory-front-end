@@ -224,7 +224,7 @@ classdef Processor < handle
 
     methods (Static)
        
-        function parObj = getParameterValues(processorName,request)
+        function parObj = getParameterValues(processorName,requestPar)
             %getParameterValues    Returns the default parameter values for a given
             %                      processor, optionally given a specific request
             %
@@ -244,28 +244,44 @@ classdef Processor < handle
             %methods of subclasses will explicitely call this superclass method for easier
             %code maintenance.
             
-            if nargin<2; request = []; end
+            if nargin<2; requestPar = []; end
             
             % Load parameter names and default values
-            fhandle = str2func([processorName '.getParameterInfo']);
-            
-            if ~isempty(request)
-                [names,defaultValues] = fhandle(request);
-            else
-                [names,defaultValues] = fhandle();
+            try
+                [names,values] = feval([processorName '.getParameterInfo']);
+            catch
+                if ~ismember(processorName,Processor.processorList)
+                    warning(['There is no ''%s'' processor. Currently valid processor '... 
+                             'names are the following: %s'], ...
+                             processorName, ...
+                             strjoin(Processor.processorList.',', '))
+                    parObj = [];
+                    return
+                else
+                    warning(['The .getParameterInfo static method of processor %s ' ...
+                             'is not implemented!'],processorName)
+                    parObj = [];
+                    return
+                end
             end
             
-%             values = containers.Map(names,defaultValues);
-
             % Put these in a parameter object
-            parObj = Parameters(names,defaultValues);
+            parObj = Parameters(names,values);
             
             % Override the non-default values given in the request
-%             for ii = 1:size(names,2)
-%                 if isfield(request,names{ii})
-%                     parObj(names{ii}) = request.(names{ii});
-%                 end
-%             end
+            if ~isempty(requestPar)
+                for ii = 1:size(names,2)
+                    if requestPar.map.isKey(names{ii})
+                        parObj.map(names{ii}) = requestPar.map(names{ii});
+                    end
+                end
+            end
+            
+            % Verify the parameters if necessary
+            dummyProc = feval(processorName);
+            if ismethod(dummyProc,'verifyParameters')
+                dummyProc.verifyParameters(parObj);
+            end
             
         end
         

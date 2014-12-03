@@ -5,11 +5,12 @@ classdef Parameters < handle
     end
     
     properties (GetAccess = public, Dependent = true)
-        description     % Map container container description of individual parameters
+        description     % Map container for the description of individual parameters
     end
     
     
     methods
+        
         function parObj = Parameters(keys,values)
             %Parameters   Constructor for the parameter object class
             
@@ -28,56 +29,6 @@ classdef Parameters < handle
                     parObj.map(keys{ii}) = values{ii};
                 end
             end
-            
-        end
-        
-        function addDefaultValues(parameterObj,processorName)
-            %addDefaultValues   Add the parameters default values for a processor
-            %                   Will not overwrite existing values
-            %                   
-            %
-            %USAGE:
-            %   parameterObj.addDefaultValues(processorName)
-            %
-            %INPUT:
-            %   parameterObj : Parameter object instance
-            %  processorName : Name of the processor
-            %
-            %EXAMPLE:
-            %  parameterObj.addDefaultValues('gammatoneProc')
-            
-            try
-                % Get the processor's parameter defaults
-                fhandle = str2func([processorName '.getParameterInfo']);
-                [newNames, newValues] = fhandle();
-                                
-            catch
-                warning(['There is no %s processor, or its getDefaultParameter static' ...
-                         ' method is not implemented!'],processorName)
-                return
-            end
-            
-            % Put these defaults in a Map.container and merge it with existing
-            %parDefault = containers.Map(newNames, newValues);
-            %parameterObj.map = vertcat(parameterObj.map, parDefault);
-
-            invalidKeys = {};
-
-            for ii = 1:size(newNames,2)
-                if parameterObj.map.isKey(newNames{ii})
-                    invalidKeys = [invalidKeys ; newNames{ii}]; %#ok<AGROW>
-                else
-                    parameterObj.map(newNames{ii}) = newValues{ii};
-%                     parameterObj.description(newNames{ii}) = newDescription{ii};
-                end
-            end
-            
-            % Send a warning if some values already existed
-            if ~isempty(invalidKeys)
-                warning(['Parameter(s) %s were already stored, use setValue method '...
-                         'to overwrite.'],strjoin(invalidKeys,', '))
-            end
-
             
         end
           
@@ -100,19 +51,20 @@ classdef Parameters < handle
             % Get the parameter keys from specific processor
             try
                 
-                fhandle = str2func([processorName '.getParameterInfo']);
-                processorParameters = fhandle();
-                keys = processorParameters.keys;
+                keys = feval([processorName '.getParameterInfo']);
             
             catch
                 warning('There is no %s processor, or its getParameterInfo static method is not implemented!',processorName)
                 return
             end
             
+            % Instantiate a new parameter object
+            processorParameters = Parameters();
+            
             % Copy the values from parameterObj with corresponding key
             for ii = 1:size(keys,2)
                 if parameterObj.value.isKey(keys{ii})
-                    processorParameters(keys{ii}) = parameterObj.value(keys{ii});
+                    processorParameters.map(keys{ii}) = parameterObj.map(keys{ii});
                 else
                     warning('No parameter named %s in this object.',keys{ii})
                     processorParameters(keys{ii}) = 'n-a';
@@ -164,7 +116,7 @@ classdef Parameters < handle
     methods (Static)
        
         function text = readParameterDescription(parName)
-            %readParameterDescription   Will find the description of a single parameter
+            %readParameterDescription   Finds the description of a single parameter
             %
             %USAGE:
             %   text = Parameters.readParameterDescription(parName)
@@ -179,10 +131,12 @@ classdef Parameters < handle
             procName = Processor.findProcessorFromParameter(parName);
             
             % Get the parameter infos
-            % TODO: do we need a try/catch here?
-            [names,~,description] = feval([procName '.getParameterInfo']);
-            
-            text = description{strcmp(parName,names)};
+            if ~isempty(procName)
+                [names,~,description] = feval([procName '.getParameterInfo']);
+                text = description{strcmp(parName,names)};
+            else
+                text = 'n-a';
+            end
             
         end
         
