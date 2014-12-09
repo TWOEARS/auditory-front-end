@@ -90,6 +90,18 @@ classdef Parameters < handle
             
         end
         
+        function r = eq(parObj1,parObj2)
+            % Overload equality between parameter objects
+            
+            % NB: Keys are naturally ordered in map containers, no need to do it here
+            if isequal(parObj1.map.keys,parObj2.map.keys)
+                r = isequal(parObj1.map.values,parObj2.map.values);
+            else
+                r = 0;
+            end
+            
+        end
+        
     end
     
     

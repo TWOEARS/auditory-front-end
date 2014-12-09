@@ -26,6 +26,9 @@ classdef Processor < handle
 
     properties
         Type
+    end
+    
+    properties (Hidden = true)
         Input
         Output
         isBinaural = false;
@@ -36,8 +39,11 @@ classdef Processor < handle
     end
 
     properties (GetAccess = private)
-        parameters
         bHidden = 0;
+    end
+    
+    properties (GetAccess = protected)
+        parameters
     end
     
     methods (Abstract = true)
@@ -52,12 +58,6 @@ classdef Processor < handle
             % filters, and reinitialize components of the processor.
             %
             % TO DO: This might take additional input arguments. TBD
-            
-        hasParameters(pObj,p)
-            % This method should return "true" if the processor has the
-            % parameters described in the structure p and "false" if one or
-            % more parameter is different. Used by the manager to know
-            % when to instantiate a new processor.
             
     end
     
@@ -186,6 +186,22 @@ classdef Processor < handle
             
         end
         
+        function hp = hasParameters(pObj,parObj)
+            
+            % Verify the parameters if necessary
+            if ismethod(pObj,'verifyParameters')
+                pObj.verifyParameters(parObj)
+            end
+            
+            % Extract the parameters related to this processor only
+            testParameters = parObj.getProcessorParameters(class(pObj));
+            
+            % Compare them with current processor parameters
+            hp = (pObj.parameters == testParameters);
+            
+            
+        end
+        
     end
     
     methods (Access=protected)
@@ -279,6 +295,7 @@ classdef Processor < handle
             
             % Verify the parameters if necessary
             dummyProc = feval(processorName);
+            
             if ismethod(dummyProc,'verifyParameters')
                 dummyProc.verifyParameters(parObj);
             end
