@@ -83,18 +83,14 @@ classdef gammatoneProc < Processor
             %    durations for different filters (if necessary)
             %  - Implement bAlign option
             
-            if nargin>0  % Failsafe for constructor calls without arguments
+            if nargin<2; parObj = Parameters; end
             
-            % Populate general properties
-            pObj.populateProperties('Type','Gammatone filterbank',...
-                'FsHzIn',fs,'FsHzOut',fs);
+            % Call super-constructor
+            pObj = pObj@Processor(fs,fs,'gammatoneProc',parObj);
             
-            % Store specific parameters only
-            pObj.parameters = parObj.getProcessorParameters('gammatoneProc');
-            
-            % Instantiate filters
-            pObj.Filters = pObj.populateFilters;
-                
+            if nargin>0
+                % Instantiate filters
+                pObj.Filters = pObj.populateFilters;
             end
         end
         
@@ -164,36 +160,39 @@ classdef gammatoneProc < Processor
             
         end
         
-        function verifyParameters(~,parObj)
+        function verifyParameters(pObj)
             % This method extends the list of parameters by computing the values of the
             % missing ones
             
+            % Add missing parameter values
+            pObj.extendParameters;
             
             % Solve the conflicts between center frequencies, number of channels, and
             % distance between channels
-            if ~isempty(parObj.map('cfHz'))
+            if ~isempty(pObj.parameters.map('cfHz'))
                 % Highest priority case: a vector of channels center 
                 %   frequencies is provided
-                centerFreq = parObj.map('cfHz');
+                centerFreq = pObj.parameters.map('cfHz');
                 
-                parObj.map('f_low') = centerFreq(1);
-                parObj.map('f_high') = centerFreq(end);
-                parObj.map('nChannels') = numel(centerFreq);
-                parObj.map('nERBs') = 'n/a';
+                pObj.parameters.map('f_low') = centerFreq(1);
+                pObj.parameters.map('f_high') = centerFreq(end);
+                pObj.parameters.map('nChannels') = numel(centerFreq);
+                pObj.parameters.map('nERBs') = 'n/a';
                 
                 
-            elseif ~isempty(parObj.map('nChannels'))
+            elseif ~isempty(pObj.parameters.map('nChannels'))
                 % Medium priority: frequency range and number of channels
                 %   are provided
                
                 % Build a vector of center ERB frequencies
-                ERBS = linspace( freq2erb(parObj.map('f_low')), ...
-                                freq2erb(parObj.map('f_high')), ...
-                                parObj.map('nChannels') );  
+                ERBS = linspace( freq2erb(pObj.parameters.map('f_low')), ...
+                                freq2erb(pObj.parameters.map('f_high')), ...
+                                pObj.parameters.map('nChannels') );  
                 centerFreq = erb2freq(ERBS);    % Convert to Hz
                 
-                parObj.map('nERBs') = (ERBS(end)-ERBS(1))/parObj.map('nChannels');
-                parObj.map('cfHz') = centerFreq;
+                pObj.parameters.map('nERBs') = (ERBS(end)-ERBS(1)) ...
+                                                / pObj.parameters.map('nChannels');
+                pObj.parameters.map('cfHz') = centerFreq;
                 
                 
             else
@@ -201,13 +200,13 @@ classdef gammatoneProc < Processor
                 %   between channels is provided (or taken by default)
                 
                 % Build vector of center ERB frequencies
-                ERBS = freq2erb(parObj.map('f_low')): ...
-                                double(parObj.map('nERBs')): ...
-                                            freq2erb(parObj.map('f_high'));
+                ERBS = freq2erb(pObj.parameters.map('f_low')): ...
+                                double(pObj.parameters.map('nERBs')): ...
+                                            freq2erb(pObj.parameters.map('f_high'));
                 centerFreq = erb2freq(ERBS);    % Convert to Hz
                 
-                parObj.map('nChannels') = numel(centerFreq);
-                parObj.map('cfHz') = centerFreq;
+                pObj.parameters.map('nChannels') = numel(centerFreq);
+                pObj.parameters.map('cfHz') = centerFreq;
                 
             end
             
