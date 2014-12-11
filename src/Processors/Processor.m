@@ -59,9 +59,34 @@ classdef Processor < handle
             %
             % TO DO: This might take additional input arguments. TBD
             
+        verifyParameters(pObj)
+            % This method is called at instantiation of the processor, to verify that the
+            % provided parameters are valid, correct conflicts if needed, and add default 
+            % values to parameters missing in the list.
+            
     end
     
     methods
+        function pObj = Processor(fsIn,fsOut,procName,parObj)
+            %Super-constructor
+            
+            if nargin>0
+            
+            % Store specific parameters only
+            pObj.parameters = parObj.getProcessorParameters(procName);
+            
+            % Populate properties
+            pObj.Type = feval([procName '.getProcessorInfo']);
+            pObj.FsHzIn = fsIn;
+            pObj.FsHzOut = fsOut;
+            pObj.Dependencies = feval([procName '.getDependency']);
+                
+            pObj.verifyParameters;
+            
+            end
+            
+        end
+        
         function  parValue = getDependentParameter(pObj,parName)
             %getDependentParameter   Finds the value of a parameter in the
             %                        list of dependent processors
@@ -205,6 +230,18 @@ classdef Processor < handle
     end
     
     methods (Access=protected)
+        
+        function extendParameters(pObj)
+            %extendParameters   Add missing parameters in a processor
+            
+            if ~isprop(pObj,'parameters') || isempty(pObj.parameters)
+                pObj.parameters = Parameters;
+            end
+            
+            pObj.parameters.updateWithDefault(class(pObj));
+            
+        end
+        
         function pObj = populateProperties(pObj,varargin)
             
             % First check on input
@@ -240,68 +277,6 @@ classdef Processor < handle
 
     methods (Static)
        
-        function parObj = getParameterValues(processorName,requestPar)
-            %getParameterValues    Returns the default parameter values for a given
-            %                      processor, optionally given a specific request
-            %
-            %USAGE:
-            %  values = Processor.getParameterValues(procName,request)
-            %
-            %INPUT ARGUMENTS:
-            %    procName : Name of the processor
-            %     request : Structure of non-default requested parameter
-            %                values. Returns default values if empty.
-            %
-            %OUTPUT ARGUMENTS:
-            %      values : Map object of parameter values, indexed by
-            %                parameter names
-            %
-            %NB: As overriding of static methods is not possible, getParameterValues
-            %methods of subclasses will explicitely call this superclass method for easier
-            %code maintenance.
-            
-            if nargin<2; requestPar = []; end
-            
-            % Load parameter names and default values
-            try
-                [names,values] = feval([processorName '.getParameterInfo']);
-            catch
-                if ~ismember(processorName,Processor.processorList)
-                    warning(['There is no ''%s'' processor. Currently valid processor '... 
-                             'names are the following: %s'], ...
-                             processorName, ...
-                             strjoin(Processor.processorList.',', '))
-                    parObj = [];
-                    return
-                else
-                    warning(['The .getParameterInfo static method of processor %s ' ...
-                             'is not implemented!'],processorName)
-                    parObj = [];
-                    return
-                end
-            end
-            
-            % Put these in a parameter object
-            parObj = Parameters(names,values);
-            
-            % Override the non-default values given in the request
-            if ~isempty(requestPar)
-                for ii = 1:size(names,2)
-                    if requestPar.map.isKey(names{ii})
-                        parObj.map(names{ii}) = requestPar.map(names{ii});
-                    end
-                end
-            end
-            
-            % Verify the parameters if necessary
-            dummyProc = feval(processorName);
-            
-            if ismethod(dummyProc,'verifyParameters')
-                dummyProc.verifyParameters(parObj);
-            end
-            
-        end
-        
         function pList = processorList()
             %Processor.processorList    Returns a list of valid processor object names
             %
