@@ -84,6 +84,7 @@ classdef gammatoneProc < Processor
             %  - Implement bAlign option
             
             if nargin<2; parObj = Parameters; end
+            if nargin<1; fs = []; end
             
             % Call super-constructor
             pObj = pObj@Processor(fs,fs,'gammatoneProc',parObj);
