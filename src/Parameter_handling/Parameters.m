@@ -63,7 +63,7 @@ classdef Parameters < handle
             
             % Copy the values from parameterObj with corresponding key
             for ii = 1:size(keys,2)
-                if parameterObj.value.isKey(keys{ii})
+                if parameterObj.map.isKey(keys{ii})
                     processorParameters.map(keys{ii}) = parameterObj.map(keys{ii});
                 else
                     warning('No parameter named %s in this object.',keys{ii})
