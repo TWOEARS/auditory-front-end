@@ -29,42 +29,19 @@ classdef ihcProc < Processor
              
              if nargin>0
              
+             % 1- Verify parameters
+             pObj.verifyParameters(parObj)
              
-             
-             % Populate the object's properties
-             % 1- Global properties
+             % 2- Populate general properties
              populateProperties(pObj,'Type','IHC envelope extractor',...
                  'Dependencies',getDependencies('innerhaircell'),...
                  'FsHzIn',fs,'FsHzOut',fs);
-             % 2- Specific properties
-             pObj.method = parObj.map('IHCMethod');
              
-             % Store specific parameters
+             % 3- Store specific parameters
              pObj.parameters = parObj.getProcessorParameters('ihcProc');
              
-             % Instantiate a low-pass filter if needed
-             switch pObj.method
-                 
-                 case 'joergensen'
-                     % First order butterworth filter @ 150Hz
-                     pObj.IHCFilter = bwFilter(pObj.FsHzIn,1,150);
-
-                 case 'dau'
-                     % Second order butterworth filter @ 1000Hz
-                     pObj.IHCFilter = bwFilter(pObj.FsHzIn,2,1000);
-
-                 case 'breebart'
-                     % First order butterworth filter @ 2000Hz cascaded 5
-                     % times
-                     pObj.IHCFilter = bwFilter(pObj.FsHzIn,1,2000,[],5);
-
-                 case 'bernstein'
-                     % Second order butterworth filter @ 425Hz
-                     pObj.IHCFilter = bwFilter(pObj.FsHzIn,2,425);
-
-                 otherwise
-                     pObj.IHCFilter = [];
-             end
+             % 4- Instantiate filters
+             pObj.populateFilters;
              
              end
             
@@ -196,5 +173,32 @@ classdef ihcProc < Processor
          end
      end
      
-     
+     methods (Access = private)
+         function populateFilters(pObj)
+             
+             % Instantiate a low-pass filter if needed
+             switch pObj.method
+                 
+                 case 'joergensen'
+                     % First order butterworth filter @ 150Hz
+                     pObj.IHCFilter = bwFilter(pObj.FsHzIn,1,150);
+
+                 case 'dau'
+                     % Second order butterworth filter @ 1000Hz
+                     pObj.IHCFilter = bwFilter(pObj.FsHzIn,2,1000);
+
+                 case 'breebart'
+                     % First order butterworth filter @ 2000Hz cascaded 5
+                     % times
+                     pObj.IHCFilter = bwFilter(pObj.FsHzIn,1,2000,[],5);
+
+                 case 'bernstein'
+                     % Second order butterworth filter @ 425Hz
+                     pObj.IHCFilter = bwFilter(pObj.FsHzIn,2,425);
+
+                 otherwise
+                     pObj.IHCFilter = [];
+             end
+         end
+     end
 end
