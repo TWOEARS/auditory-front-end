@@ -169,7 +169,7 @@ classdef ihcProc < Processor
      % "Getter" methods
      methods
          function method = get.method(pObj)
-             method = pObj.parameters.map('IHCMethod')
+             method = pObj.parameters.map('IHCMethod');
          end
      end
      
