@@ -20,6 +20,14 @@ classdef Parameters < handle
             % Initialize a map container
             parObj.map = containers.Map('KeyType', 'char', 'ValueType', 'any');
             
+            % Put keys and values in a cell if needed
+            if ~iscell(keys) && ~isempty(keys)
+                keys = {keys};
+            end
+            if ~iscell(values) && ~isempty(values)
+                values = {values};
+            end
+            
             % Populate with provided keys and values
             if size(keys,2)~=size(values,2)
                 warning(['Provided keys and values should have the same number of '...
