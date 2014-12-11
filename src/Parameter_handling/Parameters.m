@@ -66,8 +66,8 @@ classdef Parameters < handle
                 if parameterObj.map.isKey(keys{ii})
                     processorParameters.map(keys{ii}) = parameterObj.map(keys{ii});
                 else
-                    warning('No parameter named %s in this object.',keys{ii})
-                    processorParameters(keys{ii}) = 'n-a';
+%                     warning('No parameter named %s in this object.',keys{ii})
+                    processorParameters.map(keys{ii}) = 'n-a';
                 end
             end
             
@@ -81,6 +81,59 @@ classdef Parameters < handle
                 r = isequal(parObj1.map.values,parObj2.map.values);
             else
                 r = 0;
+            end
+            
+        end
+        
+        function updateWithRequest(parObj,requestPar)
+            %updateWithRequest  Adds parameters from a request to a parameter instance
+            %
+            %USAGE:
+            %   parObj.updateWithRequest(requestPar)
+            %
+            %INPUT ARGUMENTS:
+            %     parObj : Parameter object
+            % requestPar : Parameter object to add to parObj
+            
+            if nargin<1; requestPar = []; end
+            
+            % Override the non-default values given in the request
+            if ~isempty(requestPar)
+                
+                names = requestPar.map.keys;
+                
+                for ii = 1:size(names,2)
+                    parObj.map(names{ii}) = requestPar.map(names{ii});
+                end
+            end
+            
+        end
+        
+        function updateWithDefault(parObj,procName)
+            %updateWithDefault  Adds default value to missing fields for a given processor
+            %
+            %USAGE:
+            %   parObj.updateWithDefault(procName)
+            %
+            %INPUT ARGUMENTS:
+            %     parObj : Parameter object
+            %   procName : Name of the processor
+            
+            if nargin<2
+                warning('Need to specify a processor name.')
+                return
+            end
+            
+            % Load the default parameters for that processor
+            defaultPar = Parameters.getProcessorDefault(procName);
+            names = defaultPar.map.keys;
+            
+            % Fill the missing or empty fields with default value
+            for ii = 1:size(names,2)
+                if ~parObj.map.isKey(names{ii}) || isempty(parObj.map(names{ii})) ...
+                        || strcmp(parObj.map(names{ii}),'n-a')
+                    parObj.map(names{ii}) = defaultPar.map(names{ii});
+                end
             end
             
         end
@@ -129,6 +182,42 @@ classdef Parameters < handle
     
     methods (Static)
        
+        function parObj = getProcessorDefault(processorName)
+            %getProcessorDefault    Returns the default parameter for a given processor
+            %
+            %USAGE:
+            %  values = Parameters.getProcessorDefault(procName)
+            %
+            %INPUT ARGUMENTS:
+            %    procName : Name of the processor
+            %
+            %OUTPUT ARGUMENTS:
+            %      parObj : Parameter object with default parameters for that processor
+            
+            % Load parameter names and default values
+            try
+                [names,values] = feval([processorName '.getParameterInfo']);
+            catch
+                if ~ismember(processorName,Processor.processorList)
+                    warning(['There is no ''%s'' processor. Currently valid processor '... 
+                             'names are the following: %s'], ...
+                             processorName, ...
+                             strjoin(Processor.processorList.',', '))
+                    parObj = [];
+                    return
+                else
+                    warning(['The .getParameterInfo static method of processor %s ' ...
+                             'is not implemented!'],processorName)
+                    parObj = [];
+                    return
+                end
+            end
+            
+            % Put these in a parameter object
+            parObj = Parameters(names,values);
+            
+        end
+        
         function text = readParameterDescription(parName)
             %readParameterDescription   Finds the description of a single parameter
             %
