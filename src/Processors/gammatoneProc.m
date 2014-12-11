@@ -42,8 +42,7 @@ classdef gammatoneProc < Processor
     end
         
     methods
-        function pObj = gammatoneProc(fs,parObj)%,flow,fhigh,nERBs,nChan,cfHz,bAlign,...
-                                        %n,bw)
+        function pObj = gammatoneProc(fs,parObj)
             %gammatoneProc      Construct a gammatone filterbank inheriting
             %                   the "processor" class
             %

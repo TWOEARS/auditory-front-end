@@ -1,6 +1,6 @@
 classdef ihcProc < Processor
     
-     properties
+     properties (Dependent = true)
          method        % Label for the IHC model used
      end
      
@@ -9,7 +9,7 @@ classdef ihcProc < Processor
      end
      
      methods
-         function pObj = ihcProc(fs,method)
+         function pObj = ihcProc(fs,parObj)
              %ihcProc   Construct a inner haircell (IHC) envelope
              %                  extractor
              %
@@ -27,21 +27,9 @@ classdef ihcProc < Processor
              
              % TO DO: Detail the help file more 
              
-             % List of valid methods
-             validMeth = {'none',...
-                         'halfwave',...
-                         'fullwave',...
-                         'square',...
-                         'hilbert',...
-                         'joergensen',...
-                         'dau',...
-                         'breebart',...
-                         'bernstein'};
+             if nargin>0
              
-             % Check method name
-             if ~ismember(method,validMeth)
-                 error('Invalid name for envelope extraction method')
-             end
+             
              
              % Populate the object's properties
              % 1- Global properties
@@ -49,7 +37,10 @@ classdef ihcProc < Processor
                  'Dependencies',getDependencies('innerhaircell'),...
                  'FsHzIn',fs,'FsHzOut',fs);
              % 2- Specific properties
-             pObj.method = method;
+             pObj.method = parObj.map('IHCMethod');
+             
+             % Store specific parameters
+             pObj.parameters = parObj.getProcessorParameters('ihcProc');
              
              % Instantiate a low-pass filter if needed
              switch pObj.method
@@ -73,6 +64,8 @@ classdef ihcProc < Processor
 
                  otherwise
                      pObj.IHCFilter = [];
+             end
+             
              end
             
          end
@@ -133,83 +126,75 @@ classdef ihcProc < Processor
              end
          end
          
-         function hp = hasParameters(pObj,p)
-            %hasParameters  This method compares the parameters of the
-            %               processor with the parameters given as input
-            %
-            %USAGE
-            %    hp = pObj.hasParameters(p)
-            %
-            %INPUT ARGUMENTS
-            %  pObj : Processor instance
-            %     p : Structure containing parameters to test
-            
-            %NB: Could be moved to private
-            
-            % The IHC processor has the following parameters to be
-            % checked: IHCMethod
-            
-            p_list = {'ihc_method'};
-            p_list_proc = {'method'};
-            
-            % Initialization of a parameters difference vector
-            delta = zeros(size(p_list,2),1);
-            
-            % Loop on the list of parameters
-            for ii = 1:size(p_list,2)
-                try
-                    delta(ii) = ~strcmp(pObj.(p_list_proc{ii}),p.(p_list{ii}));
-                    
-                catch err
-                    % Warning: something is missing
-                    warning('Parameter %s is missing in input p.',p_list{ii})
-                    delta(ii) = 1;
-                end
-            end
-            
-            % Check if delta is a vector of zeros
-            if max(delta)>0
-                hp = false;
-            else
-                hp = true;
-            end
-         end
-         
-     end
-         
-     methods (Access = private)
-         function obj = populateFilters(pObj,nChannels,method)
-             % This function creates an array of filter objects to be used
-             % for envelope extraction. It returns the array instead of
-             % directly setting up the property in pObj as a workaround to
-             % a bug
+         function verifyParameters(~,parObj)
+             % List of valid methods
+             validMeth = {'none',...
+                         'halfwave',...
+                         'fullwave',...
+                         'square',...
+                         'hilbert',...
+                         'joergensen',...
+                         'dau',...
+                         'breebart',...
+                         'bernstein'};
              
-             % Preallocate memory
-             obj(1,nChannels) = bwFilter();
-             
-             % Instantiate one filter per channel
-             for ii = 1:nChannels
-                 switch method
-                     case 'joergensen'
-                         % First order butterworth filter @ 150Hz
-                         obj(1,ii) = bwFilter(pObj.FsHzIn,1,150);
-
-                     case 'dau'
-                         % Second order butterworth filter @ 1000Hz
-                         obj(1,ii) = bwFilter(pObj.FsHzIn,2,1000);
-
-                     case 'breebart'
-                         % First order butterworth filter @ 2000Hz
-                         obj(1,ii) = bwFilter(pObj.FsHzIn,5,2000);
-                         % TODO: CAN'T SERIES THE FILTERS ATM
-
-                     case 'bernstein'
-                         % Second order butterworth filter @ 425Hz
-                         obj(1,ii) = bwFilter(pObj.FsHzIn,2,425);
-
-                 end
+             % Check method name
+             if ~ismember(parObj.map('IHCMethod'),validMeth)
+                 [~,defaultMethod] = ihcProc.getParameterInfo;
+                 warning(['''%s'' is an invalid name for envelope extraction method. '...
+                          'Setting it to the default value, ''%s'''],...
+                          parObj.map('IHCMethod'),defaultMethod)
+                 parObj.map('IHCMethod') = defaultMethod;
              end
              
          end
+         
      end
+         
+     methods (Static)
+        function dep = getDependency()
+            dep = 'gammatone';
+        end
+        
+        function [names, defaultValues, descriptions] = getParameterInfo()
+            %getParameterInfo   Returns the parameter names, default values
+            %                   and descriptions for that processor
+            %
+            %USAGE:
+            %  [names, defaultValues, description] =  ihcProc.getParameterInfo;
+            %
+            %OUTPUT ARGUMENTS:
+            %         names : Parameter names
+            % defaultValues : Parameter default values
+            %  descriptions : Parameter descriptions
+            
+            
+            names = {'IHCMethod'};
+            
+            descriptions = {['Inner hair-cell envelope extraction method (''none'', ' ...
+                            '''halfwave'', ''fullwave'', ''square'', ''hilbert'', '...
+                            '''joergensen'', ''dau'', ''breebart'', ''berstein'')']};
+            
+            defaultValues = {'dau'};
+                
+        end
+        
+        function [name,description] = getProcessorInfo
+            
+            %Returns a very short name and a short description of the processor function
+            name = 'IHC envelope';
+            description = 'Inner hair-cell envelope extraction';
+            
+        end
+        
+     end
+    
+     % "Getter" methods
+     methods
+         function method = get.method(pObj)
+             method = pObj.parameters.map('IHCMethod')
+         end
+     end
+     
+     
 end
