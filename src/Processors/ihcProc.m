@@ -25,26 +25,17 @@ classdef ihcProc < Processor
              %N.B: The constructor does not instantiate the lowpass filters
              %needed for some of the methods.
              
-             % TO DO: Detail the help file more 
+             
+             if nargin<2; parObj = Parameters; end
+             if nargin<1; fs = []; end
+             
+             % Call super-constructor
+             pObj = pObj@Processor(fs,fs,'ihcProc',parObj);
              
              if nargin>0
-             
-             % 1- Verify parameters
-             pObj.verifyParameters(parObj)
-             
-             % 2- Populate general properties
-             populateProperties(pObj,'Type','IHC envelope extractor',...
-                 'Dependencies',getDependencies('innerhaircell'),...
-                 'FsHzIn',fs,'FsHzOut',fs);
-             
-             % 3- Store specific parameters
-             pObj.parameters = parObj.getProcessorParameters('ihcProc');
-             
-             % 4- Instantiate filters
-             pObj.populateFilters;
-             
+                pObj.populateFilters;
              end
-            
+             
          end
          
          function out = processChunk(pObj,in)
@@ -103,8 +94,12 @@ classdef ihcProc < Processor
              end
          end
          
-         function verifyParameters(~,parObj)
-             % List of valid methods
+         function verifyParameters(pObj)
+             
+             % Add missing parameter values
+             pObj.extendParameters;
+             
+             % Check that the IHC method name is valid
              validMeth = {'none',...
                          'halfwave',...
                          'fullwave',...
@@ -115,13 +110,12 @@ classdef ihcProc < Processor
                          'breebart',...
                          'bernstein'};
              
-             % Check method name
-             if ~ismember(parObj.map('IHCMethod'),validMeth)
+             if ~ismember(pObj.parameters.map('IHCMethod'),validMeth)
                  [~,defaultMethod] = ihcProc.getParameterInfo;
                  warning(['''%s'' is an invalid name for envelope extraction method. '...
                           'Setting it to the default value, ''%s'''],...
-                          parObj.map('IHCMethod'),defaultMethod)
-                 parObj.map('IHCMethod') = defaultMethod;
+                          pObj.parameters.map('IHCMethod'),defaultMethod)
+                 pObj.parameters.map('IHCMethod') = defaultMethod;
              end
              
          end
@@ -201,4 +195,5 @@ classdef ihcProc < Processor
              end
          end
      end
+     
 end
