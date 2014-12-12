@@ -28,14 +28,15 @@ switch signal
         procName = 'framingProc';
         
     case 'filterbank'
-        switch p.fb_type
-            case 'gammatone'
-                procName = 'gammatoneProc';
-            case 'drnl'
-                procName = 'drnl';
-            otherwise
-                error('Incorrect filterbank type name.')
-        end
+        procName = 'gammatoneProc';
+%         switch p.fb_type
+%             case 'gammatone'
+%                 procName = 'gammatoneProc';
+%             case 'drnl'
+%                 procName = 'drnl';
+%             otherwise
+%                 error('Incorrect filterbank type name.')
+%         end
         
     case 'innerhaircell'
         procName = 'ihcProc';
