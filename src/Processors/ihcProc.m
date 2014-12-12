@@ -150,11 +150,12 @@ classdef ihcProc < Processor
                 
         end
         
-        function [name,description] = getProcessorInfo
+        function [name,description,requestName] = getProcessorInfo
             
             %Returns a very short name and a short description of the processor function
             name = 'IHC envelope';
             description = 'Inner hair-cell envelope extraction';
+            requestName = 'innerhaircell';
             
         end
         

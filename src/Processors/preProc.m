@@ -397,11 +397,12 @@ classdef preProc < Processor
                 
         end
         
-        function [name,description] = getProcessorInfo
+        function [name,description,requestName] = getProcessorInfo
             
             %Returns a very short name and a short description of the processor function
             name = 'Pre-processor';
             description = 'Pre-processing stage';
+            requestName = 'time';
             
         end
         

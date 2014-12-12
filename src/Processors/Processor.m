@@ -355,6 +355,26 @@ classdef Processor < handle
 
         end
         
+        function list = requestList()
+            %Processor.requestList  Returns a list of supported request names
+            %
+            %USAGE:
+            %   rList = Processor.requestList
+            %
+            %OUTPUT ARGUMENT:
+            %   rList : Cell array of valid requests
+            
+            % Get a list of processor
+            procList = Processor.processorList;
+            
+            list = cell(size(procList,1),1);
+            
+            for ii = 1:size(list,1)
+                [~,~,list{ii}] = feval([procList{ii} '.getProcessorInfo']);
+            end
+            
+        end
+        
     end
     
     

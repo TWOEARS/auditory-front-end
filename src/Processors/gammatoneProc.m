@@ -323,11 +323,12 @@ classdef gammatoneProc < Processor
                 
         end
         
-        function [name,description] = getProcessorInfo
+        function [name,description,requestName] = getProcessorInfo
             
             %Returns a very short name and a short description of the processor function
             name = 'Gammatone filterbank';
             description = 'Gammatone filterbank';
+            requestName = 'filterbank';
             
         end
         
