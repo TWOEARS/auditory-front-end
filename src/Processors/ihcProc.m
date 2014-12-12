@@ -26,7 +26,7 @@ classdef ihcProc < Processor
              %needed for some of the methods.
              
              
-             if nargin<2; parObj = Parameters; end
+             if nargin<2||isempty(parObj); parObj = Parameters; end
              if nargin<1; fs = []; end
              
              % Call super-constructor

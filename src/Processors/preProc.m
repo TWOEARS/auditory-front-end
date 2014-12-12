@@ -51,7 +51,7 @@ classdef preProc < Processor
             %OUTPUT ARGUMENTS:
             % pObj : Pre-processor instance
             
-            if nargin<2; parObj = Parameters; end
+            if nargin<2||isempty(parObj); parObj = Parameters; end
             if nargin<1; fs = []; end
             
             % Call super-constructor

@@ -83,7 +83,7 @@ classdef gammatoneProc < Processor
             %    durations for different filters (if necessary)
             %  - Implement bAlign option
             
-            if nargin<2; parObj = Parameters; end
+            if nargin<2||isempty(parObj); parObj = Parameters; end
             if nargin<1; fs = []; end
             
             % Call super-constructor
