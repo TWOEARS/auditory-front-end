@@ -1146,9 +1146,11 @@ classdef manager < handle
                 
                 %% New instantiation
                 
-                procName = signal2procName(dep_list{ii-n_proc});
+                procName = Processor.findProcessorFromSignal(dep_list{ii-n_proc});
                 
-                % Only mono for the moment
+                % NB: Only mono for the moment
+                
+%                 Instantiate processor
                 mObj.Processors{ii,1} = feval(procName,fs,p);
                 
                 % Temporary switch (similar changes to the processor need to be performed
@@ -1412,7 +1414,8 @@ classdef manager < handle
             
             % Initialization of while loop
             ii = 1;
-            dep = signal2procName(dep_list{ii},p);
+%             dep = signal2procName(dep_list{ii},p);
+            dep = Processor.findProcessorFromSignal(dep_list{ii});
             hProc = mObj.hasProcessor(dep,p);
             list = {};
             
@@ -1425,7 +1428,8 @@ classdef manager < handle
                 
                 % Move on to next level of dependency
                 ii = ii + 1;
-                dep = signal2procName(dep_list{ii},p);
+%                 dep = signal2procName(dep_list{ii},p);
+                dep = Processor.findProcessorFromSignal(dep_list{ii});
                 hProc = mObj.hasProcessor(dep,p);
                 
             end
@@ -1449,7 +1453,8 @@ classdef manager < handle
                 
                 % Initialization of while loop
                 ii = 1;
-                dep = signal2procName(dep_list{ii},p);
+                dep = Processor.findProcessorFromSignal(dep_list{ii});
+%                 dep = signal2procName(dep_list{ii},p);
                 hProc2 = mObj.hasProcessor(dep,p,Channel);
                 list = {};
 
@@ -1462,7 +1467,8 @@ classdef manager < handle
 
                     % Move on to next level of dependency
                     ii = ii + 1;
-                    dep = signal2procName(dep_list{ii},p);
+%                     dep = signal2procName(dep_list{ii},p);
+                    dep = Processor.findProcessorFromSignal(dep_list{ii});
                     hProc2 = mObj.hasProcessor(dep,p,Channel);
 
                 end

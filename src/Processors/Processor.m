@@ -316,7 +316,27 @@ classdef Processor < handle
             pList = pList(~cellfun('isempty',pList));
              
         end
-
+        
+        function list = requestList()
+            %Processor.requestList  Returns a list of supported request names
+            %
+            %USAGE:
+            %   rList = Processor.requestList
+            %
+            %OUTPUT ARGUMENT:
+            %   rList : Cell array of valid requests
+            
+            % Get a list of processor
+            procList = Processor.processorList;
+            
+            list = cell(size(procList,1),1);
+            
+            for ii = 1:size(list,1)
+                [~,~,list{ii}] = feval([procList{ii} '.getProcessorInfo']);
+            end
+            
+        end
+        
         function procName = findProcessorFromParameter(parameterName)
             %Processor.findProcessorFromParameter   Finds the processor that uses a given parameter
             %
@@ -355,23 +375,34 @@ classdef Processor < handle
 
         end
         
-        function list = requestList()
-            %Processor.requestList  Returns a list of supported request names
+        function procName = findProcessorFromSignal(signalName)
+            %Processor.findProcessorFromSignal Finds the processor that generates a signal
             %
             %USAGE:
-            %   rList = Processor.requestList
+            %   procName = Processor.findProcessorFromSignal(signalName)
+            %
+            %INPUT ARGUMENT:
+            %   signalName : Name of the signal
             %
             %OUTPUT ARGUMENT:
-            %   rList : Cell array of valid requests
+            %     procName : Name of the processor generating that signal
             
-            % Get a list of processor
             procList = Processor.processorList;
+            procName = cell(0);
             
-            list = cell(size(procList,1),1);
-            
-            for ii = 1:size(list,1)
-                [~,~,list{ii}] = feval([procList{ii} '.getProcessorInfo']);
+            for ii = 1:size(procList,1)
+                [~,~,currentName] = feval([procList{ii} '.getProcessorInfo']);
+                if strcmp(currentName,signalName)
+                    procName = [procName; procList{ii}]; %#ok<AGROW>
+                end
             end
+            
+            % Change to string if single output
+            if size(procName,1) == 1
+                procName = procName{1};
+            end
+            
+            
             
         end
         

@@ -20,6 +20,9 @@ if nargin<1
     signal = '';
 end
 
+% Temporary error before removal
+error('signal2procName was deprecated and should not be used anymore')
+
 switch signal
     case 'time'
         procName = 'preProc';
