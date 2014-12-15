@@ -146,6 +146,38 @@ classdef Parameters < handle
             
         end
         
+        function appendParameters(parObj,newParObj)
+            %appendParameters   Appends new parameter properties to an existing object
+            %
+            %
+            
+            % Get a list of keyvalues to append
+            keyList = newParObj.map.keys;
+            
+            if any(parObj.map.isKey(keyList))
+                warning('Cannot append already existing parameters')
+            else
+                parObj.map = [parObj.map ; newParObj.map];
+            end
+            
+        end
+        
+        function parObjCopy = copy(parObj)
+            %copy   Returns a new parameter object containing the same information
+            %
+            %USAGE:
+            %  parObjCopy = parObj.copy;
+            %
+            %INPUT ARGUMENT:
+            %      parObj : Parameter object
+            %
+            %OUTPUT ARGUMENT:
+            %  parObjCopy : Copy of the parameter object
+            
+            parObjCopy = Parameters(parObj.map.keys, parObj.map.values);
+            
+        end
+        
     end
     
     % "Getter" method
@@ -166,26 +198,6 @@ classdef Parameters < handle
             end
             
         end
-    end
-    
-    methods (Access = private)
-       
-        function appendParameters(parObj,newParObj)
-            %appendParameters   Appends new parameter properties to an existing object
-            %
-            %
-            
-            % Get a list of keyvalues to append
-            keyList = newParObj.map.keys;
-            
-            if any(parObj.map.isKey(keyList))
-                warning('Cannot append already existing parameters')
-            else
-                parObj.map = [parObj.map ; newParObj.map];
-            end
-            
-        end
-        
     end
     
     methods (Static)

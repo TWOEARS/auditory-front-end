@@ -1150,7 +1150,7 @@ classdef manager < handle
                 
                 % NB: Only mono for the moment
                 
-%                 Instantiate processor
+                % Instantiate processor
                 mObj.Processors{ii,1} = feval(procName,fs,p);
                 
                 % Temporary switch (similar changes to the processor need to be performed

@@ -131,92 +131,49 @@ classdef Processor < handle
             
         end
         
-        function parStruct = getCurrentParameters(pObj,full_list)
+        function parObj = getCurrentParameters(pObj,bRecursiveList)
             %getCurrentParameters  This methods returns a list of parameter
             %values used by a given processor.
             %
             %USAGE:
-            %   parStruct = pObj.getCurrentParameters
-            %   parStruct = pObj.getCurrentParameters(full_list)
+            %   parObj = pObj.getCurrentParameters
+            %   parObj = pObj.getCurrentParameters(full_list)
             %
             %INPUT PARAMETERS:
-            %        pObj : Processor object instance
-            %   full_list : Set to true to return also the parameter values
-            %               used by parent processors.
+            %           pObj : Processor object instance
+            % bRecursiveList : Set to true to return also the parameter values
+            %                  used by parent processors.
             %
             %OUTPUT PARAMETERS:
-            %   parStruct : Parameter structure
+            %   parObj : Parameter object instance
             
             % TODO: Will have to be modified when introducing processors
             % with multiple parents.
             
-            if nargin<2||isempty(full_list)
-                full_list = 1;
+            if nargin<2||isempty(bRecursiveList)
+                bRecursiveList = 0;
             end
             
-            % Note: The parameters of interest are stored as properties of
-            % the processor object. However we are not interested in the
-            % general properties contained in this Processor parent class:
-            discard_list = properties('Processor');
+            % Make a copy of the processor parameter
+            parObj = pObj.parameters.copy;
             
-            % Full properties list of the processor instance
-            prop_list = properties(pObj);
-            
-            % Get the list of "interesting" properties
-            list = setdiff(prop_list,discard_list);
-            
-            % Some parameters have same name across different processors
-            % and are differenciated by a prefix.
-            if full_list
-                switch class(pObj)
-                    case 'ildProc'
-                        prefix = 'ild_';
-                    case 'ratemapProc'
-                        prefix = 'rm_';
-                    case 'autocorrelationProc'
-                        prefix = 'ac_';
-                    case 'crosscorrelationProc'
-                        prefix = 'cc_';
-                    otherwise 
-                        prefix = '';
+            % Add dependencies if necessary
+            if bRecursiveList && ~isempty(pObj.Dependencies{1})
+                while 1
+                    if ~isempty(pObj.Dependencies{1})
+                        pObj = pObj.Dependencies{1};
+                    else
+                        break
+                    end
+                    parObj.appendParameters(pObj.parameters)
                 end
-            else
-                prefix = '';
-            end
-                
-            % Initialize the parameter structure
-            parStruct = struct;
-            
-            % Store the properties values
-            for ii = 1:size(list,1)
-                parStruct.([prefix list{ii}]) = pObj.(list{ii});
             end
             
-            % Access recursively to the properties of parent processors
-            if full_list
-                % Get the property values of its parent processor
-                if ~isempty(pObj.Dependencies{1})
-                    parParent = pObj.Dependencies{1}.getCurrentParameters;
-                else
-                    % Break the recursion
-                    parParent = struct;     % Empty structure
-                end
-
-                % Merge the two structures
-                par_list = fieldnames(parParent);
-                for ii = 1:size(par_list,1)
-                    parStruct.(par_list{ii}) = parParent.(par_list{ii});
-                end
-            end            
             
         end
         
         function hp = hasParameters(pObj,parObj)
-            
-            % Verify the parameters if necessary
-            if ismethod(pObj,'verifyParameters')
-                pObj.verifyParameters(parObj)
-            end
+            %TODO: Write h1
             
             % Extract the parameters related to this processor only
             testParameters = parObj.getProcessorParameters(class(pObj));
