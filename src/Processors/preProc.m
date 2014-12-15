@@ -397,12 +397,14 @@ classdef preProc < Processor
                 
         end
         
-        function [name,description,requestName] = getProcessorInfo
+        function pInfo = getProcessorInfo
             
-            %Returns a very short name and a short description of the processor function
-            name = 'Pre-processor';
-            description = 'Pre-processing stage';
-            requestName = 'time';
+            pInfo = struct;
+            
+            pInfo.name = 'Pre-processor';
+            pInfo.label = 'Pre-processing stage';
+            pInfo.requestName = 'time';
+            pInfo.outputType = 'TimeDomainSignal';
             
         end
         

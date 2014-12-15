@@ -25,7 +25,8 @@ if nargin == 0 || isempty(procName)
     procDescription = cell(size(procList));
     for ii = 1:size(procList,1)
         try
-            [~,procDescription{ii}] = feval(str2func([procList{ii} '.getProcessorInfo']));
+            pInfo = feval([procList{ii} '.getProcessorInfo']);
+			procDescription{ii} = pInfo.label;
         catch
             procDescription{ii} = [];
         end

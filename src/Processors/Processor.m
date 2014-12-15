@@ -76,7 +76,8 @@ classdef Processor < handle
             pObj.parameters = parObj.getProcessorParameters(procName);
             
             % Populate properties
-            pObj.Type = feval([procName '.getProcessorInfo']);
+            pInfo = feval([procName '.getProcessorInfo']);
+            pObj.Type = pInfo.name;
             pObj.FsHzIn = fsIn;
             pObj.FsHzOut = fsOut;
             pObj.Dependencies = feval([procName '.getDependency']);
@@ -199,37 +200,7 @@ classdef Processor < handle
             
         end
         
-%         function pObj = populateProperties(pObj,varargin)
-%             
-%             % First check on input
-%             if mod(size(varargin,2),2)||isempty(varargin)
-%                 error('Additional input arguments have to come in pairs of ...,''property name'',value,...')
-%             end
-%             
-%             % List of valid properties % TO DO: should this be hardcoded
-%             % here?
-%             validProp = {'Type',...
-%                          'Dependencies',...
-%                          'FsHzIn',...
-%                          'FsHzOut',...
-%                          'Decimation'};
-%                      
-%             % Loop on the additional arguments
-%             for ii = 1:2:size(varargin,2)-1
-%                 % Check that provided property name is a string
-%                 if ~ischar(varargin{ii})
-%                     error('Property names should be given as strings, %s isn''t one!',num2str(varargin{ii}))
-%                 end
-%                 % Check that provided property name is valid
-%                 if ~ismember(varargin{ii},validProp)
-%                     error('Property name ''%s'' is invalid',varargin{ii})
-%                 end
-%                 % Then add the property value
-%                 pObj.(varargin{ii})=varargin{ii+1};
-%             end
-%             
-%             
-%         end 
+
     end
 
     methods (Static)
@@ -289,7 +260,8 @@ classdef Processor < handle
             list = cell(size(procList,1),1);
             
             for ii = 1:size(list,1)
-                [~,~,list{ii}] = feval([procList{ii} '.getProcessorInfo']);
+                pInfo = feval([procList{ii} '.getProcessorInfo']);
+                list{ii} = pInfo.requestName;
             end
             
         end
@@ -348,7 +320,8 @@ classdef Processor < handle
             procName = cell(0);
             
             for ii = 1:size(procList,1)
-                [~,~,currentName] = feval([procList{ii} '.getProcessorInfo']);
+                pInfo = feval([procList{ii} '.getProcessorInfo']);
+                currentName = pInfo.requestName;
                 if strcmp(currentName,signalName)
                     procName = [procName; procList{ii}]; %#ok<AGROW>
                 end

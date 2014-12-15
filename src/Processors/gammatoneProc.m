@@ -323,12 +323,14 @@ classdef gammatoneProc < Processor
                 
         end
         
-        function [name,description,requestName] = getProcessorInfo
+        function pInfo = getProcessorInfo
             
-            %Returns a very short name and a short description of the processor function
-            name = 'Gammatone filterbank';
-            description = 'Gammatone filterbank';
-            requestName = 'filterbank';
+            pInfo = struct;
+            
+            pInfo.name = 'Gammatone filterbank';
+            pInfo.label = 'Gammatone filterbank';
+            pInfo.requestName = 'filterbank';
+            pInfo.outputType = 'TimeFrequencySignal';
             
         end
         
