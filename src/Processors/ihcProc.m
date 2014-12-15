@@ -1,4 +1,33 @@
 classdef ihcProc < Processor
+%IHCPROC Inner hair-cell processor.
+%   The Inner hair-cell processor extracts the envelope of the output of
+%   the individual Basilar Membrane (BM) filterbank outputs. This is
+%   typically done by half-wave rectification combined with low-pass
+%   filtering. The detailed extraction method can be specified as an input
+%   parameter (see constructor below, and [1-4]).
+%
+%   ADAPTATIONPROC properties:
+%       method              - IHC model to specify envelope extraction method
+%
+%   See also: Processor, gammatoneProc, drnlProc
+%
+%   Reference:
+%   [1] Dau, T., Puschel, D., & Kohlrausch, A. (1996). 
+%       A quantitative model of the "effective" signal processing 
+%       in the auditory system. I. Model structure. 
+%       Journal of the Acoustical Society of America, 99(6), 3615-3622. 
+%   [2] Joergensen, S. and Dau, T. (2011). Predicting speech intelligibility 
+%       based on the signal-to-noise envelope power ratio after 
+%       modulation-frequency selective processing. Journal of the Acoustical 
+%       Society of America, 130(3), 1475?1487.
+%   [3] Breebaart, J., van de Par, S., and Kohlrausch, A. (2001).
+%       Binaural processing model based on contralateral inhibition. I. 
+%       Model structure. Journal of the Acoustical Society of America, 110(2), 
+%       pp. 1074?1088.
+%   [4] Bernstein, L. R., van de Par, S., and Trahiotis, C. (1999).
+%       The normalized interaural correlation: Accounting for N_oS_pi 
+%       thresholds obtained with Gaussian and ¡°low-noise¡±masking noise.
+%       Journal of the Acoustical Society of America, 106(2), pp. 870?876.
     
      properties
          method        % Label for the IHC model used
@@ -18,15 +47,23 @@ classdef ihcProc < Processor
              %
              %INPUT ARGUMENTS
              %     fs : Sampling frequency (Hz)
-             % method : Envelope extraction method, among 'halfwave',
-             %          'fullwave', 'square', 'hilbert', 'joergensen',
-             %          'dau', 'breebart', 'berstein'
-             %
+             % method : Envelope extraction method
+             %      'hilbert'       Hilbert transform
+             %      'halfwave'      Half-wave rectification
+             %      'fullwave'      Full-wave rectification
+             %      'square'        Squared
+             %      'dau'           Half-wave rectification and low-pass
+             %                      filtering at 1000 Hz (see reference [1] above)
+             %      'joergensen'    Hilbert transform and low-pass
+             %                      filtering at 150 Hz (see [2] above)
+             %      'breebart'      Half-wave rectification and low-pass
+             %                      filtering at 770 Hz (see [3] above)
+             %      'bernstein'     Half-wave rectification, compression
+             %                      and low-pass filtering at 425 Hz (see [4] above)
+             %   
              %N.B: The constructor does not instantiate the lowpass filters
              %needed for some of the methods.
-             
-             % TO DO: Detail the help file more 
-             
+                          
              % List of valid methods
              validMeth = {'none',...
                          'halfwave',...
