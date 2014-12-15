@@ -21,7 +21,7 @@ if nargin<1
 end
 
 % Temporary error before removal
-error('signal2procName was deprecated and should not be used anymore')
+warning('signal2procName was deprecated and should not be used anymore')
 
 switch signal
     case 'time'

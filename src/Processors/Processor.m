@@ -116,14 +116,14 @@ classdef Processor < handle
             parValue = [];
             proc = pObj;
             
-            while isempty(parValue)&&~isempty(proc.Dependencies{1})
+            while isempty(parValue)
                 
-                % Check if current processor has such a parameter
-                if isprop(proc,parName)
-                    % Then get the corresponding value
-                    parValue = proc.(parName);
+                if proc.parameters.map.isKey(parName)
+                    parValue = proc.parameters.map(parName);
                 else
-                    % Else move on to the next dependent processor
+                    if isempty(proc.Dependencies{1})
+                        break
+                    end
                     proc = proc.Dependencies{1};
                 end
                 
