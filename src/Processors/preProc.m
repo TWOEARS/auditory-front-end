@@ -404,6 +404,7 @@ classdef preProc < Processor
             pInfo.name = 'Pre-processor';
             pInfo.label = 'Pre-processing stage';
             pInfo.requestName = 'time';
+            pInfo.requestLabel = 'Time domain signal';
             pInfo.outputType = 'TimeDomainSignal';
             
         end

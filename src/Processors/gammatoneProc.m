@@ -330,6 +330,7 @@ classdef gammatoneProc < Processor
             pInfo.name = 'Gammatone filterbank';
             pInfo.label = 'Gammatone filterbank';
             pInfo.requestName = 'filterbank';
+            pInfo.requestLabel = 'Gammatone filterbank output';
             pInfo.outputType = 'TimeFrequencySignal';
             
         end

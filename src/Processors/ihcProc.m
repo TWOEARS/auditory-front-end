@@ -157,6 +157,7 @@ classdef ihcProc < Processor
             pInfo.name = 'IHC envelope';
             pInfo.label = 'Inner hair-cell envelope extraction';
             pInfo.requestName = 'innerhaircell';
+            pInfo.requestLabel = 'Inner hair-cell envelope';
             pInfo.outputType = 'TimeFrequencySignal';
             
         end
