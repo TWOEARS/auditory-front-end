@@ -1153,21 +1153,15 @@ classdef manager < handle
                 % Instantiate processor
                 mObj.Processors{ii,1} = feval(procName,fs,p);
                 
-                % Temporary switch (similar changes to the processor need to be performed
-                % to the signals)
-                switch dep_list{ii-n_proc}
-                    case 'time'
-                        sig = TimeDomainSignal(mObj.Processors{ii,1}.FsHzOut,mObj.Data.bufferSize_s,'time','Time domain signal',[],'mono');
-                        
-                    case 'filterbank'
-                        sig = TimeFrequencySignal(mObj.Processors{ii,1}.FsHzOut,mObj.Data.bufferSize_s,'gammatone',mObj.Processors{ii}.cfHz,'Gammatone filterbank output',[],'mono');
-                        
-                    case 'innerhaircell'
-                        cfHz = dep_proc.getDependentParameter('cfHz');
-                        sig = TimeFrequencySignal(mObj.Processors{ii,1}.FsHzOut,mObj.Data.bufferSize_s,'innerhaircell',cfHz,'Inner hair-cell envelope',[],'mono');
-                        
-                end
+                % Link to its dependency
+                mObj.Processors{ii,1}.Dependencies = {dep_proc};
                 
+                % Instantiate output signal
+                sig = feval(mObj.Processors{ii,1}.getProcessorInfo.outputType,...
+                            mObj.Processors{ii,1},...
+                            mObj.Data.bufferSize_s,...
+                            'mono');
+                      
                 % Add signal to the Data object
                 mObj.Data.addSignal(sig);
                 

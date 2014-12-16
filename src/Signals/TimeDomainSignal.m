@@ -8,40 +8,34 @@ classdef TimeDomainSignal < Signal
     end
     
     methods
-        function sObj = TimeDomainSignal(fs,bufferSize_s,name,label,data,channel)
+        function sObj = TimeDomainSignal(procHandle,bufferSize,channel,data)
             %TimeDomainSignal       Constructor for the "time domain signal"
             %                       children signal class
             %
             %USAGE
-            %     sObj = TimeDomainSignal(fs)
-            %     sObj = TimeDomainSignal(fs,name,label)
-            %     sObj = TimeDomainSignal(fs,name,label,data,channel)
+            %     sObj = TimeDomainSignal(procHandle)
+            %     sObj = TimeDomainSignal(procHandle,bufferSize,channel,data)
             %
             %INPUT ARGUMENTS
-            %       fs : Sampling frequency (Hz)
-            %     name : Formal name for the signal (default: name =
-            %            'time')
-            %    label : Label for the signal, to be used in e.g. figures
-            %            (default: label = 'Waveform')
-            %     data : Vector of amplitudes to construct an object from
-            %            existing data
-            %   channel : Flag indicating 'left', 'right', or 'mono'
-            %            (default: channel = 'mono')
-            
+            % procHandle : Handle to the processor generating this signal as output
+            % bufferSize : Size of the ring buffer in s (default: bufferSize = 10)
+            %    channel : Flag indicating 'left', 'right', or 'mono' (default: 
+            %              channel = 'mono')
+            %       data : Vector of amplitudes to construct an object from existing data
             %
             %OUTPUT ARGUMENT
-            %     sObj : Time domain signal object inheriting the signal class
-            
-            sObj = sObj@Signal( fs, bufferSize_s, 1 );
-            
-            if nargin>0  % Failproof for Matlab empty calls
+            %  sObj : Time domain signal object inheriting the signal class
             
             % Check input arguments
-            if nargin<6; channel = 'mono'; end
-            if nargin<5; data = []; end
-            if nargin<4||isempty(label); label = 'Waveform'; end
-            if nargin<3||isempty(name); name = 'time'; end
-            %if nargin<1; fs = []; end
+            if nargin<4; data = []; end
+            if nargin<3||isempty(channel); channel = 'mono'; end
+            if nargin<2||isempty(bufferSize); bufferSize = 10; end
+            % TODO: Maybe the following needs to define en "emptyProc"
+            if nargin<1||isempty(procHandle); procHandle = Processor; end
+            
+            sObj = sObj@Signal( procHandle, bufferSize, 1 );
+            
+            if nargin>0  % Failproof for Matlab empty calls
             
             % Check dimensionality of data if it was provided
             if ~isempty(data) && min(size(data))>1
@@ -53,8 +47,7 @@ classdef TimeDomainSignal < Signal
             data = data(:);
             
             % Populate object properties
-            populateProperties(sObj,'Label',label,'Name',name,...
-                'Dimensions','nSamples x 1');
+            sObj.Dimensions = 'nSamples x 1';
             sObj.setData( data );
             sObj.Channel = channel;
             
@@ -166,4 +159,51 @@ classdef TimeDomainSignal < Signal
         end
         
     end
+    
+    methods (Static)
+        
+        function sObj = construct(fs,bufferSize,name,label,channel,data)
+            %construct    Constructs a time domain signal given its properties.
+            %             To be used to generate a standalone signal, i.e., one that is
+            %             not given as the output of a processor.
+            %
+            %USAGE:
+            %  sObj = TimeDomainSignal.construct(fs)
+            %  sObj = TimeDomainSignal.construct(fs, bufferSize, name,  label, ...
+            %                                    channel, data)
+            %
+            %INPUT ARGUMENTS:
+            %         fs : Sampling frequency (Hz)
+            % bufferSize : Ring buffer duration in seconds
+            %       name : Name for the signal
+            %      label : Label for the signal (used in e.g., plotting)
+            %    channel : Channel tag ('left', 'right', or 'mono')
+            %       data : Initial data to fill the buffer with
+            %
+            % NB: If arguments are missing, default values from the class constructor are
+            %     used
+            %
+            %OUTPUT ARGUMENT:
+            %   sObj : Time domain signal instance
+            
+            if nargin<6; data = []; end
+            if nargin<5; channel = []; end
+            if nargin<4; label = []; end
+            if nargin<3; name = []; end
+            if nargin<2; bufferSize = []; end
+            if nargin<1; fs = []; end
+            
+            % Create a structure that contains all the info needed with correct formating
+            dummyStruct = struct;
+            dummyStruct.FsHzOut = fs;
+            dummyStruct.getProcessorInfo.requestName = name;
+            dummyStruct.getProcessorInfo.requestLabel = label;
+            
+            % Instantiate the signal
+            sObj = TimeDomainSignal(dummyStruct,bufferSize,channel,data);
+            
+        end
+        
+    end
+    
 end

@@ -103,7 +103,9 @@ classdef dataObject < dynamicprops
                 dObj.addSignal(sig_r);
             else
                 if ~isempty(s)
-                    sig = TimeDomainSignal(fs,dObj.bufferSize_s,'input','Ear signal (mono)',s);
+%                     sig = TimeDomainSignal(fs,dObj.bufferSize_s,'input','Ear signal (mono)',s);
+                    sig = TimeDomainSignal.construct(fs, dObj.bufferSize_s, ...
+                            'input', 'Ear signal', 'mono', s);
                 else
                     sig = TimeDomainSignal(fs,dObj.bufferSize_s,'input','Ear signal (mono)',[]);
                 end

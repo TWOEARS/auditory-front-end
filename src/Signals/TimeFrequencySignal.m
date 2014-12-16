@@ -21,7 +21,8 @@ classdef TimeFrequencySignal < Signal
     end
     
     methods 
-        function sObj = TimeFrequencySignal(fs,bufferSize_s,name,cfHz,label,data,channel,scaling)
+        function sObj = TimeFrequencySignal(procHandle,bufferSize,channel,data)
+%         function sObj = TimeFrequencySignal(fs,bufferSize_s,name,cfHz,label,data,channel,scaling)
             %TimeFrequencySignal    Constructor for the "time-frequency
             %                       representation" children signal class
             %
@@ -45,41 +46,28 @@ classdef TimeFrequencySignal < Signal
             %     sObj : Time-frequency representation signal object 
             %            inheriting the signal class
              
-            sObj = sObj@Signal( fs, bufferSize_s, length(cfHz) );
+            if nargin<4; data = []; end
+            if nargin<3||isempty(channel); channel = 'mono'; end
+            if nargin<2||isempty(bufferSize); bufferSize = 10; end
+            % TODO: Maybe the following needs to define en "emptyProc"
+            if nargin<1||isempty(procHandle); procHandle = Processor; end
+            
+            sObj = sObj@Signal( procHandle, bufferSize, ...
+                                length(procHandle.getDependentParameter('cfHz')));
             
             if nargin>0     % Safeguard for Matlab empty calls
             
-            % Check input arguments
-            if nargin<3||isempty(name)
-                name = 'tfRepresentation';
-                warning(['A name tag should be assigned to the signal. '...
-                    'The name %s was chosen by default'],name)
-            end
-            if nargin<8; scaling = 'magnitude'; end
-            if nargin<7; channel = 'mono'; end
-            if nargin<6||isempty(data); data = []; end
-            if nargin<5||isempty(label)
-                label = name;
-            end
-            if nargin<4||isempty(cfHz); cfHz = []; end
-            if nargin<1||isempty(fs)
-%                 error('The sampling frequency needs to be provided')
-                fs = [];
-            end
-            
-            % N.B: We are not checking the dimensionality of the provided
-            % data and leave this to the user's responsibility. Assuming
-            % for example that there should be more frequency bins than
-            % time samples might not be compatible with processing in short
-            % time chunks.
-            
-            % Populate object properties
-            populateProperties(sObj,'Label',label,'Name',name,...
-                'Dimensions','nSamples x nFilters');
-            sObj.cfHz = cfHz;
+            sObj.Dimensions = 'nSamples x nFilters';
+            sObj.cfHz = procHandle.getDependentParameter('cfHz');
             sObj.setData( data );
             sObj.Channel = channel;
-            sObj.scaling = scaling;
+            
+            % TODO: do something non-specific for the scaling?
+            if isa(procHandle,'ratemapProc')
+                sObj.scaling = procHandle.scaling;
+            else
+                sObj.scaling = 'magnitude';
+            end
             
             end
             
@@ -111,7 +99,7 @@ classdef TimeFrequencySignal < Signal
             
                 % Decide if the plot should be on a linear or dB scale
                 switch sObj.Name
-                    case {'gammatone','ild','ic','itd','onset_strength',...
+                    case {'filterbank','ild','ic','itd','onset_strength',...
                             'offset_strength','innerhaircell','adaptation','onset_map','drnl'}
                         do_dB = 0;
                     case {'ratemap'}
@@ -203,7 +191,7 @@ classdef TimeFrequencySignal < Signal
                 % Plot the figure
                 switch sObj.Name
                     
-                    case {'gammatone','innerhaircell','drnl','adaptation'}
+                    case {'filterbank','innerhaircell','drnl','adaptation'}
                         waveplot(data(:,1:p.wavPlotDS:end).',t(1:p.wavPlotDS:end),sObj.cfHz,p.wavPlotZoom,1);
                     
                     otherwise

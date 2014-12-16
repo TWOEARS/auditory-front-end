@@ -52,7 +52,7 @@ classdef Signal < handle
     
     methods
         
-        function sObj = Signal( fs, bufferSize_s, bufferElemSize )
+        function sObj = Signal( procHandle, bufferSize_s, bufferElemSize )
             %Signal     Super-constructor for the signal class
             %
             %USAGE:
@@ -68,7 +68,7 @@ classdef Signal < handle
             %           sObj : Signal instance
             
             % Set up sampling frequency
-            sObj.FsHz = fs;
+            sObj.FsHz = procHandle.FsHzOut;
             
             % Get the buffer size in samples
             bufferSizeSamples = ceil( bufferSize_s * sObj.FsHz );
@@ -76,6 +76,10 @@ classdef Signal < handle
             % Instantiate a buffer, and an array interface
             sObj.Buf = circVBuf( bufferSizeSamples, bufferElemSize );
             sObj.Data = circVBufArrayInterface( sObj.Buf );
+            
+            % Populate name and label
+            sObj.Name = procHandle.getProcessorInfo.requestName;
+            sObj.Label = procHandle.getProcessorInfo.requestLabel;
             
         end
         
