@@ -4,27 +4,61 @@ classdef identityProc < Processor
 %   manager. 
     
     methods
-        function pObj = identityProc(fs)
-            pObj.Type = 'Empty processor';
-            pObj.FsHzIn = fs;
-            pObj.FsHzOut = fs;
+        function pObj = identityProc(fs,parObj)
+            %identityProc   This processor does nothing! Used as a placeholder in the AFE.
+            
+            if nargin<1; fs = []; end
+            if nargin<2||isempty(parObj); parObj = Parameters; end
+            
+            pObj = pObj@Processor(fs,fs,'identityProc',parObj);
+            
+%             pObj.Type = 'Empty processor';
+%             pObj.FsHzIn = fs;
+%             pObj.FsHzOut = fs;
 
             % Hide the processor from the list of processors
             pObj.bHidden = 1;
         end
         
-        function out = processChunk(pObj,in)
+        function out = processChunk(~,in)
             out = in;
         end
         
-        function reset(pObj)
-            % EMPTY
+        function reset(pObj) %#ok<MANU>
+            % Nothing to reset here
         end
         
-        function hp = hasParameters(pObj,p)
-            % This processor has no parameter, so return Yes
-            hp = true;
+        function verifyParameters(pObj) %#ok<MANU>
+            % This processor has no parameters to verify
         end
         
     end
+    
+    methods (Static)
+        
+        function dep = getDependency()
+            dep = 'n-a';
+        end
+        
+        function [names, defaultValues, description] = getParameterInfo()
+            % No parameters here
+            names = [];
+            defaultValues = [];
+            description = [];
+        end
+        
+        function pInfo = getProcessorInfo
+            
+            pInfo = struct;
+            
+            pInfo.name = 'Identity processor';
+            pInfo.label = 'Identity processor';
+            pInfo.requestName = 'n-a';
+            pInfo.requestLabel = 'n-a';
+            pInfo.outputType = 'n-a';
+            
+        end
+        
+    end
+    
 end

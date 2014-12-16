@@ -251,36 +251,36 @@ classdef Signal < handle
     end
     
     methods (Access = protected)
-        function sObj = populateProperties(sObj,varargin)
-            % This protected method is called by class childrens to
-            % populate the default properties of the signal class, in order
-            % to avoid code repetition.
-            
-            % First check on input
-            if mod(size(varargin,2),2)||isempty(varargin)
-                error('Additional input arguments have to come in pairs of ...,''property name'',value,...')
-            end
-            
-            % List of valid properties % TO DO: should this be hardcoded
-            % here?
-            validProp = {'Label',...
-                         'Name',...
-                         'Dimensions'};
-                     
-            % Loop on the additional arguments
-            for ii = 1:2:size(varargin,2)-1
-                % Check that provided property name is a string
-                if ~ischar(varargin{ii})
-                    error('Property names should be given as strings, %s isn''t one!',num2str(varargin{ii}))
-                end
-                % Check that provided property name is valid
-                if ~ismember(varargin{ii},validProp)
-                    error('Property name ''%s'' is invalid',varargin{ii})
-                end
-                % Then add the property value
-                sObj.(varargin{ii})=varargin{ii+1};
-            end
-            
-        end
+%         function sObj = populateProperties(sObj,varargin)
+%             % This protected method is called by class childrens to
+%             % populate the default properties of the signal class, in order
+%             % to avoid code repetition.
+%             
+%             % First check on input
+%             if mod(size(varargin,2),2)||isempty(varargin)
+%                 error('Additional input arguments have to come in pairs of ...,''property name'',value,...')
+%             end
+%             
+%             % List of valid properties % TO DO: should this be hardcoded
+%             % here?
+%             validProp = {'Label',...
+%                          'Name',...
+%                          'Dimensions'};
+%                      
+%             % Loop on the additional arguments
+%             for ii = 1:2:size(varargin,2)-1
+%                 % Check that provided property name is a string
+%                 if ~ischar(varargin{ii})
+%                     error('Property names should be given as strings, %s isn''t one!',num2str(varargin{ii}))
+%                 end
+%                 % Check that provided property name is valid
+%                 if ~ismember(varargin{ii},validProp)
+%                     error('Property name ''%s'' is invalid',varargin{ii})
+%                 end
+%                 % Then add the property value
+%                 sObj.(varargin{ii})=varargin{ii+1};
+%             end
+%             
+%         end
     end
 end

@@ -1151,6 +1151,8 @@ classdef manager < handle
                 % NB: Only mono for the moment
                 
                 % Instantiate processor
+                % TODO: Sampling frequency should be the output fs from dependent
+                % processor!
                 mObj.Processors{ii,1} = feval(procName,fs,p);
                 
                 % Link to its dependency
