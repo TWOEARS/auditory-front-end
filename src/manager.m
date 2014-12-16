@@ -559,6 +559,12 @@ classdef manager < handle
             % Find most suitable initial processor for that request
             [initProc,dep_list] = mObj.findInitProc(request,p);
             
+            % Replace the initProc with an actual processor if empty
+            if isempty(initProc)
+                initProc = identityProc(fs);
+                initProc.Output = mObj.Data.input{1};
+            end
+            
             % Algorithm should proceed further even if the requested
             % processor already exists
             if isempty(dep_list)
@@ -1153,7 +1159,7 @@ classdef manager < handle
                 % Instantiate processor
                 % TODO: Sampling frequency should be the output fs from dependent
                 % processor!
-                mObj.Processors{ii,1} = feval(procName,fs,p);
+                mObj.Processors{ii,1} = feval(procName, dep_proc.FsHzOut, p);
                 
                 % Link to its dependency
                 mObj.Processors{ii,1}.Dependencies = {dep_proc};
