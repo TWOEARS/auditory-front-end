@@ -1,5 +1,22 @@
 classdef ratemapProc < Processor
-    
+%RATEMAPPROC Ratemap processor.
+%   The ratemap represents a map of auditory nerve firing rates [1], computed
+%   from the inner hair-cell signal representation for individual frequency 
+%   channels. 
+%
+%   AUTOCORRELATIONPROC properties:
+%        wname       - Window type
+%        wSizeSec    - Window duration
+%        hSizeSec    - Window step size
+%        scaling     - Flag specifying ratemap scaling
+%        decaySec    - Signal-smoothing leaky integrator time constant        
+%
+%   See also: Processor, ihcProc
+%
+%   Reference:
+%   [1] Brown, G. J. and Cooke, M. P. (1994), "Computational auditory scene
+%       analysis," ComputerSpeech and Language 8(4), pp. 297?336.
+
     properties
         wname       % Window shape descriptor (see window.m)
         wSizeSec    % Window duration in seconds
