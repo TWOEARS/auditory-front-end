@@ -4,7 +4,7 @@ classdef ratemapProc < Processor
 %   from the inner hair-cell signal representation for individual frequency 
 %   channels. 
 %
-%   AUTOCORRELATIONPROC properties:
+%   RATEMAPPROC properties:
 %        wname       - Window type
 %        wSizeSec    - Window duration
 %        hSizeSec    - Window step size

@@ -90,24 +90,25 @@ end
 % matrix to store output (I/O function)
 ioFunctionMatrix = zeros(length(toneFrequency), length(leveldBSPL));
 
-request = 'drnl';
+request = 'filterbank';
 
-% Introduce outer/middle ear filter (imported tools from AMT)
+% Introduce outer ear filter (imported tool from AMT)
 oe_fir = headphonefilter(fs);
-me_fir = middleearfilter(fs,'jepsenmiddleear');
 
 for jj=1:length(toneFrequency)
 
     % Convert input to stapes output, through outer-middle ear filters
     xME = filter(oe_fir, 1, inputSignalMatrix(:, :, jj).');
-    xStapes = filter(me_fir, 1, xME);
 
     % parameter structure for testing on-freq stimulation
-    param_struct = genParStruct('drnl_cfHz', toneFrequency(jj), 'drnl_mocIpsi', 0.5);
+    param_struct = genParStruct('pp_bLevelScaling', true, ...
+            'pp_bMiddleEarFiltering', true, ...
+            'fb_type', 'drnl', 'fb_cfHz', toneFrequency(jj), ...
+            'fb_mocIpsi', 0.5);
 %     % parameter structure for testing different stimulation freq at single CF
 %     param_struct = genParStruct('drnl_cfHz', 4000);
     for kk=1:length(leveldBSPL)
-        dObj = dataObject(xStapes(:, kk), fs);
+        dObj = dataObject(xME(:, kk), fs);
         mObj = manager(dObj);
         out = mObj.addProcessor(request, param_struct);
         mObj.processSignal();
@@ -116,7 +117,7 @@ for jj=1:length(toneFrequency)
         ioFunctionMatrix(jj, kk) = peakOutdB;
         clear dObj mObj out
     end
-    clear xStapes param_struct
+    clear xME param_struct
 end
 
 figure;

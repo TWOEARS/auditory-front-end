@@ -1,4 +1,45 @@
 classdef spectralFeaturesProc < Processor
+%SPECTRALFEATURESPROC Spectral features processor.
+%  This processor computes the following 14 spectral features that summarize 
+%  the spectral content of the ratemap representation across auditory filters for
+%  individual time frames.
+%             'centroid'     : Spectral centroid [1]
+%             'crest'        : Spectral crest measure [1]
+%             'spread'       : Spectral spread 
+%             'entropy'      : Spectral entropy [2]
+%             'brightness'   : Spectral brightness [1]
+%             'hfc'          : Spectral high-frequency content [3]
+%             'decrease'     : Spectral decrease [1]
+%             'flatness'     : Spectral flatness [1]
+%             'flux'         : Spectral flux [4]
+%             'kurtosis'     : Spectral kurtosis [4]
+%             'skewness'     : Spectral skewness [4]
+%             'irregularity' : Spectral irregularity [3]
+%             'rolloff'      : Spectral rolloff [1]
+%             'variation'    : Spectral variation [1]
+%
+%   SPECTRALFEATURESPROC properties:
+%        requestList     - Cell array of requested spectral features
+%        cfHz            - Row vector of audio center frequencies
+%
+%   See also: Processor, ratemapProc
+%
+%   Reference:
+%   [1] Peeters, G., Giordano, B. L., Susini, P., Misdariis, N., and 
+%       McAdams, S. (2011), "The timbre toolbox: Extracting audio descriptors 
+%       from musical signals." Journal of the Acoustical Society of America 
+%       130(5), pp. 2902?2916.
+%   [2] Misra, H., Ikbal, S., Bourlard, H., and Hermansky, H. (2004), 
+%       "Spectral entropy based feature for robust ASR," in Proceedings of 
+%       the IEEE International Conference on Acoustics, Speech and Signal 
+%       Processing (ICASSP), pp. 193?196.
+%   [3] Jensen, K. and Andersen, T. H. (2004), "Real-time beat estimation 
+%       using feature extraction," in Computer Music Modeling and Retrieval, 
+%       edited by U. K. Wiil, Springer, Berlin?Heidelberg, Lecture Notes in 
+%       Computer Science, pp. 13?22.
+%   [4] Lerch, A. (2012), An Introduction to Audio Content Analysis: 
+%       Applications in Signal Processing and Music Informatics, 
+%       John Wiley & Sons, Hoboken, NJ, USA.
     
     properties
         requestList     % Cell array of requested spectral features
@@ -12,7 +53,7 @@ classdef spectralFeaturesProc < Processor
         flux_buffer     % Buffered last frame of previous chunk for spectral flux
         var_buffer      % Buffered last frame for spectral variation
         ro_eps          % Epsilon value for spectral rolloff (hard-coded)
-        ro_perc        % threshold value for spectral rolloff
+        ro_perc         % threshold value for spectral rolloff
         bUseInterp      % Flag indicating use of interpolation for spectral rolloff (hard-coded)
     end
     

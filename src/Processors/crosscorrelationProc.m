@@ -1,4 +1,20 @@
 classdef crosscorrelationProc < Processor
+%CROSSCORRELATIONPROC Cross-correlation processor.
+%   The Cross-correlation between the right and left ears is computed from
+%   their Inner Hair-Cell representations, in the Fast Fourier Transform
+%   domain for given time frames. This is normalized by the
+%   auto-correlation sequence at lag zero, and then evaluated for time lags
+%   in a given range, resulting in a three-dimensional function of time
+%   frame, frequency channel and lag time.
+%
+%   CROSSCORRELATIONPROC properties:
+%        wname       - Window type 
+%        wSizeSec    - Window duration in seconds
+%        hSizeSec    - Step size between windows in seconds
+%        maxDelaySec - Maximum delay in cross-correlation computation (s)
+%
+%   See also: Processor, ihcProc
+%
     
     properties
         wname       % Window shape descriptor (see window.m)

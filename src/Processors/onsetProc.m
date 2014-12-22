@@ -1,4 +1,21 @@
 classdef onsetProc < Processor
+%ONSETPROC Onset processor.
+%   The onset processor detects the signal onsets by measuring the
+%   frame-based increase in the energy of the ratemap representation, and
+%   computes the onset strength as a function of time frame and frequency
+%   channel [1,2].
+%
+%   ONSETPROC properties:
+%       maxOnsetdB      - Upper limit for onset strength in dB
+%
+%   See also: Processor, ratemapProc, offsetProc
+%
+%   Reference:
+%   [1] Bregman, A. S. (1990), Auditory scene analysis: The perceptual 
+%       organization of sound, the MIT Press, Cambridge, MA, USA.
+%   [2] Klapuri, A. (1999), "Sound onset detection by applying psychoacoustic 
+%       knowledge," in Proceedings of the IEEE International Conference on 
+%       Acoustics, Speech and Signal Processing (ICASSP), pp. 3089-3092.   
     
     properties (SetAccess = protected)
         maxOnsetdB      % Upper limit for onset value

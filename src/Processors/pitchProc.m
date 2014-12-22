@@ -1,5 +1,18 @@
 classdef pitchProc < Processor
-    
+%PITCHPROC Pitch processor.
+%   Based on the Summary Auto-Correlation Function representation, this processor
+%   detects the most salient peak within the given plausible pitch frequency range 
+%   for each time frame in order to obtain an estimation of the fundamental 
+%   frequency.
+%
+%   PITCHPROC properties:
+%        pitchRangeHz    - Range in Hz for valid pitch estimation
+%        confThresPerc   - Threshold for pitch condidence measure (re. 1)
+%        orderMedFilt    - Median order filter for pitch smoothing
+%        lags            - Vector of auto-correlation lags
+%
+%   See also: Processor, autocorrelationProc
+
     properties (SetAccess = protected)
         pitchRangeHz    % Range in Hz for valid pitch estimation
         confThresPerc   % Threshold for pitch condidence measure (re. 1)

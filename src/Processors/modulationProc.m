@@ -1,4 +1,31 @@
 classdef modulationProc < Processor
+%MODULATIONPROC Amplitude modulation spectogram processor.
+%   The Amplitude Modulation Spectrogram is derived by analizying the Inner
+%   Hair-Cell representation at each frequency channel by a bank of
+%   modulation filters, which mimics the envelope fluctuation detection of
+%   the human auditory system.
+%
+%   MODULATIONPROC properties (note that the input parameters have different names):
+%        modCfHz         - Modulation filter center frequencies (Hz)
+%        filterType      - Filterbank type ('lin' [1] vs. 'log' [2])
+%        lowFreqHz       - Lowest modulation center frequency 
+%        highFreqHz      - Highest modulation center frequency 
+%        winName         - Window name
+%        stepSec         - Window step size in seconds
+%        blockSec        - Window duration in seconds
+%        dsRatio         - Down-sampling ratio of the IHC representation
+%        nAudioChan      - Number of (IHC rep) audio frequency channels
+%        nModChan        - Number of modulation filters
+%
+%   See also: Processor, ihcProc
+%
+%   Reference:
+%   [1] May, T. and Dau, T. (2014), "Requirements for the evaluation of 
+%       computational speech segregation systems," Journal of the 
+%       Acoustical Society of America 136(6), pp. EL398?EL404.
+%   [2] Ewert, S. D. and Dau, T. (2000), "Characterizing frequency 
+%       selectivity for envelope fluctuations," Journal of the Acoustical 
+%       Society of America 108(3), pp. 1181?1196.
     
     properties
         modCfHz         % Modulation filters center frequencies

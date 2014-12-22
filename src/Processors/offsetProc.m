@@ -1,5 +1,19 @@
 classdef offsetProc < Processor
-    
+%OFFSETPROC Onset processor.
+%   The offset processor detects the signal offsets by measuring the
+%   frame-based decrease in the energy of the ratemap representation, and
+%   computes the offset strength as a function of time frame and frequency
+%   channel [1].
+%
+%   OFFSETPROC properties:
+%       maxOffsetdB      - Upper limit for offset strength in dB
+%
+%   See also: Processor, ratemapProc, onsetProc
+%
+%   Reference:
+%   [1] Bregman, A. S. (1990), Auditory scene analysis: The perceptual 
+%       organization of sound, the MIT Press, Cambridge, MA, USA.
+
     properties (SetAccess = protected)
         maxOffsetdB      % Upper limit for onset value
     end

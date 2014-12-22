@@ -1,4 +1,42 @@
 classdef preProc < Processor
+%PREPROC Pre-processor.
+%   Prior to computing any of the supported auditory representations, 
+%   the input signal stored in the data object can be pre-processed with 
+%   one of the following elements:
+%       1. Direct current (DC) bias removal
+%       2. Pre-emphasis
+%       3. Root mean square (RMS) normalization [1] 
+%       4. Level scaling to a pre-defiend sound pressure level (SPL) reference
+%       5. Middle ear filtering [2] 
+%
+%   PREPROC properties:
+%       bRemoveDC       - Flag to activate DC removal filter
+%       cutoffHzDC      - Cutoff frequency in Hz of the high-pass filter
+%         
+%       bPreEmphasis    - Flag to activate pre-emphasis filter
+%       coefPreEmphasis - Coefficient of first-order high-pass filter
+%         
+%       bNormalizeRMS   - Flag to activate RMS normalization
+%       bBinauralRMS    - Flag to link RMS normalization across both ears
+%       intTimeSecRMS   - Time constant used for RMS estimation
+%         
+%       bLevelScaling   - Flag to apply level sacling to given reference
+%       refSPLdB        - Reference dB SPL to correspond to input RMS of 1
+%         
+%       bMiddleEarFiltering - Flag to apply middle ear filtering
+%       middleEarModel      - Middle ear filter model
+%
+%   See also: Processor
+%
+%   Reference:
+%   [1] Tchorz, J. and Kollmeier, B. (2003), "SNR estimation based on 
+%       amplitude modulation analysis with applications to noise suppression," 
+%       IEEE Transactions on Audio, Speech, and Language Processing 11(3),
+%       pp. 184?192.
+%   [2] Goode, R. L., Killion, M., Nakamura, K., and Nishihara, S. (1994), 
+%       "New knowledge about the function of the human middle ear: 
+%       development of an improved analog model." The American journal of 
+%       otology 15(2), pp. 145?154.
     
     properties (SetAccess = protected)
         bRemoveDC
