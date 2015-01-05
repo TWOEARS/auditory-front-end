@@ -1410,7 +1410,12 @@ classdef manager < handle
             % If the processor found operates on the left channel of a stereo
             % signal, we need to find its twin processor in charge of the
             % right channel
-            if ~isempty(hProc) && strcmp(hProc.Output.Channel,'left')
+            if isa(hProc,'preProc') && strcmp(hProc.Output.Channel,'left')
+                
+                % Special case for pre-processing
+                hProc = {hProc hProc};
+                
+            elseif ~isempty(hProc) && strcmp(hProc.Output.Channel,'left')
                 
                 % Then repeat the same loop, but specifying the "other"
                 % channel
