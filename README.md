@@ -214,7 +214,7 @@ The ILD processor is further demonstrated by the script `DEMO_ILD.m` in the
 ### More help
 
 The complete functionality of the AFE is discussed in detail in the accompanying
-PDF file ...
+[User manual](doc/The_auditory_front-end_framework_User_manual.pdf).
 
 
 ## Credits
