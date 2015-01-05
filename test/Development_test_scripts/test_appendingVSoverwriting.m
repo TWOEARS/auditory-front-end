@@ -1,7 +1,6 @@
 clear all
 close all
 
-test_startup;
 
 % Load a signal
 load('TestBinauralCues');

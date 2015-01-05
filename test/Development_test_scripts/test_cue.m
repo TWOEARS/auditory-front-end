@@ -1,10 +1,9 @@
 % This script tests the capability of the manager to extract a specific
 % cue
 
-% clear 
+clear 
 close all
 
-% test_startup;
 
 % Test on monoral or binaural signal
 do_stereo = 0;

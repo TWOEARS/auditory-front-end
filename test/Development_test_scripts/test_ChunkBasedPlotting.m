@@ -3,7 +3,6 @@
 clear 
 close all
 
-test_startup;
 
 % Request and parameters for feature extraction
 request = {'ratemap'};
