@@ -24,8 +24,7 @@ The files for the AFE are divided in three folders, `./doc`, `./src` and `./test
 containing respectively the documentation of the framework, the source code,
 and various test scripts.
 Once Matlab opened, the source code (and if needed the other folders) should be
-added to the Matlab path. This can be done by executing the following script in
-the `./src` folder:
+added to the Matlab path. This can be done by executing the following script in:
 ```Matlab
 >> startAuditoryFrontEnd
 ```
