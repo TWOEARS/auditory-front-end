@@ -1,7 +1,7 @@
 classdef crosscorrelationProc < Processor
 %CROSSCORRELATIONPROC Cross-correlation processor.
-%   The Cross-correlation between the right and left ears is computed from
-%   their Inner Hair-Cell representations, in the Fast Fourier Transform
+%   The cross-correlation between the right and left ears is computed from
+%   their respective Inner Hair-Cell representations, in the Fourier 
 %   domain for given time frames. This is normalized by the
 %   auto-correlation sequence at lag zero, and then evaluated for time lags
 %   in a given range, resulting in a three-dimensional function of time

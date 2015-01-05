@@ -1,6 +1,16 @@
 classdef gaborProc < Processor
+%GABORPROC Spectro-temporal modulation spectrogram.
+%   Models the spectro-temporal receptive field of neurons through two-dimensional Gabor
+%   functions [1].
+%
+%   See also: Processor, modulationProc
+%
+%   Reference:
+%   [1] Schädler, M. R., Meyer, B. T., and Kollmeier, B. (2012), "Spectro-temporal
+%       modulation subspace-spanning filter bank features for robust automatic speech
+%       recognition," Journal of the Acoustical Society of America 131(5), pp. 4134-4151.
     
-    properties
+    properties (SetAccess = protected)
         maxDynamicRangeDB   % Used to limit the dynamic range of input ratemap
         nFeat               % Number of Gabor features
     end
