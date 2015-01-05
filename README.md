@@ -24,8 +24,7 @@ The files for the AFE are divided in three folders, `./doc`, `./src` and `./test
 containing respectively the documentation of the framework, the source code,
 and various test scripts.
 Once Matlab opened, the source code (and if needed the other folders) should be
-added to the Matlab path. This can be done by executing the following script in
-the `./src` folder:
+added to the Matlab path. This can be done by executing the following script in:
 ```Matlab
 >> startAuditoryFrontEnd
 ```
@@ -215,7 +214,7 @@ The ILD processor is further demonstrated by the script `DEMO_ILD.m` in the
 ### More help
 
 The complete functionality of the AFE is discussed in detail in the accompanying
-PDF file `./Doc/User_manual.pdf`.
+[User manual](doc/The_auditory_front-end_framework_User_manual.pdf).
 
 
 ## Credits
