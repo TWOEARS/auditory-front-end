@@ -215,12 +215,12 @@ The ILD processor is further demonstrated by the script `DEMO_ILD.m` in the
 ### More help
 
 The complete functionality of the AFE is discussed in detail in the accompanying
-PDF file ...
+PDF file `./Doc/User_manual.pdf`.
 
 
 ## Credits
 
-The AFE is developed by Tobias May, Remi Julian Blaise Decorsière from Technical
+The AFE is developed by Tobias May, Remi Decorsière from Technical
 University of Denmark, Chungeun Kim from University of Technology Eindhoven, and
 the rest of the [Two!Ears team](http://twoears.aipa.tu-berlin.de/team).
 
