@@ -102,7 +102,7 @@ classdef ihcProc < Processor
                  case 'breebart'
                      % First order butterworth filter @ 2000Hz cascaded 5
                      % times
-                     pObj.IHCFilter = bwFilter(pObj.FsHzIn,1,2000,[],5);
+                     pObj.IHCFilter = bwFilter(pObj.FsHzIn,1,2000,5);
 
                  case 'bernstein'
                      % Second order butterworth filter @ 425Hz
