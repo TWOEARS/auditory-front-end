@@ -253,7 +253,7 @@ classdef manager < handle
             % Check that the signal chunk has correct number of channels
             if size(sig_chunk,2) ~= mObj.Data.isStereo+1
                 % TO DO: Change that to a warning and handle appropriately
-                error(['The dimensionality of the provided signal chunk'...
+                error(['The dimensionality of the provided signal chunk '...
                     'is incompatible with previous chunks'])
             end
             
