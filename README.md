@@ -225,7 +225,7 @@ the rest of the [Two!Ears team](http://twoears.aipa.tu-berlin.de/team).
 
 ## License
 
-The AFE under GPL2.
+The AFE is released under GPL2.
 
 ## Funding
 
