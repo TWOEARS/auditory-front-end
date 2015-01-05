@@ -586,12 +586,21 @@ classdef manager < handle
             
             % Initialize pointer to dependency 
             if size(initProc,2)==2
-                % Need to refer to left and right chanel initial processors
-                % and signals
-                dep_sig_l = initProc{1}.Output;
-                dep_sig_r = initProc{2}.Output;
-                dep_proc_l = initProc{1};
-                dep_proc_r = initProc{2};
+                if initProc{1} == initProc{2}
+                    % Then that is the post-processor, pick up the input from the
+                    % following processors
+                    dep_sig_l = mObj.Processors{2,1}.Input;
+                    dep_sig_r = mObj.Processors{2,2}.Input;
+                    dep_proc_l = initProc{1};
+                    dep_proc_r = initProc{2};
+                else
+                    % Need to refer to left and right chanel initial processors
+                    % and signals
+                    dep_sig_l = initProc{1}.Output;
+                    dep_sig_r = initProc{2}.Output;
+                    dep_proc_l = initProc{1};
+                    dep_proc_r = initProc{2};
+                end
             elseif size(initProc,2)==1
                 % Only a single processor and signal (either mono, or
                 % already a binaural feature)
