@@ -601,24 +601,22 @@ classdef manager < handle
                 % and signals
                 dep_sig_l = initProc{1}.Output;
                 dep_sig_r = initProc{2}.Output;
-                dep_proc_l = initProc{1};
-                dep_proc_r = initProc{2};
+                dep_proc = {initProc{1}, initProc{2}};
             elseif size(initProc,2)==1
                 % Only a single processor and signal (either mono, or
                 % already a binaural feature)
                 dep_sig = initProc.Output;
-                dep_proc = initProc;
+                dep_proc = {initProc};
             else
                 % Then processing starts from scratch, need to assess the
                 % number of channels
                 if mObj.Data.isStereo
                     dep_sig_l = mObj.Data.input{1};
                     dep_sig_r = mObj.Data.input{2};
-                    dep_proc_l = [];
-                    dep_proc_r = [];
+                    dep_proc = {[], []};
                 else
                     dep_sig = mObj.Data.input{1};
-                    dep_proc = [];
+                    dep_proc = {[]};
                 end
             end
                 
@@ -1156,19 +1154,38 @@ classdef manager < handle
                 
                 % NB: Only mono for the moment
                 
-                % Instantiate processor
-                % TODO: Sampling frequency should be the output fs from dependent
-                % processor!
-                mObj.Processors{ii,1} = feval(procName, dep_proc.FsHzOut, p);
+                % Instantiate processors
+                mObj.Processors{ii,1} = feval(procName, dep_proc{1}.FsHzOut, p);
+                if mObj.Data.isStereo && ~mObj.Processors{ii,1}.isBinaural
+                    mObj.Processors{ii,2} = feval(procName, dep_proc{1}.FsHzOut, p);
+                end
                 
-                % Link to its dependency
-                mObj.Processors{ii,1}.Dependencies = {dep_proc};
+                mObj.findInitProc(mObj.Processors{ii,1}.getProcessorInfo.requestName,p) == dep_proc{1}
+                
+                % Link to dependencies
+                if mObj.Processors{ii,1}.isBinaural
+                    mObj.Processors{ii,1}.Dependencies = dep_proc;
+                else
+                    mObj.Processors{ii,1}.Dependencies = dep_proc(1);
+                    if mObj.Data.isStereo
+                        mObj.Processors{ii,2}.Dependencies = dep_proc(2);
+                    end
+                end
                 
                 % Instantiate output signal
-                sig = feval(mObj.Processors{ii,1}.getProcessorInfo.outputType,...
+                sig = {feval(mObj.Processors{ii,1}.getProcessorInfo.outputType,...
                             mObj.Processors{ii,1},...
                             mObj.Data.bufferSize_s,...
-                            'mono');
+                            'mono')};
+                if (mObj.Data.isStereo && ~mObj.Processors{ii,1}.isBinaural) || ...
+                        mObj.Processors{ii,1}.hasTwoOutputs
+                    sig = [sig feval(mObj.Processors{ii,1}.getProcessorInfo.outputType,...
+                                    mObj.Processors{ii,1},...
+                                    mObj.Data.bufferSize_s,...
+                                    'mono')];
+                end
+                        
+                        
                       
                 % Add signal to the Data object
                 mObj.Data.addSignal(sig);

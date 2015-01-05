@@ -36,6 +36,7 @@ classdef Processor < handle
         FsHzIn
         FsHzOut
         Dependencies
+        Channel
     end
 
     properties (GetAccess = private)
