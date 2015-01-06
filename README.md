@@ -51,24 +51,24 @@ requested:
 >> requestList
 The following requests for Two ! Ears Auditory Front - End processing are
     currently valid :
-        'time '
-        'filterbank '
-        'innerhaircell '
-        'adaptation '
-        'ams_features '
-        'crosscorrelation '
-        'autocorrelation '
-        'ratemap '
-        'ild '
-        'itd '
-        'ic '
-        'spectral_features '
-        'onset_strength '
-        'offset_strength '
-        'pitch '
-        'onset_map '
-        'offset_map '
-        'gabor '
+        'time'
+        'filterbank'
+        'innerhaircell'
+        'adaptation'
+        'ams_features'
+        'crosscorrelation'
+        'autocorrelation'
+        'ratemap'
+        'ild'
+        'itd'
+        'ic'
+        'spectral_features'
+        'onset_strength'
+        'offset_strength'
+        'pitch'
+        'onset_map'
+        'offset_map'
+        'gabor'
 ```
 
 The implementation of the AFE is object-oriented, and two objects are needed to
@@ -135,7 +135,8 @@ Dimensions : 'nSamples x nFilters '
       FsHz : 100
    Channel : 'mono'
       Data : [267 x31 circVBufArrayInterface ]
-      ```
+```
+
 This shows the various properties of the signal object `sOut`. 
 To access the computed representation, e.g.,
 for further
@@ -219,7 +220,7 @@ The complete functionality of the AFE is discussed in detail in the accompanying
 
 ## Credits
 
-The AFE is developed by Tobias May, Remi Decorsière from Technical
+The AFE is developed by Tobias May, Rémi Decorsière from Technical
 University of Denmark, Chungeun Kim from University of Technology Eindhoven, and
 the rest of the [Two!Ears team](http://twoears.aipa.tu-berlin.de/team).
 
