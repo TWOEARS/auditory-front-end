@@ -1,13 +1,13 @@
 classdef modulationProc < Processor
 %MODULATIONPROC Amplitude modulation spectogram processor.
 %   The Amplitude Modulation Spectrogram is derived by analizying the Inner
-%   Hair-Cell representation at each frequency channel by a bank of
+%   Hair-Cell representation at each frequency channel with a bank of
 %   modulation filters, which mimics the envelope fluctuation detection of
 %   the human auditory system.
 %
 %   MODULATIONPROC properties (note that the input parameters have different names):
 %        modCfHz         - Modulation filter center frequencies (Hz)
-%        filterType      - Filterbank type ('lin' [1] vs. 'log' [2])
+%        filterType      - Filterbank type ('lin' [1,2] vs. 'log' [3,4])
 %        lowFreqHz       - Lowest modulation center frequency 
 %        highFreqHz      - Highest modulation center frequency 
 %        winName         - Window name
@@ -19,14 +19,25 @@ classdef modulationProc < Processor
 %
 %   See also: Processor, ihcProc
 %
-%   Reference:
-%   [1] May, T. and Dau, T. (2014), "Requirements for the evaluation of 
+%REFERENCES:
+% 
+%   [1] Kim, G., Lu, Y, Hu, Y. and Loizou, P. C. (2009), "An algorithm that
+%       improves speech intelligibility in noise for normal-hearing
+%       listeners," Journal of the Acoustical Society of America 126(3),
+%       pp. 1486-1494. 
+% 
+%   [2] May, T. and Dau, T. (2014), "Requirements for the evaluation of 
 %       computational speech segregation systems," Journal of the 
-%       Acoustical Society of America 136(6), pp. EL398?EL404.
-%   [2] Ewert, S. D. and Dau, T. (2000), "Characterizing frequency 
+%       Acoustical Society of America 136(6), pp. EL398-EL404.
+% 
+%   [3] May, T. and Dau, T. (2014), "Computational speech segregation based
+%      on an auditory-inspired modulation analysis," Journal of the
+%      Acoustical Society of America 136(6), pp. 3350-3359. 
+% 
+%   [4] Ewert, S. D. and Dau, T. (2000), "Characterizing frequency 
 %       selectivity for envelope fluctuations," Journal of the Acoustical 
-%       Society of America 108(3), pp. 1181?1196.
-    
+%       Society of America 108(3), pp. 1181-1196.
+
     properties
         modCfHz         % Modulation filters center frequencies
         filterType      % 'lin' vs. 'log'
