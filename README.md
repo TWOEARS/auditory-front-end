@@ -91,7 +91,7 @@ at a frequency `fsHz` (in Hz) can be done in the following steps:
 dataObj = dataObject(sIn, fsHz);
 managerObj = manager(dataObj);
 % Request the computation of ILDs
-sOut = managerObj.addProcessor('ild' ;
+sOut = managerObj.addProcessor('ild');
 % Request the processing
 managerObj.processSignal;
 ```
