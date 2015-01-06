@@ -1,5 +1,14 @@
 function [b,a,bw] = createFB_Mod(fs,cfMod,Q,bDown2DC,bUp2Nyquist)
 
+%REFERENCES:
+% 
+%   [1] May, T. and Dau, T. (2014), "Computational speech segregation based
+%      on an auditory-inspired modulation analysis," Journal of the
+%      Acoustical Society of America 136(6), pp. 3350-3359. 
+% 
+%   [2] Ewert, S. D. and Dau, T. (2000), "Characterizing frequency 
+%       selectivity for envelope fluctuations," Journal of the Acoustical 
+%       Society of America 108(3), pp. 1181-1196.
 
 %   Developed with Matlab 8.3.0.532 (R2014a). Please send bug reports to:
 %   
@@ -38,7 +47,7 @@ if nargin < 2 || isempty(cfMod);       cfMod       = pow2(0:10); end
 nBP = 2;
 
 % Check filter order
-if (nBP-fix(nBP./2)*2)
+if (nBP-fix(nBP./2) * 2) == 1
     error('Filter order must be even-numbered!')    
 else
     % Order of low-pass / high-pass filter
