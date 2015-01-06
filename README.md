@@ -222,7 +222,7 @@ The complete functionality of the AFE is discussed in detail in the accompanying
 
 The AFE is developed by Tobias May, Rémi Decorsière from Technical
 University of Denmark, Chungeun Kim from University of Technology Eindhoven, and
-the rest of the [Two!Ears team](http://twoears.aipa.tu-berlin.de/team).
+the rest of the [Two!Ears team](http://twoears.aipa.tu-berlin.de/consortium/).
 
 ## License
 
