@@ -1331,6 +1331,7 @@ classdef manager < handle
             
         end
         
+        
         function reset(mObj)
             %reset  Resets the internal states of all instantiated processors
             %
@@ -1505,6 +1506,38 @@ classdef manager < handle
             end
             
         end
+        
+        function addSingleProcessor(mObj,procName,parameters,dependencies,channelNb,index)
+            %addSingleProcessor     Instantiates a new processors and integrates it to the
+            %                       manager instance
+            %
+            
+            
+            % NB: test if index is necessary (to make use of preallocation), remove else
+            if nargin<5||isempty(index)
+                index = size(mObj.Processors,1)+1;
+            end
+            
+            % Instantiate processor and add it to the list
+            newProcessor = feval(procName, dependencies{1}.FsHzOut, parameters);
+            mObj.Processors{index,channelNb} = newProcessor;
+            
+            % NB: Do something here about channel
+            
+            % Mutual link to dependencies
+            newProcessor.addLowerDependencies(dependencies);
+            
+            % Instantiate and integrate new output signal
+            output = newProcessor.instantiateOutput(mObj.Data);
+            newProcessor.addOutput(output);
+            
+            % Integrate input signal pointer
+            newProcessor.addInput(dependencies);
+            
+            
+            
+            
+            
         
     end
     

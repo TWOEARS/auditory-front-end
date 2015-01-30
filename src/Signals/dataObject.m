@@ -410,6 +410,26 @@ classdef dataObject < dynamicprops
             
     end
     
+    methods (Hidden = true)
+       
+% NB: following was moved to Procesor.m to allow overloading in particular cases of
+% processors
+%         function newSignal(dObj,pObj)
+%             %NEWSIGNAL Instantiate and integrate the output signal of a processor
+%             
+%             % NB: Do something about the channel here
+% %             sig = {feval(mObj.Processors{ii,1}.getProcessorInfo.outputType,...
+% %                             mObj.Processors{ii,1},...
+% %                             mObj.Data.bufferSize_s,...
+% %                             'mono')};
+%             sig = feval(pObj.getProcessorInfo.outputType,pObj,dObj.bufferSize_s,'mono');
+%             
+%             dObj.addSignal(sig);
+%             
+%         end
+        
+    end
+    
     
     
 end

@@ -29,13 +29,14 @@ classdef Processor < handle
     end
     
     properties (Hidden = true)
-        Input
-        Output
+        Input = {};
+        Output = {};
         isBinaural = false;
         hasTwoOutputs = false;
         FsHzIn
         FsHzOut
-        Dependencies
+        UpperDependencies = {};
+        LowerDependencies = {};
         Channel
     end
 
@@ -202,6 +203,76 @@ classdef Processor < handle
         end
         
 
+    end
+    
+    methods (Hidden = true)
+        
+        function addUpperDependencies(pObj,dependentProcs)
+            %ADDUPPERDEPENDENCIES   Populate link to higher processors relying on this one
+            
+            pObj.UpperDependencies = [pObj.UpperDependencies dependentProcs];
+            
+        end
+        
+        function addLowerDependencies(pObj,dependentProcs)
+            %ADDLOWERDEPENDENCIES   Populate link to lower processors this one relies on.
+            % Likewise, will will add the current processor as an upper dependency in
+            % those processors.
+            
+            pObj.LowerDependencies = [pObj.LowerDependencies dependentProcs];
+            for ii = 1:size(dependentProcs,2)
+                dependentProcs{ii}.addUpperDependencies(pObj);
+            end
+            
+        end
+        
+        function addOutput(pObj,sObj)
+            %ADDOUTPUT  Adds a signal to the list of output of the processor
+            
+            if iscell(sObj)
+                % Then there are multiple outputs, pseudo-recursive call
+                for ii = 1:sum(size(sObj))
+                    pObj.addOutput(sObj{ii});
+                end
+            else
+                % Which column in the cell array should the signal go?
+                if strcmp(sObj.Channel,'right')
+                    jj = 2;
+                elseif strcmp(sObj.Channel,'left') || strcmp(sObj.Channel,'mono')
+                    jj = 1;
+                else    % NB: Will be removed after testing
+                    error('Need to specify a channel for output signal')
+                end
+
+                ii = size(pObj.Output,1);
+
+                if isempty(pObj.Output{ii,jj})
+                    pObj.Output{ii,jj} = sObj;
+                else
+                    % Then sObj is an additional output and should be put on another line
+                    pObj.Output{ii+1,jj} = sObj;
+                end
+            end
+            
+        end
+        
+        function output = instantiateOutput(pObj,dObj)
+            %INSTANTIATEOUTPUT  Instantiate the output signal for this processor
+            %
+            %NB: This method can be overloaded in children processor where output differs
+            %from standard (e.g., multiple output)
+            
+            sig = feval(pObj.getProcessorInfo.outputType, ...
+                        pObj, ...
+                        dObj.bufferSize_s, ...
+                        pObj.Channel);
+            
+            dObj.addSignal(sig);
+            
+            output = {sig};
+            
+        end
+        
     end
 
     methods (Static)
