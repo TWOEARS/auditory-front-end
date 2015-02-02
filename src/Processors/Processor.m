@@ -226,39 +226,49 @@ classdef Processor < handle
             
         end
         
-        function addInput(pObj,dependencies)
+        function addInput(pObj,dependency)
             %ADDINPUT   Adds a signal to the list of input of the processor
-            %
-            %NB: Overload this method in children class if using multiple input
+            % Will consider that the input signal is the output of the dependency. If
+            % the dependency has a left- and right-channel output, will pick the suitable
+            % one.
+            % Should the input attribution works in any other way for a given processor,
+            % this method should be overloaded for that specific children processor.
             
-            if iscell(dependencies)
-                for ii = 1:sum(size(dependencies))
-                    pObj.addInput(dependencies{ii});
-                end
-            else
-                for kk = 1:numel(dependencies.Output)
-                    % Which column in the cell array should the signal go?
-                    if strcmp(dependencies.Output{kk}.Channel,'right')
-                        jj = 2;
-                    elseif strcmp(dependencies.Output{kk}.Channel,'left') || ...
-                            strcmp(dependencies.Output{kk}.Channel,'mono')
-                        jj = 1;
-                    else    % NB: Will be removed after testing
-                        error('Need to specify a channel for output signal')
-                    end
-
-                    ii = size(pObj.Input,1);
-
-                    if isempty(pObj.Input{ii,jj})
-                            pObj.Input{ii,jj} = dependencies.Output{kk};
-                       
-                    else
-                        % Then sObj is an additional output and should be put on another line
-                        pObj.Input{ii+1,jj} = sObj;
-                    end
-                end
+            % NB: 'dependency' should be a handle to a single processor, with a single
+            % output, or maximally one output per channel.
+            
+            % "Sanity check" error for cases where this method should be overloaded
+            if iscell(dependency) || size(dependency.Output,2)>2
+                error(['Cannot add input for that specific processor. Consider ' ...
+                    'overloading this method in the children processor class '...
+                    'definition.'])
             end
             
+            % Number of already existing inputs
+            ii = size(pObj.Input,2);
+            
+            if size(dependency.Output,2) == 1
+                % Then it is a single output -> single input scenario
+                pObj.Input(ii+1,1) = dependency.Output{1};
+                
+            else
+                % Then the dependency has two outputs corresponding to two channels
+                
+                % TODO: They should be already be ordered, the following check should be
+                % removed after testing and is here for debugging only.
+                if strcmp(dependency.Output{1}.Channel,'left') &&
+                        strcmp(dependency.Output{2}.Channel,'right')
+                    pObj.Input(ii+1,1) = dependency.Output{1};
+                    pObj.Input(ii+1,2) = dependency.Output{2};
+                elseif strcmp(dependency.Output{1}.Channel,'right') &&
+                        strcmp(dependency.Output{2}.Channel,'left')
+                    pObj.Input(ii+1,1) = dependency.Output{2};
+                    pObj.Input(ii+1,2) = dependency.Output{1};
+                    warning('Outputs of dependent processors were incorrectly ordered, consider investigating.')
+                else
+                    error('Something is wrong with the outputs of the dependent processor, investigate.')
+                end
+            end
             
         end
         
