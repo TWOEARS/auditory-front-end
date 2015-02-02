@@ -226,6 +226,42 @@ classdef Processor < handle
             
         end
         
+        function addInput(pObj,dependencies)
+            %ADDINPUT   Adds a signal to the list of input of the processor
+            %
+            %NB: Overload this method in children class if using multiple input
+            
+            if iscell(dependencies)
+                for ii = 1:sum(size(dependencies))
+                    pObj.addInput(dependencies{ii});
+                end
+            else
+                for kk = 1:numel(dependencies.Output)
+                    % Which column in the cell array should the signal go?
+                    if strcmp(dependencies.Output{kk}.Channel,'right')
+                        jj = 2;
+                    elseif strcmp(dependencies.Output{kk}.Channel,'left') || ...
+                            strcmp(dependencies.Output{kk}.Channel,'mono')
+                        jj = 1;
+                    else    % NB: Will be removed after testing
+                        error('Need to specify a channel for output signal')
+                    end
+
+                    ii = size(pObj.Input,1);
+
+                    if isempty(pObj.Input{ii,jj})
+                            pObj.Input{ii,jj} = dependencies.Output{kk};
+                       
+                    else
+                        % Then sObj is an additional output and should be put on another line
+                        pObj.Input{ii+1,jj} = sObj;
+                    end
+                end
+            end
+            
+            
+        end
+        
         function addOutput(pObj,sObj)
             %ADDOUTPUT  Adds a signal to the list of output of the processor
             
