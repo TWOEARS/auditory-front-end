@@ -187,6 +187,40 @@ classdef Processor < handle
             
         end
         
+        function initiateProcessing(pObj)
+            %INITIATEPROCESSING    Wrapper calling the processChunk method and routing I/O
+            % Main purpose is to allow overloading of I/O routing in processors with
+            % "unusual" number of input/outputs.
+            
+            % Two cases considered here, monaural and binaural processors producing single
+            % outputs. In other cases, the method should be overloaded in the particular
+            % processor.
+            
+            if size(pObj.Input,2) > 1 || numel(pObj.Output) > 1
+                % Then it is a multiple-input processor, return an error
+                error(['Cannot initiate the processing for this ' ...
+                    'processor. Consider overloading this method in the children ' ... 
+                    'class definition.'])
+            
+            elseif size(pObj.Input,1) == 1
+                % Then monaural processor
+                pObj.Output{1}.appendChunk( ...
+                    pObj.processChunk( pObj.Input{1}.Data('new')));
+                
+            elseif size(pObj.Input,1) == 2
+                % Then binaural processor
+                pObj.Output{1}.appendChunk( ...
+                    pObj.processChunk( ...
+                        pObj.Input{1}.Data('new'), pObj.Input{2}.Data('new')));
+                
+                
+            else
+                % TODO: Remove after testing
+                error('Something is wrong with the inputs of this processor, investigate.')
+            end
+            
+        end
+        
     end
     
     methods (Access=protected)

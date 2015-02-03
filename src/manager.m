@@ -188,40 +188,44 @@ classdef manager < handle
                     % Get index of current processor
                     jj = mObj.Map(ii);
 
-                    if ~mObj.Processors{jj,1}.isBinaural
-                        % Apply processing for left channel (or mono if
-                        % interaural cue/feature)
-                        mObj.OutputList{jj,1}.setData( ...
-                            mObj.Processors{jj,1}.processChunk(mObj.InputList{jj,1}.Data(:)) );
-
-                        % Apply for right channel if stereo cue/feature
-                        if mObj.Data.isStereo && ~isempty(mObj.Processors{jj,2})
-                            mObj.OutputList{jj,2}.setData(...
-                                mObj.Processors{jj,2}.processChunk(mObj.InputList{jj,2}.Data(:))...
-                                );
-                        end
-                    else
-                        if ~mObj.Processors{jj,1}.hasTwoOutputs
-                            % If the processor extracts a binaural cue, inputs
-                            % from left and right channel should be routed
-                            mObj.OutputList{jj,1}.setData( ...
-                                mObj.Processors{jj,1}.processChunk(mObj.InputList{jj,1}.Data(:),...
-                                mObj.InputList{jj,2}.Data(:))...
-                                );
-                        else
-                            if size(mObj.InputList,2)>1
-                                [out_l, out_r] = mObj.Processors{jj,1}.processChunk(mObj.InputList{jj,1}.Data(:),...
-                                    mObj.InputList{jj,2}.Data(:));
-                            else
-                                [out_l, out_r] = mObj.Processors{jj,1}.processChunk(mObj.InputList{jj,1}.Data(:),...
-                                    []);
-                            end
-                            mObj.OutputList{jj,1}.setData(out_l);
-                            if ~isempty(out_r)
-                                mObj.OutputList{jj,2}.setData(out_r);
-                            end
-                        end
-                    end
+                    mObj.Processors{jj,1}.initiateProcessing;
+                    
+                    % TODO: Adapt to stereo
+                    
+%                     if ~mObj.Processors{jj,1}.isBinaural
+%                         % Apply processing for left channel (or mono if
+%                         % interaural cue/feature)
+%                         mObj.OutputList{jj,1}.setData( ...
+%                             mObj.Processors{jj,1}.processChunk(mObj.InputList{jj,1}.Data(:)) );
+% 
+%                         % Apply for right channel if stereo cue/feature
+%                         if mObj.Data.isStereo && ~isempty(mObj.Processors{jj,2})
+%                             mObj.OutputList{jj,2}.setData(...
+%                                 mObj.Processors{jj,2}.processChunk(mObj.InputList{jj,2}.Data(:))...
+%                                 );
+%                         end
+%                     else
+%                         if ~mObj.Processors{jj,1}.hasTwoOutputs
+%                             % If the processor extracts a binaural cue, inputs
+%                             % from left and right channel should be routed
+%                             mObj.OutputList{jj,1}.setData( ...
+%                                 mObj.Processors{jj,1}.processChunk(mObj.InputList{jj,1}.Data(:),...
+%                                 mObj.InputList{jj,2}.Data(:))...
+%                                 );
+%                         else
+%                             if size(mObj.InputList,2)>1
+%                                 [out_l, out_r] = mObj.Processors{jj,1}.processChunk(mObj.InputList{jj,1}.Data(:),...
+%                                     mObj.InputList{jj,2}.Data(:));
+%                             else
+%                                 [out_l, out_r] = mObj.Processors{jj,1}.processChunk(mObj.InputList{jj,1}.Data(:),...
+%                                     []);
+%                             end
+%                             mObj.OutputList{jj,1}.setData(out_l);
+%                             if ~isempty(out_r)
+%                                 mObj.OutputList{jj,2}.setData(out_r);
+%                             end
+%                         end
+%                     end
                 end
             end
         end
@@ -563,7 +567,7 @@ classdef manager < handle
             % TODO: adapt for stereo
             if isempty(initProc)
                 initProc = identityProc(fs);
-                initProc.Output = {mObj.Data.input{1}};
+                initProc.Output = mObj.Data.input;
             end
             
             % Algorithm should proceed further even if the requested
