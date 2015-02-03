@@ -560,9 +560,10 @@ classdef manager < handle
             [initProc,dep_list] = mObj.findInitProc(request,p);
             
             % Replace the initProc with an actual processor if empty
+            % TODO: adapt for stereo
             if isempty(initProc)
                 initProc = identityProc(fs);
-                initProc.Output = mObj.Data.input{1};
+                initProc.Output = {mObj.Data.input{1}};
             end
             
             % Algorithm should proceed further even if the requested
@@ -596,30 +597,32 @@ classdef manager < handle
             
             
             % Initialize pointer to dependency 
-            if size(initProc,2)==2
-                % Need to refer to left and right chanel initial processors
-                % and signals
-                dep_sig_l = initProc{1}.Output;
-                dep_sig_r = initProc{2}.Output;
-                dep_proc = {initProc{1}, initProc{2}};
-            elseif size(initProc,2)==1
-                % Only a single processor and signal (either mono, or
-                % already a binaural feature)
-                dep_sig = initProc.Output;
-                dep_proc = {initProc};
-            else
-                % Then processing starts from scratch, need to assess the
-                % number of channels
-                if mObj.Data.isStereo
-                    dep_sig_l = mObj.Data.input{1};
-                    dep_sig_r = mObj.Data.input{2};
-                    dep_proc = {[], []};
-                else
-                    dep_sig = mObj.Data.input{1};
-                    dep_proc = {[]};
-                end
-            end
-                
+%             if size(initProc,2)==2
+%                 % Need to refer to left and right chanel initial processors
+%                 % and signals
+%                 dep_sig_l = initProc{1}.Output;
+%                 dep_sig_r = initProc{2}.Output;
+%                 dep_proc = {initProc{1}, initProc{2}};
+%             elseif size(initProc,2)==1
+%                 % Only a single processor and signal (either mono, or
+%                 % already a binaural feature)
+%                 dep_sig = initProc.Output;
+%                 dep_proc = {initProc};
+%             else
+%                 % Then processing starts from scratch, need to assess the
+%                 % number of channels
+%                 if mObj.Data.isStereo
+%                     dep_sig_l = mObj.Data.input{1};
+%                     dep_sig_r = mObj.Data.input{2};
+%                     dep_proc = {[], []};
+%                 else
+%                     dep_sig = mObj.Data.input{1};
+%                     dep_proc = {[]};
+%                 end
+%             end
+
+            dependency = {initProc};
+            
             % Processors instantiation and data object property population
             for ii = n_proc+1:n_proc+n_new_proc   
                 
@@ -1159,7 +1162,7 @@ classdef manager < handle
                     newProc_r = mObj.addSingleProcessor(procName,p,dependency,2,ii);
                     dependency = {newProc_l, newProc_r};
                 else
-                    newProc = mObj.addSingleProcessor(procName,p,dependency,channel,ii);
+                    newProc = mObj.addSingleProcessor(procName,p,dependency,1,ii);
                     dependency = {newProc};
                 end
                 
@@ -1522,7 +1525,7 @@ classdef manager < handle
             
         end
         
-        function addSingleProcessor(mObj,procName,parameters,dependencies,channelNb,index)
+        function newProcessor = addSingleProcessor(mObj,procName,parameters,dependencies,channelNb,index)
             %addSingleProcessor     Instantiates a new processors and integrates it to the
             %                       manager instance
             %
@@ -1556,7 +1559,7 @@ classdef manager < handle
             % Integrate input signal pointer
             newProcessor.addInput(dependencies);
             
-            
+        end
             
             
             

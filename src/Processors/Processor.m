@@ -82,8 +82,8 @@ classdef Processor < handle
             pObj.Type = pInfo.name;
             pObj.FsHzIn = fsIn;
             pObj.FsHzOut = fsOut;
-            pObj.Dependencies = feval([procName '.getDependency']);
-                
+%             pObj.Dependencies = feval([procName '.getDependency']);
+
             pObj.verifyParameters;
             
             end
@@ -124,10 +124,10 @@ classdef Processor < handle
                 if proc.parameters.map.isKey(parName)
                     parValue = proc.parameters.map(parName);
                 else
-                    if isempty(proc.Dependencies{1})
+                    if isempty(proc.LowerDependencies{1})
                         break
                     end
-                    proc = proc.Dependencies{1};
+                    proc = proc.LowerDependencies{1};
                 end
                 
             end
@@ -234,11 +234,13 @@ classdef Processor < handle
             % Should the input attribution works in any other way for a given processor,
             % this method should be overloaded for that specific children processor.
             
-            % NB: 'dependency' should be a handle to a single processor, with a single
-            % output, or maximally one output per channel.
+            % NB: 'dependency' should be a cell array with a handle to a single processor,
+            % with a single output, or maximally one output per channel.
             
-            % "Sanity check" error for cases where this method should be overloaded
-            if iscell(dependency) || size(dependency.Output,2)>2
+            if iscell(dependency) && numel(dependency)==1 && ...
+                    size(dependency{1}.Output,2)<=2
+                dependency = dependency{1};
+            else
                 error(['Cannot add input for that specific processor. Consider ' ...
                     'overloading this method in the children processor class '...
                     'definition.'])
@@ -249,7 +251,7 @@ classdef Processor < handle
             
             if size(dependency.Output,2) == 1
                 % Then it is a single output -> single input scenario
-                pObj.Input(ii+1,1) = dependency.Output{1};
+                pObj.Input{ii+1,1} = dependency.Output{1};
                 
             else
                 % Then the dependency has two outputs corresponding to two channels
@@ -258,12 +260,12 @@ classdef Processor < handle
                 % removed after testing and is here for debugging only.
                 if strcmp(dependency.Output{1}.Channel,'left') && ...
                         strcmp(dependency.Output{2}.Channel,'right')
-                    pObj.Input(ii+1,1) = dependency.Output{1};
-                    pObj.Input(ii+1,2) = dependency.Output{2};
+                    pObj.Input{ii+1,1} = dependency.Output{1};
+                    pObj.Input{ii+1,2} = dependency.Output{2};
                 elseif strcmp(dependency.Output{1}.Channel,'right') && ...
                         strcmp(dependency.Output{2}.Channel,'left')
-                    pObj.Input(ii+1,1) = dependency.Output{2};
-                    pObj.Input(ii+1,2) = dependency.Output{1};
+                    pObj.Input{ii+1,1} = dependency.Output{2};
+                    pObj.Input{ii+1,2} = dependency.Output{1};
                     warning('Outputs of dependent processors were incorrectly ordered, consider investigating.')
                 else
                     error('Something is wrong with the outputs of the dependent processor, investigate.')
@@ -277,7 +279,7 @@ classdef Processor < handle
             
             if iscell(sObj)
                 % Then there are multiple outputs, pseudo-recursive call
-                for ii = 1:sum(size(sObj))
+                for ii = 1:numel(sObj)
                     pObj.addOutput(sObj{ii});
                 end
             else
@@ -290,9 +292,9 @@ classdef Processor < handle
                     error('Need to specify a channel for output signal')
                 end
 
-                ii = size(pObj.Output,1);
+                ii = max(size(pObj.Output,1),1);
 
-                if isempty(pObj.Output{ii,jj})
+                if isempty(pObj.Output) || isempty(pObj.Output{ii,jj})
                     pObj.Output{ii,jj} = sObj;
                 else
                     % Then sObj is an additional output and should be put on another line
