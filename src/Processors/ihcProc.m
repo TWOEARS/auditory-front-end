@@ -159,6 +159,7 @@ classdef ihcProc < Processor
             pInfo.requestName = 'innerhaircell';
             pInfo.requestLabel = 'Inner hair-cell envelope';
             pInfo.outputType = 'TimeFrequencySignal';
+            pInfo.isBinaural = 0;
             
         end
         
