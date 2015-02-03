@@ -1152,150 +1152,165 @@ classdef manager < handle
                 
                 procName = Processor.findProcessorFromSignal(dep_list{ii-n_proc});
                 
+                % Check if one or two processors should be instantiated (mono or stereo)
+                procInfo = feval([procName '.getProcessorInfo']);
+                if size(dependency,1) == 2 && ~procInfo.isBinaural
+                    newProc_l = mObj.addSingleProcessor(procName,p,dependency,1,ii);
+                    newProc_r = mObj.addSingleProcessor(procName,p,dependency,2,ii);
+                    dependency = {newProc_l, newProc_r};
+                else
+                    newProc = mObj.addSingleProcessor(procName,p,dependency,channel,ii);
+                    dependency = {newProc};
+                end
+                
+                
+                
                 % NB: Only mono for the moment
                 
+                %% Old code again, commented for folding
                 % Instantiate processors
-                mObj.Processors{ii,1} = feval(procName, dep_proc{1}.FsHzOut, p);
-                if mObj.Data.isStereo && ~mObj.Processors{ii,1}.isBinaural
-                    mObj.Processors{ii,2} = feval(procName, dep_proc{1}.FsHzOut, p);
-                end
-                
-                mObj.findInitProc(mObj.Processors{ii,1}.getProcessorInfo.requestName,p) == dep_proc{1}
-                
-                % Link to dependencies
-                if mObj.Processors{ii,1}.isBinaural
-                    mObj.Processors{ii,1}.Dependencies = dep_proc;
-                else
-                    mObj.Processors{ii,1}.Dependencies = dep_proc(1);
-                    if mObj.Data.isStereo
-                        mObj.Processors{ii,2}.Dependencies = dep_proc(2);
-                    end
-                end
-                
-                % Instantiate output signal
-                sig = {feval(mObj.Processors{ii,1}.getProcessorInfo.outputType,...
-                            mObj.Processors{ii,1},...
-                            mObj.Data.bufferSize_s,...
-                            'mono')};
-                if (mObj.Data.isStereo && ~mObj.Processors{ii,1}.isBinaural) || ...
-                        mObj.Processors{ii,1}.hasTwoOutputs
-                    sig = [sig feval(mObj.Processors{ii,1}.getProcessorInfo.outputType,...
-                                    mObj.Processors{ii,1},...
-                                    mObj.Data.bufferSize_s,...
-                                    'mono')];
-                end
-                        
-                        
-                      
-                % Add signal to the Data object
-                mObj.Data.addSignal(sig);
+%                 mObj.Processors{ii,1} = feval(procName, dep_proc{1}.FsHzOut, p);
+%                 if mObj.Data.isStereo && ~mObj.Processors{ii,1}.isBinaural
+%                     mObj.Processors{ii,2} = feval(procName, dep_proc{1}.FsHzOut, p);
+%                 end
+%                 
+%                 mObj.findInitProc(mObj.Processors{ii,1}.getProcessorInfo.requestName,p) == dep_proc{1}
+%                 
+%                 % Link to dependencies
+%                 if mObj.Processors{ii,1}.isBinaural
+%                     mObj.Processors{ii,1}.Dependencies = dep_proc;
+%                 else
+%                     mObj.Processors{ii,1}.Dependencies = dep_proc(1);
+%                     if mObj.Data.isStereo
+%                         mObj.Processors{ii,2}.Dependencies = dep_proc(2);
+%                     end
+%                 end
+%                 
+%                 % Instantiate output signal
+%                 sig = {feval(mObj.Processors{ii,1}.getProcessorInfo.outputType,...
+%                             mObj.Processors{ii,1},...
+%                             mObj.Data.bufferSize_s,...
+%                             'mono')};
+%                 if (mObj.Data.isStereo && ~mObj.Processors{ii,1}.isBinaural) || ...
+%                         mObj.Processors{ii,1}.hasTwoOutputs
+%                     sig = [sig feval(mObj.Processors{ii,1}.getProcessorInfo.outputType,...
+%                                     mObj.Processors{ii,1},...
+%                                     mObj.Data.bufferSize_s,...
+%                                     'mono')];
+%                 end
+%                         
+%                         
+%                       
+%                 % Add signal to the Data object
+%                 mObj.Data.addSignal(sig);
                 
                 %% Resume old code
-                if ~isempty(mObj.Processors{ii})
+%                 if ~isempty(mObj.Processors{ii})
+%                 
+%                     % Add input/output pointers, dependencies, and update dependencies.
+%                     % Three possible scenarios:
+% 
+%                     if mObj.Processors{ii}.isBinaural
+% 
+%                         if ~mObj.Processors{ii}.hasTwoOutputs
+%                             % 1-Then there are two inputs (left&right) and one output
+%                             mObj.InputList{ii,1} = dep_sig_l;
+%                             mObj.InputList{ii,2} = dep_sig_r;
+%                             mObj.OutputList{ii,1} = sig;
+%                             mObj.OutputList{ii,2} = [];
+% 
+%                             mObj.Processors{ii}.Input{1} = dep_sig_l;
+%                             mObj.Processors{ii}.Input{2} = dep_sig_r;
+%                             mObj.Processors{ii}.Output = sig;
+% 
+%                             mObj.Processors{ii,1}.Dependencies = {dep_proc_l,dep_proc_r};
+%                             dep_sig = sig;
+%                             dep_proc = mObj.Processors{ii};
+%                         else
+%                             if exist('sig','var')&&strcmp(sig.Channel,'mono')
+%                                 % 1bis - Two inputs and two outputs
+%                                 mObj.InputList{ii,1} = dep_sig;
+%                                 mObj.OutputList{ii,1} = sig;
+% 
+%                                 mObj.Processors{ii}.Input = dep_sig;
+%                                 mObj.Processors{ii}.Output = sig;
+% 
+%                                 mObj.Processors{ii,1}.Dependencies = {dep_proc};
+%                                 dep_sig = sig;
+%                                 dep_proc = mObj.Processors{ii};
+%                             else
+%                                 % 1bis - Two inputs and two outputs
+%                                 mObj.InputList{ii,1} = dep_sig_l;
+%                                 mObj.InputList{ii,2} = dep_sig_r;
+%                                 mObj.OutputList{ii,1} = sig_l;
+%                                 mObj.OutputList{ii,2} = sig_r;
+% 
+%                                 mObj.Processors{ii}.Input{1} = dep_sig_l;
+%                                 mObj.Processors{ii}.Input{2} = dep_sig_r;
+% %                                 mObj.Processors{ii}.Output{1} = sig_l;
+% %                                 mObj.Processors{ii}.Output{2} = sig_r;
+%                                 mObj.Processors{ii}.Output = sig_l;
+%                                 
+% 
+% 
+%                                 mObj.Processors{ii,1}.Dependencies = {dep_proc_l,dep_proc_r};
+%                                 dep_sig_l = sig_l;
+%                                 dep_sig_r = sig_r;
+%                                 dep_proc_l = mObj.Processors{ii};
+%                                 dep_proc_r = mObj.Processors{ii};
+%                             end
+%                         end
+%                     elseif exist('sig','var')&&strcmp(sig.Channel,'mono') && proceed
+% 
+%                         % 2-Then there is a single input and single output
+%                         mObj.InputList{ii,1} = dep_sig;
+%                         mObj.OutputList{ii,1} = sig;
+% 
+%                         mObj.Processors{ii}.Input = dep_sig;
+%                         mObj.Processors{ii}.Output = sig;
+% 
+%                         mObj.Processors{ii}.Dependencies = {dep_proc};
+%                         dep_sig = sig;
+%                         dep_proc = mObj.Processors{ii};
+% 
+%                     elseif ~proceed
+% 
+%                         % Do nothing, this request is invalid and should be
+%                         % skipped
+% 
+%                     else
+% 
+%                         % 3-Else there are two inputs and two outputs
+%                         mObj.InputList{ii,1} = dep_sig_l;
+%                         mObj.InputList{ii,2} = dep_sig_r;
+%                         mObj.OutputList{ii,1} = sig_l;
+%                         mObj.OutputList{ii,2} = sig_r;
+% 
+%                         mObj.Processors{ii,1}.Input = dep_sig_l;
+%                         mObj.Processors{ii,2}.Input = dep_sig_r;
+%                         mObj.Processors{ii,1}.Output = sig_l;
+%                         mObj.Processors{ii,2}.Output = sig_r;
+% 
+%                         mObj.Processors{ii,1}.Dependencies = {dep_proc_l};
+%                         mObj.Processors{ii,2}.Dependencies = {dep_proc_r};
+%                         dep_sig_l = sig_l;
+%                         dep_sig_r = sig_r;
+%                         dep_proc_l = mObj.Processors{ii,1};
+%                         dep_proc_r = mObj.Processors{ii,2};
+% 
+%                     end
+%                     
+%                 else
+%                     % Then the processor was not instantiated as the
+%                     % request was invalid, exit the for loop
+%                     break
+%                 end
+% 
+%                 
+%                 % Clear temporary handles to ensure no inconsistencies 
+%                 clear sig sig_l sig_r
                 
-                    % Add input/output pointers, dependencies, and update dependencies.
-                    % Three possible scenarios:
-
-                    if mObj.Processors{ii}.isBinaural
-
-                        if ~mObj.Processors{ii}.hasTwoOutputs
-                            % 1-Then there are two inputs (left&right) and one output
-                            mObj.InputList{ii,1} = dep_sig_l;
-                            mObj.InputList{ii,2} = dep_sig_r;
-                            mObj.OutputList{ii,1} = sig;
-                            mObj.OutputList{ii,2} = [];
-
-                            mObj.Processors{ii}.Input{1} = dep_sig_l;
-                            mObj.Processors{ii}.Input{2} = dep_sig_r;
-                            mObj.Processors{ii}.Output = sig;
-
-                            mObj.Processors{ii,1}.Dependencies = {dep_proc_l,dep_proc_r};
-                            dep_sig = sig;
-                            dep_proc = mObj.Processors{ii};
-                        else
-                            if exist('sig','var')&&strcmp(sig.Channel,'mono')
-                                % 1bis - Two inputs and two outputs
-                                mObj.InputList{ii,1} = dep_sig;
-                                mObj.OutputList{ii,1} = sig;
-
-                                mObj.Processors{ii}.Input = dep_sig;
-                                mObj.Processors{ii}.Output = sig;
-
-                                mObj.Processors{ii,1}.Dependencies = {dep_proc};
-                                dep_sig = sig;
-                                dep_proc = mObj.Processors{ii};
-                            else
-                                % 1bis - Two inputs and two outputs
-                                mObj.InputList{ii,1} = dep_sig_l;
-                                mObj.InputList{ii,2} = dep_sig_r;
-                                mObj.OutputList{ii,1} = sig_l;
-                                mObj.OutputList{ii,2} = sig_r;
-
-                                mObj.Processors{ii}.Input{1} = dep_sig_l;
-                                mObj.Processors{ii}.Input{2} = dep_sig_r;
-%                                 mObj.Processors{ii}.Output{1} = sig_l;
-%                                 mObj.Processors{ii}.Output{2} = sig_r;
-                                mObj.Processors{ii}.Output = sig_l;
-                                
-
-
-                                mObj.Processors{ii,1}.Dependencies = {dep_proc_l,dep_proc_r};
-                                dep_sig_l = sig_l;
-                                dep_sig_r = sig_r;
-                                dep_proc_l = mObj.Processors{ii};
-                                dep_proc_r = mObj.Processors{ii};
-                            end
-                        end
-                    elseif exist('sig','var')&&strcmp(sig.Channel,'mono') && proceed
-
-                        % 2-Then there is a single input and single output
-                        mObj.InputList{ii,1} = dep_sig;
-                        mObj.OutputList{ii,1} = sig;
-
-                        mObj.Processors{ii}.Input = dep_sig;
-                        mObj.Processors{ii}.Output = sig;
-
-                        mObj.Processors{ii}.Dependencies = {dep_proc};
-                        dep_sig = sig;
-                        dep_proc = mObj.Processors{ii};
-
-                    elseif ~proceed
-
-                        % Do nothing, this request is invalid and should be
-                        % skipped
-
-                    else
-
-                        % 3-Else there are two inputs and two outputs
-                        mObj.InputList{ii,1} = dep_sig_l;
-                        mObj.InputList{ii,2} = dep_sig_r;
-                        mObj.OutputList{ii,1} = sig_l;
-                        mObj.OutputList{ii,2} = sig_r;
-
-                        mObj.Processors{ii,1}.Input = dep_sig_l;
-                        mObj.Processors{ii,2}.Input = dep_sig_r;
-                        mObj.Processors{ii,1}.Output = sig_l;
-                        mObj.Processors{ii,2}.Output = sig_r;
-
-                        mObj.Processors{ii,1}.Dependencies = {dep_proc_l};
-                        mObj.Processors{ii,2}.Dependencies = {dep_proc_r};
-                        dep_sig_l = sig_l;
-                        dep_sig_r = sig_r;
-                        dep_proc_l = mObj.Processors{ii,1};
-                        dep_proc_r = mObj.Processors{ii,2};
-
-                    end
-                    
-                else
-                    % Then the processor was not instantiated as the
-                    % request was invalid, exit the for loop
-                    break
-                end
-
-                
-                % Clear temporary handles to ensure no inconsistencies 
-                clear sig sig_l sig_r
-                
+%% Resume
             end
             
             % The mapping at this point is linear
@@ -1510,6 +1525,13 @@ classdef manager < handle
         function addSingleProcessor(mObj,procName,parameters,dependencies,channelNb,index)
             %addSingleProcessor     Instantiates a new processors and integrates it to the
             %                       manager instance
+            %
+            % The following steps are carried out:
+            %   - Instantiate a processor, add a pointer to it in mObj.Processors
+            %   - Generate a mutual link to its dependency
+            %   - Instantiate a new output signal (possibly multiple)
+            %   - Link it/them as output(s) of the processor
+            %   - Provide link to the input signal(s)
             %
             
             

@@ -256,11 +256,11 @@ classdef Processor < handle
                 
                 % TODO: They should be already be ordered, the following check should be
                 % removed after testing and is here for debugging only.
-                if strcmp(dependency.Output{1}.Channel,'left') &&
+                if strcmp(dependency.Output{1}.Channel,'left') && ...
                         strcmp(dependency.Output{2}.Channel,'right')
                     pObj.Input(ii+1,1) = dependency.Output{1};
                     pObj.Input(ii+1,2) = dependency.Output{2};
-                elseif strcmp(dependency.Output{1}.Channel,'right') &&
+                elseif strcmp(dependency.Output{1}.Channel,'right') && ...
                         strcmp(dependency.Output{2}.Channel,'left')
                     pObj.Input(ii+1,1) = dependency.Output{2};
                     pObj.Input(ii+1,2) = dependency.Output{1};
@@ -416,7 +416,7 @@ classdef Processor < handle
             end
 
             % If still running, then we haven't found it
-            warning(['Could not find a processor which uses parameter ''%s'''],...
+            warning('Could not find a processor which uses parameter ''%s''',...
                     parameterName)
             procName = [];
 
