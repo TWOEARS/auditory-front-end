@@ -190,6 +190,9 @@ classdef manager < handle
 
                     mObj.Processors{jj,1}.initiateProcessing;
                     
+                    if size(mObj.Processors,2) == 2 && ~isempty(mObj.Processors{jj,2})
+                        mObj.Processors{jj,2}.initiateProcessing;
+                    end
                     % TODO: Adapt to stereo
                     
 %                     if ~mObj.Processors{jj,1}.isBinaural
@@ -1165,10 +1168,16 @@ classdef manager < handle
                 
                 % Check if one or two processors should be instantiated (mono or stereo)
                 procInfo = feval([procName '.getProcessorInfo']);
-                if size(dependency,1) == 2 && ~procInfo.isBinaural
+                if size(dependency,2) == 2 && ~procInfo.isBinaural
                     newProc_l = mObj.addSingleProcessor(procName, p, dependency(1), 1, ...
                                                         ii, 'stereo');
                     newProc_r = mObj.addSingleProcessor(procName, p, dependency(2), 2, ...
+                                                        ii, 'stereo');
+                    dependency = {newProc_l, newProc_r};
+                elseif numel(dependency) == 1 && size(dependency{1}.Output,2) == 2
+                    newProc_l = mObj.addSingleProcessor(procName, p, dependency, 1, ...
+                                                        ii, 'stereo');
+                    newProc_r = mObj.addSingleProcessor(procName, p, dependency, 2, ...
                                                         ii, 'stereo');
                     dependency = {newProc_l, newProc_r};
                 else
@@ -1215,7 +1224,6 @@ classdef manager < handle
 %                 % Add signal to the Data object
 %                 mObj.Data.addSignal(sig);
                 
-                %% Resume old code
 %                 if ~isempty(mObj.Processors{ii})
 %                 
 %                     % Add input/output pointers, dependencies, and update dependencies.

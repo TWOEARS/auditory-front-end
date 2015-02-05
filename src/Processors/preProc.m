@@ -347,6 +347,61 @@ classdef preProc < Processor
     % Pre-processor is a multi-channel processor and needs to overload some of the
     % standard Processor methods to function correctly
     methods (Hidden = true)
+        function output = instantiateOutput(pObj,dObj)
+            %INSTANTIATEOUTPUT  Instantiate the output signal for the pre-processor
+            %
+            %NB: This method is overloading the parent method to deal with multiple
+            %outputs
+            
+            if dObj.isStereo
+                sig_l = feval(pObj.getProcessorInfo.outputType, ...
+                            pObj, ...
+                            dObj.bufferSize_s, ...
+                            'left');
+                sig_r = feval(pObj.getProcessorInfo.outputType, ...
+                            pObj, ...
+                            dObj.bufferSize_s, ...
+                            'right');
+                dObj.addSignal(sig_l);
+                dObj.addSignal(sig_r);
+            
+                output = {sig_l, sig_r};
+                
+            else
+                sig = feval(pObj.getProcessorInfo.outputType, ...
+                            pObj, ...
+                            dObj.bufferSize_s, ...
+                            pObj.Channel);
+            
+                dObj.addSignal(sig);
+            
+                output = {sig};
+                
+            end
+            
+        end
+        
+        function initiateProcessing(pObj)
+            %INITIATEPROCESSING    Wrapper calling the processChunk method and routing I/O
+            % Because the pre-processor can have two outputs (for stereo signals), it is
+            % necessary to overload the parent method here.
+            
+            
+            if size(pObj.Input,2)>1
+                [out_l, out_r] = pObj.processChunk( pObj.Input{1,1}.Data('new'),...
+                    pObj.Input{1,2}.Data('new'));
+            else
+                [out_l, out_r] = pObj.processChunk( pObj.Input{1,1}.Data('new'),...
+                    []);
+            end
+            
+            pObj.Output{1}.appendChunk(out_l);
+            
+            if ~isempty(out_r)
+                pObj.Output{2}.appendChunk(out_r);
+            end
+            
+        end
         
     end
     

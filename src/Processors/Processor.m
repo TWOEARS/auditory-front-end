@@ -187,39 +187,6 @@ classdef Processor < handle
             
         end
         
-        function initiateProcessing(pObj)
-            %INITIATEPROCESSING    Wrapper calling the processChunk method and routing I/O
-            % Main purpose is to allow overloading of I/O routing in processors with
-            % "unusual" number of input/outputs.
-            
-            % Two cases considered here, monaural and binaural processors producing single
-            % outputs. In other cases, the method should be overloaded in the particular
-            % processor.
-            
-            if size(pObj.Input,2) > 1 || numel(pObj.Output) > 1
-                % Then it is a multiple-input processor, return an error
-                error(['Cannot initiate the processing for this ' ...
-                    'processor. Consider overloading this method in the children ' ... 
-                    'class definition.'])
-            
-            elseif size(pObj.Input,1) == 1
-                % Then monaural processor
-                pObj.Output{1}.appendChunk( ...
-                    pObj.processChunk( pObj.Input{1}.Data('new')));
-                
-            elseif size(pObj.Input,1) == 2
-                % Then binaural processor
-                pObj.Output{1}.appendChunk( ...
-                    pObj.processChunk( ...
-                        pObj.Input{1}.Data('new'), pObj.Input{2}.Data('new')));
-                
-                
-            else
-                % TODO: Remove after testing
-                error('Something is wrong with the inputs of this processor, investigate.')
-            end
-            
-        end
         
     end
     
@@ -265,46 +232,98 @@ classdef Processor < handle
             % Will consider that the input signal is the output of the dependency. If
             % the dependency has a left- and right-channel output, will pick the suitable
             % one.
+            % Three cases are implemented here:
+            % 1- single dependency with single output
+            % 2- two dependencies (left and right channels) with each single output
+            % 3- single dependency with left and right outputs (e.g., pre-processor)
+            
             % Should the input attribution works in any other way for a given processor,
             % this method should be overloaded for that specific children processor.
             
             % NB: 'dependency' should be a cell array with a handle to a single processor,
             % with a single output, or maximally one output per channel.
             
-            if iscell(dependency) && numel(dependency)==1 && ...
-                    size(dependency{1}.Output,2)<=2
-                dependency = dependency{1};
+            returnError = 0;
+            
+            % Return error if trying to have multiple inputs
+            if ~isempty(pObj.Input)
+                returnError = 1;
+            end
+            
+            if numel(dependency) == 1
+                if numel(dependency{1}.Output) == 1
+                    % Case 1: single-channel processor
+                    pObj.Input{1} = dependency{1}.Output{1};
+                    
+                elseif size(dependency{1}.Output,2) == 2
+                    % Case 3: Dependency is a multi-channel processor
+                    % TODO: They should be already be ordered, the following check should be
+                    % removed after testing and is here for debugging only.
+                    if strcmp(pObj.Channel,'left')
+                        pObj.Input{1} = dependency{1}.Output{1};
+                    else
+                        pObj.Input{1} = dependency{1}.Output{2};
+                    
+%                     if strcmp(dependency{1}.Output{1}.Channel,'left') && ...
+%                             strcmp(dependency{1}.Output{2}.Channel,'right')
+%                         pObj.Input{1,1} = dependency{1}.Output{1};
+%                         pObj.Input{1,2} = dependency{1}.Output{2};
+%                     elseif strcmp(dependency{1}.Output{1}.Channel,'right') && ...
+%                             strcmp(dependency{1}.Output{2}.Channel,'left')
+%                         pObj.Input{1,1} = dependency.Output{2};
+%                         pObj.Input{1,2} = dependency.Output{1};
+%                         warning('Outputs of dependent processors were incorrectly ordered, consider investigating.')
+%                     else
+%                         error('Something is wrong with the outputs of the dependent processor, investigate.')
+                    end
+                    
+                else
+                    returnError = 1;
+                end
+            elseif size(dependency,2) == 2
+                % Case 2: Binaural input processor
+                % TODO: Remove the following check once tested
+                if numel(dependency{1}.Output) == 1 && numel(dependency{2}.Output) == 1
+                    pObj.Input{1,1} = dependency{1}.Output{1};
+                    pObj.Input{1,2} = dependency{2}.Output{1};
+                else
+                    error('Something is wrong with the outputs of the dependent processor, investigate.')
+                end
             else
+                returnError = 1;
+            end
+            
+            if returnError
                 error(['Cannot add input for that specific processor. Consider ' ...
                     'overloading this method in the children processor class '...
                     'definition.'])
             end
             
-            % Number of already existing inputs
-            ii = size(pObj.Input,2);
-            
-            if size(dependency.Output,2) == 1
-                % Then it is a single output -> single input scenario
-                pObj.Input{ii+1,1} = dependency.Output{1};
-                
-            else
-                % Then the dependency has two outputs corresponding to two channels
-                
-                % TODO: They should be already be ordered, the following check should be
-                % removed after testing and is here for debugging only.
-                if strcmp(dependency.Output{1}.Channel,'left') && ...
-                        strcmp(dependency.Output{2}.Channel,'right')
-                    pObj.Input{ii+1,1} = dependency.Output{1};
-                    pObj.Input{ii+1,2} = dependency.Output{2};
-                elseif strcmp(dependency.Output{1}.Channel,'right') && ...
-                        strcmp(dependency.Output{2}.Channel,'left')
-                    pObj.Input{ii+1,1} = dependency.Output{2};
-                    pObj.Input{ii+1,2} = dependency.Output{1};
-                    warning('Outputs of dependent processors were incorrectly ordered, consider investigating.')
-                else
-                    error('Something is wrong with the outputs of the dependent processor, investigate.')
-                end
-            end
+%             % Number of already existing inputs
+%             ii = size(pObj.Input,2);
+%             
+%             if size(dependency.Output,2) == 1
+%                 % Then it is a single output -> single input scenario
+%                 pObj.Input{ii+1,1} = dependency.Output{1};
+%                 
+%             else
+%                 % Then the dependency has two outputs corresponding to two channels
+%                 
+%                 % TODO: They should be already be ordered, the following check should be
+%                 % removed after testing and is here for debugging only.
+%                 if strcmp(dependency.Output{1}.Channel,'left') && ...
+%                         strcmp(dependency.Output{2}.Channel,'right')
+%                     pObj.Input{ii+1,1} = dependency.Output{1};
+%                     pObj.Input{ii+1,2} = dependency.Output{2};
+%                 elseif strcmp(dependency.Output{1}.Channel,'right') && ...
+%                         strcmp(dependency.Output{2}.Channel,'left')
+%                     pObj.Input{ii+1,1} = dependency.Output{2};
+%                     pObj.Input{ii+1,2} = dependency.Output{1};
+%                     warning('Outputs of dependent processors were incorrectly ordered, consider investigating.')
+%                 else
+%                     error('Something is wrong with the outputs of the dependent processor, investigate.')
+%                 end
+%             end
             
         end
         
@@ -317,23 +336,43 @@ classdef Processor < handle
                     pObj.addOutput(sObj{ii});
                 end
             else
-                % Which column in the cell array should the signal go?
-                if strcmp(sObj.Channel,'right')
-                    jj = 2;
-                elseif strcmp(sObj.Channel,'left') || strcmp(sObj.Channel,'mono')
-                    jj = 1;
-                else    % NB: Will be removed after testing
-                    error('Need to specify a channel for output signal')
-                end
-
-                ii = max(size(pObj.Output,1),1);
-
-                if isempty(pObj.Output) || isempty(pObj.Output{ii,jj})
-                    pObj.Output{ii,jj} = sObj;
+                if isempty(pObj.Output)
+                    pObj.Output{1} = sObj;
+                elseif numel(pObj.Output) == 1
+                    if strcmp(pObj.Output{1}.Channel,'left') ...
+                            && strcmp(sObj.Channel,'right')
+                        pObj.Output{2} = sObj;
+                    elseif strcmp(pObj.Output{1}.Channel,'right') ...
+                            && strcmp(sObj.Channel,'left')
+                        % Then need to reverse the output order
+                        pObj.Output{2} = pObj.Output{1};
+                        pObj.Output{1} = sObj;
+                    else
+                        error('Something was wrong in the outputs of this processor')
+                    end
                 else
-                    % Then sObj is an additional output and should be put on another line
-                    pObj.Output{ii+1,jj} = sObj;
+                    error(['Cannot add multiple output to this processor. Consider ' ...
+                        'overloading the addOutput method in that case'])
                 end
+                
+%                 % Which column in the cell array should the signal go?
+%                 if strcmp(sObj.Channel,'right')
+%                     jj = 2;
+%                 elseif strcmp(sObj.Channel,'left') || strcmp(sObj.Channel,'mono')
+%                     jj = 1;
+%                 else    % NB: Will be removed after testing
+%                     error('Need to specify a channel for output signal')
+%                 end
+% 
+%                 ii = max(size(pObj.Output,1),1);
+% 
+%                 if isempty(pObj.Output) || size(pObj.Output,2)<jj ...
+%                                         || isempty(pObj.Output{ii,jj})
+%                     pObj.Output{ii,jj} = sObj;
+%                 else
+%                     % Then sObj is an additional output and should be put on another line
+%                     pObj.Output{ii+1,jj} = sObj;
+%                 end
             end
             
         end
@@ -355,6 +394,39 @@ classdef Processor < handle
             
         end
         
+        function initiateProcessing(pObj)
+            %INITIATEPROCESSING    Wrapper calling the processChunk method and routing I/O
+            % Main purpose is to allow overloading of I/O routing in processors with
+            % "unusual" number of input/outputs.
+            
+            % Two cases considered here, monaural and binaural processors producing single
+            % outputs. In other cases, the method should be overloaded in the particular
+            % processor.
+            
+            if size(pObj.Input,1) > 1 || numel(pObj.Output) > 1
+                % Then it is a multiple-input processor, return an error
+                error(['Cannot initiate the processing for this ' ...
+                    'processor. Consider overloading this method in the children ' ... 
+                    'class definition.'])
+            
+            elseif size(pObj.Input,1) == 1
+                % Then monaural processor
+                pObj.Output{1}.appendChunk( ...
+                    pObj.processChunk( pObj.Input{1}.Data('new')));
+                
+            elseif size(pObj.Input,1) == 2
+                % Then binaural processor
+                pObj.Output{1}.appendChunk( ...
+                    pObj.processChunk( ...
+                        pObj.Input{1}.Data('new'), pObj.Input{2}.Data('new')));
+                
+                
+            else
+                % TODO: Remove after testing
+                error('Something is wrong with the inputs of this processor, investigate.')
+            end
+            
+        end
     end
 
     methods (Static)
