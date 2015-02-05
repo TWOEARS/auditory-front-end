@@ -1340,13 +1340,13 @@ classdef manager < handle
                 if ~isempty(dep_list)
                     if size(mObj.Processors,2)==2
                         if isempty(mObj.Processors{n_proc+n_new_proc,2})
-                            out = mObj.Processors{n_proc+n_new_proc,1}.Output;
+                            out{1} = mObj.Processors{n_proc+n_new_proc,1}.Output{1};
                         else
-                            out{1,1} = mObj.Processors{n_proc+n_new_proc,1}.Output;
-                            out{1,2} = mObj.Processors{n_proc+n_new_proc,2}.Output;
+                            out{1,1} = mObj.Processors{n_proc+n_new_proc,1}.Output{1};
+                            out{1,2} = mObj.Processors{n_proc+n_new_proc,2}.Output{1};
                         end
                     else
-                        out = mObj.Processors{n_proc+n_new_proc,1}.Output;
+                        out{1} = mObj.Processors{n_proc+n_new_proc,1}.Output{1};
                     end
                 else
                     % Else no new processor was added as the requested one

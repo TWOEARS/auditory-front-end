@@ -40,8 +40,7 @@ t = toc;
 fprintf('Computation time to signal duration ratio : %d\n',t/(size(data,1)/fsHz))
 
 % Plot output
-if iscell(sOut)
-    sOut{1}.plot;
-else
-    sOut.plot;
+sOut{1}.plot;
+if size(sOut,2) == 2
+    sOut{2}.plot;
 end
