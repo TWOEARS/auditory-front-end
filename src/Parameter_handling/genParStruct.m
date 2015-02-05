@@ -30,47 +30,31 @@ if mod(size(varargin,2),2)==1
     warning(['Incorrect number of input arguments. Arguments need to be '...
         'provided in pairs of names and values. The whole parameter '...
         'request is disregarded.'])
-    p = struct;
+    
     return
 else
     n_par = size(varargin,2)/2;
-    p = struct;
 end
 
-% Load the parameter info file
-path = fileparts(mfilename('fullpath'));
-load([path filesep 'parameterInfo.mat'])
+
+
+
+% % Load the parameter info file
+% path = fileparts(mfilename('fullpath'));
+% load([path filesep 'parameterInfo.mat'])
+
+keys = cell(1,n_par);
+values = cell(1,n_par);
 
 % Loop on the number of parameters
 for ii = 0:n_par-1
    
-    % 1-Check that the provided name is valid
-    name = varargin{2*ii+1};
+    % Incorrect parameter name will be picked-up when instantiating the parameter object
+    keys{ii+1} = varargin{2*ii+1};
+    values{ii+1} = varargin{2*ii+2}; 
     
-    % Loop on the parameter categories
-    cats = fieldnames(pInfo);
-    jj = 1;
-    while jj<size(cats,1)
-        if isfield(pInfo.(cats{jj}),name)
-            break
-        else
-            jj = jj+1;
-        end
-    end
-    
-    % Go further if this parameter name is valid
-    if isfield(pInfo.(cats{jj}),name)
-        % Check that the provided value is valid
-        value = varargin{2*ii+2};
+end
 
-        % Add to the parameter structure
-        p.(name) = value;
-        
-    else
-        warning(['Parameter name %s is invalid, this specific request'...
-            ' is disregarded.'],name)
-    end
-    
-    
-    
+p = Parameters(keys,values);
+
 end
