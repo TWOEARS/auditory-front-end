@@ -7,7 +7,7 @@ close all
 % test_startup;
 
 % Test on monoral or binaural signal
-do_stereo = 0;
+do_stereo = 1;
 
 % Load a signal
 load('TestBinauralCues');
@@ -34,14 +34,14 @@ mObj = manager(dObj);
 sOut = mObj.addProcessor(request,p);
 
 % Request processing
-% tic
-% mObj.processSignal;
-% t = toc;
-% fprintf('Computation time to signal duration ratio : %d\n',t/(size(data,1)/fsHz))
-% 
-% % Plot output
-% if iscell(sOut)
-%     sOut{1}.plot;
-% else
-%     sOut.plot;
-% end
+tic
+mObj.processSignal;
+t = toc;
+fprintf('Computation time to signal duration ratio : %d\n',t/(size(data,1)/fsHz))
+
+% Plot output
+if iscell(sOut)
+    sOut{1}.plot;
+else
+    sOut.plot;
+end

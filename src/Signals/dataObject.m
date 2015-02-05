@@ -89,15 +89,17 @@ classdef dataObject < dynamicprops
             dObj.isStereo = channelNumber-1;
             
             % Populate the signal property
-            
-            % TO DO: Do something with the label of this signal?
             if dObj.isStereo
                 if ~isempty(s)
-                    sig_l = TimeDomainSignal(fs,dObj.bufferSize_s,'input','Ear Signal',s(:,1),'left');
-                    sig_r = TimeDomainSignal(fs,dObj.bufferSize_s,'input','Ear Signal',s(:,2),'right');
+                    sig_l = TimeDomainSignal.construct(fs, dObj.bufferSize_s, ...
+                            'input', 'Ear Signal', 'left', s(:,1));
+                    sig_r = TimeDomainSignal.construct(fs, dObj.bufferSize_s, ...
+                            'input', 'Ear Signal', 'right', s(:,2));
                 else
-                    sig_l = TimeDomainSignal(fs,dObj.bufferSize_s,'input','Ear Signal',[],'left');
-                    sig_r = TimeDomainSignal(fs,dObj.bufferSize_s,'input','Ear Signal',[],'right');
+                    sig_l = TimeDomainSignal.construct(fs, dObj.bufferSize_s, ...
+                            'input', 'Ear Signal', 'left', []);
+                    sig_r = TimeDomainSignal.construct(fs, dObj.bufferSize_s, ...
+                            'input', 'Ear Signal', 'right', []);
                 end
                 dObj.addSignal(sig_l);
                 dObj.addSignal(sig_r);
@@ -107,7 +109,8 @@ classdef dataObject < dynamicprops
                     sig = TimeDomainSignal.construct(fs, dObj.bufferSize_s, ...
                             'input', 'Ear signal', 'mono', s);
                 else
-                    sig = TimeDomainSignal(fs,dObj.bufferSize_s,'input','Ear signal (mono)',[]);
+                    sig = TimeDomainSignal.construct(fs, dObj.bufferSize_s, ...
+                            'input', 'Ear signal', 'mono', []);
                 end
                 dObj.addSignal(sig);
             end          

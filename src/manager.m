@@ -563,11 +563,16 @@ classdef manager < handle
             % Find most suitable initial processor for that request
             [initProc,dep_list] = mObj.findInitProc(request,p);
             
-            % Replace the initProc with an actual processor if empty
-            % TODO: adapt for stereo
+            % Replace the initProc with actual processor(s) if empty
             if isempty(initProc)
-                initProc = identityProc(fs);
-                initProc.Output = mObj.Data.input;
+                if mObj.Data.isStereo
+                    initProc = {identityProc(fs), identityProc(fs)};
+                    initProc{1}.Output = mObj.Data.input(1);
+                    initProc{2}.Output = mObj.Data.input(2);
+                else
+                    initProc = {identityProc(fs)};
+                    initProc{1}.Output = mObj.Data.input;
+                end
             end
             
             % Algorithm should proceed further even if the requested
@@ -578,9 +583,7 @@ classdef manager < handle
             
             % The processing order is the reversed list of dependencies
             dep_list = fliplr(dep_list);
-
-            
-            
+ 
             % Former number of processors
             n_proc = size(mObj.Processors,1);
             
@@ -595,12 +598,12 @@ classdef manager < handle
                     n_chan = 1;
                 end
                 mObj.Processors = cell(n_new_proc,n_chan);   
-                mObj.InputList = cell(n_new_proc,n_chan);    % TO DO: Will have to be changed to account for multiple input features
-                mObj.OutputList = cell(n_new_proc,n_chan);
+%                 mObj.InputList = cell(n_new_proc,n_chan);    % TO DO: Will have to be changed to account for multiple input features
+%                 mObj.OutputList = cell(n_new_proc,n_chan);
             end
             
             
-            % Initialize pointer to dependency 
+            %% Initialize pointer to dependency 
 %             if size(initProc,2)==2
 %                 % Need to refer to left and right chanel initial processors
 %                 % and signals
@@ -625,7 +628,8 @@ classdef manager < handle
 %                 end
 %             end
 
-            dependency = {initProc};
+%%
+            dependency = initProc;
             
             % Processors instantiation and data object property population
             for ii = n_proc+1:n_proc+n_new_proc   
@@ -1162,17 +1166,17 @@ classdef manager < handle
                 % Check if one or two processors should be instantiated (mono or stereo)
                 procInfo = feval([procName '.getProcessorInfo']);
                 if size(dependency,1) == 2 && ~procInfo.isBinaural
-                    newProc_l = mObj.addSingleProcessor(procName,p,dependency,1,ii);
-                    newProc_r = mObj.addSingleProcessor(procName,p,dependency,2,ii);
+                    newProc_l = mObj.addSingleProcessor(procName, p, dependency(1), 1, ...
+                                                        ii, 'stereo');
+                    newProc_r = mObj.addSingleProcessor(procName, p, dependency(2), 2, ...
+                                                        ii, 'stereo');
                     dependency = {newProc_l, newProc_r};
                 else
-                    newProc = mObj.addSingleProcessor(procName,p,dependency,1,ii);
+                    newProc = mObj.addSingleProcessor(procName, p, dependency, 1, ii,...
+                                                        'mono');
                     dependency = {newProc};
                 end
                 
-                
-                
-                % NB: Only mono for the moment
                 
                 %% Old code again, commented for folding
                 % Instantiate processors
@@ -1529,9 +1533,13 @@ classdef manager < handle
             
         end
         
-        function newProcessor = addSingleProcessor(mObj,procName,parameters,dependencies,channelNb,index)
+        function newProcessor = addSingleProcessor(mObj,procName,parameters, ...
+                                                dependencies,channelNb,index,channelTag)
             %addSingleProcessor     Instantiates a new processors and integrates it to the
             %                       manager instance
+            %
+            % Note about channelNb: 1 for left or mono, 2 for right. 
+            %                       channelTag is 'mono' or 'stereo'
             %
             % The following steps are carried out:
             %   - Instantiate a processor, add a pointer to it in mObj.Processors
@@ -1539,7 +1547,6 @@ classdef manager < handle
             %   - Instantiate a new output signal (possibly multiple)
             %   - Link it/them as output(s) of the processor
             %   - Provide link to the input signal(s)
-            %
             
             
             % NB: test if index is necessary (to make use of preallocation), remove else
@@ -1551,7 +1558,17 @@ classdef manager < handle
             newProcessor = feval(procName, dependencies{1}.FsHzOut, parameters);
             mObj.Processors{index,channelNb} = newProcessor;
             
-            % NB: Do something here about channel
+            % Labeling channels
+            % TODO: Could be more flexible, to allow e.g., multi-channel processors
+            if strcmp(channelTag,'mono')
+                newProcessor.Channel = 'mono';
+            else
+                if channelNb == 1
+                    newProcessor.Channel = 'left';
+                else
+                    newProcessor.Channel = 'right';
+                end
+            end
             
             % Mutual link to dependencies
             newProcessor.addLowerDependencies(dependencies);

@@ -218,7 +218,9 @@ classdef preProc < Processor
             out_r = data_r;
             
         end
-           
+          
+        
+        %% OLD hasParameter method
         %TODO: We might have to overload the hasParameters for this processor (to still
         %return 1 if processing flags are set to 0 but processing parameter is different)
 %         function hp = hasParameters(pObj,p)
@@ -286,6 +288,8 @@ classdef preProc < Processor
 %             hp = 1;
 %             
 %         end
+
+        %% Resume
         
         function reset(pObj)
             %reset     Resets the internal states of the pre-processor
@@ -337,6 +341,12 @@ classdef preProc < Processor
         end
             
         
+        
+    end
+    
+    % Pre-processor is a multi-channel processor and needs to overload some of the
+    % standard Processor methods to function correctly
+    methods (Hidden = true)
         
     end
     
