@@ -261,6 +261,8 @@ classdef Parameters < handle
                 text = 'n-a';
             end
             
+            % Add something here for plotting parameters.
+            
         end
         
     end
