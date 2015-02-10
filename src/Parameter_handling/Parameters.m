@@ -252,14 +252,19 @@ classdef Parameters < handle
             
             % Load parameter names and default values
             try
-                [names, defaultValues, descriptions] = ...
+                [names, defaultValues, ~] = ...
                     feval([signalName '.getPlottingParameterInfo']);
             catch
                 % Don't generate an error if this method is not found.
             end
             
             % Put these in a parameter object
-            parObj = Parameters(names,values);
+            parObj = Parameters(names,defaultValues);
+            
+            % Add the common plotting parameters
+            [commonName,commonValue,~] = Signal.getPlottingParameterInfo;
+            commonParameters = Parameters(commonName, commonValue);
+            parObj.appendParameters(commonParameters);
             
             
         end
