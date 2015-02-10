@@ -110,10 +110,11 @@ classdef TimeFrequencySignal < Signal
                 % Manage plotting parameters
                 if nargin < 3 || isempty(p) 
                     % Get default plotting parameters
-                    p = getDefaultParameters([],'plotting');
+                    p = Parameters.getPlottingParameters('TimeFrequencySignal');
                 else
-                    p.fs = sObj.FsHz;   % Add the sampling frequency to satisfy parseParameters
-                    p = parseParameters(p);
+                    defaultPar = Parameters.getPlottingParameters('TimeFrequencySignal');
+                    defaultPar.replaceParameters(p);
+                    p = defaultPar;
                 end
                 
                 % Manage optional arguments
@@ -166,7 +167,7 @@ classdef TimeFrequencySignal < Signal
                     linspace(0.5,M+0.5,n_points));
                 %
                 % Restrain ticks to signal range (+/- a half channel)
-                aud_ticks = p.aud_ticks;
+                aud_ticks = p.map('aud_ticks');
                 aud_ticks=aud_ticks(aud_ticks<=interpolate_ticks(end));
                 aud_ticks=aud_ticks(aud_ticks>=interpolate_ticks(1));
                 n_ticks = size(aud_ticks,2);        % Number of ticks
@@ -181,9 +182,9 @@ classdef TimeFrequencySignal < Signal
                 
                 % Set the color map
                 try
-                    colormap(p.colormap)
+                    colormap(p.map('colormap'))
                 catch
-                    warning('No colormap %s is available, using ''jet''.',p.colormap)
+                    warning('No colormap %s is available, using ''jet''.',p.map('colormap'))
                     colormap('jet')
                 end
                 
@@ -191,7 +192,7 @@ classdef TimeFrequencySignal < Signal
                 switch sObj.Name
                     
                     case {'filterbank','innerhaircell','drnl','adaptation'}
-                        waveplot(data(:,1:p.wavPlotDS:end).',t(1:p.wavPlotDS:end),sObj.cfHz,p.wavPlotZoom,1);
+                        waveplot(data(:,1:p.map('wavPlotDS'):end).',t(1:p.map('wavPlotDS'):end),sObj.cfHz,p.map('wavPlotZoom'),1);
                     
                     otherwise
                         imagesc(t,1:M,data)  % Plot the data
@@ -199,10 +200,10 @@ classdef TimeFrequencySignal < Signal
                         
                         % Set up y-axis
                         set(gca,'YTick',ticks_pos,...
-                            'YTickLabel',aud_ticks,'fontsize',p.fsize_axes,...
-                            'fontname',p.ftype)
+                            'YTickLabel',aud_ticks,'fontsize',p.map('fsize_axes'),...
+                            'fontname',p.map('ftype'))
                 
-                        if p.bColorbar
+                        if p.map('bColorbar')
                             colorbar             % Display a colorbar
                         end
                 end
@@ -226,9 +227,9 @@ classdef TimeFrequencySignal < Signal
                 end
                 
                 % Set up axes labels
-                xlabel('Time (s)','fontsize',p.fsize_label,'fontname',p.ftype)
-                ylabel('Frequency (Hz)','fontsize',p.fsize_label,'fontname',p.ftype)
-                title(pTitle,'fontsize',p.fsize_title,'fontname',p.ftype)
+                xlabel('Time (s)','fontsize',p.map('fsize_label'),'fontname',p.map('ftype'))
+                ylabel('Frequency (Hz)','fontsize',p.map('fsize_label'),'fontname',p.map('ftype'))
+                title(pTitle,'fontsize',p.map('fsize_title'),'fontname',p.map('ftype'))
 
                 % Set up plot properties
                 
@@ -237,7 +238,7 @@ classdef TimeFrequencySignal < Signal
                 switch sObj.Name
                     case {'innerhaircell','ratemap'}
                         m = max(data(:));    % Get maximum value for scaling
-                        set(gca,'CLim',[m-p.dynrange m])
+                        set(gca,'CLim',[m-p.map('dynrange') m])
 
                     case {'ild','itd'}
                         m = max(abs(data(:)))+eps;
