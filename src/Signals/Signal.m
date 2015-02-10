@@ -251,7 +251,89 @@ classdef Signal < handle
     end
     
     methods (Static)
+        
+        function sList = signalList()
+            
+            % Signal directory
+            signalDir = mfilename('fullpath');
+            
+            % Get file information
+            fileList = listFiles(signalDir(1:end-7),'*.m',-1);
+            
+            % Extract name only
+            sList = cell(size(fileList));
+            for ii = 1:size(fileList)
+                % Get file name
+                [~,fName] = fileparts(fileList(ii).name);
+                
+                % Check if it is a valid signal
+                try
+                    s = feval(str2func(fName));
+                    if isa(s,'Signal')
+                        sList{ii} = fName;
+                    else
+                        sList{ii} = [];
+                    end
+                catch
+                    sList{ii} = [];
+                end
+                
+            end
+                
+            % Remove empty elements
+            sList = sList(~cellfun('isempty',sList));
+            
+        end
        
+        function signalName = findSignalFromParameter(parameterName,no_warning)
+            %Signal.findSignalFromParameter   Finds the signal that uses a given plotting
+            %parameter
+            %
+            %USAGE:
+            %   signalName = Signal.findSignalFromParameter(parName)
+            %   signalName = Signal.findSignalFromParameter(parName, no_warning)
+            %
+            %INPUT ARGUMENT:
+            %      parName : Name of the parameter
+            %   no_warning : Set to 1 (default: 0) to suppress warning message
+            %
+            %OUTPUT ARGUMENT:
+            %   signalName : Name of the signal using that parameter
+
+            if nargin<2||isempty(no_warning); no_warning = 0; end
+            
+            % Get a list of processor
+            signalList = Signal.signalList;
+
+            % Add the general plot properties to the list
+            signalList = ['Signal'; signalList];
+            
+            % Loop over each processor
+            for ii = 1:size(signalList,1)
+                try
+                    sigParNames = feval([signalList{ii} '.getPlottingParameterInfo']);
+                    
+                    if ismember(parameterName,sigParNames)
+                        signalName = signalList{ii};
+                        return
+                    end
+                    
+                catch
+                    % Do not return a warning here, as this is called in a loop
+                end
+
+            end
+
+            % If still running, then we haven't found it
+            if ~no_warning
+                warning('Could not find a signal which uses plotting parameter ''%s''',...
+                        parameterName)
+            end
+            signalName = [];
+            
+            
+        end
+        
         function [names, defaultValues, descriptions] = getPlottingParameterInfo()
             %GETPLOTTINGPARAMETERINFO   Stores plot parameters that are common to all
             %signals.

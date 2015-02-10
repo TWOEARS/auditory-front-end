@@ -30,8 +30,7 @@ classdef TimeDomainSignal < Signal
             if nargin<4; data = []; end
             if nargin<3||isempty(channel); channel = 'mono'; end
             if nargin<2||isempty(bufferSize); bufferSize = 10; end
-            % TODO: Maybe the following needs to define en "emptyProc"
-            if nargin<1||isempty(procHandle); procHandle = Processor; end
+            if nargin<1||isempty(procHandle); procHandle = emptyProc; end
             
             sObj = sObj@Signal( procHandle, bufferSize, 1 );
             
@@ -203,6 +202,20 @@ classdef TimeDomainSignal < Signal
             sObj = TimeDomainSignal(dummyStruct,bufferSize,channel,data);
             
         end
+        
+        function [names, defaultValues, descriptions] = getPlottingParameterInfo()
+            %GETPLOTTINGPARAMETERINFO   Stores plot parameters that are common to all
+            %signals.
+            
+            
+            names = {};
+                 
+            descriptions = {};
+                
+            defaultValues = {};
+            
+        end
+        
         
     end
     

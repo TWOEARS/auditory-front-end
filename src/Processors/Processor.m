@@ -124,7 +124,8 @@ classdef Processor < handle
                 if proc.parameters.map.isKey(parName)
                     parValue = proc.parameters.map(parName);
                 else
-                    if isempty(proc.LowerDependencies{1})
+                    if numel(proc.LowerDependencies) == 0 ...
+                            ||  isempty(proc.LowerDependencies{1})
                         break
                     end
                     proc = proc.LowerDependencies{1};
@@ -492,18 +493,22 @@ classdef Processor < handle
             
         end
         
-        function procName = findProcessorFromParameter(parameterName)
+        function procName = findProcessorFromParameter(parameterName,no_warning)
             %Processor.findProcessorFromParameter   Finds the processor that uses a given parameter
             %
             %USAGE:
             %   procName = Processor.findProcessorFromParameter(parName)
+            %   procName = Processor.findProcessorFromParameter(parName,no_warning)
             %
             %INPUT ARGUMENT:
             %   parName : Name of the parameter
+            %no_warning : Set to 1 (default: 0) to suppress warning message
             %
             %OUTPUT ARGUMENT:
             %  procName : Name of the processor using that parameter
 
+            if nargin<2||isempty(no_warning); no_warning = 0; end
+            
             % Get a list of processor
             procList = Processor.processorList;
 
@@ -524,8 +529,10 @@ classdef Processor < handle
             end
 
             % If still running, then we haven't found it
+            if ~no_warning
             warning('Could not find a processor which uses parameter ''%s''',...
                     parameterName)
+            end
             procName = [];
 
         end

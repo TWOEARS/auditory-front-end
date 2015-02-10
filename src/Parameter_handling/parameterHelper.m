@@ -64,17 +64,43 @@ if nargin == 0 || isempty(procName)
         fprintf(['\t' hLink procDescription{idx(ii)} '</a>\n'])
     end
 
+    % Add a plotting parameter category
+    hLink = '<a href="matlab:parameterHelper(''plotting'')">';
+    fprintf(['\t' hLink 'Plotting parameters' '</a>\n'])
+    
     fprintf('\n')
 else
     
     % Load the parameter names, default values and description 
-    try 
-        [names,values,description] = feval([procName '.getParameterInfo']);
-    catch
-        warning(['There is no %s processor, or its getParameterInfo static method '...
-                 'is not implemented.'])
+    if ~strcmp(procName,'plotting')
+        try 
+            [names,values,description] = feval([procName '.getParameterInfo']);
+        catch
+            warning(['There is no %s processor, or its getParameterInfo static method '...
+                     'is not implemented.'])
+        end
+    else
+        % General plotting properties
+        [names,values,description] = feval('Signal.getPlottingParameterInfo');
+        
+        % Specific properties
+        sigList = Signal.signalList;
+        
+        for ii = 1:size(sigList,1)
+            [names_sp,values_sp,description_sp] = ...
+                feval([sigList{ii} '.getPlottingParameterInfo']);
+            
+            % Add to the list if non-empty
+            if ~isempty(names_sp)
+                names = [names, names_sp];                      %#ok<AGROW>
+                values = [values, values_sp];                   %#ok<AGROW>
+                description = [description, description_sp];    %#ok<AGROW>
+            end
+            
+        end
+        
     end
-    
+        
     % TODO: Do something specific for processors without parameters?
     
     % Find appropriate columns widths
@@ -111,7 +137,7 @@ else
         end
 
         % Keep track of larger string for table formatting
-        val_size = max(val_size,size(values{ii},2));
+        val_size = max(val_size,size(valueStr{ii},2));
     end
     
     % Display a header
@@ -128,84 +154,5 @@ else
     fprintf('\n')
     
     
-    
-    
-%     if isfield(pInfo,cat)
-%         
-%         % Get the parameter names for this category
-%         names = fieldnames(pInfo.(cat));
-%         
-%         % Remove the category label
-%         names = names(2:end);   
-%         
-%         % Make names an empty array if it is an empty cell (for processors
-%         % with no parameters)
-%         if isempty(names)
-%             names = [];
-%         end
-%         
-%         % Find appropriate columns widths
-%         name_size = 4;  % Size of string 'Name'
-%         
-%         for ii = 1:size(names,1)
-%             name_size = max(name_size,size(names{ii},2));
-%         end
-%         
-%         
-%         
-%         
-%         % Display the category name and label
-%         if ~isempty(names)
-%             fprintf(['\n' pInfo.(cat).label ' parameters:\n\n'])
-%         else
-%             fprintf(['\n' pInfo.(cat).label ' processors have no parameters of their own.\n\n'])
-%         end
-%         
-%         
-%         % Display a list of parameters for this category
-%         
-%         % Text formatting for the parameter default value
-%         value = cell(size(names,1),1);
-%         val_size = 7;   % Size of string 'Default'
-%         for ii = 1:size(names,1)
-%             if iscell(pInfo.(cat).(names{ii}).value)
-%                 % Then it's multiple strings concatenated in a cell array
-%                 val = ['{'];
-%                 for jj = 1:size(pInfo.(cat).(names{ii}).value,2)-1
-%                     val = [val '''' pInfo.(cat).(names{ii}).value{jj} ''','];
-%                 end
-%                 value{ii} = [val '''' pInfo.(cat).(names{ii}).value{jj+1} '''}'];
-%             elseif ischar(pInfo.(cat).(names{ii}).value)
-%                 % Then it's a single string
-%                 value{ii} = ['''' pInfo.(cat).(names{ii}).value ''''];
-%             elseif size(pInfo.(cat).(names{ii}).value,2)>1
-%                 % Then it's an numerical array
-%                 val = ['['];
-%                 for jj = 1:size(pInfo.(cat).(names{ii}).value,2)-1
-%                     val = [val num2str(pInfo.(cat).(names{ii}).value(jj)) ' '];
-%                 end
-%                 value{ii} = [val num2str(pInfo.(cat).(names{ii}).value(jj+1)) ']'];
-%             else
-%                 % It's a single numeral
-%                 value{ii} = num2str(pInfo.(cat).(names{ii}).value);
-%             end
-%             
-%             % Keep track of larger string for table formatting
-%             val_size = max(val_size,size(value{ii},2));
-%             
-%         end
-%            
-%         % Display a header
-%         if ~isempty(names)
-%             fprintf(['  %-' int2str(name_size+2) 's  %-' int2str(val_size+1) 's  %-s\n'],'Name','Default','Description')
-%             fprintf(['  %-' int2str(name_size+2) 's  %-' int2str(val_size+1) 's  %-s\n'],'----','-------','-----------')
-%         end
-%         
-%         for ii = 1:size(names,1)
-%             % Display on command window
-%             fprintf(['  %-' int2str(name_size+2) 's  %-' int2str(val_size+1) 's  %-s\n'],names{ii},value{ii},pInfo.(cat).(names{ii}).description)
-%         end
-%         fprintf('\n')
-%     end
 end
     

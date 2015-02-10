@@ -238,6 +238,32 @@ classdef Parameters < handle
             
         end
         
+        function parObj = getPlottingParameters(signalName)
+            %getPlottingParameters    Returns the default plotting parameters for a signal
+            %
+            %USAGE:
+            %  values = Parameters.getPlottingParameters(signalName)
+            %
+            %INPUT ARGUMENTS:
+            %  signalName : Name of the signal to plot
+            %
+            %OUTPUT ARGUMENTS:
+            %      parObj : Parameter object with default parameters
+            
+            % Load parameter names and default values
+            try
+                [names, defaultValues, descriptions] = ...
+                    feval([signalName '.getPlottingParameterInfo']);
+            catch
+                % Don't generate an error if this method is not found.
+            end
+            
+            % Put these in a parameter object
+            parObj = Parameters(names,values);
+            
+            
+        end
+        
         function text = readParameterDescription(parName)
             %readParameterDescription   Finds the description of a single parameter
             %
@@ -251,17 +277,28 @@ classdef Parameters < handle
             %      text : Associated description
             
             % Find the name of the processor using this parameter
-            procName = Processor.findProcessorFromParameter(parName);
+            procName = Processor.findProcessorFromParameter(parName,1);
+            
+            % Disable warnings
+            warning('off','all')
             
             % Get the parameter infos
             if ~isempty(procName)
                 [names,~,description] = feval([procName '.getParameterInfo']);
                 text = description{strcmp(parName,names)};
             else
-                text = 'n-a';
+                % Maybe it is a plotting parameter, look in the signals
+                sigName = Signal.findSignalFromParameter(parName,1);
+                if ~isempty(sigName)
+                    [names,~,description] = feval([sigName '.getPlottingParameterInfo']);
+                    text = description{strcmp(parName,names)};
+                else
+                    warning('Could not find a parameter named %s.',parName)
+                    text = 'n-a';
+                end
             end
             
-            % Add something here for plotting parameters.
+            warning('on','all')
             
         end
         
