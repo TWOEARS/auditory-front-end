@@ -91,10 +91,13 @@ classdef TimeDomainSignal < Signal
                 % Manage plot parameters
                 if nargin < 3 || isempty(p) 
                     % Get default plotting parameters
-                    p = getDefaultParameters([],'plotting');
+                    p = Parameters.getPlottingParameters('TimeDomainSignal');
                 else
-                    p.fs = sObj.FsHz;   % Add the sampling frequency to satisfy parseParameters
-                    p = parseParameters(p);
+%                     p.fs = sObj.FsHz;   % Add the sampling frequency to satisfy parseParameters
+%                     p = parseParameters(p);
+                    defaultPar = Parameters.getPlottingParameters('TimeDomainSignal');
+                    defaultPar.replaceParameters(p);
+                    p = defaultPar;
                 end
 
                 % Manage optional arguments
@@ -125,11 +128,11 @@ classdef TimeDomainSignal < Signal
                 end
                 
                 % Plot
-                plot(t,data,'color',p.color,'linewidth',p.linewidth_s)
-                xlabel('Time (s)','fontsize',p.fsize_label,'fontname',p.ftype)
-                ylabel('Amplitude','fontsize',p.fsize_label,'fontname',p.ftype)
-                title(pTitle,'fontsize',p.fsize_title,'fontname',p.ftype)
-                set(gca,'fontsize',p.fsize_axes,'fontname',p.ftype)
+                plot(t,data,'color',p.map('color'),'linewidth',p.map('linewidth_s'))
+                xlabel('Time (s)','fontsize',p.map('fsize_label'),'fontname',p.map('ftype'))
+                ylabel('Amplitude','fontsize',p.map('fsize_label'),'fontname',p.map('ftype'))
+                title(pTitle,'fontsize',p.map('fsize_title'),'fontname',p.map('ftype'))
+                set(gca,'fontsize',p.map('fsize_axes'),'fontname',p.map('ftype'))
                 
                 box on 
                 

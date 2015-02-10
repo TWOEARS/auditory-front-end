@@ -162,6 +162,20 @@ classdef Parameters < handle
             
         end
         
+        function replaceParameters(parObj,newParObj)
+            %replaceParameters  Appends new parameter and replace value of existing ones
+            
+            % Get a list of keyvalues to append
+            keyList = newParObj.map.keys;
+
+            for ii = 1:size(keyList,2)
+                % Will append a new parameter, or replace its value if already existing
+                parObj.map(keyList{ii}) = newParObj.map(keyList{ii});
+            end
+            
+        end
+            
+        
         function parObjCopy = copy(parObj)
             %copy   Returns a new parameter object containing the same information
             %
@@ -256,6 +270,8 @@ classdef Parameters < handle
                     feval([signalName '.getPlottingParameterInfo']);
             catch
                 % Don't generate an error if this method is not found.
+                names = {};
+                defaultValues = {};
             end
             
             % Put these in a parameter object
