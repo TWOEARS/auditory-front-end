@@ -556,8 +556,8 @@ classdef manager < handle
                                     
                                     % Throw a warning if conflicting information was provided
                                     if isfield(p,'nERBs')
-                                        warning(['Conflicting information was provided for the Gammatone filterbank instantiation. The filterbank '...
-                                            'will be generated from the provided frequency range and number of channels.'])
+%                                        warning(['Conflicting information was provided for the Gammatone filterbank instantiation. The filterbank '...
+%                                            'will be generated from the provided frequency range and number of channels.'])
                                     end
                                     
                                 case 'standard'
