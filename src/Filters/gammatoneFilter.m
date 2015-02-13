@@ -35,6 +35,7 @@ classdef gammatoneFilter < filterObj
             % TO DO : Instantiating an IIR gammatone filter should not
             % populate the IRDuration property
             % TO DO : Add more code commenting/references for 'iir' case
+            % TODO: Implement alignment?
             
             if nargin > 0   % Prevent error when constructors is called 
                             %   without arguments

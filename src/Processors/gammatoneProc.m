@@ -170,30 +170,30 @@ classdef gammatoneProc < Processor
             
             % Solve the conflicts between center frequencies, number of channels, and
             % distance between channels
-            if ~isempty(pObj.parameters.map('cfHz'))
+            if ~isempty(pObj.parameters.map('fb_cfHz'))
                 % Highest priority case: a vector of channels center 
                 %   frequencies is provided
-                centerFreq = pObj.parameters.map('cfHz');
+                centerFreq = pObj.parameters.map('fb_cfHz');
                 
-                pObj.parameters.map('f_low') = centerFreq(1);
-                pObj.parameters.map('f_high') = centerFreq(end);
-                pObj.parameters.map('nChannels') = numel(centerFreq);
-                pObj.parameters.map('nERBs') = 'n/a';
+                pObj.parameters.map('fb_lowFreqHz') = centerFreq(1);
+                pObj.parameters.map('fb_highFreqHz') = centerFreq(end);
+                pObj.parameters.map('fb_nChannels') = numel(centerFreq);
+                pObj.parameters.map('fb_nERBs') = 'n/a';
                 
                 
-            elseif ~isempty(pObj.parameters.map('nChannels'))
+            elseif ~isempty(pObj.parameters.map('fb_nChannels'))
                 % Medium priority: frequency range and number of channels
                 %   are provided
                
                 % Build a vector of center ERB frequencies
-                ERBS = linspace( freq2erb(pObj.parameters.map('f_low')), ...
-                                freq2erb(pObj.parameters.map('f_high')), ...
-                                pObj.parameters.map('nChannels') );  
+                ERBS = linspace( freq2erb(pObj.parameters.map('fb_lowFreqHz')), ...
+                                freq2erb(pObj.parameters.map('fb_highFreqHz')), ...
+                                pObj.parameters.map('fb_nChannels') );  
                 centerFreq = erb2freq(ERBS);    % Convert to Hz
                 
-                pObj.parameters.map('nERBs') = (ERBS(end)-ERBS(1)) ...
-                                                / pObj.parameters.map('nChannels');
-                pObj.parameters.map('cfHz') = centerFreq;
+                pObj.parameters.map('fb_nERBs') = (ERBS(end)-ERBS(1)) ...
+                                                / pObj.parameters.map('fb_nChannels');
+                pObj.parameters.map('fb_cfHz') = centerFreq;
                 
                 
             else
@@ -201,13 +201,13 @@ classdef gammatoneProc < Processor
                 %   between channels is provided (or taken by default)
                 
                 % Build vector of center ERB frequencies
-                ERBS = freq2erb(pObj.parameters.map('f_low')): ...
-                                double(pObj.parameters.map('nERBs')): ...
-                                            freq2erb(pObj.parameters.map('f_high'));
+                ERBS = freq2erb(pObj.parameters.map('fb_lowFreqHz')): ...
+                                double(pObj.parameters.map('fb_nERBs')): ...
+                                            freq2erb(pObj.parameters.map('fb_highFreqHz'));
                 centerFreq = erb2freq(ERBS);    % Convert to Hz
                 
-                pObj.parameters.map('nChannels') = numel(centerFreq);
-                pObj.parameters.map('cfHz') = centerFreq;
+                pObj.parameters.map('fb_nChannels') = numel(centerFreq);
+                pObj.parameters.map('fb_cfHz') = centerFreq;
                 
             end
             
@@ -218,27 +218,27 @@ classdef gammatoneProc < Processor
     % "Getter" methods
     methods
         function cfHz = get.cfHz(pObj)
-            cfHz = pObj.parameters.map('cfHz');
+            cfHz = pObj.parameters.map('fb_cfHz');
         end
         
         function nERBs = get.nERBs(pObj)
-            nERBs = pObj.parameters.map('nERBs');
+            nERBs = pObj.parameters.map('fb_nERBs');
         end
         
         function nGamma = get.nGamma(pObj)
-            nGamma = pObj.parameters.map('n_gamma');
+            nGamma = pObj.parameters.map('fb_nGamma');
         end
         
         function bwERBs = get.bwERBs(pObj)
-            bwERBs = pObj.parameters.map('bwERBs');
+            bwERBs = pObj.parameters.map('fb_bwERBs');
         end
         
         function lowFreqHz = get.lowFreqHz(pObj)
-            lowFreqHz = pObj.parameters.map('f_low');
+            lowFreqHz = pObj.parameters.map('fb_lowFreqHz');
         end
         
         function highFreqHz = get.highFreqHz(pObj)
-            highFreqHz = pObj.parameters.map('f_high');
+            highFreqHz = pObj.parameters.map('fb_highFreqHz');
         end
         
     end
@@ -250,10 +250,10 @@ classdef gammatoneProc < Processor
             % as one of the processor's property, should remain private
 
             fs = pObj.FsHzIn;
-            cfHz = pObj.parameters.map('cfHz');
-            n = pObj.parameters.map('n_gamma');
-            bw = pObj.parameters.map('bwERBs');
-            bAlign = pObj.parameters.map('bAlign');
+            cfHz = pObj.parameters.map('fb_cfHz');
+            n = pObj.parameters.map('fb_nGamma');
+            bw = pObj.parameters.map('fb_bwERBs');
+            bAlign = false; %pObj.parameters.map('bAlign');
             nFilter = numel(cfHz);
             
             % Preallocate memory by instantiating last filter
@@ -288,38 +288,29 @@ classdef gammatoneProc < Processor
             %  descriptions : Parameter descriptions
             
             
-            names = {'f_low',...
-                    'f_high',...
-                    'nERBs',...
-                    'nChannels',...
-                    'cfHz',...
-                    'IRtype',...
-                    'n_gamma',...
-                    'bwERBs',...
-                    'durSec',...
-                    'bAlign'};
+            names = {'fb_lowFreqHz',...
+                    'fb_highFreqHz',...
+                    'fb_nERBs',...
+                    'fb_nChannels',...
+                    'fb_cfHz',...
+                    'fb_nGamma',...
+                    'fb_bwERBs'};
             
             descriptions = {'Lowest center frequency (Hz)',...
                     'Highest center frequency (Hz)',...
                     'Distance between neighbor filters in ERBs',...
                     'Number of channels',...
                     'Channels center frequencies (Hz)',...
-                    'Gammatone filter impulse response type (''IIR'' or ''FIR'')',...
                     'Gammatone rising slope order',...
-                    'Bandwidth of the filters (ERBs)',...
-                    'Duration of FIR (s)',...
-                    'Correction for filter alignment'};
+                    'Bandwidth of the filters (ERBs)'};
             
             defaultValues = {80,...
                             8000,...
                             1,...
                             [],...
                             [],...
-                            'IIR',...
                             4,...
-                            1.018,...
-                            0.128,...
-                            0};
+                            1.018};
                 
         end
         

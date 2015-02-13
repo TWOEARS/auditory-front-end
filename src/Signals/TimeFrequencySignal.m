@@ -52,12 +52,12 @@ classdef TimeFrequencySignal < Signal
             if nargin<1||isempty(procHandle); procHandle = emptyProc; end
             
             sObj = sObj@Signal( procHandle, bufferSize, ...
-                                length(procHandle.getDependentParameter('cfHz')));
+                                length(procHandle.getDependentParameter('fb_cfHz')));
             
             if nargin>0     % Safeguard for Matlab empty calls
             
             sObj.Dimensions = 'nSamples x nFilters';
-            sObj.cfHz = procHandle.getDependentParameter('cfHz');
+            sObj.cfHz = procHandle.getDependentParameter('fb_cfHz');
             sObj.setData( data );
             sObj.Channel = channel;
             
