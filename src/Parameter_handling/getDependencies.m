@@ -19,6 +19,8 @@ function dep = getDependencies(sig,depth)
 % TO DO: Need to be upgraded if a new feature that has more than two direct
 % dependencies is introduced.
 
+error('This function has been removed and should not be called')
+
 if nargin<2 || isempty(depth); depth = 'full';end
 
 switch sig

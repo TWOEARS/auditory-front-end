@@ -124,7 +124,7 @@ classdef ihcProc < Processor
          
      methods (Static)
         function dep = getDependency()
-            dep = 'gammatone';
+            dep = 'filterbank';
         end
         
         function [names, defaultValues, descriptions] = getParameterInfo()

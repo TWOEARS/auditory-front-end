@@ -1,8 +1,8 @@
-clear all
+clear 
 close all
 clc
 
-test_startup;
+% test_startup;
 
 % Load a signal
 load('TestBinauralCues');
@@ -10,7 +10,7 @@ load('TestBinauralCues');
 %% Instantiate manager and data object
 
 % Request a gammatone filtering...
-request = 'gammatone';
+request = 'filterbank';
 dObj = dataObject(earSignals,fsHz); % Data object
 mObj = manager(dObj);               % Manager instance
 

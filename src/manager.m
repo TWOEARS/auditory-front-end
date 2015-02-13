@@ -1458,12 +1458,14 @@ classdef manager < handle
 %             end
             
             % Get the full list of dependencies corresponding to the request
-            if ~strcmp(request,'time')
-                dep_list = [request getDependencies(request)];
-            else
-                % Time is a special case as it is listed as its own dependency
-                dep_list = getDependencies(request);
-            end
+%             if ~strcmp(request,'time')
+%                 dep_list = [request getDependencies(request)];
+%             else
+%                 % Time is a special case as it is listed as its own dependency
+%                 dep_list = getDependencies(request);
+%             end
+            dep_list = [request ...
+                Processor.getDependencyList( Processor.findProcessorFromSignal(request))];
             
             
             % Initialization of while loop

@@ -549,6 +549,9 @@ classdef Processor < handle
             %OUTPUT ARGUMENT:
             %     procName : Name of the processor generating that signal
             
+            % TODO: Should be able to return multiple procNames, should there be
+            % alternative processors (e.g. Gammatone vs. DRNL)
+            
             procList = Processor.processorList;
             procName = cell(0);
             
@@ -566,6 +569,19 @@ classdef Processor < handle
             end
             
             
+            
+        end
+        
+        function depList = getDependencyList(procName)
+           %getDependencyList   Returns a list of processor names a given processor needs
+           
+           depList = cell(0);
+           
+           while ~strcmp(feval([procName '.getDependency']), 'input')
+               depList = [depList feval([procName '.getDependency'])]; %#ok<AGROW>
+               procName = Processor.findProcessorFromSignal( ...
+                            feval([procName '.getDependency']));
+           end
             
         end
         
