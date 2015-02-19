@@ -411,7 +411,7 @@ classdef manager < handle
                 proc = mObj.Processors{ii,earIndex};
                 
                 % Is the current processor one of the sought type?
-                if isa(proc,name) && ismember(proc.Output.Channel,channel)
+                if isa(proc,name) && ismember(proc.Channel,channel)
                     
                     % Does it have the requested parameters?
                     if proc.hasParameters(p)
