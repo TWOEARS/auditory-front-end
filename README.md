@@ -91,7 +91,7 @@ at a frequency `fsHz` (in Hz) can be done in the following steps:
 dataObj = dataObject(sIn, fsHz);
 managerObj = manager(dataObj);
 % Request the computation of ILDs
-sOut = managerObj.addProcessor('ild' ;
+sOut = managerObj.addProcessor('ild');
 % Request the processing
 managerObj.processSignal;
 ```
@@ -222,11 +222,11 @@ The complete functionality of the AFE is discussed in detail in the accompanying
 
 The AFE is developed by Tobias May, Rémi Decorsière from Technical
 University of Denmark, Chungeun Kim from University of Technology Eindhoven, and
-the rest of the [Two!Ears team](http://twoears.aipa.tu-berlin.de/team).
+the rest of the [Two!Ears team](http://twoears.aipa.tu-berlin.de/consortium/).
 
 ## License
 
-The AFE is released under GPL2.
+The AFE is released under [GNU General Public License, version 2](http://www.gnu.org/licenses/gpl-2.0.html).
 
 ## Funding
 
