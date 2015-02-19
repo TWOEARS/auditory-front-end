@@ -1,35 +1,57 @@
 classdef onsetProc < Processor
+%ONSETPROC Onset processor.
+%   The onset processor detects the signal onsets by measuring the
+%   frame-based increase in the energy of the ratemap representation, and
+%   computes the onset strength as a function of time frame and frequency
+%   channel [1,2].
+%
+%   ONSETPROC properties:
+%       maxOnsetdB      - Upper limit for onset strength in dB
+%
+%   See also: Processor, ratemapProc, offsetProc
+%
+%   Reference:
+%   [1] Bregman, A. S. (1990), Auditory scene analysis: The perceptual 
+%       organization of sound, the MIT Press, Cambridge, MA, USA.
+%   [2] Klapuri, A. (1999), "Sound onset detection by applying psychoacoustic 
+%       knowledge," in Proceedings of the IEEE International Conference on 
+%       Acoustics, Speech and Signal Processing (ICASSP), pp. 3089-3092.   
     
-    properties 
+    properties (SetAccess = protected)
         maxOnsetdB      % Upper limit for onset value
     end
     
-    properties %(GetAccess = private)
+    properties (GetAccess = private)
         buffer          % Buffered last frame of the previous chunk
     end
     
     methods
-        function pObj = onsetProc(fs,maxOnsetdB)
+        function pObj = onsetProc(fs,p)
             %onsetProc      Instantiates an onset detector
             %
             %USAGE:
-            %       pObj = onsetProc(maxOnsetdB)
+            %       pObj = onsetProc(fs,p)
             %
             %INPUT ARGUMENTS:
-            % maxOnsetdB : Upper limit for the onset value in dB 
-            %              (default: maxOnsetdB = 30)
+            %  fs : Sampling frequency (Hz)
+            %   p : Non-default parameters
             %
             %OUTPUT ARGUMENTS:
             %       pObj : Processor instance
             
             if nargin>0
                 
-            if nargin<2||isempty(maxOnsetdB);maxOnsetdB=30;end
+            if nargin<2||isempty(p)
+                p = getDefaultParameters(fs,'processing');
+            else
+                p.fs = fs;
+                p = parseParameters(p);
+            end
                 
             pObj.Type = 'Onset detection';
             pObj.FsHzIn = fs;
             pObj.FsHzOut = fs;
-            pObj.maxOnsetdB = maxOnsetdB;
+            pObj.maxOnsetdB = p.ons_maxOnsetdB;
             
             % Initialize an empty buffer
             pObj.buffer = [];
@@ -56,11 +78,14 @@ classdef onsetProc < Processor
             end
             
             % Concatenate the input with the buffer
-            onset = diff(cat(1,pObj.buffer,10*log10(in)));
+            bufIn = cat(1,pObj.buffer,10*log10(in));
+            
+            % Compute onset
+            onset = diff(bufIn);
             
             % Discard offsets and limit onset strength
             out = min(max(onset,0),pObj.maxOnsetdB);
-            
+           
             % Update the buffer
             pObj.buffer = 10*log10(in(end,:));
             

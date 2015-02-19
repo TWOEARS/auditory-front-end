@@ -3,17 +3,17 @@ classdef filterObj < handle
     % calling by reference properties, hence simplifying syntax
     
     properties (GetAccess=public)       % Public properties
-        Type        % Descriptor for type of filter (string)
-        Structure   % Descriptor for structure of filter (string)
-        RealTF      % True if the transfer function is real-valued
+        Type                % Descriptor for type of filter (string)
+        RealTF = true;      % True if the transfer function is real-valued
+        CascadeOrder =1     % Number of times the filter has to be cascaded
     end
    
-    properties (GetAccess=protected)    % Protected properties
+    properties %(GetAccess=protected)    % Protected properties
         FsHz        % Sampling frequency in Hertz
         b           % Numerator coefficients of transfer function
         a           % Denominator coefficients of transfer function
         States      % Current states of filter
-        %Cascade     % TODO: ask Tobias if necessary
+        nChan       % Number of channels
     end
     
     properties (Dependent)              % Dependent properties
@@ -246,12 +246,9 @@ classdef filterObj < handle
             %
             %OUTPUT ARGUMENTS
             %    out : filtered audio object or data matrix
-            %
+            
             % N.B: As fObj is inherited from the handle master class, the
             % filter properties (e.g., its states), will be updated
-            %
-            % TO DO: - Implement for multichannel filtering
-            %        - Add other necessary filter structures
             
             % Check for proper input arguments
             if nargin ~= 2
@@ -259,33 +256,11 @@ classdef filterObj < handle
                 error('Wrong number of input arguments!')
             end
 
-            % Get dimensionality of data
-            dim = size(data);
-            
-            % Select filtering method
-            switch fObj.Structure
-                case 'Direct-Form II Transposed'
-                    filteringMethod = 'filter';
-                otherwise
-                    error(['Filter structure "',fObj.structure,'" is not recognized.'])
+            % Update size of data
+            if isempty(fObj.nChan)
+                fObj.nChan = size(data,2);
+%                 fObj.reset
             end
-
-
-            % *****************************  FILTERING  ******************************
-
-            % *******************  CHECK FILTER COEFFICIENTS  *********************
-
-            % Force filter coefficients to column vectors
-%             fObj.b = fObj.b(:);
-%             fObj.a = fObj.a(:);
-%             
-%             % Get dimension of filter coefficients
-%             dimB = size(fObj.b);
-%             dimA = size(fObj.a);
-
-           
-
-            % **********************  CHECK FILTER STATES  ************************
 
             % Check if filter states are initialized
             if isempty(fObj.States) 
@@ -293,33 +268,21 @@ classdef filterObj < handle
                 fObj.reset;
             elseif fObj.Order ~= size(fObj.States,1)
                 error(['Dimension mismatch between the filter ',...
-                       'coefficients and the filter states.']);
+                       'order and the filter states.']);
             end
-
-            % TO DO: Extend filter states to the number of audio channls
-%             if size(fObj.States,2) ~= dim(2:end)
-%                 % Check if filter states are zero
-%                 if sum(fObj.States) == 0 
-%                     % Replicate filter states
-%                     fObj.States = repmat(fObj.States,[1 dim(2:end)]);
-%                 else
-%                     error(['The dimensionality of the filter states - which ' ,...
-%                            'are non-zero - does not match with the size of '  ,...
-%                            'the input data! It seems that the dimensionality ',...
-%                            'of the input data has changed during the last ',...
-%                            'function call.']);
-%                 end
-%             end
-
-            [out,fObj.States] = feval(filteringMethod,fObj.b,fObj.a,data,fObj.States);
-
-            % TEST
-%             b = [0.0300 0.0599 0.0300];
-%             a = [1.0000 -1.4542 0.5741];
-%             [out,fObj.States] = feval(filteringMethod,b,a,data,fObj.States);
             
-            % Test to see if use of feval impairs computation time
-%             [out,fObj.States] = filter(fObj.b,fObj.a,data,fObj.States);
+            % Processing
+            if fObj.CascadeOrder == 1
+                % Then apply the filter only once
+                [out,fObj.States] = filter(fObj.b,fObj.a,data,fObj.States);
+                
+            else
+                % Then cascade the filter
+                out = data;
+                for ii = 1:fObj.CascadeOrder
+                    [out,fObj.States(:,:,ii)] = filter(fObj.b,fObj.a,out,fObj.States(:,:,ii));
+                end
+            end
             
             % Correction for complex-valued transfer function filters
             if ~(fObj.RealTF)
@@ -336,20 +299,37 @@ classdef filterObj < handle
             end
         end
         
-        function reset(fObj)
-            % This method resets the filter's states to zero
+        function reset(fObj,states)
+            % This method resets the filter's states to zero or to states if specified
+            if nargin<2 || isempty(states)
+                states = [];
+            end
             if isempty(fObj.Order)
                 error('The filter transfer function must have been specified before initializing its states')
             else
-                % Create filter states
-                fObj.States = zeros(fObj.Order,1);
+                if isempty(states)
+                    % Create filter states
+                    fObj.States = zeros(fObj.Order,fObj.nChan,fObj.CascadeOrder);
+                else
+                    fObj.States = states;
+                end
             end
         end 
+        
+        function bInit = isInitialized(fObj)
+            %isInitialized      Returns true when filter states are non-empty
+            
+            if isempty(fObj.States)
+                bInit = 0;
+            else
+                bInit = 1;
+            end
+        end
+        
     end
     
     methods (Access=protected)
         function fObj = populateProperties(fObj,varargin)
-            % TO DO : TO BE MOVED TO PROTECTED METHODS!!!
             
             % First check on input
             if mod(size(varargin,2),2)||isempty(varargin)
@@ -359,7 +339,6 @@ classdef filterObj < handle
             % List of valid properties % TO DO: should this be hardcoded
             % here?
             validProp = {'Type',...
-                         'Structure',...
                          'RealTF',...
                          'FsHz',...
                          'b',...

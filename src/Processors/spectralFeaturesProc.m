@@ -1,4 +1,45 @@
 classdef spectralFeaturesProc < Processor
+%SPECTRALFEATURESPROC Spectral features processor.
+%  This processor computes the following 14 spectral features that summarize 
+%  the spectral content of the ratemap representation across auditory filters for
+%  individual time frames.
+%             'centroid'     : Spectral centroid [1]
+%             'crest'        : Spectral crest measure [1]
+%             'spread'       : Spectral spread 
+%             'entropy'      : Spectral entropy [2]
+%             'brightness'   : Spectral brightness [1]
+%             'hfc'          : Spectral high-frequency content [3]
+%             'decrease'     : Spectral decrease [1]
+%             'flatness'     : Spectral flatness [1]
+%             'flux'         : Spectral flux [4]
+%             'kurtosis'     : Spectral kurtosis [4]
+%             'skewness'     : Spectral skewness [4]
+%             'irregularity' : Spectral irregularity [3]
+%             'rolloff'      : Spectral rolloff [1]
+%             'variation'    : Spectral variation [1]
+%
+%   SPECTRALFEATURESPROC properties:
+%        requestList     - Cell array of requested spectral features
+%        cfHz            - Row vector of audio center frequencies
+%
+%   See also: Processor, ratemapProc
+%
+%   Reference:
+%   [1] Peeters, G., Giordano, B. L., Susini, P., Misdariis, N., and 
+%       McAdams, S. (2011), "The timbre toolbox: Extracting audio descriptors 
+%       from musical signals." Journal of the Acoustical Society of America 
+%       130(5), pp. 2902?2916.
+%   [2] Misra, H., Ikbal, S., Bourlard, H., and Hermansky, H. (2004), 
+%       "Spectral entropy based feature for robust ASR," in Proceedings of 
+%       the IEEE International Conference on Acoustics, Speech and Signal 
+%       Processing (ICASSP), pp. 193?196.
+%   [3] Jensen, K. and Andersen, T. H. (2004), "Real-time beat estimation 
+%       using feature extraction," in Computer Music Modeling and Retrieval, 
+%       edited by U. K. Wiil, Springer, Berlin?Heidelberg, Lecture Notes in 
+%       Computer Science, pp. 13?22.
+%   [4] Lerch, A. (2012), An Introduction to Audio Content Analysis: 
+%       Applications in Signal Processing and Music Informatics, 
+%       John Wiley & Sons, Hoboken, NJ, USA.
     
     properties
         requestList     % Cell array of requested spectral features
@@ -12,12 +53,12 @@ classdef spectralFeaturesProc < Processor
         flux_buffer     % Buffered last frame of previous chunk for spectral flux
         var_buffer      % Buffered last frame for spectral variation
         ro_eps          % Epsilon value for spectral rolloff (hard-coded)
-        ro_thres        % threshold value for spectral rolloff
+        ro_perc         % threshold value for spectral rolloff
         bUseInterp      % Flag indicating use of interpolation for spectral rolloff (hard-coded)
     end
     
     methods
-        function pObj = spectralFeaturesProc(fs,cfHz,requests,br_cf,hfc_cf,ro_thres)
+        function pObj = spectralFeaturesProc(fs,cfHz,requests,br_cf,ro_perc)
             %spectralFeaturesProc   Instantiate a processor for spectral
             %                       features extraction
             %
@@ -53,8 +94,7 @@ classdef spectralFeaturesProc < Processor
             % Failsafe for Matlab empty calls
             if nargin>0
             
-            if nargin<5||isempty(ro_thres);ro_thres = 0.85;end
-            if nargin<4||isempty(hfc_cf);hfc_cf = 4000;end
+            if nargin<4||isempty(ro_perc);ro_perc = 0.85;end
             if nargin<3||isempty(br_cf);br_cf=1500;end
                 
             % Check request validity...
@@ -91,10 +131,6 @@ classdef spectralFeaturesProc < Processor
                 error('Brightness cutoff frequency should be in Nyquist range')
             end
             
-            % Check if provided hfc cutoff frequency is in a valid range
-            if (hfc_cf<cfHz(1)||hfc_cf>cfHz(end))&&ismember('hfc',requests)
-                error('High frequency content cutoff frequency should be in Nyquist range')
-            end
             
             % Ready to populate the processor properties
             pObj.Type = 'Spectral features extractor';
@@ -103,10 +139,9 @@ classdef spectralFeaturesProc < Processor
             pObj.cfHz = cfHz(:).';
             pObj.requestList = requests;
             pObj.br_cf = br_cf;
-            pObj.hfc_cf = hfc_cf;
             pObj.flux_buffer = [];
             pObj.var_buffer = [];
-            pObj.ro_thres = ro_thres;
+            pObj.ro_perc = ro_perc;
             
             % Hard-coded properties (for the moment)
             pObj.eps = 1E-15;
@@ -151,6 +186,9 @@ classdef spectralFeaturesProc < Processor
                         % Spectral center of gravity of the spectrum
                         out(:,ii) = sum(repmat(pObj.cfHz,[nFrames 1]).*in,2)./(sum(in,2)+pObj.eps);
                         
+                        % Normalize centroid to "nyquist" frequency channel
+                        out(:,ii) = out(:,ii) / pObj.cfHz(end);
+                        
                     case 'crest'        % Spectral crest
                         % Ratio of maximum to average in every frame
                         out(:,ii) = max(in,[],2)./(mean(in,2)+pObj.eps);
@@ -176,15 +214,18 @@ classdef spectralFeaturesProc < Processor
                         % Spectrum bandwidth
                         out(:,ii) = sqrt(sum(nom,2)./(sum(in,2)+pObj.eps));
                         
+                        % Normalize spread to "nyquist" frequency channel
+                        out(:,ii) = out(:,ii) / pObj.cfHz(end);
+                        
                     case 'brightness'   % Spectral brightness
                         % Ratio of energy above cutoff to total energy in
                         % each frame
                         out(:,ii) = sum(in(:,pObj.cfHz>pObj.br_cf),2)./(sum(in,2)+pObj.eps);
                         
                     case 'hfc'          % Spectral high frequency content
-                        % Ratio of energy above cutoff to total energy in
-                        % each frame (higher cutoff than brightness)
-                        out(:,ii) = sum(in(:,pObj.cfHz>pObj.hfc_cf),2)./(sum(in,2)+pObj.eps);
+                        % Average channel amplitude weighted by squared
+                        % channel center frequency across channels
+                        out(:,ii) = sum(repmat(pObj.cfHz.^2,[nFrames 1]).*in,2)./(sum(in,2)+pObj.eps);
                         
                     case 'entropy'      % Spectral entropy
                         
@@ -227,8 +268,8 @@ classdef spectralFeaturesProc < Processor
                         % Remove mean from input
                         X = in - repmat(mu_x,[1 nFreq]);
                         
-                        % Kurtosis
-                        out(:,ii) = mean((X.^4)./(repmat(std_x + pObj.eps, [1 nFreq]).^4),2);
+                        % Excess kurtosis
+                        out(:,ii) = mean((X.^4)./(repmat(std_x + pObj.eps, [1 nFreq]).^4),2)-3;
                         
                     case 'skewness'
                         
@@ -256,7 +297,7 @@ classdef spectralFeaturesProc < Processor
                         % lower frequencies and the remaining above.
                         
                         % Spectral energy across frequencies multiplied by threshold parameter
-                        spec_sum_thres = pObj.ro_thres * sum(in,2);
+                        spec_sum_thres = pObj.ro_perc * sum(in,2);
                         % Cumulative sum (+ epsilon ensure that cumsum increases monotonically)
                         spec_cumsum = cumsum(in + pObj.ro_eps,2);
                         
@@ -282,6 +323,9 @@ classdef spectralFeaturesProc < Processor
                                 end
                             end
                         end
+                        
+                        % Normalize rolloff to "nyquist" frequency channel
+                        out(:,ii) = out(:,ii) / pObj.cfHz(end);
                         
                     case 'variation'
                         

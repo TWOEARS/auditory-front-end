@@ -5,17 +5,18 @@ classdef leakyIntegratorFilter < filterObj
     end
     
     methods
-        function obj = leakyIntegratorFilter(fs,decaySec)
+        function obj = leakyIntegratorFilter(fs,decaySec,cascade)
             %leakyIntegrator   Design leaky integration object filter.
             %
             %USAGE
             %          F = leakyIntegrator(fs)
-            %          F = leakyIntegrator(fs,decaySec)
+            %          F = leakyIntegrator(fs,decaySec,cascade)
             %
             %INPUT ARGUMENTS
             %         fs : sampling frequency in Hz
             %   decaySec : leaky integration time constant in seconds
             %              (default, decaySec = 8E-3)
+            %    cascade : filter cascading order (default : 1)
             %
             %OUTPUT ARGUMENTS
             %          F : filter object
@@ -37,12 +38,14 @@ classdef leakyIntegratorFilter < filterObj
             % 
             %
             if nargin>0 % Need to allow the constructor to be called without arguments
-                if nargin > 2
+                
+                if nargin > 3
                     help(mfilename);
                     error('Wrong number of input arguments!')
                 end
 
                 % Set default value
+                if nargin < 3 || isempty(cascade); cascade = 1; end
                 if nargin < 2 || isempty(decaySec); decaySec = 8E-3; end
 
 
@@ -56,14 +59,9 @@ classdef leakyIntegratorFilter < filterObj
                 intGain = 1 - intDecay;
 
                 % Set up standard filter object properties
-                obj = populateProperties(obj,'Type','Leaky Integrator',...
-                    'Structure','Direct-Form II Transposed','FsHz',fs,...
+                obj = populateProperties(obj,'Type','Leaky Integrator','FsHz',fs,...
                     'b',intGain,'a',[1 -intDecay]);
-    %             obj.Type = 'Leaky Integrator';
-    %             obj.Structure = 'Direct-Form II Transposed';
-    %             obj.FsHz = fs;
-    %             obj.b = intGain;
-    %             obj.a = [1 -intDecay];
+                obj.CascadeOrder = cascade;
 
                 % Set up specific properties
                 obj.decaySec = decaySec;

@@ -1,5 +1,31 @@
 classdef autocorrelationProc < Processor
-    
+%AUTOCORRELATIONPROC Auto-correlation processor.
+%   This processor calculates the auto-correlation in the fast Fourier
+%   transform domain for short time frames based on the inner hair-cell
+%   representation, towards prediction of perceived pitch [1].
+%
+%   AUTOCORRELATIONPROC properties:
+%        wname       - Window shape descriptor (see window.m)
+%        wSizeSec    - Window duration in seconds
+%        hSizeSec    - Step size between windows in seconds
+%        clipMethod  - Center clipping method ('clc','clp','sgn') [2]
+%        alpha       - Threshold coefficient in center clipping
+%        K           - Exponent to control the compression [3]
+%
+%   See also: Processor, ihcProc
+%
+%   Reference:
+%   [1] Meddis, R. and Hewitt, M. J. (1991), "Virtual pitch and phase 
+%       sensitivity of a computer model of the auditory periphery. 
+%       I: Pitch identification," Journal of the Acoustical Society
+%       of America 89(6), pp. 2866?2882.
+%   [2] Rabiner, L. R. (1977), "On the use of autocorrelation analysis 
+%       for pitch detection," IEEE Transactions on Audio, Speech, and 
+%       Language Processing 25(1), pp. 24?33.
+%   [3] Tolonen, T. and Karjalainen, M. (2000), "A computationally efficient
+%       multipitch analysis model," IEEE Transactions on Audio, Speech, and
+%       Language Processing 8(6), pp. 708?716.
+
     properties 
         wname       % Window shape descriptor (see window.m)
         wSizeSec    % Window duration in seconds
@@ -40,6 +66,8 @@ classdef autocorrelationProc < Processor
             if nargin<3||isempty(do_mex);do_mex = 1;end
             if nargin<2||isempty(p)
                 p = getDefaultParameters(fs,'processing');
+            else
+                p = parseParameters(p);
             end
             if isempty(fs)
                 error('Sampling frequency needs to be provided')
@@ -96,13 +124,12 @@ classdef autocorrelationProc < Processor
             % How many frames are in the buffered input?
             nFrames = floor((nSamples-(pObj.wSize-pObj.hSize))/pObj.hSize);
             
-            % Pre-allocate output
-            out = zeros(nFrames,nChannels,pObj.wSize);
-            
             % Determine maximum lag
             M = pObj.wSize;     % Frame size in samples
             maxLag = M-1;      % Maximum lag in computation
-            
+
+            % Pre-allocate output
+            out = zeros(nFrames,nChannels,maxLag);            
             
             if ~pObj.do_mex
                 % Loop on the frames
@@ -151,14 +178,27 @@ classdef autocorrelationProc < Processor
                     frames = applyCenterClipping(frames,pObj.clipMethod,pObj.alpha);
                     
                     % Auto-correlation analysis
-                    acf = calcACorr(frames,[],'coeff',pObj.K);
+                    acf = calcACorr(frames,maxLag,'unbiased',pObj.K);
                     
+                    % Normalize by lag zero
+                    acf = acf ./ repmat(acf(1,:),[M-1 1]) ;
+                    
+%                     acf = acorrNorm(frames,maxLag-1,true);
+%                     
+%                     % ACF of window
+%                     acfWin = calcACorr(pObj.win,maxLag,'coeff',pObj.K);
+%                     
+%                     % Normalize ACF pattern
+%                     acf = acf ./ repmat(acfWin + 1E-10,[1 nFrames]);
+                                        
                     % Store results for positive lags only
-                    out(:,jj,:) = permute(acf(maxLag+1:end,:),[2 3 1]);
-                    
+                    out(:,jj,:) = permute(acf,[2 3 1]);
                 end
             end
 
+            % Update the buffer: the input that was not extracted as a
+            % frame should be stored
+            pObj.buffer = in(nFrames*pObj.hSize+1:end,:);
             
         end
         

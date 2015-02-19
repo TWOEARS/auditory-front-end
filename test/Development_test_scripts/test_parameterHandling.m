@@ -2,7 +2,6 @@ clear all
 close all
 clc
 
-test_startup;
 
 % Load a signal
 load('TestBinauralCues');
@@ -13,7 +12,7 @@ clear earSignals fsHz
 %% Instantiate manager and data object
 
 request = 'ild';
-p = genParStruct('nERBs',1/2,'IHCMethod','dau');
+p = genParStruct('fb_nERBs',1/2,'ihc_method','dau');
 
 % Create a data object
 dObj = dataObject(data,fs);

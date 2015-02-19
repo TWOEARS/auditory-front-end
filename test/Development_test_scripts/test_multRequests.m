@@ -5,10 +5,9 @@
 close all
 clc
 
-test_startup;
 
 % Which demo(s) to run:
-demo = [1];
+demo = [1 2 3 4];
 
 % Load a signal
 load('TestBinauralCues');
@@ -23,8 +22,8 @@ clear earSignals fsHz
 
 if ismember(1,demo)
     
-% requests = {'ild','itd_xcorr','ratemap_magnitude'};
-requests = {'ild' 'itd_xcorr' 'ic_xcorr'};
+% requests = {'ild','itd_xcorr','ratemap'};
+requests = {'ild' 'itd' 'ic'};
 % requests = {'ic_xcorr'}
 
 % Create a data object
@@ -38,8 +37,8 @@ mObj.processSignal();
 
 % Plot the results
 h1 = dObj.ild{1}.plot;
-h2 = dObj.itd_xcorr{1}.plot;
-h3 = dObj.ic_xcorr{1}.plot;
+h2 = dObj.itd{1}.plot;
+h3 = dObj.ic{1}.plot;
 
 % Position the figures
 set(h1,'Units','normalized','Position',[0.1 0.1 0.25 0.3])
@@ -58,8 +57,8 @@ end
 
 if ismember(2,demo)
 
-requests = {'ild','itd_xcorr','ratemap_magnitude'};
-p =genParStruct('nERBs',3);
+requests = {'ild','itd','ratemap'};
+p =genParStruct('fb_nERBs',3);
 
 % Create a data object
 dObj = dataObject(data,fs);
@@ -72,8 +71,8 @@ mObj.processSignal
 
 % Plot the results
 h1 = dObj.ild{1}.plot;
-h2 = dObj.itd_xcorr{1}.plot;
-h3 = dObj.ratemap_magnitude{1}.plot;
+h2 = dObj.itd{1}.plot;
+h3 = dObj.ratemap{1}.plot;
 
 % Position the figures
 set(h1,'Units','normalized','Position',[0.1 0.1 0.25 0.3])
@@ -93,10 +92,10 @@ end
 
 if ismember(3,demo)
     
-requests = {'ild','itd_xcorr','ratemap_magnitude'};
+requests = {'ild','itd','ratemap'};
 p1 = genParStruct();            % Default parameters
-p2 = genParStruct('nERBs',3);   % Lower filterbank resolution
-p3 = genParStruct('nERBs',1/2); % Higher filterbank resolution
+p2 = genParStruct('fb_nERBs',3);   % Lower filterbank resolution
+p3 = genParStruct('fb_nERBs',1/2); % Higher filterbank resolution
 
 % Create a data object
 dObj = dataObject(data,fs);
@@ -109,8 +108,8 @@ mObj.processSignal
 
 % Plot the results
 h1 = dObj.ild{1}.plot;
-h2 = dObj.itd_xcorr{1}.plot;
-h3 = dObj.ratemap_magnitude{1}.plot;
+h2 = dObj.itd{1}.plot;
+h3 = dObj.ratemap{1}.plot;
 
 % Position the figures
 set(h1,'Units','normalized','Position',[0.1 0.1 0.25 0.3])
@@ -142,10 +141,10 @@ end
 
 if ismember(4,demo)
     
-requests = {'ild','itd_xcorr','ratemap_magnitude'};
+requests = {'ild','itd','ratemap'};
 p1 = genParStruct();            % Default parameters
-p2 = genParStruct('nERBs',3);   % Lower filterbank resolution
-p3 = genParStruct('nERBs',1/2); % Higher filterbank resolution
+p2 = genParStruct('fb_nERBs',3);   % Lower filterbank resolution
+p3 = genParStruct('fb_nERBs',1/2); % Higher filterbank resolution
 p = {p1,p2,p3};
 
 % Create a data object

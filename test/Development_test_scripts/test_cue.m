@@ -4,24 +4,24 @@
 clear 
 close all
 
-test_startup;
 
 % Test on monoral or binaural signal
-do_stereo = 1;
+do_stereo = 0;
 
 % Load a signal
 load('TestBinauralCues');
 
 if ~do_stereo
-    data = earSignals(:,2);     % Right channel has higher energy
+    data = earSignals(1:62E3,2);     % Right channel has higher energy
 else
     data = earSignals;
 end
 clear earSignals
 
 % Parameters
-request = {'modulation'};
-p = genParStruct('am_type','filter');
+request = {'gabor'};
+p = [];%genParStruct('pp_bNormalizeRMS',1);
+
 
 % Create a data object
 dObj = dataObject(data,fsHz);

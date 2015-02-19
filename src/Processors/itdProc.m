@@ -1,5 +1,22 @@
 classdef itdProc < Processor
-    
+%ITDPROC Interaural Time Difference processor.
+%   This processor estimates the time difference between the left and the
+%   right ear signals for individual frequency channels and time frames by
+%   locating the time lag that corresponds to the most prominent peak in
+%   the normalized cross-correlation function. This estimation is further 
+%   refined by a parabolic interpolation stage [1].
+%
+%   ITDPROC properties:
+%       frameFsHz       - Sampling frequency of the signal (see below)
+%
+%   See also: Processor, crosscorrelationProc
+%
+%   Reference:
+%   [1] May, T., van de Par, S., and Kohlrausch, A. (2011), "A probabilistic 
+%       model for robust localization based on a binaural auditory front-end,¡± 
+%       IEEE Transactions on Audio, Speech, and Language Processing 19(1), 
+%       pp. 1?13.
+
     properties (GetAccess = private)
         frameFsHz   % Sampling frequency of the signal before framing, used 
                     %   for expressing ITDs in seconds

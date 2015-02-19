@@ -17,12 +17,12 @@ cats = sort(cats);
 
 if nargin == 0
     % Display header
-    fprintf('\nParameter handling in Two!Ears Auditory Front-End')
+    fprintf('\nParameter handling in the Two!Ears Auditory Front-End')
     fprintf('\n-------------------------------------------------\n')
     fprintf(['The extraction of various auditory representations '...
-        'performed by the Two!Ears Auditory Front-End software involves many parameters.\n'])
+        'performed by the Two!Ears auditory front-end (AFE) software involves many parameters.\n'])
     fprintf('Each parameter is given a unique name and a default value. ')
-    fprintf(['When placing a request for Two!Ears Auditory Front-End processing that\n'...
+    fprintf(['When placing a request for Two!Ears auditory front-end processing that\n'...
         'uses one or more non-default parameters, a specific structure of non-default parameters needs to be provided as input.\n'])
     fprintf('Such structure can be generated from <a href="matlab: help genParStruct">genParStruct</a>, using pairs of parameter name and chosen value as inputs.\n' )
     fprintf('\nParameters names for each processors are listed below:\n')

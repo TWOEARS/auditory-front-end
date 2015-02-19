@@ -1,5 +1,14 @@
 function [b,a,bw] = createFB_Mod(fs,cfMod,Q,bDown2DC,bUp2Nyquist)
 
+%REFERENCES:
+% 
+%   [1] May, T. and Dau, T. (2014), "Computational speech segregation based
+%      on an auditory-inspired modulation analysis," Journal of the
+%      Acoustical Society of America 136(6), pp. 3350-3359. 
+% 
+%   [2] Ewert, S. D. and Dau, T. (2000), "Characterizing frequency 
+%       selectivity for envelope fluctuations," Journal of the Acoustical 
+%       Society of America 108(3), pp. 1181-1196.
 
 %   Developed with Matlab 8.3.0.532 (R2014a). Please send bug reports to:
 %   
@@ -34,11 +43,16 @@ if nargin < 2 || isempty(cfMod);       cfMod       = pow2(0:10); end
 % ==============================
 % 
 % 
-% Order of low-pass filter
-nLP = 1;
-
-% Order of band-pass filter
+% Order of filter bank
 nBP = 2;
+
+% Check filter order
+if (nBP-fix(nBP./2) * 2) == 1
+    error('Filter order must be even-numbered!')    
+else
+    % Order of low-pass / high-pass filter
+    nLP = 1;
+end
 
 % Number of modulation filter
 nFilter = numel(cfMod);
@@ -92,6 +106,11 @@ for ii = 1 : nFilter
         % Filter order is 2 * nBP, thus / 2 
         [b{ii},a{ii}] = butter(nBP/2,wn(ii,:),'bandpass');
     end
+    
+    % Check if resulting filter coefficients are stable
+    if ~isstable(b{ii},a{ii})
+        error('IIR filter is not stable, reduce the filter order!')
+    end    
 end
 
 % Plot filter transfer function

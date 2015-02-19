@@ -1,35 +1,54 @@
 classdef offsetProc < Processor
-    
-    properties 
+%OFFSETPROC Onset processor.
+%   The offset processor detects the signal offsets by measuring the
+%   frame-based decrease in the energy of the ratemap representation, and
+%   computes the offset strength as a function of time frame and frequency
+%   channel [1].
+%
+%   OFFSETPROC properties:
+%       maxOffsetdB      - Upper limit for offset strength in dB
+%
+%   See also: Processor, ratemapProc, onsetProc
+%
+%   Reference:
+%   [1] Bregman, A. S. (1990), Auditory scene analysis: The perceptual 
+%       organization of sound, the MIT Press, Cambridge, MA, USA.
+
+    properties (SetAccess = protected)
         maxOffsetdB      % Upper limit for onset value
     end
     
-    properties %(GetAccess = private)
+    properties (GetAccess = private)
         buffer          % Buffered last frame of the previous chunk
     end
     
     methods
-        function pObj = offsetProc(fs,maxOffsetdB)
+        function pObj = offsetProc(fs,p)
             %onsetProc      Instantiates an offset detector
             %
             %USAGE:
-            %       pObj = onsetProc(maxOffsetdB)
+            %       pObj = onsetProc(fs,p)
             %
             %INPUT ARGUMENTS:
-            % maxOffsetdB : Upper limit for the offset value in dB 
-            %               (default: maxOnsetdB = 30)
+            %  fs : Sampling frequency (Hz)
+            %   p : Non-default parameters
             %
             %OUTPUT ARGUMENTS:
             %        pObj : Processor instance
             
             if nargin>0
                 
-            if nargin<2||isempty(maxOffsetdB);maxOffsetdB=30;end
+            if nargin<2||isempty(p)
+                p = getDefaultParameters(fs,'processing');
+            else
+                p.fs = fs;
+                p = parseParameters(p);
+            end
                 
             pObj.Type = 'Offset detection';
             pObj.FsHzIn = fs;
             pObj.FsHzOut = fs;
-            pObj.maxOffsetdB = maxOffsetdB;
+            pObj.maxOffsetdB = p.ofs_maxOffsetdB;
             
             % Initialize an empty buffer
             pObj.buffer = [];
@@ -56,7 +75,10 @@ classdef offsetProc < Processor
             end
             
             % Concatenate the input with the buffer
-            offset = diff(cat(1,pObj.buffer,10*log10(in)));
+            bufIn = cat(1,pObj.buffer,10*log10(in));
+            
+            % Compute offset
+            offset = diff(bufIn);
             
             % Discard onsets and limit onset strength
             out = min(abs(min(offset,0)),abs(pObj.maxOffsetdB));

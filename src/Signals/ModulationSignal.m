@@ -1,19 +1,27 @@
 classdef ModulationSignal < Signal
-% This class collects three-dimensional outputs of a modulation filterbank    
+%MODULATIONSIGNAL Signal class for three-dimensional amplitude modulation signals
+%   This class collects three-dimensional outputs of a modulation filterbank, respectively
+%   time, audio frequency, and modulation frequency.
+%
+%   MODULATIONSIGNAL properties:
+%       cfHz    - Center frequencies of audio frequency channels (Hz)
+%       modCfHz - Center frequencies of modulation frequency channels (Hz)
+%
+% See also Signal, modulationProc
     
-    properties
+    properties (SetAccess=protected)
         cfHz    % Audio center frequencies of the channels (Hz)
         modCfHz % Modulation center frequencies (Hz)
     end
     
     methods
         
-        function sObj = ModulationSignal(fs,bufferSize_s,name,cfHz,modCfHz,label,data,canal)
+        function sObj = ModulationSignal(fs,bufferSize_s,name,cfHz,modCfHz,label,data,channel)
             %ModulationSignal   Constructor for the modulation signal class
             %
             %USAGE:
             %   sObj = ModulationSignal(fs,name)
-            %   sObj = ModulationSignal(fs,name,cfHz,modCfHz,label,data,canal)
+            %   sObj = ModulationSignal(fs,name,cfHz,modCfHz,label,data,channel)
             %
             %INPUT ARGUMENTS:
             %      fs : Sampling frequency (Hz)
@@ -29,8 +37,8 @@ classdef ModulationSignal < Signal
             %           frequency the third. Alternatively, audio and
             %           modulation frequencies can be interleaved in the
             %           second dimension.
-            %   canal : Flag indicating 'left', 'right', or 'mono'
-            %           (default: canal = 'mono')
+            %  channel : Flag indicating 'left', 'right', or 'mono'
+            %           (default: channel = 'mono')
             %
             %OUTPUT ARGUMENT:
             %    sObj : Instance of modulation signal object
@@ -45,7 +53,7 @@ classdef ModulationSignal < Signal
                 warning(['A name tag should be assigned to the signal. '...
                     'The name %s was chosen by default'],name)
             end
-            if nargin<8; canal = 'mono'; end
+            if nargin<8; channel = 'mono'; end
             if nargin<7||isempty(data); data = []; end
             if nargin<6||isempty(label)
                 label = name;
@@ -123,7 +131,7 @@ classdef ModulationSignal < Signal
                 'Dimensions','nSample x nFilters x nModulationFilters');
             sObj.cfHz = cfHz(:)';
             sObj.setData(data);
-            sObj.Canal = canal;
+            sObj.Channel = channel;
             sObj.modCfHz = modCfHz(:)';
                 
             end
@@ -131,7 +139,7 @@ classdef ModulationSignal < Signal
             
         end
         
-        function h = plot(sObj,h0)
+        function h = plot(sObj,h0,p)
             %plot   Plot a modulation signal
             %
             %USAGE:
@@ -148,16 +156,42 @@ classdef ModulationSignal < Signal
             %TODO: - Clean up and use plot properties. 
             %      - Add other plot options (given audio frequency?)
             
+            % Manage plotting parameters
+            if nargin < 3 || isempty(p) 
+                % Get default plotting parameters
+                p = getDefaultParameters([],'plotting');
+            else
+                p.fs = sObj.FsHz;   % Add the sampling frequency to satisfy parseParameters
+                p = parseParameters(p);
+            end
             
             % Extract the data from the buffer
             data = sObj.Data(:);
-            
             s = size(data);
             
-            % Interleave audio and modulation frequencies for a simple, 2D
-            % plot
-            data = reshape(permute(data,[1 3 2]),[s(1) s(2)*s(3)]);
+            % Limit dynamic range of AMS representation
+            maxDynamicRangedB = p.dynrange;
+
+            % Reshape data to incorporate borders
+            rsAMS = permute(data,[3 2 1]);
+            rsAMS = reshape(20*log10(abs(rsAMS)),[s(3) s(2) s(1)]);
             
+            maxValdB = max(rsAMS(:));
+            
+            % Minimum ratemap floor to limit dynamic range
+            minValdB = -(maxDynamicRangedB + (0 - maxValdB));
+
+            rangedB = [quant(minValdB,5) quant(maxValdB,5)];
+
+            rsAMS(end+1,:,:) = NaN;  % insert borders
+            
+            % Reshape for plotting (interleaved audio and modulation
+            % frequencies)
+            rsAMS = reshape(rsAMS,[(s(3)+1)*s(2) s(1)]);
+            
+            % Generate a time vector
+            timeSec = 0:1/sObj.FsHz:(s(1)-1)/sObj.FsHz;
+                
             % Manage handles
             if nargin < 2 || isempty(h0)
                     h = figure;             % Generate a new figure
@@ -169,12 +203,57 @@ classdef ModulationSignal < Signal
                     figure(h0)
                     h = h0;
             end
+
+            im = imagesc(timeSec,1:s(2)*(1+s(3)),rsAMS);
             
-            imagesc(20*log10(abs(data.')))
+            % Make borders appear black
+            set(gca,'Color','k')                % Black background
+            set(im,'AlphaData',~isnan(rsAMS))   % Transparent borders
+            
+            % Set color map
+            try
+                colormap(p.colormap)
+            catch
+                warning('No colormap %s is available, using ''jet''.',p.colormap)
+                colormap('jet')
+            end
+            
+            if p.bColorbar
+                colorbar;
+            end
+
+            set(gca,'CLim',rangedB)
+            
             axis xy
-            title([sObj.Label ' (w.i.p.)'])
-            xlabel('Time (samples)')
-            ylabel('Audio/modulation frequencies')
+            
+            if ~strcmp(sObj.Channel,'mono')
+                pTitle = [sObj.Label ' - ' sObj.Channel];
+            else
+                pTitle = sObj.Label;
+            end
+            
+            % Set up title and labels
+            title(pTitle,'fontsize',p.fsize_title,'fontname',p.ftype)
+            xlabel('Time (s)','fontsize',p.fsize_label,'fontname',p.ftype)
+            ylabel('Center frequency (Hz)','fontsize',p.fsize_label,'fontname',p.ftype)
+            
+            nYLabels = 5;
+            
+            yPosInt = round(linspace(1,s(2),nYLabels));
+            
+            % Center yPos at mod filter frequencies
+            yPos = (yPosInt - 1) * (s(3)+1) + round((s(3)+1)/2);
+            
+            % Find the spacing for the y-axis which evenly divides the y-axis
+            set(gca,'ytick',yPos);
+            set(gca,'yticklabel',round(sObj.cfHz(yPosInt)));
+
+            for ii = 1:s(2)
+                text([timeSec(3) timeSec(3)],floor(s(3)/2)+[((ii-1)*(s(3)+1)) ((ii-1)*(s(3)+1))],num2str(ii),'verticalalignment','middle','fontsize',8);
+            end
+            
+            % 
+            
         end
         
     end

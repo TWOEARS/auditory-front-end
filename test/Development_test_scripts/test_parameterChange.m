@@ -2,7 +2,6 @@ clear all
 close all
 clc
 
-test_startup;
 
 % Load a signal
 load('TestBinauralCues');
@@ -16,8 +15,9 @@ clear earSignals fsHz
 request1 = 'ild';
 
 % Second request, with added non-default parameters
-request2 = 'itd_xcorr';
-p2 = genParStruct('f_high',4000,'nERBs',1/2,'cc_wname','hamming','cc_wSizeSec',50E-3,'cc_hSizeSec',25E-3);
+request2 = 'itd';
+p2 = genParStruct('fb_highFreqHz',4000,'fb_nERBs',1/2,'cc_wname','hamming',...
+                  'cc_wSizeSec',50E-3,'cc_hSizeSec',25E-3);
 
 % Create a data object
 dObj = dataObject(data,fs);

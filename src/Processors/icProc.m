@@ -1,4 +1,17 @@
 classdef icProc < Processor
+%ICPROC Interaural Coherence processor.
+%   The Interaural Coherence is estimated by determining the maximum value
+%   of the normalized Cross-Correlation Function, which can be used to
+%   select the time-frequency signal units whose binaural cues are
+%   dominated by the direct sound for source localization [1].
+%
+%   See also: Processor, crosscorrelationProc
+%
+%   Reference:
+%   [1] Faller, C. and Merimaa, J. (2004), "Source localization in complex 
+%       listening situations: Selection of binaural cues based on interaural 
+%       coherence," Journal of the Acoustical Society of America 116(5), 
+%       pp. 3075?3089.
     
     properties
         % No additional properties for this processor
