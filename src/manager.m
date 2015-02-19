@@ -379,6 +379,9 @@ classdef manager < handle
             %OUTPUT ARGUMENT
             %   hProc : Handle to an existing processor, if any, 0 else
             
+            %TODO: Will need maintenance when introducing processors with multiple lower
+            %dependencies
+            
             ch_name = {'left','right','mono'};
             
             if nargin<4 %|| isempty(channel)
@@ -420,7 +423,7 @@ classdef manager < handle
                         % investigate its dependencies
                         while true
                             
-                            if isempty(proc.Dependencies{1})
+                            if isempty(proc.LowerDependencies)
                                 % Then we reached the end of the dependency
                                 % list without finding a mismatch in
                                 % parameters. The original processor is a
@@ -430,7 +433,7 @@ classdef manager < handle
                             end
                             
                             % Set current processor to proc dependency
-                            proc = proc.Dependencies{1};
+                            proc = proc.LowerDependencies{1};
                             
                             % Does the dependency also have requested
                             % parameters? If not, break of the while loop
@@ -1352,10 +1355,10 @@ classdef manager < handle
                     % Else no new processor was added as the requested one
                     % already existed
                     if size(initProc,2)==2
-                        out{1,1} = dep_sig_l;
-                        out{1,2} = dep_sig_r;
+                        out{1,1} = initProc{1}.Output{1};
+                        out{1,2} = initProc{2}.Output{1};
                     else
-                        out = dep_sig;
+                        out{1} = initProc{1}.Output{1};
                     end
                 end
             elseif ~proceed
@@ -1501,7 +1504,8 @@ classdef manager < handle
             % If the processor found operates on the left channel of a stereo
             % signal, we need to find its twin processor in charge of the
             % right channel
-            if ~isempty(hProc) && strcmp(hProc.Output.Channel,'left')
+            if ~isempty(hProc) && numel(hProc.Output) == 1 && ...
+                    strcmp(hProc.Output{1}.Channel,'left')
                 
                 % Then repeat the same loop, but specifying the "other"
                 % channel
@@ -1539,6 +1543,10 @@ classdef manager < handle
                 % Put results in a cell array
                 hProc = {hProc hProc2};
                 
+            else
+                if ~isempty(hProc)
+                    hProc = {hProc};
+                end
             end
             
         end
@@ -1580,8 +1588,10 @@ classdef manager < handle
                 end
             end
             
-            % Mutual link to dependencies
-            newProcessor.addLowerDependencies(dependencies);
+            % Mutual link to dependencies, unless it has none
+            if ~strcmp(newProcessor.getDependency,'input')
+                newProcessor.addLowerDependencies(dependencies);
+            end
             
             % Instantiate and integrate new output signal
             output = newProcessor.instantiateOutput(mObj.Data);

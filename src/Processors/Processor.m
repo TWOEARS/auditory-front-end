@@ -179,11 +179,18 @@ classdef Processor < handle
         function hp = hasParameters(pObj,parObj)
             %TODO: Write h1
             
-            % Extract the parameters related to this processor only
-            testParameters = parObj.getProcessorParameters(class(pObj));
-            
+%             % Extract the parameters related to this processor only
+%             testParameters = parObj.getProcessorParameters(class(pObj));
+%             
+%             % Extend it with the default values for this processor
+%             testParameters.updateWithDefault(class(pObj))
+
+            % Instantiate a dummy processor
+            dummyProc = feval(class(pObj),1,parObj);
+
             % Compare them with current processor parameters
-            hp = (pObj.parameters == testParameters);
+%             hp = (pObj.parameters == testParameters);
+            hp = (pObj.parameters == dummyProc.parameters);
             
             
         end
