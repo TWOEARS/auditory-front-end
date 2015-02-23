@@ -191,7 +191,7 @@ classdef Signal < matlab.mixin.Copyable
                 blocksize_samples - offset_samples + 1 );
             
             % Extract the data block
-            sb = sObj.Data(blockStart:end-offset_samples);
+            sb = sObj.Data(blockStart:end-offset_samples,:,:,:,:,:,:);
             
             % Zero-pad the data if not enough samples are available
             if size( sb, 1 ) < blocksize_samples
