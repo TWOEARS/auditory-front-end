@@ -5,6 +5,7 @@
      startTwoEars('AuditoryFrontEnd.xml'); -->
 
 <requirements>
-    <TwoEarsPart sub="src" startup="startAuditoryFrontEnd">auditory-front-end</TwoEarsPart>
-    <TwoEarsPart branch="master" sub="src" startup="startTools" >tools</TwoEarsPart>
+    <TwoEarsPart startup="startAuditoryFrontEnd">auditory-front-end</TwoEarsPart>
+    <!-- Tools are not needed at the current state, or? -->
+    <!--<TwoEarsPart branch="master" sub="src" startup="startTools" >tools</TwoEarsPart>-->
 </requirements>
