@@ -417,12 +417,12 @@ classdef Processor < handle
                     'processor. Consider overloading this method in the children ' ... 
                     'class definition.'])
             
-            elseif size(pObj.Input,1) == 1
+            elseif size(pObj.Input,2) == 1
                 % Then monaural processor
                 pObj.Output{1}.appendChunk( ...
                     pObj.processChunk( pObj.Input{1}.Data('new')));
                 
-            elseif size(pObj.Input,1) == 2
+            elseif size(pObj.Input,2) == 2
                 % Then binaural processor
                 pObj.Output{1}.appendChunk( ...
                     pObj.processChunk( ...

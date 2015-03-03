@@ -14,13 +14,11 @@ classdef ihcProc < Processor
              %                  extractor
              %
              %USAGE
-             %   pObj = ihcProc(fs,method)
+             %   pObj = ihcProc(fs,p)
              %
              %INPUT ARGUMENTS
              %     fs : Sampling frequency (Hz)
-             % method : Envelope extraction method, among 'halfwave',
-             %          'fullwave', 'square', 'hilbert', 'joergensen',
-             %          'dau', 'breebart', 'berstein'
+             %      p : Parameter object
              %
              %N.B: The constructor does not instantiate the lowpass filters
              %needed for some of the methods.

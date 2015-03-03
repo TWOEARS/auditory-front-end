@@ -20,7 +20,7 @@ end
 clear earSignals
 
 % Parameters
-request = {'innerhaircell'};
+request = {'ild'};
 p = [];%genParStruct('pp_bNormalizeRMS',1);
 
 
