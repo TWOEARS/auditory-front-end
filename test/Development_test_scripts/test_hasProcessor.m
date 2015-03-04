@@ -6,7 +6,6 @@ close all
 % only at the final processing stage, but also checks lower-level stages to
 % control that they also have the requested parameters.
 
-test_startup;
 
 % Load a signal
 load('TestBinauralCues');
@@ -17,7 +16,7 @@ p1 = struct;
 
 request2 = 'innerhaircell';
 p2 = struct;
-p2.nERBs = 1/3;
+p2.fb_nERBs = 1/3;
 
 
 % Instantiate data and manager objects
@@ -41,7 +40,7 @@ p2full = parseParameters(p2);
 echo on
 % Find an IHC processor with parameters p2:
 
-h = mObj.hasProcessor('IHCenvelopeProc',p2full);
+h = mObj.hasProcessor('ihcProc',p2full);
 
 
 % There are two IHC Processors (3 & 5), both have the same IHC parameters:

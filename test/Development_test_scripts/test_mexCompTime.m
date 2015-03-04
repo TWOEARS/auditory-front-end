@@ -3,13 +3,12 @@
 clear all
 close all
 
-test_startup;
 
 % Load a signal
 load('TestBinauralCues');
 
 % Parameters
-request = 'ratemap_magnitude';
+request = 'ratemap';
 % N.B: The requests affected by framing (hence use of mex) are ratemaps,
 % auto- and cross-correlation.
 

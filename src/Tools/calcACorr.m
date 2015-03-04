@@ -9,7 +9,7 @@ function [acorr,lags] = calcACorr(sig,maxLags,scale,K)
 %       SIG : input signal, either vector or matrix of dimension
 %             [nSamples x nChannels]
 %   MAXLAGS : the auto-correlation sequenze is computed over the lag range
-%             -MAXLAGS:MAXLAGS 
+%             1:MAXLAGS 
 %             (default, MAXLAGS = size(SIG,1)-1
 %     SCALE : string specifying normalization 
 %             'biased'   - scale ACORR by 1/nSamples
@@ -23,8 +23,8 @@ function [acorr,lags] = calcACorr(sig,maxLags,scale,K)
 %             (default, K = 2)
 %
 %OUTPUT ARGUMENTS
-%     ACORR : auto-correlation function of SIG [2*MAXLAGS+1 x nChannels]
-%      LAGS : time lags of auto-correlation function [-MAXLAG:MAXLAG x 1]
+%     ACORR : auto-correlation function of SIG [MAXLAGS x nChannels]
+%      LAGS : time lags of auto-correlation function [MAXLAG x 1]
 % 
 %REFERENCES
 %   [1] M. Karjalainen and T. Tolonen (1999), "Multi-pitch and periodicity
@@ -97,7 +97,7 @@ XY = abs(X).^K;
 c = real(ifft(XY));   
 
 % Define lags 
-lags = (-maxLags:maxLags).';
+lags = (1:maxLags).';
 
 % Keep only the lags we want and move negative lags in front 
 if maxLags >= M,
@@ -105,7 +105,7 @@ if maxLags >= M,
     padZeros = zeros(maxLags-M+1,nChannels);
 	c        = [padZeros; c(end-M+2:end,:);c(1:M,:); padZeros];
 else
-	c = [c(end-maxLags+1:end,:);c(1:maxLags+1,:)];
+	c = c(1:maxLags,:);
 end
 
 
@@ -120,10 +120,10 @@ switch lower(scale)
         acorr = c / M;
     case 'unbiased'
         scale = M-abs(lags'); scale(scale<=0)=1;
-        acorr = c./repmat(scale(:),[1 nChannels1]);
+        acorr = c./repmat(scale(:),[1 nChannels]);
     case 'coeff'
         % Normalization by autocorrelation at lag zero
-        acorr = c ./ repmat(c(maxLags+1,:),[length(lags) 1]);
+        acorr = c ./ repmat(c(1,:),[length(lags) 1]);
     otherwise
         error(['Normalization method ''',lower(scale),...
                ''' is not supported.'])

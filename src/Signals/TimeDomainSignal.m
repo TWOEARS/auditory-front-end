@@ -1,18 +1,21 @@
 classdef TimeDomainSignal < Signal
+%TIMEDOMAINSIGNAL Signal class for simple, one dimensional, time-domain signals.
+%
+% See also Signal, preProc
     
     properties
         % Only inherited properties
     end
     
     methods
-        function sObj = TimeDomainSignal(fs,bufferSize_s,name,label,data,canal)
+        function sObj = TimeDomainSignal(fs,bufferSize_s,name,label,data,channel)
             %TimeDomainSignal       Constructor for the "time domain signal"
             %                       children signal class
             %
             %USAGE
             %     sObj = TimeDomainSignal(fs)
             %     sObj = TimeDomainSignal(fs,name,label)
-            %     sObj = TimeDomainSignal(fs,name,label,data,canal)
+            %     sObj = TimeDomainSignal(fs,name,label,data,channel)
             %
             %INPUT ARGUMENTS
             %       fs : Sampling frequency (Hz)
@@ -22,8 +25,8 @@ classdef TimeDomainSignal < Signal
             %            (default: label = 'Waveform')
             %     data : Vector of amplitudes to construct an object from
             %            existing data
-            %    canal : Flag indicating 'left', 'right', or 'mono'
-            %            (default: canal = 'mono')
+            %   channel : Flag indicating 'left', 'right', or 'mono'
+            %            (default: channel = 'mono')
             
             %
             %OUTPUT ARGUMENT
@@ -34,7 +37,7 @@ classdef TimeDomainSignal < Signal
             if nargin>0  % Failproof for Matlab empty calls
             
             % Check input arguments
-            if nargin<6; canal = 'mono'; end
+            if nargin<6; channel = 'mono'; end
             if nargin<5; data = []; end
             if nargin<4||isempty(label); label = 'Waveform'; end
             if nargin<3||isempty(name); name = 'time'; end
@@ -53,63 +56,94 @@ classdef TimeDomainSignal < Signal
             populateProperties(sObj,'Label',label,'Name',name,...
                 'Dimensions','nSamples x 1');
             sObj.setData( data );
-            sObj.Canal = canal;
+            sObj.Channel = channel;
             
             end
         end
        
-        function h = plot(sObj,h0)
+        function h = plot(sObj,h0,p,varargin)
             %plot       This method plots the data from a time domain
             %           signal object
             %
             %USAGE
             %       sObj.plot
-            %       sObj.plot(h_prev)
+            %       sObj.plot(h_prev,p)
             %       h = sObj.plot(...)
             %
             %INPUT ARGUMENT
-            %  h_prev : Handle to an already existing figure, to plot
-            %           alongside another signal
+            %  h_prev : Handle to an already existing figure or subplot
+            %           where the new plot should be placed
+            %       p : Structure of non-default plot parameters (generated
+            %           from genParStruct.m)
             %
             %OUTPUT ARGUMENT
             %       h : Handle to the newly created figure
-            
-            % TO DO: A .m file could be generated, that would contain
-            % prefered properties for plots
-            
-            % Manage handles
-            if nargin < 2 || isempty(h0)
-                    h = figure;             % Generate a new figure
-                elseif get(h0,'parent')~=0
-                    % Then it's a subplot
-                    figure(get(h0,'parent')),subplot(h0)
-                    h = h0;
-                else
-                    figure(h0)
-                    h = h0;
-            end
+            %
+            %OPTIONAL ARGUMENTS
+            % 'rangeSec' - Vector of time limits for the plot
             
             if ~isempty(sObj.Data)
+            
+                % Manage handles
+                if nargin < 2 || isempty(h0)
+                        h = figure;             % Generate a new figure
+                    elseif get(h0,'parent')~=0
+                        % Then it's a subplot
+                        figure(get(h0,'parent')),subplot(h0)
+                        h = h0;
+                    else
+                        figure(h0)
+                        h = h0;
+                end
                 
-                % Get default plotting parameters
-                p = getDefaultParameters([],'plotting');
+                % Manage plot parameters
+                if nargin < 3 || isempty(p) 
+                    % Get default plotting parameters
+                    p = getDefaultParameters([],'plotting');
+                else
+                    p.fs = sObj.FsHz;   % Add the sampling frequency to satisfy parseParameters
+                    p = parseParameters(p);
+                end
 
-                % Generate a time axis
-                t = 0:1/sObj.FsHz:(length(sObj.Data(:))-1)/sObj.FsHz;
+                % Manage optional arguments
+                if nargin>3 && ~isempty(varargin)
+                    opt = struct;
+                    for ii = 1:2:size(varargin,2)
+                        opt.(varargin{ii}) = varargin{ii+1};
+                    end
+                else
+                    opt = [];
+                end
+                
+                % Limit to a certain time period
+                if ~isempty(opt) && isfield(opt,'rangeSec')
+                    data = sObj.Data(floor(opt.rangeSec(1)*sObj.FsHz):floor(opt.rangeSec(end)*sObj.FsHz));
+                    t = opt.rangeSec(1):1/sObj.FsHz:opt.rangeSec(1)+(size(data,1)-1)/sObj.FsHz;
+                else
+                    data = sObj.Data(:);
+                    t = 0:1/sObj.FsHz:(size(data,1)-1)/sObj.FsHz;
+                end
+                
 
                 % Set up a title (include channel in the title)
-                if ~strcmp(sObj.Canal,'mono')
-                    pTitle = [sObj.Label ' - ' sObj.Canal];
+                if ~strcmp(sObj.Channel,'mono')
+                    pTitle = [sObj.Label ' - ' sObj.Channel];
                 else
                     pTitle = sObj.Label;
                 end
                 
                 % Plot
-                plot(t,sObj.Data(:),'color',p.color,'linewidth',p.linewidth_s)
+                plot(t,data,'color',p.color,'linewidth',p.linewidth_s)
                 xlabel('Time (s)','fontsize',p.fsize_label,'fontname',p.ftype)
                 ylabel('Amplitude','fontsize',p.fsize_label,'fontname',p.ftype)
                 title(pTitle,'fontsize',p.fsize_title,'fontname',p.ftype)
                 set(gca,'fontsize',p.fsize_axes,'fontname',p.ftype)
+                
+                box on 
+                
+                % Center the waveform
+                m = max(abs(data));
+                set(gca,'XLim',[t(1) t(end)],'YLim',[-1.1*m 1.1*m])
             
             else
                 warning('This is an empty signal, cannot be plotted')

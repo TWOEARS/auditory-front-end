@@ -1,4 +1,18 @@
 classdef ildProc < Processor
+%ILDPROC Interaural Level Difference processor.
+%   This processor estimates the level difference between the left and the
+%   right ear signals for individual frequency channels and time frames by
+%   comparing the frame-based energy of the left and the right-ear inner 
+%   hair cell representations. The value is expressed in dB, and negative
+%   values indicate sources on the left-hand side.
+%
+%   ILDPROC properties:
+%       wname       - Window shape descriptor
+%       wSizeSec    - Window duration in seconds
+%       hSizeSec    - Step size between windows in seconds
+%
+%   See also: Processor, ihcProc
+%
     
     properties
         wname       % Window shape descriptor (see window.m)
@@ -61,12 +75,18 @@ classdef ildProc < Processor
         end
         
         function out = processChunk(pObj,in_l,in_r)
-            %processChunk
+            %processChunk       Requests the processing for a new chunk of
+            %                   signal
             %
-            %TO DO:
-            % - Do we need a h1 line here?
-            % - Do we need to check inputs dimensionality?
-            % - Better handling of dimensionality problem
+            %USAGE:
+            %    out = processChunk(in)
+            %
+            %INPUT ARGUMENTS:
+            %   pObj : Processor instance
+            %     in : Input chunk
+            %
+            %OUTPUT ARGUMENT:
+            %    out : Processor output for that chunk
             
             % Append provided input to the buffer
             if ~isempty(pObj.buffer_l)

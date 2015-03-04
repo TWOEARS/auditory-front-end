@@ -27,16 +27,19 @@ switch sig
     case 'time'
         dep = {'time'};
         
-    case 'framedSignal'
-        dep = {'time'};
+%     case 'framedSignal'
+%         dep = {'time'};
         
-    case 'gammatone'
+    case 'filterbank'
         dep = {'time'};
         
     case 'innerhaircell'
-        dep = {'gammatone'};
+        dep = {'filterbank'};
         
-    case 'modulation'
+    case 'adaptation'
+        dep = {'innerhaircell'};
+        
+    case 'ams_features'
         dep = {'innerhaircell'};
         
     case 'crosscorrelation'
@@ -44,21 +47,18 @@ switch sig
      
     case 'autocorrelation'
         dep = {'innerhaircell'};
-        
+                
     % Cues
     case 'rms'
         dep = {'time'};
         
-     case 'ratemap_magnitude'
-        dep = {'innerhaircell'};
-    
-    case 'ratemap_power'
+     case 'ratemap'
         dep = {'innerhaircell'};
         
-    case 'itd_xcorr'
+    case 'itd'
         dep = {'crosscorrelation'};
         
-    case 'ic_xcorr'
+    case 'ic'
         dep = {'crosscorrelation'};
         
     case 'ild'
@@ -68,52 +68,48 @@ switch sig
         dep = {'innerhaircell'};
         
     case 'onset_strength'
-        dep = {'ratemap_power'};
+        dep = {'ratemap'};
         
     case 'offset_strength'
-        dep = {'ratemap_power'};
+        dep = {'ratemap'};
         
     case 'synchrony'
         dep = {'autocorrelation'};
         
-    case 'sacf'
-        dep = {'autocorrelation'};
-        
     % Features
-    case 'crosscorrelation_feature'
-        dep = {'crosscorrelation'};
+%     case 'crosscorrelation_feature'
+%         dep = {'crosscorrelation'};
 
-    case 'spec_features'
-        dep = {'ratemap_power'};
-    
-    case 'ratemap_feature'
-        dep = {'ratemap_magnitude'};
+    case 'spectral_features'
+        dep = {'ratemap'};
         
-    case 'azimuth'
-        dep = {'itd_xcorr'};
+    case 'onset_map'
+        dep = {'onset_strength'};
         
-    case 'azimuth_hist'
-        dep = {'azimuth' 'ic_xcorr'};
-        
-    case 'source_position'
-        dep = {'azimuth_hist'};
+    case 'offset_map'
+        dep = {'offset_strength'};
         
     case 'pitch'
-        dep = {'sacf'};
+        dep = {'autocorrelation'};
+        
+    case 'gabor'
+        dep = {'ratemap'};
         
     case 'valid'     % Dummy name to list all currently valid names
-        dep = {'time' 'gammatone' 'innerhaircell' 'modulation' ...
-            'crosscorrelation' 'autocorrelation' 'rms' 'ratemap_magnitude' ...
-            'ratemap_power' 'itd_xcorr' 'ic_xcorr' 'ild' 'average_deviation' ...
-            'onset_strength' 'offset_strength' 'synchrony' 'sacf' ...
-            'spec_features' 'ratemap_feature' 'azimuth' 'azimuth_hist' ...
-            'source_position' 'pitch'};
+        dep = {'time' 'filterbank' 'innerhaircell' 'adaptation' 'ams_features' ...
+            'crosscorrelation' 'autocorrelation' 'rms' 'ratemap' ...
+            'itd' 'ic' 'ild' ...
+            'onset_strength' 'offset_strength' 'onset_map' 'offset_map' ...
+            'spectral_features' ...
+            'pitch' 'gabor'};
+
         
     case 'available'    % Lists all currently implemented processors
-         dep = {'time' 'gammatone' 'innerhaircell' 'modulation' 'crosscorrelation' ...
-             'autocorrelation' 'ratemap_magnitude' 'ratemap_power' 'ild' ...
-             'itd_xcorr' 'ic_xcorr' 'spec_features' 'crosscorrelation_feature' ...
-             'onset_strength' 'offset_strength'};
+         dep = {'time' 'filterbank' 'innerhaircell' 'adaptation' 'ams_features' 'crosscorrelation' ...
+             'autocorrelation' 'ratemap' 'ild' ...
+             'itd' 'ic' 'spectral_features'  ...
+             'onset_strength' 'offset_strength' 'pitch' 'onset_map' 'offset_map' 'gabor'};
+
         
     % Otherwise it's not in the list, generate a list of valid names
     otherwise

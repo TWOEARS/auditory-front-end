@@ -74,5 +74,3 @@ switch lower(method)
 end
 
 
-
-

@@ -1,14 +1,38 @@
 classdef Processor < handle
-    
+%PROCESSOR Superclass for the auditory front-end (AFE) framework processors.
+%   This abstract class defines properties and methods that are shared among all processor
+%   classes of the AFE.
+%
+%   PROCESSOR properties:
+%       Type          - Describes briefly the processing performed
+%       Input         - Handle to input signal
+%       Output        - Handle to output signal
+%       FsHzIn        - Sampling frequency of input (i.e., prior to processing)
+%       FsHzOut       - Sampling frequency of output (i.e., resulting from processing)
+%       Dependencies  - Handle to the processor that generated this processor's input
+%       isBinaural    - Flag indicating the need for two inputs
+%       hasTwoOutputs - Flag indicating the need for two outputs
+%
+%   PROCESSOR abstract methods (implemented by each subclasses):
+%       processChunk  - Returns the output from the processing of a new chunk of input
+%       reset         - Resets internal states of the processor, if any
+%       hasParameters - Returns true if the processor uses the parameters passed as input
+%
+%   PROCESSOR methods:
+%       getDependentParameter - Returns the value of a parameter used in a dependency
+%       getCurrentParameters  - Returns the parameter values used by this processor
+%
+%   See also Processors (folder)
+
     properties
-        Type            % Describes the processing performed
-        Input           % Handle to input signal
-        Output          % Handle to output signal
-        isBinaural = false;  % Flag indicating the need for two channels
-        FsHzIn          % Sampling frequency of input, prior to processing
-        FsHzOut         % Sampling frequency of output, resulting from processing
-        Dependencies    % Cell array listing the dependencies to other signals
-        % TO DO: Figure out how to deal with dependencies
+        Type
+        Input
+        Output
+        isBinaural = false;
+        hasTwoOutputs = false;
+        FsHzIn
+        FsHzOut
+        Dependencies
     end
     
     methods (Abstract = true)
@@ -34,7 +58,7 @@ classdef Processor < handle
     
     methods
         function  parValue = getDependentParameter(pObj,parName)
-            %getDependentProperty    Finds the value of a parameter in the
+            %getDependentParameter   Finds the value of a parameter in the
             %                        list of dependent processors
             %
             %USAGE:

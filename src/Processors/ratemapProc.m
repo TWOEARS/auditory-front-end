@@ -1,5 +1,22 @@
 classdef ratemapProc < Processor
-    
+%RATEMAPPROC Ratemap processor.
+%   The ratemap represents a map of auditory nerve firing rates [1], computed
+%   from the inner hair-cell signal representation for individual frequency 
+%   channels. 
+%
+%   RATEMAPPROC properties:
+%        wname       - Window type
+%        wSizeSec    - Window duration
+%        hSizeSec    - Window step size
+%        scaling     - Flag specifying ratemap scaling
+%        decaySec    - Signal-smoothing leaky integrator time constant        
+%
+%   See also: Processor, ihcProc
+%
+%   Reference:
+%   [1] Brown, G. J. and Cooke, M. P. (1994), "Computational auditory scene
+%       analysis," ComputerSpeech and Language 8(4), pp. 297?336.
+
     properties
         wname       % Window shape descriptor (see window.m)
         wSizeSec    % Window duration in seconds
@@ -20,7 +37,7 @@ classdef ratemapProc < Processor
         
     
     methods
-        function pObj = ratemapProc(fs,p,scaling,do_mex)
+        function pObj = ratemapProc(fs,p,do_mex)
             %ratemapProc    Constructs a ratemap processor
             %
             %USAGE
@@ -38,12 +55,9 @@ classdef ratemapProc < Processor
             if nargin>0 % Safeguard for Matlab empty calls
                 
             % Checking input parameters
-            if nargin<4||isempty(do_mex);do_mex = 1; end
+            if nargin<3||isempty(do_mex);do_mex = 1; end
             if nargin<2||isempty(p)
                 p = getDefaultParameters(fs,'processing');
-            end
-            if nargin == 3 && ~isempty(scaling)
-                p.rm_scaling = scaling;
             end
             if isempty(fs)
                 error('Sampling frequency needs to be provided')

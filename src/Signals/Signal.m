@@ -1,11 +1,35 @@
 classdef Signal < matlab.mixin.Copyable
-    
-    properties
+%SIGNAL Superclass for all signals involved in the auditory front-end (AFE) framework.
+%   All signals involved in the AFE are inheriting this class, which defines properties
+%   and methods shared among all signals.
+%
+%   SIGNAL properties:
+%       Label      - Short and plain description of the signal (used e.g., as plot titles)
+%       Name       - Single-word nametag for the signal
+%       Dimensions - String describing signal's dimensions
+%       FsHz       - Sampling frequency of the signal (in Hz)
+%       Channel    - String indicating which audio channel the signal corresponds to
+%
+%   SIGNAL abstract method:
+%       plot - Plots the signal. Should be implemented by any children class.
+%
+%   SIGNAL methods:
+%       Signal         - Super-constructor for all signal objects
+%       appendChunk    - Append a chunk of data to a signal buffer
+%       setData        - Initialize the signal buffer
+%       clearData      - Clears a signal buffer
+%       getSignalBlock - Returns a data block from signal buffer
+%       findProcessor  - Finds the processor that computed the signal
+%       getParameters  - Returns the parameters used to compute the signal
+%
+% See also signals (folder), circVBuf, circVBufArrayInterface
+
+    properties (SetAccess=protected)
         Label           % Used to label the signal (e.g., in plots)
         Name            % Used as an instance name in Matlab
         Dimensions      % String describing the dimensions of the signal
         FsHz            % Sampling frequency
-        Canal           % Flag keeping track of the channel: 'mono', 'left'
+        Channel         % Flag keeping track of the channel: 'mono', 'left'
                         %   or 'right'
     end
     
@@ -71,8 +95,7 @@ classdef Signal < matlab.mixin.Copyable
         end
         
         function appendChunk(sObj,data)
-            %appendChunk   This method appends the chunk in data to the
-            %               signal object
+            %appendChunk   This method appends the chunk in data to the signal object
             %
             %USAGE
             %   sObj.appendChunk(data)
@@ -119,7 +142,7 @@ classdef Signal < matlab.mixin.Copyable
             
             sObj.Buf.clear();
         end
-
+        
         function newSobj = cutSignalCopy( sObj, blocksize_s, backOffset_s )
             %cutSignalCopy  This method copies the Signal object into a new
             %               instance, cutting out the specified data block.
@@ -262,7 +285,7 @@ classdef Signal < matlab.mixin.Copyable
                 % Couldn't find the processor in charge
                 parStruct = struct;
                 % Return a warning, unless sObj is the original ear signal
-                if ~strcmp(sObj.Name,'signal')
+                if ~strcmp(sObj.Name,'input')
                     warning('Could not find the processor that computed the signal ''%s.''',sObj.Name)
                 end
             end
