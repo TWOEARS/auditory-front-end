@@ -1,5 +1,31 @@
 classdef autocorrelationProc < Processor
-    
+%AUTOCORRELATIONPROC Auto-correlation processor.
+%   This processor calculates the auto-correlation in the fast Fourier
+%   transform domain for short time frames based on the inner hair-cell
+%   representation, towards prediction of perceived pitch [1].
+%
+%   AUTOCORRELATIONPROC properties:
+%        wname       - Window shape descriptor (see window.m)
+%        wSizeSec    - Window duration in seconds
+%        hSizeSec    - Step size between windows in seconds
+%        clipMethod  - Center clipping method ('clc','clp','sgn') [2]
+%        alpha       - Threshold coefficient in center clipping
+%        K           - Exponent to control the compression [3]
+%
+%   See also: Processor, ihcProc
+%
+%   Reference:
+%   [1] Meddis, R. and Hewitt, M. J. (1991), "Virtual pitch and phase 
+%       sensitivity of a computer model of the auditory periphery. 
+%       I: Pitch identification," Journal of the Acoustical Society
+%       of America 89(6), pp. 2866?2882.
+%   [2] Rabiner, L. R. (1977), "On the use of autocorrelation analysis 
+%       for pitch detection," IEEE Transactions on Audio, Speech, and 
+%       Language Processing 25(1), pp. 24?33.
+%   [3] Tolonen, T. and Karjalainen, M. (2000), "A computationally efficient
+%       multipitch analysis model," IEEE Transactions on Audio, Speech, and
+%       Language Processing 8(6), pp. 708?716.
+
     properties 
         wname       % Window shape descriptor (see window.m)
         wSizeSec    % Window duration in seconds

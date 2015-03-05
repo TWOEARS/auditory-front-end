@@ -6,7 +6,7 @@
    <!--
 This HTML was auto-generated from MATLAB code.
 To make changes, update the MATLAB code and republish this document.
-      --><title>Object-oriented implementation of Two!Ears Auditory Front-End</title><meta name="generator" content="MATLAB 8.3"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="DC.date" content="2014-06-19"><meta name="DC.source" content="DEMO_AFE_ObjectOriented_publish.m"><style type="text/css">
+      --><title>Object-oriented implementation of Auditory Front-End</title><meta name="generator" content="MATLAB 8.3"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="DC.date" content="2015-01-05"><meta name="DC.source" content="DEMO_AFE_ObjectOriented_publish.m"><style type="text/css">
 html,body,div,span,applet,object,iframe,h1,h2,h3,h4,h5,h6,p,blockquote,pre,a,abbr,acronym,address,big,cite,code,del,dfn,em,font,img,ins,kbd,q,s,samp,small,strike,strong,sub,sup,tt,var,b,u,i,center,dl,dt,dd,ol,ul,li,fieldset,form,label,legend,table,caption,tbody,tfoot,thead,tr,th,td{margin:0;padding:0;border:0;outline:0;font-size:100%;vertical-align:baseline;background:transparent}body{line-height:1}ol,ul{list-style:none}blockquote,q{quotes:none}blockquote:before,blockquote:after,q:before,q:after{content:'';content:none}:focus{outine:0}ins{text-decoration:none}del{text-decoration:line-through}table{border-collapse:collapse;border-spacing:0}
 
 html { min-height:100%; margin-bottom:1px; }
@@ -66,21 +66,25 @@ table td { padding:7px 5px; text-align:left; vertical-align:top; border:1px soli
 
 
 
-  </style></head><body><div class="content"><h1>Object-oriented implementation of Two!Ears Auditory Front-End</h1><!--introduction--><!--/introduction--><h2>Contents</h2><div><ul><li><a href="#2">Currently supported features</a></li><li><a href="#3">Coming-up features:</a></li><li><a href="#5">1- Basic advantages of object-oriented approach: Extraction of inner hair-cell envelope for a single audio channel</a></li><li><a href="#12">2- Complex scenario:</a></li></ul></div><p>This Demo scripts presents the object-oriented implementation of the Two!Ears Auditory Front-End. It is intended as a demo at that stage, and not a working copy, as important feature are not implemented fully yet.</p><h2>Currently supported features<a name="2"></a></h2><div><ul><li>Mono &amp; Stereo input signals</li><li>Block-processing (real-time) compatibility</li><li>Following representations:</li></ul></div><pre class="codeinput">getDependencies(<span class="string">'available'</span>)
+  </style></head><body><div class="content"><h1>Object-oriented implementation of Auditory Front-End</h1><!--introduction--><!--/introduction--><h2>Contents</h2><div><ul><li><a href="#2">Currently supported features</a></li><li><a href="#3">Coming-up features:</a></li><li><a href="#5">1- Basic advantages of object-oriented approach: Extraction of inner hair-cell envelope for a single audio channel</a></li><li><a href="#12">2- Complex scenario:</a></li></ul></div><p>This Demo scripts presents the object-oriented implementation of the Two!Ears Auditory Front-End. It is intended as a demo at that stage, and not a working copy, as important feature are not implemented fully yet.</p><h2>Currently supported features<a name="2"></a></h2><div><ul><li>Mono &amp; Stereo input signals</li><li>Block-processing (real-time) compatibility</li><li>Following representations:</li></ul></div><pre class="codeinput">getDependencies(<span class="string">'available'</span>)
 </pre><pre class="codeoutput">
 ans = 
 
-  Columns 1 through 4
+  Columns 1 through 5
 
-    'time'    'gammatone'    'innerhaircell'    'crosscorrelation'
+    'time'    'filterbank'    'innerhaircell'    'adaptation'    'ams_features'
 
-  Columns 5 through 8
+  Columns 6 through 10
 
-    'autocorrelation'    'ratemap_magnitude'    'ratemap_power'    'ild'
+    'crosscorrelation'    'autocorrelation'    'ratemap'    'ild'    'itd'
 
-  Columns 9 through 10
+  Columns 11 through 14
 
-    'itd_xcorr'    'ic_xcorr'
+    'ic'    'spectral_features'    'onset_strength'    'offset_strength'
+
+  Columns 15 through 18
+
+    'pitch'    'onset_map'    'offset_map'    'gabor'
 
 </pre><h2>Coming-up features:<a name="3"></a></h2><div><ul><li>User-provided parameter handling</li><li>Multiple requests at startup</li><li>Feedback handling</li></ul></div><p>Initialize and load a signal</p><pre class="codeinput">clear <span class="string">all</span>,close <span class="string">all</span>
 load(<span class="string">'TestBinauralCues'</span>);
@@ -94,7 +98,7 @@ mObj = manager(dObj,request); <span class="comment">% Instantiate a manager</spa
 </pre><p>Results are stored in the data object:</p><pre class="codeinput">dObj.innerhaircell{1}.plot;
 </pre><img vspace="5" hspace="5" src="DEMO_AFE_ObjectOriented_publish_01.png" alt=""> <p>The object dObj contains all the signals computed in the process as objects, each having specific methods, e.g.:</p><pre class="codeinput">fprintf(<span class="string">'%s for %s signal was computed for %i frequency channels.\n'</span>,<span class="keyword">...</span>
     dObj.innerhaircell{1}.Label,<span class="keyword">...</span>
-    dObj.innerhaircell{1}.Canal,<span class="keyword">...</span>
+    dObj.innerhaircell{1}.Channel,<span class="keyword">...</span>
     size(dObj.innerhaircell{1}.cfHz,2))
 </pre><pre class="codeoutput">Inner hair-cell envelope for mono signal was computed for 31 frequency channels.
 </pre><p>Most objects are inheriting from the "handle" super-class, which allows to call them "by reference" instead of Matlab typical "by value", limiting memory usage from duplicates and allowing for using pointers to objects instances instead of duplicates. For example, the input and output lists properties of the manager class (used for routing inputs and outputs) are pointers to the actual input/output signals in the data object:</p><pre class="codeinput">mObj.OutputList{1}.plot;
@@ -105,7 +109,7 @@ chunkSize = 2000;   <span class="comment">% Chunk duration in samples</span>
 
 <span class="comment">% Use both ear signals</span>
 data = earSignals;
-</pre><p>Create an empty data object. It will be filled up as new ear signal chunks are "acquired".</p><pre class="codeinput">dObj = dataObject([],fsHz,1);   <span class="comment">% Last input (1) indicates a stereo signal</span>
+</pre><p>Create an empty data object. It will be filled up as new ear signal chunks are "acquired".</p><pre class="codeinput">dObj = dataObject([],fsHz,10,2);   <span class="comment">% Last input (2) indicates a stereo signal</span>
 mObj = manager(dObj,request);   <span class="comment">% Instantiate a manager</span>
 </pre><p>From here on, simulating real-time chunk acquisition and processing request...</p><pre class="codeinput"><span class="comment">% Number of chunks in the signal</span>
 n_chunks = ceil(size(data,1)/chunkSize);
@@ -120,7 +124,7 @@ data = [data;zeros(n_chunks*chunkSize-size(data,1),size(data,2))];
     chunk = data((ii-1)*chunkSize+1:ii*chunkSize,:);
 
     <span class="comment">% Request processing for that chunk</span>
-    mObj.processChunk(chunk);
+    mObj.processChunk(chunk,1);
 </pre><pre class="codeinput"><span class="keyword">end</span>
 
 <span class="comment">% Plot the result</span>
@@ -128,13 +132,13 @@ dObj.ild{1}.plot;
 </pre><img vspace="5" hspace="5" src="DEMO_AFE_ObjectOriented_publish_03.png" alt=""> <p>Extract the same cue but from the whole signal at once for comparison</p><pre class="codeinput">dObj2 = dataObject(data,fsHz);  <span class="comment">% Create a new data object</span>
 mObj2 = manager(dObj2,request); <span class="comment">% Create a new manager</span>
 mObj2.processSignal;            <span class="comment">% Do the processing</span>
-</pre><p>Compute and plot the difference between the two approaches</p><pre class="codeinput">delta_ild = TimeFrequencySignal(dObj.ild{1}.FsHz,<span class="string">'ild'</span>,dObj.ild{1}.cfHz,<span class="keyword">...</span>
+</pre><p>Compute and plot the difference between the two approaches</p><pre class="codeinput">delta_ild = TimeFrequencySignal(dObj.ild{1}.FsHz,dObj.bufferSize_s,<span class="string">'ild'</span>,dObj.ild{1}.cfHz,<span class="keyword">...</span>
     <span class="string">'Difference in ILD, chunk vs. signal'</span>,<span class="keyword">...</span>
-    dObj.ild{1}.Data-dObj2.ild{1}.Data);
+    dObj.ild{1}.Data(:)-dObj2.ild{1}.Data(:));
 delta_ild.plot;
 </pre><img vspace="5" hspace="5" src="DEMO_AFE_ObjectOriented_publish_04.png" alt=""> <p class="footer"><br><a href="http://www.mathworks.com/products/matlab/">Published with MATLAB&reg; R2014a</a><br></p></div><!--
 ##### SOURCE BEGIN #####
-%% Object-oriented implementation of Two!Ears Auditory Front-End 
+%% Object-oriented implementation of Auditory Front-End
 %
 %%
 % This Demo scripts presents the object-oriented implementation of the
@@ -187,7 +191,7 @@ dObj.innerhaircell{1}.plot;
 % objects, each having specific methods, e.g.:
 fprintf('%s for %s signal was computed for %i frequency channels.\n',...
     dObj.innerhaircell{1}.Label,...
-    dObj.innerhaircell{1}.Canal,...
+    dObj.innerhaircell{1}.Channel,...
     size(dObj.innerhaircell{1}.cfHz,2))
 
 %%
@@ -216,7 +220,7 @@ data = earSignals;
 %%
 % Create an empty data object. It will be filled up as new ear signal
 % chunks are "acquired". 
-dObj = dataObject([],fsHz,1);   % Last input (1) indicates a stereo signal
+dObj = dataObject([],fsHz,10,2);   % Last input (2) indicates a stereo signal
 mObj = manager(dObj,request);   % Instantiate a manager
 
 %%
@@ -240,7 +244,7 @@ for ii = 1:n_chunks
     chunk = data((ii-1)*chunkSize+1:ii*chunkSize,:);
     
     % Request processing for that chunk
-    mObj.processChunk(chunk);
+    mObj.processChunk(chunk,1);
     
 end
 
@@ -255,9 +259,9 @@ mObj2.processSignal;            % Do the processing
 
 %%
 % Compute and plot the difference between the two approaches
-delta_ild = TimeFrequencySignal(dObj.ild{1}.FsHz,'ild',dObj.ild{1}.cfHz,...
+delta_ild = TimeFrequencySignal(dObj.ild{1}.FsHz,dObj.bufferSize_s,'ild',dObj.ild{1}.cfHz,...
     'Difference in ILD, chunk vs. signal',...
-    dObj.ild{1}.Data-dObj2.ild{1}.Data);
+    dObj.ild{1}.Data(:)-dObj2.ild{1}.Data(:));
 delta_ild.plot;
 
 

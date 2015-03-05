@@ -122,26 +122,26 @@ rateLevelFunctionMatrix_noisy = zeros(length(mocFactor), length(leveldBSPL));
 
 request = 'adaptation';
 
-% Introduce outer/middle ear filter (imported tools from AMT)
+% Introduce outer ear filter (imported from AMT)
 oe_fir = headphonefilter(fs);
-me_fir = middleearfilter(fs,'jepsenmiddleear');
 
 for ii=1:length(mocFactor)
     for jj=1:length(toneFrequency)
 
         % Convert input to stapes output, through outer-middle ear filters
         xME = filter(oe_fir, 1, inputSignalMatrix(:, :, jj).');
-        xStapes = filter(me_fir, 1, xME);
         xME_noisy = filter(oe_fir, 1, noisyInputSignalMatrix(:, :, jj).');
-        xStapes_noisy = filter(me_fir, 1, xME_noisy);
 
         % parameter structure for testing on-freq stimulation
-        param_struct = genParStruct('drnl_cfHz', toneFrequency(jj), 'drnl_mocIpsi', mocFactor(ii));
+        param_struct = genParStruct('pp_bLevelScaling', true, ...
+            'pp_bMiddleEarFiltering', true, ...
+            'fb_type', 'drnl', 'fb_cfHz', ...
+            toneFrequency(jj), 'fb_mocIpsi', mocFactor(ii));
     %     % parameter structure for testing different stimulation freq at single CF
     %     param_struct = genParStruct('drnl_cfHz', 4000);
         for kk=1:length(leveldBSPL)
-            dObj = dataObject(xStapes(:, kk), fs);
-            dObj_noisy = dataObject(xStapes_noisy(:, kk), fs);
+            dObj = dataObject(xME(:, kk), fs);
+            dObj_noisy = dataObject(xME_noisy(:, kk), fs);
             
             mObj = manager(dObj);
             mObj_noisy = manager(dObj_noisy);
@@ -168,7 +168,7 @@ for ii=1:length(mocFactor)
             
             clear dObj mObj out
         end
-        clear xStapes param_struct
+        clear xME xME_noisy param_struct
     end
 end
 

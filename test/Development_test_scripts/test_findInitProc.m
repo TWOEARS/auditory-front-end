@@ -5,7 +5,9 @@ clc
 % This script is for testing the behavior of the findInitProc method of the
 % manager class.
 
-test_startup;
+% NOTE: The findInitProc method of the manager class has to be made public for this test
+% to work. Simply uncomment temporarily the (Access = protected) command that precedes the
+% method definition.
 
 % Load a signal
 load('TestBinauralCues');
@@ -23,14 +25,14 @@ mObj = manager(dObj,request);           % Instantiate a manager for the original
 % 1- We change the frequency resolution of the filterbank
     new_request1 = 'innerhaircell';
     p1 = struct;
-    p1.nERBs = 1/3;
+    p1.fb_nERBs = 1/3;
     [init_proc1,list1] = mObj.findInitProc(new_request1,p1);
     fprintf(['Changing the resolution of the filterbank implies recomputing the '...
         'signals \n%s, from the output of the following processor:\n'],strjoin(list1,', '))
-    init_proc1
+    init_proc1{1}
     
 % 2- We request ITDs based on the same original parameter
-    new_request2 = 'itd_xcorr';
+    new_request2 = 'itd';
     p2 = struct;
     [init_proc2,list2] = mObj.findInitProc(new_request2,p2);
     fprintf(['Computing ITDs with default parameter involves computing only '...
@@ -38,7 +40,7 @@ mObj = manager(dObj,request);           % Instantiate a manager for the original
     init_proc2
     
 % 3- We request ITDs but using a different window shape
-    new_request3 = 'itd_xcorr';
+    new_request3 = 'itd';
     p3 = struct;
     p3.cc_wname = 'hann';
     [init_proc3,list3] = mObj.findInitProc(new_request3,p3);

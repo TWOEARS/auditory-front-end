@@ -5,10 +5,9 @@
 close all
 clc
 
-% test_startup;
 
 % Which demo(s) to run:
-demo = [1];
+demo = [1 2 3 4];
 
 % Load a signal
 load('TestBinauralCues');
@@ -58,8 +57,8 @@ end
 
 if ismember(2,demo)
 
-requests = {'ild','itd_xcorr','ratemap'};
-p =genParStruct('nERBs',3);
+requests = {'ild','itd','ratemap'};
+p =genParStruct('fb_nERBs',3);
 
 % Create a data object
 dObj = dataObject(data,fs);
@@ -93,10 +92,10 @@ end
 
 if ismember(3,demo)
     
-requests = {'ild','itd_xcorr','ratemap'};
+requests = {'ild','itd','ratemap'};
 p1 = genParStruct();            % Default parameters
-p2 = genParStruct('nERBs',3);   % Lower filterbank resolution
-p3 = genParStruct('nERBs',1/2); % Higher filterbank resolution
+p2 = genParStruct('fb_nERBs',3);   % Lower filterbank resolution
+p3 = genParStruct('fb_nERBs',1/2); % Higher filterbank resolution
 
 % Create a data object
 dObj = dataObject(data,fs);
@@ -142,10 +141,10 @@ end
 
 if ismember(4,demo)
     
-requests = {'ild','itd_xcorr','ratemap'};
+requests = {'ild','itd','ratemap'};
 p1 = genParStruct();            % Default parameters
-p2 = genParStruct('nERBs',3);   % Lower filterbank resolution
-p3 = genParStruct('nERBs',1/2); % Higher filterbank resolution
+p2 = genParStruct('fb_nERBs',3);   % Lower filterbank resolution
+p3 = genParStruct('fb_nERBs',1/2); % Higher filterbank resolution
 p = {p1,p2,p3};
 
 % Create a data object

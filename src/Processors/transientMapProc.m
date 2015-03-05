@@ -1,5 +1,25 @@
 classdef transientMapProc < Processor
-    
+%TRANSIENTMAPPROC Binary onset and offset maps processor.    
+%   Based on the transient strength which is derived from the corresponding 
+%   onset strength and offset strength processor, a binary decision about 
+%   transient activity is formed, where only the most salient information
+%   is retained. This can be used to group the acoustic input according to 
+%   individual auditory events [1].
+%
+%   TRANSIENTMAPPROC properties:
+%        minStrengthdB   - Minimum transient strength for mapping
+%        minSpread       - Minimum spread of the transient (number of time-frequency units)
+%        fuseWithinSec   - Time constant below which transients are fused
+%        minValuedB      - Lower limit for the input representation below which transient are discarded
+%
+%   See also: Processor, ratemapProc, onsetProc, offsetProc
+%
+%   Reference:
+%   [1] Turgeon, M., Bregman, A. S., and Ahad, P. A. (2002), "Rhythmic 
+%       masking release: Contribution of cues for perceptual organization
+%       to the cross-spectral fusion of concurrent narrow-band noises," 
+%       Journal of the Acoustical Society of America 111(4), pp. 1819?1831.
+
     properties (SetAccess = protected)
         minStrengthdB   % Minimum transient strength for mapping
         minSpread       % Minimum spread of the transient (number of frequency channels)

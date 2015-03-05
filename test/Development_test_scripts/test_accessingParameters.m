@@ -4,7 +4,6 @@
 clear all
 close all
 
-test_startup;
 
 % Test on monoral or binaural signal
 do_stereo = 1;
@@ -15,11 +14,11 @@ data = earSignals;
 clear earSignals
 
 % Parameters
-request1 = 'itd_xcorr';
-p1 = genParStruct('f_low',80,'f_high',8000,'nChannels',30);
+request1 = 'itd';
+p1 = genParStruct('fb_lowFreqHz',80,'fb_highFreqHz',8000,'fb_nChannels',30);
 
 request2 = 'ild';
-p2 = genParStruct('f_low',80,'f_high',8000,'nERBs',1/2);
+p2 = genParStruct('fb_lowFreqHz',80,'fb_highFreqHz',8000,'fb_nERBs',1/2);
 
 
 % Instantiation and processing

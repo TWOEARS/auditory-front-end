@@ -4,14 +4,13 @@
 clear 
 % close all
 
-% test_startup;
 
 % Request and parameters for feature extraction
 % request = {'modulation'};
-request = {'drnl'};
+request = {'filterbank'};
 % request = {'adaptation'};
 p = [];
-p = genParStruct('IHCMethod','fullwave');%,'am_win','rectwin');
+p = genParStruct('ihc_method','fullwave','fb_type','drnl');
 
 
 % Online processing parameters

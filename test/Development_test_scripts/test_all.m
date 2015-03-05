@@ -1,7 +1,7 @@
 test_accessingParameters
 test_appendingVSoverwriting
 test_cue
-test_findInitProc
+% test_findInitProc   % NB: Make findInitProc method public to run this test!
 test_gammatoneGen
 test_hasProcessor
 test_IHCextraction

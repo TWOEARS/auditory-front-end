@@ -24,10 +24,10 @@ fs = fsHz;
 clear earSignals fsHz
 
 % Request ratemap    
-requests = {'spec_features'};
+requests = {'spectral_features'};
 
 % Parameters
-par = genParStruct('f_low',80,'f_high',8000,'nChannels',[]); 
+par = genParStruct('fb_lowFreqHz',80,'fb_highFreqHz',8000,'fb_nChannels',[]); 
 
 % Create a data object
 dObj = dataObject(data,fs);
@@ -42,31 +42,31 @@ mObj.processSignal();
 %% Plot 
 % 
 % 
-nFeatures = size(dObj.spec_features{1}.Data(:,:),2);
+nFeatures = size(dObj.spectral_features{1}.Data(:,:),2);
 nSubplots = ceil(sqrt(nFeatures));
 
 % Get ratemap 
-rMap = dObj.ratemap_power{1}.Data(:,:);
-fHz  = dObj.ratemap_power{1}.cfHz;
+rMap = dObj.ratemap{1}.Data(:,:);
+fHz  = dObj.ratemap{1}.cfHz;
 
 [nFrames,nFreq] = size(rMap);
 
 % Generate a time axis
-tSec = 0:1/dObj.spec_features{1}.FsHz:(size(dObj.spec_features{1}.Data(:,:),1)-1)/dObj.spec_features{1}.FsHz;
+tSec = 0:1/dObj.spectral_features{1}.FsHz:(size(dObj.spectral_features{1}.Data(:,:),1)-1)/dObj.spectral_features{1}.FsHz;
                 
 figure;
 for ii = 1 : nFeatures
     ax(ii) = subplot(nSubplots,nSubplots,ii);
-    switch dObj.spec_features{1}.fList{ii}
+    switch dObj.spectral_features{1}.fList{ii}
         case {'variation' 'hfc' 'brightness' 'flatness' 'entropy'}
             imagesc(tSec,(1:nFreq)/nFreq,10*log10(rMap'));axis xy;
             hold on;
-            plot(tSec,dObj.spec_features{1}.Data(:,ii),'k--','linewidth',2)
+            plot(tSec,dObj.spectral_features{1}.Data(:,ii),'k--','linewidth',2)
             
             xlabel('Time (s)')
             ylabel('Normalized frequency')
         case {'irregularity' 'skewness' 'kurtosis' 'flux' 'decrease' 'crest'}
-            plot(tSec,dObj.spec_features{1}.Data(:,ii),'k--','linewidth',2)
+            plot(tSec,dObj.spectral_features{1}.Data(:,ii),'k--','linewidth',2)
             xlim([tSec(1) tSec(end)])
             
             xlabel('Time (s)')
@@ -75,14 +75,14 @@ for ii = 1 : nFeatures
         case {'rolloff' 'spread' 'centroid'}
             imagesc(tSec,fHz,10*log10(rMap'));axis xy;
             hold on;
-            plot(tSec,dObj.spec_features{1}.Data(:,ii),'k--','linewidth',2)
+            plot(tSec,dObj.spectral_features{1}.Data(:,ii),'k--','linewidth',2)
             
             xlabel('Time (s)')
             ylabel('Frequency (Hz)')
         otherwise
             error('Feature is not supported!')
     end
-    title(['Spectral ',dObj.spec_features{1}.fList{ii}])
+    title(['Spectral ',dObj.spectral_features{1}.fList{ii}])
 end
 linkaxes(ax,'x');
 
