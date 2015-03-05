@@ -24,7 +24,7 @@ classdef itdProc < Processor
     
     methods
         
-        function pObj = itdProc(fs,p)
+        function pObj = itdProc(fs,parObj)
             %icProc     Constructs an interaural correlation processor
             %
             %USAGE
@@ -38,25 +38,18 @@ classdef itdProc < Processor
             %OUTPUT PARAMETERS
             %  pObj : Processor object
             
-            if nargin>0     % Safeguard for Matlab empty calls
-                
             % Checking input parameter
-            if nargin<2||isempty(p)
-                p = getDefaultParameters(fs,'processing');
-                % Temporary warning while no adequate parameter handling
-                warning('ITDs are normally obtained from down-sampled signals, check your sampling frequencies')
-            end
-            if isempty(fs)
-                error('Sampling frequency needs to be provided')
+            if nargin<2||isempty(parObj); parObj = Parameters; end
+            if nargin<1; fs = []; end
+            
+            % Call superconstructor
+            pObj = pObj@Processor(fs,fs,'itdProc',parObj);
+            
+            if nargin>0     % Safeguard for Matlab empty calls
+                % TODO: Find out a better way to access the signal sampling frequency
+                pObj.frameFsHz = [];
             end
             
-            % Populate properties
-            pObj.populateProperties('Type','ITD extractor',...
-                'FsHzIn',fs,'FsHzOut',fs);
-            
-            pObj.frameFsHz = p.fs;
-                
-            end
         end
         
         function out = processChunk(pObj,in)
@@ -71,6 +64,11 @@ classdef itdProc < Processor
             %
             %OUTPUT ARGUMENT
             %   out : Corresponding output
+            
+            % Get original signal sampling frequency if necessary
+            if isempty(pObj.frameFsHz)
+                pObj.frameFsHz = pObj.LowerDependencies{1}.FsHzIn; 
+            end
             
             % Dimensionality of the input
             [nFrames,nChannels,nLags] = size(in);
@@ -115,17 +113,57 @@ classdef itdProc < Processor
         end
         
         function reset(pObj)
-            % Nothing to reset for that processor, but this abstract method
-            % has to be implemented to make this class concrete.
+            % Nothing to reset for this processor
         end
         
-        function hp = hasParameters(pObj,p)
-            % This processor has no additional parameters, always return
-            % true.
-            
-            hp = true;
+        function verifyParameters(pObj)
+            % Add missing/default parameter values
+            pObj.extendParameters    
         end
-          
+        
+    end
+    
+    methods (Static)
+        
+        function dep = getDependency()
+            dep = 'crosscorrelation';
+        end
+        
+        function [names, defaultValues, descriptions] = getParameterInfo()
+            %getParameterInfo   Returns the parameter names, default values
+            %                   and descriptions for that processor
+            %
+            %USAGE:
+            %  [names, defaultValues, description] =  ...
+            %                           gammatoneProc.getParameterInfo;
+            %
+            %OUTPUT ARGUMENTS:
+            %         names : Parameter names
+            % defaultValues : Parameter default values
+            %  descriptions : Parameter descriptions
+            
+            
+            names = {};
+            
+            descriptions = {};
+            
+            defaultValues = {};
+                
+        end
+        
+        function pInfo = getProcessorInfo
+            
+            pInfo = struct;
+            
+            pInfo.name = 'ITD Extractor';
+            pInfo.label = 'ITD Extractor';
+            pInfo.requestName = 'itd';
+            pInfo.requestLabel = 'Inter-aural time difference';
+            pInfo.outputType = 'TimeFrequencySignal';
+            pInfo.isBinaural = true;
+            
+        end
+        
     end
     
 end

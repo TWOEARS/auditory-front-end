@@ -19,7 +19,7 @@ end
 clear earSignals
 
 % Parameters
-request = {'crosscorrelation'};
+request = {'itd'};
 p = [];%genParStruct('pp_bNormalizeRMS',1);
 
 
