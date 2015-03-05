@@ -17,14 +17,12 @@ classdef ratemapProc < Processor
 %   [1] Brown, G. J. and Cooke, M. P. (1994), "Computational auditory scene
 %       analysis," ComputerSpeech and Language 8(4), pp. 297?336.
 
-    properties
+    properties (Dependent = true)
         wname       % Window shape descriptor (see window.m)
         wSizeSec    % Window duration in seconds
         hSizeSec    % Step size between windows in seconds
         scaling     % Flag specifying 'magnitude' or 'power'
         decaySec    % Integration time constant (seconds)
-        
-        do_mex      % Flag indicating use of mex code for framing
     end
     
     properties (GetAccess = private)
@@ -33,11 +31,12 @@ classdef ratemapProc < Processor
         win         % Window vector
         buffer      % Buffered input signals
         rmFilter    % Leaky integrator filter
+        do_mex      % Flag indicating use of mex code for framing
     end
         
     
     methods
-        function pObj = ratemapProc(fs,p,do_mex)
+        function pObj = ratemapProc(fs,parObj,do_mex)
             %ratemapProc    Constructs a ratemap processor
             %
             %USAGE
@@ -51,44 +50,27 @@ classdef ratemapProc < Processor
             %OUTPUT PARAMETERS
             % pObj : Processor object
             
+            % Checking input parameter
+            if nargin<3||isempty(do_mex);do_mex = 1; end
+            if nargin<2||isempty(parObj); parObj = Parameters; end
+            if nargin<1; fs = []; end
+            
+            % Call superconstructor
+            pObj = pObj@Processor(fs,[],'ratemapProc',parObj);
             
             if nargin>0 % Safeguard for Matlab empty calls
                 
-            % Checking input parameters
-            if nargin<3||isempty(do_mex);do_mex = 1; end
-            if nargin<2||isempty(p)
-                p = getDefaultParameters(fs,'processing');
-            end
-            if isempty(fs)
-                error('Sampling frequency needs to be provided')
-            end
-            
-            % Populating properties
-            pObj.wname = p.rm_wname;
-            pObj.wSizeSec = p.rm_wSizeSec;
-            pObj.wSize = 2*round(pObj.wSizeSec*fs/2);
-            pObj.hSizeSec = p.rm_hSizeSec;
-            pObj.hSize = round(pObj.hSizeSec*fs);
-            pObj.win = window(pObj.wname,pObj.wSize);
-            pObj.scaling = p.rm_scaling;
-            pObj.decaySec = p.rm_decaySec;
-            
-            pObj.do_mex = do_mex;
+                pObj.wSize = 2*round(pObj.parameters.map('rm_wSizeSec')*pObj.FsHzIn/2);
+                pObj.hSize = round(pObj.parameters.map('rm_hSizeSec')*pObj.FsHzIn);
+                pObj.win = window(pObj.parameters.map('rm_wname'),pObj.wSize);
+                pObj.do_mex = do_mex;
+                pObj.FsHzOut = 1/(pObj.hSizeSec);
                 
-            % Instantiate the filter
-            % TODO: Do we test for decaySec = 0 to avoid filtering then?
-            pObj.rmFilter = leakyIntegratorFilter(fs,pObj.decaySec);
-            
-            pObj.Type = 'Ratemap extractor';
-            pObj.FsHzIn = fs;
-            pObj.FsHzOut = 1/(pObj.hSizeSec);
-            
-            % Initialize buffer
-            pObj.buffer = [];
+                % Initialize buffer and filter
+                pObj.buffer = [];
+                pObj.rmFilter = leakyIntegratorFilter(fs,pObj.decaySec);
                 
             end
-            
-            
         end
         
         function out = processChunk(pObj,in)
@@ -202,48 +184,92 @@ classdef ratemapProc < Processor
             
         end
         
-        function hp = hasParameters(pObj,p)
-            %hasParameters  This method compares the parameters of the
-            %               processor with the parameters given as input
+        function verifyParameters(pObj)
+            
+            % Add missing/default parameter values
+            pObj.extendParameters
+            
+            
+        end
+        
+    end
+    
+    % "Getter" methods
+    methods
+        function wSizeSec = get.wSizeSec(pObj)
+            wSizeSec = pObj.parameters.map('rm_wSizeSec');
+        end
+        
+        function hSizeSec = get.hSizeSec(pObj)
+            hSizeSec = pObj.parameters.map('rm_hSizeSec');
+        end
+        
+        function wname = get.wname(pObj)
+            wname = pObj.parameters.map('rm_wname');
+        end
+        
+        function scaling = get.scaling(pObj)
+            scaling = pObj.parameters.map('rm_scaling');
+        end
+        
+        function decaySec = get.decaySec(pObj)
+            decaySec = pObj.parameters.map('rm_decaySec');
+        end
+        
+    end
+    
+    methods (Static)
+        
+        function dep = getDependency()
+            dep = 'innerhaircell';
+        end
+        
+        function [names, defaultValues, descriptions] = getParameterInfo()
+            %getParameterInfo   Returns the parameter names, default values
+            %                   and descriptions for that processor
             %
-            %USAGE
-            %    hp = pObj.hasParameters(p)
+            %USAGE:
+            %  [names, defaultValues, description] =  ...
+            %                           gammatoneProc.getParameterInfo;
             %
-            %INPUT ARGUMENTS
-            %  pObj : Processor instance
-            %     p : Structure containing parameters to test
+            %OUTPUT ARGUMENTS:
+            %         names : Parameter names
+            % defaultValues : Parameter default values
+            %  descriptions : Parameter descriptions
             
             
+            names = {'rm_wname',...
+                    'rm_wSizeSec',...
+                    'rm_hSizeSec',...
+                    'rm_scaling',...
+                    'rm_decaySec'};
             
-            p_list_proc = {'wname','wSizeSec','hSizeSec','scaling','decaySec'};
-            p_list_par = {'rm_wname','rm_wSizeSec','rm_hSizeSec','rm_scaling','rm_decaySec'};
+            descriptions = {'Window name',...
+                    'Window duration (s)',...
+                    'Window step size (s)',...
+                    'Ratemap scaling (''power'' or ''magnitude'')',...
+                    'Leaky integrator time constant (s)'};
             
-            % Initialization of a parameters difference vector
-            delta = zeros(size(p_list_proc,2),1);
+            defaultValues = {'hann',...
+                            20E-3,...
+                            10E-3,...
+                            'power',...
+                            8E-3};
+                
+        end
+        
+        function pInfo = getProcessorInfo
             
-            % Loop on the list of parameters
-            for ii = 1:size(p_list_proc,2)
-                try
-                    if ischar(pObj.(p_list_proc{ii}))
-                        delta(ii) = ~strcmp(pObj.(p_list_proc{ii}),p.(p_list_par{ii}));
-                    else
-                        delta(ii) = abs(pObj.(p_list_proc{ii}) - p.(p_list_par{ii}));
-                    end
-                    
-                catch err
-                    % Warning: something is missing
-                    warning('Parameter %s is missing in input p.',p_list_par{ii})
-                    delta(ii) = 1;
-                end
-            end
+            pInfo = struct;
             
-            % Check if delta is a vector of zeros
-            if max(delta)>0
-                hp = false;
-            else
-                hp = true;
-            end
-         end 
+            pInfo.name = 'Ratemap';
+            pInfo.label = 'Ratemap';
+            pInfo.requestName = 'ratemap';
+            pInfo.requestLabel = 'Ratemap extraction';
+            pInfo.outputType = 'TimeFrequencySignal';
+            pInfo.isBinaural = false;
+            
+        end
         
     end
     
