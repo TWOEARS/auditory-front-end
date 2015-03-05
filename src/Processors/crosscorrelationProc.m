@@ -216,7 +216,7 @@ classdef crosscorrelationProc < Processor
         
         function lags = get.lags(pObj)
             maxLag = ceil(pObj.maxDelaySec*pObj.FsHzIn);
-            lags = (-maxLag:maxLag).';
+            lags = (-maxLag:maxLag).'./pObj.FsHzIn;
         end
         
         function maxDelaySec = get.maxDelaySec(pObj)
