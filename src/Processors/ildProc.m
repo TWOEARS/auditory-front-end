@@ -43,10 +43,6 @@ classdef ildProc < Processor
             %OUTPUT PARAMETER
             % pObj : Processor object
             
-            % TO DO: Document parameter handling once implemented
-            
-           
-            
             % Checking input parameter
             if nargin<2||isempty(parObj); parObj = Parameters; end
             if nargin<1; fs = []; end
@@ -64,21 +60,6 @@ classdef ildProc < Processor
                 pObj.win = window(pObj.parameters.map('ild_wname'),pObj.wSize);
                 pObj.FsHzOut = 1/(pObj.hSizeSec);
             end
-            
-            
-            % Populate properties
-%             pObj.wname = parObj.ild_wname;
-%             pObj.wSizeSec = parObj.ild_wSizeSec;
-
-            
-%             pObj.hSizeSec = parObj.ild_hSizeSec;
-            
-            
-%             pObj.Type = 'ILD extractor';
-%             pObj.FsHzIn = fs;
-            
-%             pObj.isBinaural = true;
-            
             
         end
         
