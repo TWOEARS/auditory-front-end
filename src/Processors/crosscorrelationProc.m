@@ -56,7 +56,7 @@ classdef crosscorrelationProc < Processor
             if nargin<1; fs = []; end
             
             % Call superconstructor
-            pObj = pObj@Processor(fs,[],'autocorrelationProc',parObj);
+            pObj = pObj@Processor(fs,[],'crosscorrelationProc',parObj);
             
             if nargin>0     % Safeguard for Matlab empty calls
             

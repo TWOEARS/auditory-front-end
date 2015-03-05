@@ -44,7 +44,7 @@ classdef Processor < handle
         bHidden = 0;
     end
     
-    properties %(GetAccess = protected)
+    properties (GetAccess = protected)
         parameters
     end
     
