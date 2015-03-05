@@ -17,8 +17,8 @@ classdef CorrelationSignal < Signal
     end
     
     methods
-        
-        function sObj = CorrelationSignal(fs,bufferSize_s,name,cfHz,lags,label,data,channel)
+        function sObj = CorrelationSignal(procHandle,bufferSize,channel,data)
+%         function sObj = CorrelationSignal(fs,bufferSize_s,name,cfHz,lags,label,data,channel)
             %CorrelationSignal  Constructor for the correlation children
             %                   signal class
             %
@@ -42,40 +42,25 @@ classdef CorrelationSignal < Signal
             %OUTPUT ARGUMENT
             %     sObj : Correlation signal object inheriting the signal class
             
-            sObj = sObj@Signal( fs, bufferSize_s, [length(cfHz), length(lags)] );
+            if nargin<4; data = []; end
+            if nargin<3||isempty(channel); channel = 'mono'; end
+            if nargin<2||isempty(bufferSize); bufferSize = 10; end
+            if nargin<1||isempty(procHandle); procHandle = emptyProc; end
+            
+            % TODO: Might have to change how lags are accessed to prevent error when
+            % instantiating empty processor
+            sObj = sObj@Signal( procHandle, bufferSize, ...
+                                [length(procHandle.getDependentParameter('fb_cfHz')) ...
+                                length(procHandle.lags)]);
             
             if nargin>0     % Safeguard for Matlab empty calls
                 
-            % Check input arguments
-            if nargin<3||isempty(name)
-                name = 'correlation';
-                warning(['A name tag should be assigned to the signal. '...
-                    'The name %s was chosen by default'],name)
-            end
-            if nargin<8; channel = 'mono'; end
-            if nargin<7||isempty(data); data = []; end
-            if nargin<6||isempty(label)
-                label = name;
-            end
-            if nargin<5||isempty(lags); lags = []; end
-            if nargin<4||isempty(cfHz); cfHz = []; end
-            if nargin<1||isempty(fs)
-%                 error('The sampling frequency needs to be provided')
-                fs = [];
-            end
-            
-            % N.B: The dimensionality of provided data (argument data)
-            % cannot be verified here. If used outside of the manager
-            % class, appropriate dimensionality of the data is left to the
-            % user's responsibility.
-            
             % Populate object properties
-            populateProperties(sObj,'Label',label,'Name',name,...
-                'Dimensions','nSample x nFilters x nLags');
-            sObj.cfHz = cfHz;
+            sObj.Dimensions = 'nSample x nFilters x nLags';
+            sObj.cfHz = procHandle.getDependentParameter('fb_cfHz');
+            sObj.lags = procHandle.lags;
             sObj.setData( data );
             sObj.Channel = channel;
-            sObj.lags = lags;
                 
             end
         end
@@ -107,12 +92,13 @@ classdef CorrelationSignal < Signal
             
             % Manage plotting parameters
             if nargin < 3 || isempty(p) 
-                % Get default plotting parameters
-                p = getDefaultParameters([],'plotting');
-            else
-                p.fs = sObj.FsHz;   % Add the sampling frequency to satisfy parseParameters
-                p = parseParameters(p);
-            end
+                % Get default plotting parameters (same as time-frequency signals)
+                    p = Parameters.getPlottingParameters('TimeFrequencySignal');
+                else
+                    defaultPar = Parameters.getPlottingParameters('TimeFrequencySignal');
+                    defaultPar.replaceParameters(p);
+                    p = defaultPar;
+                end
             
             % Manage optional arguments
             if nargin>3 && ~isempty(varargin)
@@ -145,9 +131,9 @@ classdef CorrelationSignal < Signal
                 
                 % Set the colormap
                 try
-                    colormap(p.colormap)
+                    colormap(p.map('colormap'))
                 catch
-                    warning('No colormap %s is available, using ''jet''.',p.colormap)
+                    warning('No colormap %s is available, using ''jet''.',p.map('colormap'))
                     colormap('jet')
                 end
 
@@ -155,12 +141,14 @@ classdef CorrelationSignal < Signal
                 imagesc(t,sObj.lags,scorr.');
                 axis xy
 
-                if p.bColorbar
+                if p.map('bColorbar')
                     colorbar
                 end
 
-                xlabel('Time (s)','fontsize',p.fsize_label,'fontname',p.ftype)
-                ylabel('Lag period (s)','fontsize',p.fsize_label,'fontname',p.ftype)
+                xlabel('Time (s)','fontsize',p.map('fsize_label'),...
+                                  'fontname',p.map('ftype'))
+                ylabel('Lag period (s)','fontsize',p.map('fsize_label'),...
+                                        'fontname',p.map('ftype'))
 
                 % Set up a title
                 if ~strcmp(sObj.Channel,'mono')
@@ -171,7 +159,8 @@ classdef CorrelationSignal < Signal
                 
                 if ~isempty(opt) && isfield(opt,'noTitle')
                     if opt.noTitle ~= 1
-                        title(pTitle,'fontsize',p.fsize_title,'fontname',p.ftype)
+                        title(pTitle,'fontsize',p.map('fsize_title'),...
+                                     'fontname',p.map('ftype'))
                     end
                 end
             
@@ -179,7 +168,7 @@ classdef CorrelationSignal < Signal
                 
                 ax(1) = subplot(4,1,[1:3]);
                 waveplot(permute(sObj.Data(frameNb,:,:),[3 1 2]),sObj.lags*1E3,...
-                    sObj.cfHz,p.wavPlotZoom,1)
+                    sObj.cfHz,p.map('wavPlotZoom'),1)
                 xlabel('')
                 hy = ylabel('Center frequency (Hz)');
 %                 hypos = get(hy,'position');
@@ -187,10 +176,12 @@ classdef CorrelationSignal < Signal
 %                 set(hy,'position',hypos);
                 if ~isempty(opt) && isfield(opt,'noTitle')
                     if opt.noTitle ~= 1
-                        title(sObj.Label,'fontsize',p.fsize_title,'fontname',p.ftype)
+                        title(sObj.Label,'fontsize',p.map('fsize_title'),...
+                                         'fontname',p.map('ftype'))
                     end
                 else
-                    title(sObj.Label,'fontsize',p.fsize_title,'fontname',p.ftype)
+                    title(sObj.Label,'fontsize',p.map('fsize_title'),...
+                                     'fontname',p.map('ftype'))
                 end
                 
                 ax(2) = subplot(4,1,4);
