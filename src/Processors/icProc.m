@@ -19,7 +19,7 @@ classdef icProc < Processor
     
     methods
         
-        function pObj = icProc(fs,p)
+        function pObj = icProc(fs,parObj)
             %icProc     Constructs an interaural correlation processor
             %
             %USAGE
@@ -33,21 +33,13 @@ classdef icProc < Processor
             %OUTPUT PARAMETERS
             %  pObj : Processor object
             
-            if nargin>0     % Safeguard for Matlab empty calls
-                
             % Checking input parameter
-            if nargin<2||isempty(p)
-                p = getDefaultParameters(fs,'processing');
-            end
-            if isempty(fs)
-                error('Sampling frequency needs to be provided')
-            end
+            if nargin<2||isempty(parObj); parObj = Parameters; end
+            if nargin<1; fs = []; end
             
-            % Populate properties
-            pObj.populateProperties('Type','Interaural correlation extractor',...
-                'FsHzIn',fs,'FsHzOut',fs);
-                
-            end
+            % Call superconstructor
+            pObj = pObj@Processor(fs,fs,'icProc',parObj);
+            
         end
         
         function out = processChunk(pObj,in)
@@ -103,13 +95,55 @@ classdef icProc < Processor
             % has to be implemented to make this class concrete.
         end
         
-        function hp = hasParameters(pObj,p)
-            % This processor has no additional parameters, always return
-            % true.
-            
-            hp = true;
+        function verifyParameters(pObj)
+            % Add missing/default parameter values
+            pObj.extendParameters    
         end
-           
+        
     end
         
+    methods (Static)
+        
+        function dep = getDependency()
+            dep = 'crosscorrelation';
+        end
+        
+        function [names, defaultValues, descriptions] = getParameterInfo()
+            %getParameterInfo   Returns the parameter names, default values
+            %                   and descriptions for that processor
+            %
+            %USAGE:
+            %  [names, defaultValues, description] =  ...
+            %                           gammatoneProc.getParameterInfo;
+            %
+            %OUTPUT ARGUMENTS:
+            %         names : Parameter names
+            % defaultValues : Parameter default values
+            %  descriptions : Parameter descriptions
+            
+            
+            names = {};
+            
+            descriptions = {};
+            
+            defaultValues = {};
+                
+        end
+        
+        function pInfo = getProcessorInfo
+            
+            pInfo = struct;
+            
+            pInfo.name = 'IC Extractor';
+            pInfo.label = 'IC Extractor';
+            pInfo.requestName = 'ic';
+            pInfo.requestLabel = 'Inter-aural coherence';
+            pInfo.outputType = 'TimeFrequencySignal';
+            pInfo.isBinaural = true;
+            
+        end
+        
+    end
+    
+    
 end

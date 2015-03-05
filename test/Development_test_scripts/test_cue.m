@@ -19,7 +19,7 @@ end
 clear earSignals
 
 % Parameters
-request = {'itd'};
+request = {'ic'};
 p = [];%genParStruct('pp_bNormalizeRMS',1);
 
 
