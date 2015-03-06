@@ -157,22 +157,23 @@ classdef ratemapProc < Processor
                 for jj = 1:nChannels
                     
                     % Frame the data in that channel
-                    frames = frameData(in(:,jj),pObj.wSize,pObj.hSize,pObj.win,true);
-                    % modified by I.T.: set bZeroPad to true instead of false. If this
-                    % shall remain at false, there has to be a handling of the case of an
+                    frames = frameData(in(:,jj),pObj.wSize,pObj.hSize,pObj.win,false);
+
+                    % modified by I.T.: There has to be a handling of the case of an
                     % empty frames-matrix.
-                    
-                    % Average the samples in the frame
-                    switch pObj.scaling
-                        
-                        case 'magnitude'
-                            % Average magnitude in the frame
-                            out(:,jj) = mean(frames,1);
+                    if ~isempty( frames )
+                        % Average the samples in the frame
+                        switch pObj.scaling
                             
-                        case 'power'
-                            % Average energy in the frame
-                            out(:,jj) = mean(frames.^2,1);
-                            
+                            case 'magnitude'
+                                % Average magnitude in the frame
+                                out(:,jj) = mean(frames,1);
+                                
+                            case 'power'
+                                % Average energy in the frame
+                                out(:,jj) = mean(frames.^2,1);
+                                
+                        end
                     end
                     
                 end
