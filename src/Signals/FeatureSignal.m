@@ -16,7 +16,8 @@ classdef FeatureSignal < Signal
     
     methods
         
-        function sObj = FeatureSignal(fs,fList,bufferSize_s,name,label,channel)
+        function sObj = FeatureSignal(procHandle,bufferSize,channel,data,fList)
+%         function sObj = FeatureSignal(fs,fList,bufferSize_s,name,label,channel)
             %SpectralFeaturesSignal     Constructor for the spectral
             %                           features signal class
             %
@@ -37,31 +38,20 @@ classdef FeatureSignal < Signal
             %OUTPUT ARGUMENT:
             %   sObj : Instant of the signal object
             
-            sObj = sObj@Signal( fs, bufferSize_s, size(fList,2) );
-
+            if nargin<5; fList = []; end
+            if nargin<4; data = []; end
+            if nargin<3||isempty(channel); channel = 'mono'; end
+            if nargin<2||isempty(bufferSize); bufferSize = 10; end
+            if nargin<1||isempty(procHandle); procHandle = emptyProc; end
+            
+            sObj = sObj@Signal( procHandle, bufferSize, size(fList,2));
+            
             if nargin>0     % Failsafe for Matlab empty calls
                 
-            % Check input arguments
-            if nargin<6||isempty(channel);channel='mono';end
-            if nargin<4||isempty(name);name='feature_signal';end
-            if nargin<5||isempty(label);label=name;end
-            
-            if nargin<3||isempty(fList)
-                fList = [];
-%                 error('The list of features name has to be provided to instantiate a feature signal.')
-            end
-            
-            if nargin<1||isempty(fs)
-                error('The sampling frequency of the features has to be provided to instantiate a feature signal.')
-            end
-            
-            % Populate object properties
-            sObj.Label = label;
-            sObj.Name = name;
-            sObj.Dimensions = ['nSamples x ' num2str(size(fList,2)) 'features'];
-            sObj.Channel = channel;
-            sObj.fList = fList;
-            
+                sObj.Dimensions = ['nSamples x ' num2str(size(fList,2)) 'features'];
+                sObj.setData( data );
+                sObj.Channel = channel;
+                sObj.fList = fList;
                 
             end
             

@@ -6,7 +6,7 @@ close all
 
 
 % Test on monoral or binaural signal
-do_stereo = 1;
+do_stereo = 0;
 
 % Load a signal
 load('TestBinauralCues');
@@ -19,7 +19,7 @@ end
 clear earSignals
 
 % Parameters
-request = {'ic'};
+request = {'pitch'};
 p = [];%genParStruct('pp_bNormalizeRMS',1);
 
 

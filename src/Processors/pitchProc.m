@@ -13,7 +13,7 @@ classdef pitchProc < Processor
 %
 %   See also: Processor, autocorrelationProc
 
-    properties (SetAccess = protected)
+    properties (Dependent = true)
         pitchRangeHz    % Range in Hz for valid pitch estimation
         confThresPerc   % Threshold for pitch condidence measure (re. 1)
         orderMedFilt    % Median order filter for pitch smoothing
@@ -22,14 +22,15 @@ classdef pitchProc < Processor
     
     properties (Access = protected)
         bValidLags      % Which lags are in the pitch range
-        pitchBuffer     % Buffer for online Median filtering
+%         pitchBuffer     % Buffer for online Median filtering
         maxConf         % Buffer interface for maximum confidence
         maxConfBuf      % Circular buffer for maximum confidence
     end
     
     
     methods
-        function pObj = pitchProc(fs,lags,p)
+        function pObj = pitchProc(fs,parObj)
+%         function pObj = pitchProc(fs,lags,p)
             %pitchProc    Constructs an pitch estimation processor
             %
             %USAGE
@@ -43,37 +44,46 @@ classdef pitchProc < Processor
             %OUTPUT PARAMETERS
             %  pObj : Processor Object
             
+            % Checking input parameter
+            if nargin<2||isempty(parObj); parObj = Parameters; end
+            if nargin<1; fs = []; end
+            
+            % Call superconstructor
+            pObj = pObj@Processor(fs,fs,'pitchProc',parObj);
+            
             if nargin > 0
                 
-            % Checking input parameters
-            if isempty(fs)
-                error('Sampling frequency needs to be provided')
-            end
-            if nargin<3||isempty(p)
-                p = getDefaultParameters(fs,'processing');
-            else
-                p = parseParameters(p);
-            end
+                bufferDurSec = 5;   % Maximum confidence is taken in the past 5 seconds
+                pObj.maxConfBuf = circVBuf(bufferDurSec*fs,1);
+                pObj.maxConf = circVBufArrayInterface(pObj.maxConfBuf);
                 
-            if mod(p.pi_medianOrder,1)~=0
-                p.pi_medianOrder = round(p.pi_medianOrder);
-                warning('Median filter order should be an integer, using %i instead',p.pi_medianOrder)
-            end
-            
-            % Populate properties
-            pObj.pitchRangeHz = p.pi_rangeHz;
-            pObj.confThresPerc = p.pi_confThres;
-            pObj.orderMedFilt = p.pi_medianOrder;
-            pObj.lags = lags;
-            
-            bufferDurSec = 5;   % Maximum confidence is taken in the past 5 seconds
-            pObj.maxConfBuf = circVBuf(bufferDurSec*fs,1);
-            pObj.maxConf = circVBufArrayInterface(pObj.maxConfBuf);
-                
-            pObj.Type = 'Pitch estimator';
-            pObj.FsHzIn = fs;
-            pObj.FsHzOut = fs;
-                
+%             % Checking input parameters
+%             if isempty(fs)
+%                 error('Sampling frequency needs to be provided')
+%             end
+%             if nargin<3||isempty(p)
+%                 p = getDefaultParameters(fs,'processing');
+%             else
+%                 p = parseParameters(p);
+%             end
+%                 
+%             if mod(p.pi_medianOrder,1)~=0
+%                 p.pi_medianOrder = round(p.pi_medianOrder);
+%                 warning('Median filter order should be an integer, using %i instead',p.pi_medianOrder)
+%             end
+%             
+%             % Populate properties
+%             pObj.pitchRangeHz = p.pi_rangeHz;
+%             pObj.confThresPerc = p.pi_confThres;
+%             pObj.orderMedFilt = p.pi_medianOrder;
+%             pObj.lags = lags;
+%             
+%             
+%                 
+%             pObj.Type = 'Pitch estimator';
+%             pObj.FsHzIn = fs;
+%             pObj.FsHzOut = fs;
+%                 
             end
             
             
@@ -200,13 +210,115 @@ classdef pitchProc < Processor
         end
         
         function reset(pObj)
-            pObj.pitchBuffer = [];
+%             pObj.pitchBuffer = [];
         end
         
-        function hp = hasParameters(pObj,p)
-            hp = 1;
+        function verifyParameters(pObj)
+            
+            % Add missing/default parameter values
+            pObj.extendParameters
+            
+            % The median filter order should be an integer
+            if mod(pObj.orderMedFilt,1)~=0
+                pObj.parameters.map('pi_medianOrder') = ...
+                        round(pObj.parameters.map('pi_medianOrder'));
+                warning('Median filter order should be an integer, using %i instead',...
+                    pObj.parameters.map('pi_medianOrder'))
+            end
+            
+            
+        end
+        
+        function output = instantiateOutput(pObj,dObj)
+            %INSTANTIATEOUTPUT  Instantiate the output signal for this processor
+            %
+            %NB: This method is overloaded here from the master Processor class, as
+            %feature signals need additional input argument to construct
+            
+            featureNames = {'pitch','rawPitch','confidence'};
+            
+            sig = feval(pObj.getProcessorInfo.outputType, ...
+                        pObj, ...
+                        dObj.bufferSize_s, ...
+                        pObj.Channel,...
+                        [],...
+                        featureNames);
+            
+            dObj.addSignal(sig);
+            
+            output = {sig};
+            
         end
         
     end
+    
+    % "Getter" methods
+    methods
+        function pitchRangeHz = get.pitchRangeHz(pObj)
+            pitchRangeHz = pObj.parameters.map('pi_rangeHz');
+        end
+        
+        function confThresPerc = get.confThresPerc(pObj)
+            confThresPerc = pObj.parameters.map('pi_confThres');
+        end
+        
+        function orderMedFilt = get.orderMedFilt(pObj)
+            orderMedFilt = pObj.parameters.map('pi_medianOrder');
+        end
+        
+        function lags = get.lags(pObj)
+            lags = pObj.getDependentProperty('lags');
+        end
+    end
+    
+    methods (Static)
+        
+        function dep = getDependency()
+            dep = 'autocorrelation';
+        end
+        
+        function [names, defaultValues, descriptions] = getParameterInfo()
+            %getParameterInfo   Returns the parameter names, default values
+            %                   and descriptions for that processor
+            %
+            %USAGE:
+            %  [names, defaultValues, description] =  ...
+            %                           gammatoneProc.getParameterInfo;
+            %
+            %OUTPUT ARGUMENTS:
+            %         names : Parameter names
+            % defaultValues : Parameter default values
+            %  descriptions : Parameter descriptions
+            
+            
+            names = {'pi_rangeHz',...
+                    'pi_confThres',...
+                    'pi_medianOrder'};
+            
+            descriptions = {'Range in Hz for valid pitch estimation',...
+                    'Threshold for pitch condidence measure (re. 1)',...
+                    'Median order filter for pitch smoothing (integer)'};
+            
+            defaultValues = {[80 400],...
+                            0.7,...
+                            3};
+                
+        end
+        
+        function pInfo = getProcessorInfo
+            
+            pInfo = struct;
+            
+            pInfo.name = 'Pitch';
+            pInfo.label = 'Pitch';
+            pInfo.requestName = 'pitch';
+            pInfo.requestLabel = 'Pitch estimation';
+            pInfo.outputType = 'FeatureSignal';
+            pInfo.isBinaural = false;
+            
+        end
+        
+    end
+    
     
 end

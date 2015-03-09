@@ -135,6 +135,48 @@ classdef Processor < handle
             
         end
         
+        function propValue = getDependentProperty(pObj,propName)
+            %getDependentParameter   Finds the value of a property in the
+            %                        list of dependent processors
+            %
+            %USAGE:
+            %  parValue = pObj.getDependentProperty(propName)
+            %
+            %INPUT PARAMETERS:
+            %      pObj : Processor instance
+            %  propName : Property name
+            %
+            %OUTPUT PARAMETERS:
+            % propValue : Value for that property. Returns an empty output
+            %             if no property with the provided name was 
+            %             found in the list of dependent processors.
+            
+            if nargin<2 || isempty(propName)
+                propValue = [];
+                return
+            end
+            
+            % Initialization
+            propValue = [];
+            proc = pObj.LowerDependencies{1};
+            
+            while isempty(propValue)
+                
+                if isprop(proc,propName)
+                    propValue = proc.(propName);
+                else
+                    if numel(proc.LowerDependencies) == 0 ...
+                            ||  isempty(proc.LowerDependencies{1})
+                        break
+                    end
+                    proc = proc.LowerDependencies{1};
+                end
+                
+            end
+            
+            
+        end
+        
         function parObj = getCurrentParameters(pObj,bRecursiveList)
             %getCurrentParameters  This methods returns a list of parameter
             %values used by a given processor.
@@ -389,7 +431,8 @@ classdef Processor < handle
             %INSTANTIATEOUTPUT  Instantiate the output signal for this processor
             %
             %NB: This method can be overloaded in children processor where output differs
-            %from standard (e.g., multiple output)
+            %from standard (e.g., multiple output or additional inputs to the signal
+            %constructor).
             
             sig = feval(pObj.getProcessorInfo.outputType, ...
                         pObj, ...
