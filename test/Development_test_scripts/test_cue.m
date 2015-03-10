@@ -19,7 +19,7 @@ end
 clear earSignals
 
 % Parameters
-request = {'pitch'};
+request = {'spectralFeatures'};
 p = [];%genParStruct('pp_bNormalizeRMS',1);
 
 
