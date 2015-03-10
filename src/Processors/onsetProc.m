@@ -17,7 +17,7 @@ classdef onsetProc < Processor
 %       knowledge," in Proceedings of the IEEE International Conference on 
 %       Acoustics, Speech and Signal Processing (ICASSP), pp. 3089-3092.   
     
-    properties (SetAccess = protected)
+    properties (Dependent = true)
         maxOnsetdB      % Upper limit for onset value
     end
     
@@ -26,7 +26,7 @@ classdef onsetProc < Processor
     end
     
     methods
-        function pObj = onsetProc(fs,p)
+        function pObj = onsetProc(fs,parObj)
             %onsetProc      Instantiates an onset detector
             %
             %USAGE:
@@ -39,22 +39,17 @@ classdef onsetProc < Processor
             %OUTPUT ARGUMENTS:
             %       pObj : Processor instance
             
+            % Checking input parameter
+            if nargin<2||isempty(parObj); parObj = Parameters; end
+            if nargin<1; fs = []; end
+            
+            % Call superconstructor
+            pObj = pObj@Processor(fs,fs,'onsetProc',parObj);
+            
             if nargin>0
                 
-            if nargin<2||isempty(p)
-                p = getDefaultParameters(fs,'processing');
-            else
-                p.fs = fs;
-                p = parseParameters(p);
-            end
-                
-            pObj.Type = 'Onset detection';
-            pObj.FsHzIn = fs;
-            pObj.FsHzOut = fs;
-            pObj.maxOnsetdB = p.ons_maxOnsetdB;
-            
-            % Initialize an empty buffer
-            pObj.buffer = [];
+                % Initialize an empty buffer
+                pObj.buffer = [];
             
             end
             
@@ -105,25 +100,62 @@ classdef onsetProc < Processor
             
         end
             
-        function hp = hasParameters(pObj,p)
-            %hasParameters  This method compares the parameters of the
-            %               processor with the parameters given as input
-            %
-            %USAGE
-            %    hp = pObj.hasParameters(p)
-            %
-            %INPUT ARGUMENTS
-            %  pObj : Processor instance
-            %     p : Structure containing parameters to test
+        function verifyParameters(pObj)
             
-            % Only one parameter to test for
-            hp = isequal(pObj.maxOnsetdB,p.ons_maxOnsetdB);
+            % Add missing/default parameter values
+            pObj.extendParameters
+            
+        end
+    end
+    
+    % "Getter" methods
+    methods
+        function maxOnsetdB = get.maxOnsetdB(pObj)
+            maxOnsetdB = pObj.parameters.map('ons_maxOnsetdB');
+        end
+    end
+    
+    methods (Static)
+        
+        function dep = getDependency()
+            dep = 'ratemap';
+        end
+        
+        function [names, defaultValues, descriptions] = getParameterInfo()
+            %getParameterInfo   Returns the parameter names, default values
+            %                   and descriptions for that processor
+            %
+            %USAGE:
+            %  [names, defaultValues, description] =  ...
+            %                           gammatoneProc.getParameterInfo;
+            %
+            %OUTPUT ARGUMENTS:
+            %         names : Parameter names
+            % defaultValues : Parameter default values
+            %  descriptions : Parameter descriptions
+            
+            
+            names = {'ons_maxOnsetdB'};
+            
+            descriptions = {'Upper limit for onset value (dB)'};
+            
+            defaultValues = {30};
+                
+        end
+        
+        function pInfo = getProcessorInfo
+            
+            pInfo = struct;
+            
+            pInfo.name = 'Onset detection';
+            pInfo.label = 'Onset detection';
+            pInfo.requestName = 'onsetStrength';
+            pInfo.requestLabel = 'Onset strength';
+            pInfo.outputType = 'TimeFrequencySignal';
+            pInfo.isBinaural = false;
             
         end
         
     end
-    
-    
-    
     
 end

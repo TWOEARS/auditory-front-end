@@ -19,7 +19,7 @@ end
 clear earSignals
 
 % Parameters
-request = {'spectralFeatures'};
+request = {'offsetStrength'};
 p = [];%genParStruct('pp_bNormalizeRMS',1);
 
 

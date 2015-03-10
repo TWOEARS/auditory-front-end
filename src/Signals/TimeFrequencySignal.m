@@ -98,8 +98,8 @@ classdef TimeFrequencySignal < Signal
             
                 % Decide if the plot should be on a linear or dB scale
                 switch sObj.Name
-                    case {'filterbank','ild','ic','itd','onset_strength',...
-                            'offset_strength','innerhaircell','adaptation','onset_map','drnl'}
+                    case {'filterbank','ild','ic','itd','onsetStrength',...
+                            'offsetStrength','innerhaircell','adaptation','onsetMap','drnl'}
                         do_dB = 0;
                     case {'ratemap'}
                         do_dB = 1;
