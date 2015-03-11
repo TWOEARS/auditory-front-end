@@ -1,4 +1,4 @@
-classdef transientMapProc < Processor
+classdef onsetMapProc < Processor
 %TRANSIENTMAPPROC Binary onset and offset maps processor.    
 %   Based on the transient strength which is derived from the corresponding 
 %   onset strength and offset strength processor, a binary decision about 
@@ -20,7 +20,7 @@ classdef transientMapProc < Processor
 %       to the cross-spectral fusion of concurrent narrow-band noises," 
 %       Journal of the Acoustical Society of America 111(4), pp. 1819?1831.
 
-    properties (SetAccess = protected)
+    properties (Dependent = true)
         minStrengthdB   % Minimum transient strength for mapping
         minSpread       % Minimum spread of the transient (number of frequency channels)
         fuseWithinSec   % Events within that period (in sec) are fused together
@@ -33,7 +33,7 @@ classdef transientMapProc < Processor
     end
     
     methods
-        function pObj = transientMapProc(fs,p)
+        function pObj = onsetMapProc(fs,parObj)
             %transientMapProc    Constructs an transient mapping processor
             %
             %USAGE
@@ -47,31 +47,18 @@ classdef transientMapProc < Processor
             %OUTPUT PARAMETERS
             %  pObj : Processor Object
     
+            % Checking input parameter
+            if nargin<2||isempty(parObj); parObj = Parameters; end
+            if nargin<1; fs = []; end
+            
+            % Call superconstructor
+            pObj = pObj@Processor(fs,fs,'onsetMapProc',parObj);
+            
             if nargin > 0
     
-            % Checking input parameters
-            if isempty(fs)
-                error('Sampling frequency needs to be provided')
-            end
-            if nargin<2||isempty(p)
-                p = getDefaultParameters(fs,'processing');
-            else
-                p = parseParameters(p);
-            end
-    
-            % Populate properties
-            pObj.minStrengthdB = p.trm_minStrengthdB;
-            pObj.minSpread = p.trm_minSpread;
-            pObj.fuseWithinSec = p.trm_fuseWithinSec;
-            pObj.minValuedB = p.trm_minValuedB;
-    
-            pObj.buffer = [];
-            pObj.fuseWithinSamples = ceil(pObj.fuseWithinSec*fs);
-            
-            pObj.Type = 'Transient mapper';
-            pObj.FsHzIn = fs;
-            pObj.FsHzOut = fs;
-            
+                pObj.buffer = [];
+                pObj.fuseWithinSamples = ceil(pObj.fuseWithinSec*fs);
+                
             end
             
         end
@@ -135,9 +122,104 @@ classdef transientMapProc < Processor
             pObj.buffer = [];
         end
             
-        function hp = hasParameters(pObj,p)
-            % Should probably always return 0, investigate
-            hp = 0;
+        function verifyParameters(pObj)
+            
+            % Add missing/default parameter values
+            pObj.extendParameters
+            
+        end
+        
+        function output = instantiateOutput(pObj,dObj)
+            %INSTANTIATEOUTPUT  Instantiate the output signal for this processor
+            %
+            %NB: This method is overloaded here from the master Processor class, as
+            %binary mask signals need additional input argument to construct
+            
+            maskedSignal = pObj.LowerDependencies{1}.LowerDependencies{1}.Output{1};
+            
+            sig = feval(pObj.getProcessorInfo.outputType, ...
+                        pObj, ...
+                        dObj.bufferSize_s, ...
+                        pObj.Channel,...
+                        [],...
+                        maskedSignal);
+            
+            dObj.addSignal(sig);
+            
+            output = {sig};
+            
+        end
+    end
+    
+    % "Getter" methods
+    methods
+        function minStrengthdB = get.minStrengthdB(pObj)
+            minStrengthdB = pObj.parameters.map('trm_minStrengthdB');            
+        end
+        
+        function minSpread = get.minSpread(pObj)
+            minSpread = pObj.parameters.map('trm_minSpread');
+        end
+        
+        function fuseWithinSec = get.fuseWithinSec(pObj)
+            fuseWithinSec = pObj.parameters.map('trm_fuseWithinSec');            
+        end
+        
+        function minValuedB = get.minValuedB(pObj)
+            minValuedB = pObj.parameters.map('trm_minValuedB');            
+        end
+        
+    end
+    
+    methods (Static)
+        
+        function dep = getDependency()
+            dep = 'onsetStrength';
+        end
+        
+        function [names, defaultValues, descriptions] = getParameterInfo()
+            %getParameterInfo   Returns the parameter names, default values
+            %                   and descriptions for that processor
+            %
+            %USAGE:
+            %  [names, defaultValues, description] =  ...
+            %                           gammatoneProc.getParameterInfo;
+            %
+            %OUTPUT ARGUMENTS:
+            %         names : Parameter names
+            % defaultValues : Parameter default values
+            %  descriptions : Parameter descriptions
+            
+            
+            names = {'trm_minStrengthdB',...
+                     'trm_minSpread',...
+                     'trm_fuseWithinSec',...
+                     'trm_minValuedB'};
+            
+            descriptions = {'Minimum transient strength for mapping',...
+                            'Minimum spread of the transient over frequency channels',...
+                            'Events within that period (in sec) are fused together',...
+                            ['Lower limit of the original representation, below which' ...
+                            ' its transient will not be considered']};
+            
+            defaultValues = {3,...
+                             5,...
+                             30E-3,...
+                             []};
+                
+        end
+        
+        function pInfo = getProcessorInfo
+            
+            pInfo = struct;
+            
+            pInfo.name = 'Onset mapping';
+            pInfo.label = 'Onset mapping';
+            pInfo.requestName = 'onsetMap';
+            pInfo.requestLabel = 'Onset map';
+            pInfo.outputType = 'BinaryMask';
+            pInfo.isBinaural = false;
+            
         end
         
     end

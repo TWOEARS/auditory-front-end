@@ -19,7 +19,7 @@ end
 clear earSignals
 
 % Parameters
-request = {'offsetStrength'};
+request = {'offsetMap'};
 p = [];%genParStruct('pp_bNormalizeRMS',1);
 
 
