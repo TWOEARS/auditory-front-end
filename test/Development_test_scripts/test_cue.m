@@ -19,8 +19,8 @@ end
 clear earSignals
 
 % Parameters
-request = {'offsetMap'};
-p = [];%genParStruct('pp_bNormalizeRMS',1);
+request = {'amsFeature'};
+p = genParStruct('ams_hSizeSec',1E-3);
 
 
 % Create a data object
