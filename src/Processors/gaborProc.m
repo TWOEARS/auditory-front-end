@@ -11,7 +11,7 @@ classdef gaborProc < Processor
 %       recognition," Journal of the Acoustical Society of America 131(5), pp. 4134-4151.
     
 % TODO: Limit the parameters of the dependent ratemap to the values this processor is
-% "callibrated" with.
+% "callibrated" with. Move the definition of pObj.nFeat to a specific method.
 
     properties (Dependent = true)
         maxDynamicRangeDB   % Used to limit the dynamic range of input ratemap
@@ -41,7 +41,7 @@ classdef gaborProc < Processor
             if nargin<1; fs = []; end
             
             % Call superconstructor
-            pObj = pObj@Processor(fs,fs,'modulationProc',parObj);
+            pObj = pObj@Processor(fs,fs,'gaborProc',parObj);
             
         end
         
