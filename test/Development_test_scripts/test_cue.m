@@ -19,8 +19,8 @@ end
 clear earSignals
 
 % Parameters
-request = {'amsFeature'};
-p = genParStruct('ams_hSizeSec',1E-3);
+request = {'gabor'};
+p = genParStruct('rm_wSizeSec',128E-3,'rm_hSizeSec',64E-3);
 
 
 % Create a data object
@@ -36,7 +36,8 @@ sOut = mObj.addProcessor(request,p);
 tic
 mObj.processSignal;
 t = toc;
-fprintf('Computation time to signal duration ratio : %d\n',t/(size(data,1)/fsHz))
+fprintf('Computation time to signal duration ratio : %3d%%\n', ...
+        round(t/(size(data,1)/fsHz)*100))
 
 % Plot output
 sOut{1}.plot;

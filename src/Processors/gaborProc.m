@@ -10,13 +10,19 @@ classdef gaborProc < Processor
 %       modulation subspace-spanning filter bank features for robust automatic speech
 %       recognition," Journal of the Acoustical Society of America 131(5), pp. 4134-4151.
     
-    properties (SetAccess = protected)
+% TODO: Limit the parameters of the dependent ratemap to the values this processor is
+% "callibrated" with.
+
+    properties (Dependent = true)
         maxDynamicRangeDB   % Used to limit the dynamic range of input ratemap
+    end
+    
+    properties (SetAccess = private)
         nFeat               % Number of Gabor features
     end
     
     methods
-        function pObj = gaborProc(fs,p,nChanIn)
+        function pObj = gaborProc(fs,parObj)
             %gaborProc    Constructs an Gabor features extractor
             %
             %USAGE
@@ -30,25 +36,13 @@ classdef gaborProc < Processor
             %OUTPUT PARAMETER
             % pObj : Processor object
             
-            if nargin > 0
-                
             % Checking input parameter
-            if nargin<2||isempty(p)
-                p = getDefaultParameters(fs,'processing');
-            end
-            if isempty(fs)
-                error('Sampling frequency needs to be provided')
-            end
-                
-            % Populate properties
-            pObj.maxDynamicRangeDB = p.gb_maxDynamicRangeDB;
-            pObj.nFeat = size(gbfb(ones(nChanIn,1)),1);
-
-            pObj.Type = 'Gabor features extractor';
-            pObj.FsHzIn = fs;
-            pObj.FsHzOut = fs;
-                
-            end
+            if nargin<2||isempty(parObj); parObj = Parameters; end
+            if nargin<1; fs = []; end
+            
+            % Call superconstructor
+            pObj = pObj@Processor(fs,fs,'modulationProc',parObj);
+            
         end
         
         function out = processChunk(pObj,in)
@@ -87,21 +81,91 @@ classdef gaborProc < Processor
             
         end
         
-        function hp = hasParameters(pObj,p)
-            %hasParameters  This method compares the parameters of the
-            %               processor with the parameters given as input
-            %
-            %USAGE
-            %    hp = pObj.hasParameters(p)
-            %
-            %INPUT ARGUMENTS
-            %  pObj : Processor instance
-            %     p : Structure containing parameters to test
+        function verifyParameters(pObj)
+           
+            % Add missing/default parameter values
+            pObj.extendParameters
             
-            hp = isequal(pObj.maxDynamicRangeDB,p.gb.maxDynamicRangeDB);
-            
+            % Check inputs
             
         end
+        
+        function output = instantiateOutput(pObj,dObj)
+            %INSTANTIATEOUTPUT  Instantiate the output signal for this processor
+            %
+            %NB: This method is overloaded here from the master Processor class, as
+            %feature signals need additional input argument to construct
+            
+            nChanIn = size(pObj.getDependentParameter('fb_cfHz'),2);
+            pObj.nFeat = size(gbfb(ones(nChanIn,1)),1);
+            
+            featureNames = cell(1,pObj.nFeat);
+            for jj = 1:pObj.nFeat
+                featureNames{jj} = num2str(jj);
+            end
+            
+            sig = feval(pObj.getProcessorInfo.outputType, ...
+                        pObj, ...
+                        dObj.bufferSize_s, ...
+                        pObj.Channel,...
+                        [],...
+                        featureNames);
+            
+            dObj.addSignal(sig);
+            
+            output = {sig};
+            
+        end
+    end
+    
+    % "Getter" methods
+    methods
+        function maxDynamicRangeDB = get.maxDynamicRangeDB(pObj)
+            maxDynamicRangeDB = pObj.parameters.map('gb_maxDynamicRangeDB');
+        end
+    end
+    
+    methods (Static)
+        
+        function dep = getDependency()
+            dep = 'ratemap';
+        end
+        
+        function [names, defaultValues, descriptions] = getParameterInfo()
+            %getParameterInfo   Returns the parameter names, default values
+            %                   and descriptions for that processor
+            %
+            %USAGE:
+            %  [names, defaultValues, description] =  ...
+            %                           gammatoneProc.getParameterInfo;
+            %
+            %OUTPUT ARGUMENTS:
+            %         names : Parameter names
+            % defaultValues : Parameter default values
+            %  descriptions : Parameter descriptions
+            
+            
+            names = {'gb_maxDynamicRangeDB'};
+            
+            descriptions = {'Maximum dynamic range (dB) of input ratemap'};
+            
+            defaultValues = {80};
+                
+        end
+        
+        function pInfo = getProcessorInfo
+            
+            pInfo = struct;
+            
+            pInfo.name = 'Gabor features';
+            pInfo.label = 'Gabor features extractor';
+            pInfo.requestName = 'gabor';
+            pInfo.requestLabel = 'Gabor features extraction';
+            pInfo.outputType = 'FeatureSignal';
+            pInfo.isBinaural = false;
+            
+        end
+        
     end
     
 end
