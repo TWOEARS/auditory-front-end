@@ -54,6 +54,6 @@ p = genParStruct('wavPlotZoom',wavPlotZoom,'wavPlotDS',wavPlotDS);
 dObj.time{1}.plot
 
 % Plot filterbank output
-dObj.(fb_type){1}.plot([],p);
+dObj.filterbank{1}.plot([],p);
 
     

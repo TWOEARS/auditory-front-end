@@ -55,7 +55,7 @@ classdef preProc < Processor
         bMiddleEarFiltering
         middleEarModel
         
-%         bUnityComp
+        bUnityComp
         
     end
     
@@ -69,7 +69,6 @@ classdef preProc < Processor
         epsilon = 1E-8;
         midEarFilter_l
         midEarFilter_r
-        bUnityComp
         meFilterPeakdB
     end
     
@@ -257,78 +256,6 @@ classdef preProc < Processor
             
         end
           
-        
-        %% OLD hasParameter method
-        %TODO: We might have to overload the hasParameters for this processor (to still
-        %return 1 if processing flags are set to 0 but processing parameter is different)
-%         function hp = hasParameters(pObj,p)
-%             %hasParameters  This method compares the parameters of the
-%             %               processor with the parameters given as input
-%             %
-%             %USAGE
-%             %    hp = pObj.hasParameters(p)
-%             %
-%             %INPUT ARGUMENTS
-%             %  pObj : Processor instance
-%             %     p : Structure containing parameters to test
-%             
-%             % We want to look at the flags values, and bypass the parameter value if the
-%             % flag is set to false.
-%             
-%             if pObj.bRemoveDC && p.pp_bRemoveDC
-%                 if pObj.cutoffHzDC ~= p.pp_cutoffHzDC
-%                     hp = 0;
-%                     return
-%                 end
-%             end
-%             
-%             if ((pObj.bRemoveDC && p.pp_bRemoveDC) && (pObj.cutoffHzDC ~= p.pp_cutoffHzDC)) ...
-%                     || ~(pObj.bRemoveDC == p.pp_bRemoveDC)
-%                 hp = 0;
-%                 return
-%             end
-%             
-%             if ((pObj.bPreEmphasis && p.pp_bPreEmphasis) && (pObj.coefPreEmphasis ~= p.pp_coefPreEmphasis)) ...
-%                     || ~(pObj.bPreEmphasis == p.pp_bPreEmphasis)
-%                 hp = 0;
-%                 return
-%             end
-%             
-%             if ((pObj.bNormalizeRMS && p.pp_bNormalizeRMS) && ...
-%                     ((pObj.intRimeSecRMS ~= p.pp_intRimeSecRMS) || ...
-%                     (pObj.bBinauralRMS ~= p.pp_bBinauralRMS))) ...
-%                     || ~(pObj.bPreEmphasis == p.pp_bPreEmphasis)
-%                 hp = 0;
-%                 return
-%             end
-%             
-%             if ((pObj.bLevelScaling && p.pp_bLevelScaling) && ...
-%                     ~isequal(pObj.refSPLdB, p.pp_refSPLdB)) ...
-%                     || ~(pObj.bLevelScaling == p.pp_bLevelScaling)
-%                 hp = 0;
-%                 return
-%             end
-%             
-%             if ((pObj.bMiddleEarFiltering && p.pp_bMiddleEarFiltering) && ...
-%                     ~strcmp(pObj.middleEarModel,p.pp_middleEarModel)) ...
-%                     || ~(pObj.bMiddleEarFiltering == p.pp_bMiddleEarFiltering)
-%                 hp = 0;
-%                 return
-%             end
-% 
-%             % Special section for unity gain compensation
-%             if ((pObj.bMiddleEarFiltering && p.pp_bMiddleEarFiltering) && ...
-%                     pObj.bUnityComp ~= p.pp_bUnityComp)
-%                 hp = 0;
-%                 return
-%             end
-%             
-%             hp = 1;
-%             
-%         end
-
-        %% Resume
-        
         function reset(pObj)
             %reset     Resets the internal states of the pre-processor
             %
@@ -366,16 +293,16 @@ classdef preProc < Processor
 %             if numel(p.pp_refSPLdB)>2
 %                 fprintf('More than two refSPLdB values given - only the first two will be used (L/R)');
 %             end
-%             if pObj.bUnityComp
-%                 switch pObj.middleEarModel
-%                     case 'jepsen'
-%                         pObj.meFilterPeakdB = 55.9986;
-%                     case 'lopezpoveda'
-%                         pObj.meFilterPeakdB = 66.2888;
-%                 end
-%             else
-%                 pObj.meFilterPeakdB = 0;
-%             end
+            if pObj.bUnityComp
+                switch pObj.middleEarModel
+                    case 'jepsen'
+                        pObj.meFilterPeakdB = 55.9986;
+                    case 'lopezpoveda'
+                        pObj.meFilterPeakdB = 66.2888;
+                end
+            else
+                pObj.meFilterPeakdB = 0;
+            end
         end
             
         
@@ -472,7 +399,8 @@ classdef preProc < Processor
                     'pp_bLevelScaling',...
                     'pp_refSPLdB',...
                     'pp_bMiddleEarFiltering',...
-                    'pp_middleEarModel'};
+                    'pp_middleEarModel',...
+                    'pp_bUnityComp'};
             
             descriptions = {'Flag to activate DC-removal filter',...
                     'Cutoff frequency (Hz) of DC-removal high-pass filter',...
@@ -484,7 +412,8 @@ classdef preProc < Processor
                     'Flag to apply level scaling to the given reference',...
                     'Reference dB SPL value to correspond to input signal RMS value of 1',...
                     'Flag to apply middle ear filtering',...
-                    'Middle ear filter model (jepsen or lopezpoveda)'};
+                    'Middle ear filter model (jepsen or lopezpoveda)',...
+                    'Compensation to have maximum of unity gain for middle ear filter (automatically true for Gammatone and false for drnl filterbanks)'};
             
             defaultValues = {0,...
                             20,...
@@ -496,7 +425,8 @@ classdef preProc < Processor
                             0,...
                             100,...
                             0,...
-                            'jepsen'};
+                            'jepsen',...
+                            1};
                 
         end
         
@@ -522,7 +452,7 @@ classdef preProc < Processor
         end
         
         function value = get.cutoffHzDC(pObj)
-            value = pObj.parameters.map('pp_curoffHzDC');
+            value = pObj.parameters.map('pp_cutoffHzDC');
         end
         
         function value = get.bPreEmphasis(pObj)
@@ -557,9 +487,13 @@ classdef preProc < Processor
             value = pObj.parameters.map('pp_middleEarModel');
         end
         
-%         function value = get.bUnityComp(pObj)
-%             value = pObj.parameters.map('pp_bUnityComp');
-%         end
+        function value = get.bBinauralRMS(pObj)
+            value = pObj.parameters.map('pp_bBinauralRMS');
+        end
+        
+        function value = get.bUnityComp(pObj)
+            value = pObj.parameters.map('pp_bUnityComp');
+        end
         
         
     end

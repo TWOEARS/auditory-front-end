@@ -53,7 +53,7 @@ wavPlotDS   = 3; % Down-sampling factor
 p = genParStruct('wavPlotZoom',wavPlotZoom,'wavPlotDS',wavPlotDS);
 
 % Plot gammatone responses
-dObj.gammatone{1}.plot([],p);
+dObj.filterbank{1}.plot([],p);
 % title('Gamatone response')
 
 % Plot IHC responses

@@ -17,7 +17,7 @@ dObj = dataObject(earSignals(1:22494,2),fsHz);
 % 
 % 
 % Request offset strength
-requests = {'offset_strength'};
+requests = {'offsetStrength'};
 
 % Parameters of auditory filterbank 
 fb_type       = 'gammatone';
@@ -59,5 +59,5 @@ mObj.processSignal();
 dObj.ratemap{1}.plot;
 
 %Plot offset strength in dB
-dObj.offset_strength{1}.plot;
+dObj.offsetStrength{1}.plot;
 

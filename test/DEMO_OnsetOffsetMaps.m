@@ -17,7 +17,7 @@ dObj = dataObject(earSignals(1:22494,2),fsHz);
 % 
 % 
 % Request onset and offset maps
-requests = {'onset_map' 'offset_map'};
+requests = {'onsetMap' 'offsetMap'};
 
 % Parameters of auditory filterbank 
 fb_type       = 'gammatone';
@@ -35,7 +35,7 @@ rm_decaySec  = 8E-3;
 rm_wname     = 'hann';
 
 % Parameters for switching off the transient detector
-trm_off_minValuedB    = -inf;
+trm_off_minValuedB    = -80;
 trm_off_minStrengthdB = 0;
 trm_off_minSpread     = 0;
 trm_off_fuseWithinSec = 0;
@@ -81,23 +81,23 @@ mObj2.processSignal();
 % 
 % 
 % Plot the onset
-h = dObj.onset_map{1}.plot;
+h = dObj.onsetMap{1}.plot;
 hold on
 
 % Superimposed the offset (in white)
 p = genParStruct('binaryMaskColor',[1 1 1]);    % White mask
-dObj.offset_map{1}.plot(h,p,1);
+dObj.offsetMap{1}.plot(h,p,1);
 
 % Replace the title
 title('Onset (black) and offset (white) maps')
 
 % Plot the onset
-h = dObj.onset_map{2}.plot;
+h = dObj.onsetMap{2}.plot;
 hold on
 
 % Superimposed the offset (in white)
 p = genParStruct('binaryMaskColor',[1 1 1]);   % White mask
-dObj.offset_map{2}.plot(h,p,1);
+dObj.offsetMap{2}.plot(h,p,1);
 
 % Replace the title
 title('Onset (black) and offset (white) maps')

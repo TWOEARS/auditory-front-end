@@ -17,7 +17,7 @@ dObj = dataObject(earSignals(1:22495,2),fsHz);
 % 
 % 
 % Request spectral feature processor
-requests = {'spectral_features'};
+requests = {'spectralFeatures'};
 
 % Parameters of Gammatone processor
 fb_nChannels  = 64;  
@@ -62,5 +62,5 @@ dObj.time{1}.plot
 rmap = dObj.ratemap{1};   
 
 % Plot spectral features
-dObj.spectral_features{1}.plot([],[],'overlay',rmap,'noSubPlots',1);
+dObj.spectralFeatures{1}.plot([],[],'overlay',rmap,'noSubPlots',1);
 

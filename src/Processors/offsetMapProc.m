@@ -92,7 +92,7 @@ classdef offsetMapProc < Processor
                 % Discard transients if the representation is below a threshold
                 if ~isempty(pObj.minValuedB)
                     try
-                        rmap = pObj.Dependencies{1}.Dependencies{1}.Output.Data(end-L+1:end);   
+                        rmap = pObj.LowerDependencies{1}.LowerDependencies{1}.Output{1}.Data(end-L+1:end);   
                         bSet2zero = 10*log10(rmap) < pObj.minValuedB;
                         in(bSet2zero) = 0;
                     
