@@ -19,8 +19,8 @@ end
 clear earSignals
 
 % Parameters
-request = {'gabor'};
-p = genParStruct('rm_wSizeSec',128E-3,'rm_hSizeSec',64E-3);
+request = {'amsFeature'};
+p = genParStruct('ams_fbType','lin');
 
 
 % Create a data object

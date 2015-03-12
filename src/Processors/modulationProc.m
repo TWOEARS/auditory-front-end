@@ -53,9 +53,8 @@ classdef modulationProc < Processor
         nAudioChan      % Number of audio frequency channels
     end
     
-    properties (GetAccess = private)
+    properties %(GetAccess = private)
         buffer          % Buffered input (for fft-based)
-        nModChan        % Number of modulation channels
         
         lowFreqHz       % Lowest modulation center frequency 
         highFreqHz      % Highest modulation center frequency 
@@ -133,7 +132,6 @@ classdef modulationProc < Processor
                 end
                 
                 pObj.buffer = [];
-                pObj.nModChan = numel(pObj.modCfHz);
                 
                 pObj.fs_ds  = fs / pObj.dsRatio;
                 pObj.blockSize = 2 * round(pObj.blockSec * pObj.fs_ds / 2);
@@ -163,7 +161,8 @@ classdef modulationProc < Processor
                         fLow  = pObj.lowFreqHz  / pObj.fs_ds;
                         fHigh = pObj.highFreqHz / pObj.fs_ds;
                         [pObj.wts,pObj.modCfHz,pObj.mn,pObj.mx] = ...
-                            melbankm(pObj.nModChan,pObj.nfft,pObj.fs_ds,fLow,fHigh,'fs');
+                            melbankm(pObj.parameters.map('ams_nFilters'), pObj.nfft, ...
+                                     pObj.fs_ds,fLow,fHigh,'fs');
                     else
                         error('The specification of center frequencies is not supported by the FFT-based method')
                     end
@@ -190,8 +189,13 @@ classdef modulationProc < Processor
                     use_hp = false;     % Use high-pass for highest filter   
 
                     % Implement second-order butterworth modulation filterbank
-                    [pObj.b,pObj.a,pObj.bw] = createFB_Mod(pObj.fs_ds, pObj.modCfHz, ...
-                                                           Q, use_lp, use_hp);
+                    try
+                        [pObj.b,pObj.a,pObj.bw] = createFB_Mod(pObj.fs_ds, pObj.modCfHz, ...
+                                                               Q, use_lp, use_hp);
+                    catch
+                        % Try/catch is used here to avoid an error when generating a dummy
+                        % processor for the hasParameters method.
+                    end
 
                     % Get bandwidths in hertz
                     pObj.bw = pObj.bw*(pObj.fs_ds/2);
@@ -466,7 +470,7 @@ classdef modulationProc < Processor
             
             pInfo.name = 'Amplitude modulation spectrogram extraction';
             pInfo.label = 'Amplitude modulation';
-            pInfo.requestName = 'amsFeature';
+            pInfo.requestName = 'amsFeatures';
             pInfo.requestLabel = 'Amplitude modulation spectrogram';
             pInfo.outputType = 'ModulationSignal';
             pInfo.isBinaural = false;
