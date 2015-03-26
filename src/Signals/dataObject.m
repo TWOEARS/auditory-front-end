@@ -211,6 +211,8 @@ classdef dataObject < dynamicprops
             %OUTPUT ARGUMENTS:
             %      p : Structure of used parameter values
             
+            % TODO: Update to refactored code version
+            
             % Get a list of instantiated signals
             prop_list = properties(dObj);
             sig_list = setdiff(prop_list,{'isStereo' 'bufferSize_s'});

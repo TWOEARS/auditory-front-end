@@ -1178,6 +1178,9 @@ classdef manager < handle
                                                         ii, 'stereo');
                     dependency = {newProc_l, newProc_r};
                 elseif numel(dependency) == 1 && size(dependency{1}.Output,2) == 2
+                    % TODO: think about using two preprocessors that each have a R&L
+                    % channel input, but one output only, to stay in the same structure as
+                    % the other processors.
                     newProc_l = mObj.addSingleProcessor(procName, p, dependency, 1, ...
                                                         ii, 'stereo');
                     newProc_r = mObj.addSingleProcessor(procName, p, dependency, 2, ...
@@ -1589,6 +1592,8 @@ classdef manager < handle
             end
             
             % Mutual link to dependencies, unless it has none
+            % IVO Comment: Maybe get the linked list of processors outside of the
+            % processors, e.g. in a separate object/class
             if ~strcmp(newProcessor.getDependency,'input')
                 newProcessor.addLowerDependencies(dependencies);
             end

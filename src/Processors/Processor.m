@@ -83,7 +83,8 @@ classdef Processor < handle
             pObj.FsHzIn = fsIn;
             pObj.FsHzOut = fsOut;
 %             pObj.Dependencies = feval([procName '.getDependency']);
-
+            
+%             pObj.extendParameters;
             pObj.verifyParameters;
             
             end

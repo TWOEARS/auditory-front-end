@@ -6,7 +6,7 @@ close all
 
 
 % Test on monoral or binaural signal
-do_stereo = 0;
+do_stereo = 1;
 
 % Load a signal
 load('TestBinauralCues');
@@ -19,7 +19,7 @@ end
 clear earSignals
 
 % Parameters
-request = {'amsFeature'};
+request = {'ild'};
 p = genParStruct('ams_fbType','lin');
 
 
