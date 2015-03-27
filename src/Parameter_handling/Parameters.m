@@ -1,4 +1,5 @@
 classdef Parameters < handle
+    % Help on this class is a work in progress..
     
     properties (GetAccess = public) % Private?
         map             % Map container for the parameter values

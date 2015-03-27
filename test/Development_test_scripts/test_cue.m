@@ -19,7 +19,7 @@ end
 clear earSignals
 
 % Parameters
-request = {'ild'};
+request = {'ild','itd'};
 p = genParStruct('ams_fbType','lin');
 
 

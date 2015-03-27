@@ -273,7 +273,7 @@ classdef Processor < handle
             
             pObj.LowerDependencies = [pObj.LowerDependencies dependentProcs];
             for ii = 1:size(dependentProcs,2)
-                dependentProcs{ii}.addUpperDependencies(pObj);
+                dependentProcs{ii}.addUpperDependencies({pObj});
             end
             
         end
