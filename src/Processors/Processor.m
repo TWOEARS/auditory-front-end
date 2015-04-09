@@ -38,15 +38,16 @@ classdef Processor < handle
         UpperDependencies = {};
         LowerDependencies = {};
         Channel
+        parameters
     end
 
     properties (GetAccess = private)
         bHidden = 0;
     end
     
-    properties (GetAccess = protected)
-        parameters
-    end
+%     properties (GetAccess = protected)
+%         parameters
+%     end
     
     methods (Abstract = true)
         out = processChunk(pObj,in)
@@ -479,6 +480,30 @@ classdef Processor < handle
             end
             
         end
+        
+        function bInBranch = isSuitableForRequest(pObj)
+            %ISSUITABLEFORREQUEST: Tests if a processor is compatible with a request. Used
+            %in cases where multiple alternatives exist for a given processing step (e.g.,
+            %Gammatone filterbank vs. DRNL). 
+            %This method should be overridden in the class definition of such processors,
+            %to return a boolean indicating if said processor should or not be used in the
+            %processing chain.
+            %
+            %USAGE
+            %  bInBranch = pObj.isSuitableForRequest
+            %
+            %INPUT ARGUMENTS:
+            %   pObj : Processor instance. Usually a dummy (empty) processor is used, as
+            %          static methods cannot be overridden.
+            %
+            %OUTPUT ARGUMENTS:
+            % bInBranch : Boolean indicating if the processor should be included in the
+            %             processing branch or not.
+            
+            bInBranch = true;
+            
+        end
+        
     end
 
     methods (Static)
@@ -623,15 +648,60 @@ classdef Processor < handle
             
         end
         
-        function depList = getDependencyList(procName)
+        function depList = getDependencyList(procName,parObj)
            %getDependencyList   Returns a list of processor names a given processor needs
            
            depList = cell(0);
            
+           %TODO: Add a possibility for branching (e.g. Gammatone vs. DRNL) here in the
+           %loop, e.g. via a test on the size of procName. Then call a processor-specific
+           %method that decides based on a parameter object which one should be
+           %instantiated.
+           
+           if iscell(procName)
+               % Multiple processor are possible for that request, find a suitable one
+               
+               for ii = 1:size(procName,1)
+%                    parCopy = parObj.copy;
+%                    parCopy.updateWithDefault(procName{ii});
+                   dummyProc = feval(procName{ii},[],parObj);
+                   if dummyProc.isSuitableForRequest
+                       procName = procName{ii};
+                       break
+                   end
+               end
+               if iscell(procName)
+                   error(['Processors ' strjoin(procName.',' and ') ' are conflicting.'...
+                       ' Check their isSuitableForRequest methods.'])
+               end
+               
+           end
+           
+           
            while ~strcmp(feval([procName '.getDependency']), 'input')
+               % Do something here if procName is more than one element. 
+               
                depList = [depList feval([procName '.getDependency'])]; %#ok<AGROW>
                procName = Processor.findProcessorFromSignal( ...
                             feval([procName '.getDependency']));
+               
+               if iscell(procName)
+                   % Multiple processor are possible for that request, find a suitable one
+                   for ii = 1:size(procName,1)
+%                        parCopy = parObj.copy;
+%                        parCopy.updateWithDefault(procName{ii});
+                       dummyProc = feval(procName{ii},[],parObj);
+                       if dummyProc.isSuitableForRequest
+                           procName = procName{ii};
+                           break
+                       end
+                   end
+                   if iscell(procName)
+                       error(['Processors ' strjoin(procName.',' and ') ' are conflicting.'...
+                           ' Check their isSuitableForRequest methods.'])
+                   end
+               end
+                        
            end
             
         end

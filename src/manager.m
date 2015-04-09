@@ -1169,6 +1169,21 @@ classdef manager < handle
                 
                 procName = Processor.findProcessorFromSignal(dep_list{ii-n_proc});
                 
+                % Find appropriate processor if multiple possibilities
+                if iscell(procName)
+                    for kk = 1:size(procName,1)
+                        dummyProc = feval(procName{kk},[],p);
+                        if dummyProc.isSuitableForRequest
+                            procName = procName{kk};
+                            break
+                        end
+                    end
+                    if iscell(procName)
+                        error(['Processors ' strjoin(procName.',' and ') ' are conflicting.'...
+                            ' Check their isSuitableForRequest methods.'])
+                    end
+                end
+                
                 % Check if one or two processors should be instantiated (mono or stereo)
                 procInfo = feval([procName '.getProcessorInfo']);
                 if size(dependency,2) == 2 && ~procInfo.isBinaural
@@ -1471,7 +1486,8 @@ classdef manager < handle
 %                 dep_list = getDependencies(request);
 %             end
             dep_list = [request ...
-                Processor.getDependencyList( Processor.findProcessorFromSignal(request))];
+                Processor.getDependencyList( ...
+                Processor.findProcessorFromSignal(request), p)];
             
             
             % Initialization of while loop

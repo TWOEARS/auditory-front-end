@@ -19,8 +19,8 @@ end
 clear earSignals
 
 % Parameters
-request = {'ild','itd'};
-p = genParStruct('ams_fbType','lin');
+request = {'ild'};
+p = genParStruct('fb_type','drnl');
 
 
 % Create a data object
