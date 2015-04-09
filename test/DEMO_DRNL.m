@@ -88,21 +88,21 @@ mObj_GT.processSignal();
 % p = genParStruct('wavPlotZoom',wavPlotZoom,'wavPlotDS',wavPlotDS);
 % 
 % % Plot filterbank output
-% dObj_DRNL.drnl{1}.plot([],p);
-% dObj_GT.gammatone{1}.plot([],p);
+% dObj_DRNL.filterbank{1}.plot([],p);
+% dObj_GT.filterbank{1}.plot([],p);
 
 tSec = (1:size(earSignalScaled,1))/fsHz;
 figure;
-plot(tSec, 1E5 * dObj_GT.gammatone{1}.Data(:));
+plot(tSec, 1E5 * dObj_GT.filterbank{1}.Data(:));
 xlim([tSec(1) tSec(end)]);
 xlabel('Time (s)');
 ylabel('Amplitude (x 1E$^{-5}$)')
-title(sprintf('Gammatone filterbank output at %d Hz', dObj_GT.gammatone{1}.cfHz));
+title(sprintf('Gammatone filterbank output at %d Hz', dObj_GT.filterbank{1}.cfHz));
 
 figure;
-plot(tSec, dObj_DRNL.drnl{1}.Data(:));
+plot(tSec, dObj_DRNL.filterbank{1}.Data(:));
 xlim([tSec(1) tSec(end)]);
-title(sprintf('DRNL filterbank output at %d Hz', dObj_DRNL.drnl{1}.cfHz));
+title(sprintf('DRNL filterbank output at %d Hz', dObj_DRNL.filterbank{1}.cfHz));
 xlabel('Time (s)');
 ylabel('Amplitude (x 1E$^{-5}$)')
 
