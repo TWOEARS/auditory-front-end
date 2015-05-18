@@ -648,6 +648,55 @@ classdef Processor < handle
             
         end
         
+        function procName = findProcessorFromRequest(signalName,parObj)
+            %Processor.findProcessorFromRequest Finds the processor name that generates a
+            %signal given specific parameters.
+            % This method does the same as .findProcessorFromSignal, with the only
+            % addition that it will look into the request parameters if multiple
+            % processors can generate the signal to find which one should be returned
+            
+            procName = Processor.findProcessorFromSignal(signalName);
+            
+            if size(procName,1)>1
+                procName = Processor.chooseAlternativeProcessor(procName,parObj);
+            end
+            
+        end
+        
+        function procName = chooseAlternativeProcessor(procList,parObj,bThrowError)
+            % Chooses which processor in a list of alternatives should be used given a
+            % request parameters
+            
+            if nargin<3 || isempty(bThrowError)
+                bThrowError = true;
+            end
+            
+            if ~iscell(procList) || size(procList,1)==1
+                error('Incorrect input argument. Expecting a list of processor names')
+            end
+            
+            procName = {};
+            
+            for ii = 1:size(procList,1)
+                % Instantiate a dummy processor (suitability checking is not static)
+                dummyProc = feval(procList{ii},[],parObj);
+                % Check if it is suitable
+                if dummyProc.isSuitableForRequest
+                    procName = [procName;procList{ii}]; %#ok<AGROW>
+                end
+            end
+            
+            if size(procName,1) > 1 
+                if bThrowError
+                    error(['Processors ' strjoin(procName.',' and ') ' are conflicting.'...
+                            ' Check their .isSuitableForRequest methods.'])
+                end
+            else
+                procName = procName{1};
+            end
+            
+        end
+        
         function depList = getDependencyList(procName,parObj)
            %getDependencyList   Returns a list of processor names a given processor needs
            

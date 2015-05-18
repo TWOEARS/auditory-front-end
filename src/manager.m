@@ -1167,22 +1167,23 @@ classdef manager < handle
                 
                 %% New instantiation
                 
-                procName = Processor.findProcessorFromSignal(dep_list{ii-n_proc});
+%                 procName = Processor.findProcessorFromSignal(dep_list{ii-n_proc});
+                procName = Processor.findProcessorFromRequest(dep_list{ii-n_proc},p);
                 
                 % Find appropriate processor if multiple possibilities
-                if iscell(procName)
-                    for kk = 1:size(procName,1)
-                        dummyProc = feval(procName{kk},[],p);
-                        if dummyProc.isSuitableForRequest
-                            procName = procName{kk};
-                            break
-                        end
-                    end
-                    if iscell(procName)
-                        error(['Processors ' strjoin(procName.',' and ') ' are conflicting.'...
-                            ' Check their isSuitableForRequest methods.'])
-                    end
-                end
+%                 if iscell(procName)
+%                     for kk = 1:size(procName,1)
+%                         dummyProc = feval(procName{kk},[],p);
+%                         if dummyProc.isSuitableForRequest
+%                             procName = procName{kk};
+%                             break
+%                         end
+%                     end
+%                     if iscell(procName)
+%                         error(['Processors ' strjoin(procName.',' and ') ' are conflicting.'...
+%                             ' Check their isSuitableForRequest methods.'])
+%                     end
+%                 end
                 
                 % Check if one or two processors should be instantiated (mono or stereo)
                 procInfo = feval([procName '.getProcessorInfo']);
@@ -1487,13 +1488,13 @@ classdef manager < handle
 %             end
             dep_list = [request ...
                 Processor.getDependencyList( ...
-                Processor.findProcessorFromSignal(request), p)];
+                Processor.findProcessorFromRequest(request,p), p)];
             
             
             % Initialization of while loop
             ii = 1;
 %             dep = signal2procName(dep_list{ii},p);
-            dep = Processor.findProcessorFromSignal(dep_list{ii});
+            dep = Processor.findProcessorFromRequest(dep_list{ii},p);
             hProc = mObj.hasProcessor(dep,p);
             list = {};
             
@@ -1507,7 +1508,7 @@ classdef manager < handle
                 % Move on to next level of dependency
                 ii = ii + 1;
 %                 dep = signal2procName(dep_list{ii},p);
-                dep = Processor.findProcessorFromSignal(dep_list{ii});
+                dep = Processor.findProcessorFromRequest(dep_list{ii},p);
                 hProc = mObj.hasProcessor(dep,p);
                 
             end
@@ -1532,7 +1533,7 @@ classdef manager < handle
                 
                 % Initialization of while loop
                 ii = 1;
-                dep = Processor.findProcessorFromSignal(dep_list{ii});
+                dep = Processor.findProcessorFromRequest(dep_list{ii},p);
 %                 dep = signal2procName(dep_list{ii},p);
                 hProc2 = mObj.hasProcessor(dep,p,Channel);
                 list = {};
@@ -1547,7 +1548,7 @@ classdef manager < handle
                     % Move on to next level of dependency
                     ii = ii + 1;
 %                     dep = signal2procName(dep_list{ii},p);
-                    dep = Processor.findProcessorFromSignal(dep_list{ii});
+                    dep = Processor.findProcessorFromRequest(dep_list{ii},p);
                     hProc2 = mObj.hasProcessor(dep,p,Channel);
 
                 end

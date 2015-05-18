@@ -209,8 +209,10 @@ classdef Signal < handle
                 % Check that it is actually a processors
                 if isa(mObj.Processors{ii},'Processor')
                     % Check if it outputs the signal of interest
-                    if sObj == mObj.Processors{ii}.Output
-                        pObj = mObj.Processors{ii};
+                    for jj = 1:size(mObj.Processors{ii}.Output,2)
+                        if sObj == mObj.Processors{ii}.Output{jj}
+                            pObj = mObj.Processors{ii};
+                        end
                     end
                 end
             end 
