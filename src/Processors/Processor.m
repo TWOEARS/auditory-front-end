@@ -43,12 +43,19 @@ classdef Processor < handle
 
     properties (GetAccess = private)
         bHidden = 0;
+        listenToModify = [];
+        listenToDelete = [];
     end
     
 %     properties (GetAccess = protected)
 %         parameters
 %     end
     
+    events
+        hasChanged;
+        isDeleted;
+    end
+
     methods (Abstract = true)
         out = processChunk(pObj,in)
             % This method should implement the way the processing is
@@ -239,6 +246,20 @@ classdef Processor < handle
             
         end
         
+        function modifyParameter(pObj,parName,newValue)
+            %MODIFYPARAMETER Requests a change of value of one parameter
+            % Implementation TBD
+            
+            
+            % Change the parameter
+            
+            % ... TBD ...
+            
+            % Reset the processor internal states and notify listeners
+            pObj.reset;
+            notify(pObj,'hasChanged');
+
+        end
         
     end
     
@@ -271,11 +292,21 @@ classdef Processor < handle
             %ADDLOWERDEPENDENCIES   Populate link to lower processors this one relies on.
             % Likewise, will will add the current processor as an upper dependency in
             % those processors.
+            % This method will also attach a listener to the current processor that
+            % listens to changes in the lower-dependent processor.
             
             pObj.LowerDependencies = [pObj.LowerDependencies dependentProcs];
             for ii = 1:size(dependentProcs,2)
                 dependentProcs{ii}.addUpperDependencies({pObj});
             end
+            
+            % Temporary fix for single dependencies
+            proc = dependentProcs{1};
+            
+            % Add modify and delete listeners to the lower dependent processor
+            pObj.listenToModify = addlistener(proc,'hasChanged',@pObj.update);
+            
+            
             
         end
         
@@ -481,7 +512,7 @@ classdef Processor < handle
             
         end
         
-        function bInBranch = isSuitableForRequest(pObj)
+        function bInBranch = isSuitableForRequest(~)
             %ISSUITABLEFORREQUEST: Tests if a processor is compatible with a request. Used
             %in cases where multiple alternatives exist for a given processing step (e.g.,
             %Gammatone filterbank vs. DRNL). 
@@ -501,6 +532,23 @@ classdef Processor < handle
             %             processing branch or not.
             
             bInBranch = true;
+            
+        end
+        
+        function update(pObj,procRequestingUpdate,~)
+            %UPDATE Update the processor in response to a change notification
+            % This method is called when a lower-dependent processor has been modified, or
+            % updated itself. Usually, update means only resetting, but this method can be
+            % overloaded in children class definitions.
+            
+            % Display a message for testing purpose
+            disp([pObj.Type ' was reseted due to an update in ' procRequestingUpdate.Type])
+            
+            % Update means reset
+            pObj.reset;
+            
+            % Notify possible listeners that there was a modification
+            notify(pObj,'hasChanged');
             
         end
         
@@ -754,6 +802,8 @@ classdef Processor < handle
            end
             
         end
+        
+        
         
     end
     

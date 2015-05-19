@@ -119,7 +119,24 @@ classdef ihcProc < Processor
          end
          
      end
+      
+     methods (Hidden = true)
          
+         function update(pObj,~,~)
+            % Overloading the update method for that processor, for testing purposes
+            disp(['I am ' pObj.Type ', and I will not display the same message as the ' ...
+                'others because my update method is overloaded!'])
+            
+            % Update means reset
+            pObj.reset;
+            
+            % Notify possible listeners that there was a modification
+            notify(pObj,'hasChanged');
+            
+         end
+        
+     end
+     
      methods (Static)
         function dep = getDependency()
             dep = 'filterbank';
