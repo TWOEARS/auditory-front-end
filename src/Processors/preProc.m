@@ -439,7 +439,7 @@ classdef preProc < Processor
             pInfo.requestName = 'time';
             pInfo.requestLabel = 'Time domain signal';
             pInfo.outputType = 'TimeDomainSignal';
-            pInfo.isBinaural = 1;
+            pInfo.isBinaural = 2;   % Indicates that the processor can behave as mono or binaural
             
         end
         

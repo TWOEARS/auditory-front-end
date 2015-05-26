@@ -1,14 +1,11 @@
-% This is a test script to investigate Matlab's event-based programming'
+% This is a test script to investigate Matlab's event-based programming
 
-clear all
+% clear all
 close all
-
-% Memory watching tool
-% C:\Users\rjdb\Documents\MATLAB\Parallel computing seminar\01_Techniques_for_Speeding_up_Matlab\03_Memory
 
 % Load a signal
 load('TestBinauralCues');
-data = earSignals(1:62E3,:);     % Right channel has higher energy
+data = earSignals(1:62E3,:);   
 
 % Parameters
 request = {'itd'};
@@ -26,3 +23,7 @@ sOut = mObj.addProcessor(request,p);
 % Remove cross-correlation processor
 mObj.Processors{4}.remove;
 mObj.cleanup;
+
+echo on
+mObj.Processors
+echo off

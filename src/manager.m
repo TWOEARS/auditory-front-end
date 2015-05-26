@@ -38,7 +38,7 @@ classdef manager < handle
         % processors in charge of the left (or single) channel, second column of the
         % right channel. Different lines in the array are for different processor
         % instances.
-        Processors      
+        Processors = {};     
         
         % InputList - Cell array of handles to the input signal of each processors. A
         % signal at a given position in the array is the input to the processor stored
@@ -518,58 +518,10 @@ classdef manager < handle
 
             fs = mObj.Data.input{1}.FsHz;
             
-            % Find out about the Gammatone definition
-%             if isfield(p,'fb_cfHz')
-%                 % Generated from provided center frequencies
-%                 gamma_init = 'cfHz';
-%             elseif isfield(p,'fb_nChannels')
-%                 % Generate from upper/lower frequencies and number of
-%                 % channels
-%                 gamma_init = 'nChannels';
-%             else
-%                 % Generate from upper/lower freqs. and distance between
-%                 % channels
-%                 gamma_init ='standard';
-%             end
-            
-            % Same applies to the DRNL processor
-%             if isfield(p,'fb_cfHz')
-%                 % Generated from provided center frequencies
-%                 fb_init = 'cfHz';
-%             elseif isfield(p,'fb_nChannels')
-%                 % Generate from upper/lower frequencies and number of
-%                 % channels
-%                 fb_init = 'nChannels';
-%             else
-%                 % Generate from upper/lower freqs. and distance between
-%                 % channels
-%                 fb_init ='standard';
-%             end
-
-            % Add default values for parameters not explicitly defined in p
-%             p = parseParameters(p,request);
-            
-            % Try/Catch to check that the request is valid
-%             try 
-%                 % TO DO: implement for multiple requests
-%                 getDependencies(request);
-%             catch err
-%                 % Buid a list of available signals for display
-%                 list = getDependencies('available');
-%                 str = [];
-%                 for ii = 1:size(list,2)-1
-%                     str = [str list{ii} ', '];  %#ok
-%                 end
-%                 % Return the list
-%                 error(['One of the requested signal, cue, or feature '...
-%                     'name is unknown. Valid names are as follows: %s'],str)
-%             end
-
-            
             % Find most suitable initial processor for that request
             [initProc,dep_list] = mObj.findInitProc(request,p);
             
-            % Replace the initProc with actual processor(s) if empty
+            % Replace the initProc with dummy processor(s) if empty
             if isempty(initProc)
                 if mObj.Data.isStereo
                     initProc = {identityProc(fs), identityProc(fs)};
@@ -590,10 +542,8 @@ classdef manager < handle
             % The processing order is the reversed list of dependencies
             dep_list = fliplr(dep_list);
  
-            % Former number of processors
+            % Former and new number of processors
             n_proc = size(mObj.Processors,1);
-            
-            % Number of new processors involved
             n_new_proc = size(dep_list,2);
             
             % Preallocation
@@ -604,37 +554,10 @@ classdef manager < handle
                     n_chan = 1;
                 end
                 mObj.Processors = cell(n_new_proc,n_chan);   
-%                 mObj.InputList = cell(n_new_proc,n_chan);    % TO DO: Will have to be changed to account for multiple input features
-%                 mObj.OutputList = cell(n_new_proc,n_chan);
             end
             
             
-            %% Initialize pointer to dependency 
-%             if size(initProc,2)==2
-%                 % Need to refer to left and right chanel initial processors
-%                 % and signals
-%                 dep_sig_l = initProc{1}.Output;
-%                 dep_sig_r = initProc{2}.Output;
-%                 dep_proc = {initProc{1}, initProc{2}};
-%             elseif size(initProc,2)==1
-%                 % Only a single processor and signal (either mono, or
-%                 % already a binaural feature)
-%                 dep_sig = initProc.Output;
-%                 dep_proc = {initProc};
-%             else
-%                 % Then processing starts from scratch, need to assess the
-%                 % number of channels
-%                 if mObj.Data.isStereo
-%                     dep_sig_l = mObj.Data.input{1};
-%                     dep_sig_r = mObj.Data.input{2};
-%                     dep_proc = {[], []};
-%                 else
-%                     dep_sig = mObj.Data.input{1};
-%                     dep_proc = {[]};
-%                 end
-%             end
-
-%%
+            % Initialize pointer to dependency 
             dependency = initProc;
             
             % Processors instantiation and data object property population
@@ -1167,45 +1090,38 @@ classdef manager < handle
                 
                 %% New instantiation
                 
-%                 procName = Processor.findProcessorFromSignal(dep_list{ii-n_proc});
+                % Get the name of the processor to instantiate
                 procName = Processor.findProcessorFromRequest(dep_list{ii-n_proc},p);
                 
-                % Find appropriate processor if multiple possibilities
-%                 if iscell(procName)
-%                     for kk = 1:size(procName,1)
-%                         dummyProc = feval(procName{kk},[],p);
-%                         if dummyProc.isSuitableForRequest
-%                             procName = procName{kk};
-%                             break
-%                         end
-%                     end
-%                     if iscell(procName)
-%                         error(['Processors ' strjoin(procName.',' and ') ' are conflicting.'...
-%                             ' Check their isSuitableForRequest methods.'])
-%                     end
-%                 end
                 
                 % Check if one or two processors should be instantiated (mono or stereo)
                 procInfo = feval([procName '.getProcessorInfo']);
-                if size(dependency,2) == 2 && ~procInfo.isBinaural
+                if size(dependency,2) == 2 && procInfo.isBinaural == 0
+                    % Instantiate two processors, each having a single-channel dependency
                     newProc_l = mObj.addSingleProcessor(procName, p, dependency(1), 1, ...
                                                         ii, 'stereo');
                     newProc_r = mObj.addSingleProcessor(procName, p, dependency(2), 2, ...
                                                         ii, 'stereo');
                     dependency = {newProc_l, newProc_r};
                 elseif numel(dependency) == 1 && size(dependency{1}.Output,2) == 2
-                    % TODO: think about using two preprocessors that each have a R&L
-                    % channel input, but one output only, to stay in the same structure as
-                    % the other processors.
+                    % Instantiate two processors, each having the same multi-channel
+                    % dependency
                     newProc_l = mObj.addSingleProcessor(procName, p, dependency, 1, ...
                                                         ii, 'stereo');
                     newProc_r = mObj.addSingleProcessor(procName, p, dependency, 2, ...
                                                         ii, 'stereo');
                     dependency = {newProc_l, newProc_r};
                 else
-                    newProc = mObj.addSingleProcessor(procName, p, dependency, 1, ii,...
-                                                        'mono');
-                    dependency = {newProc};
+                    if procInfo.isBinaural == 1 && ~mObj.Data.isStereo
+                        warning(['Cannot instantiate a binaural processor with a '...
+                            'mono input signal!'])
+                        proceed = 0;
+                    else
+                        % Instantiate a single processor having a single dependency
+                        newProc = mObj.addSingleProcessor(procName, p, dependency, 1, ii,...
+                                                            'mono');
+                        dependency = {newProc};
+                    end
                 end
                 
                 
@@ -1381,8 +1297,14 @@ classdef manager < handle
                     end
                 end
             elseif ~proceed
-                warning('The request was invalid, returning an empty handle')
+                % The request was invalid, return a empty handle
                 out = [];
+                
+                % And remove the processors added by mistake
+                if ~isempty(mObj.Processors{n_proc+1})
+                    mObj.Processors{n_proc+1}.remove;
+                    mObj.cleanup;
+                end
             end
             
         end
@@ -1590,7 +1512,7 @@ classdef manager < handle
         
         function newProcessor = addSingleProcessor(mObj,procName,parameters, ...
                                                 dependencies,channelNb,index,channelTag)
-            %addSingleProcessor     Instantiates a new processors and integrates it to the
+            %addSingleProcessor     Instantiates a new processor and integrates it to the
             %                       manager instance
             %
             % Note about channelNb: 1 for left or mono, 2 for right. 
@@ -1604,7 +1526,7 @@ classdef manager < handle
             %   - Provide link to the input signal(s)
             
             
-            % NB: test if index is necessary (to make use of preallocation), remove else
+            % TODO: test if index is necessary (to make use of preallocation), remove else
             if nargin<5||isempty(index)
                 index = size(mObj.Processors,1)+1;
             end
