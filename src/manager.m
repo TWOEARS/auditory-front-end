@@ -1387,6 +1387,23 @@ classdef manager < handle
             
         end
         
+        function cleanup(mObj)
+            %CLEANUP  Clears the list of processors from handles to deleted processors
+            
+            %N.B.: We cannot use cellfun here as some elements of the .Processors array
+            %are empty (e.g. when using binaural processors)
+            
+            % Loop through all elements to remove invalid handles
+            for ii = 1:numel(mObj.Processors)
+                if ~isempty(mObj.Processors{ii}) && ~isvalid(mObj.Processors{ii})
+                    mObj.Processors{ii} = [];
+                end
+            end
+            
+            % Removes whole lines of empty elements from the list
+            mObj.Processors( all( cellfun( @isempty, mObj.Processors), 2), : ) = [];
+            
+        end
         
         function reset(mObj)
             %reset  Resets the internal states of all instantiated processors

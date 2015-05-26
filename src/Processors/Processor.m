@@ -261,6 +261,8 @@ classdef Processor < handle
 
         end
         
+        
+        
     end
     
     methods (Access=protected)
@@ -288,6 +290,21 @@ classdef Processor < handle
             
         end
         
+        function removeUpperDependency(pObj,upperProc)
+            %REMOVEUPPERDEPENDENCY   Removes a processor from the upper dependency list
+            
+            for ii = 1:size(pObj.UpperDependencies,2)
+                if pObj.UpperDependencies{ii} == upperProc
+                    pObj.UpperDependencies{ii} = [];
+                end
+            end
+            
+            % Clean up empty elements
+            pObj.UpperDependencies = ...
+                pObj.UpperDependencies( ~cellfun( @isempty, pObj.UpperDependencies ));
+            
+        end
+        
         function addLowerDependencies(pObj,dependentProcs)
             %ADDLOWERDEPENDENCIES   Populate link to lower processors this one relies on.
             % Likewise, will will add the current processor as an upper dependency in
@@ -305,8 +322,25 @@ classdef Processor < handle
             
             % Add modify and delete listeners to the lower dependent processor
             pObj.listenToModify = addlistener(proc,'hasChanged',@pObj.update);
+            pObj.listenToModify = addlistener(proc,'isDeleted',@pObj.remove);
             
             
+            
+        end
+        
+        function removeHandleInLowerDependencies(pObj)
+            %REMOVEHANDLEINLOWERDEPENDENCY  Removes the processor from the upper
+            %dependencies list of its dependencies
+            
+            try
+                for ii = 1:size(pObj.LowerDependencies,2)
+                    if isvalid(pObj.LowerDependencies{ii})
+                        pObj.LowerDependencies{ii}.removeUpperDependency(pObj);
+                    end
+                end
+            catch
+                disp(['Processor ' pObj.Type ' is causing trouble!'])
+            end
             
         end
         
@@ -551,6 +585,47 @@ classdef Processor < handle
             notify(pObj,'hasChanged');
             
         end
+        
+        function remove(pObj,~,~)
+            %REMOVE Prepares for deleting the processor
+            % REMOVE will remove all the processor references in the framework, which
+            % terminates the scope of the handle therefore calling the processor .delete
+            % method.
+            %
+            %N.B.: If the user has stored an additional handle to this processor, then the
+            %processor won't be deleted as it will not go out of scope. Is there a
+            %solution to this?
+            
+            % Remove the reference from any dependency list
+            
+            % Upper dependencies will be removed as well, so no need for cleanup there
+            pObj.removeHandleInLowerDependencies;
+            
+            % NB: Having the notification sent in an overridden (augmented) delete method
+            % will cause errors when clearing the workspace. Possibly due to the order in
+            % which Matlab calls all destructors when clearing up.
+            notify(pObj,'isDeleted');
+            
+            % Delete the processor
+            pObj.delete();
+            
+            
+            
+        end
+        
+%         function delete(pObj)
+%             %DELETE Augments the handle delete method to send a delete notification
+%             %
+%             %NB: DELETE is a particular case, in that it augments the parent's delete but
+%             %does not override it when defined as such. Hence, no need to take care of the
+%             %actual deletion here.
+            
+%             % Commented out here, as placing the notification in a custom destructor 
+%             % causes problems when "clear all" is called 
+%             
+%             notify(pObj,'isDeleted');
+%             
+%         end
         
     end
 
