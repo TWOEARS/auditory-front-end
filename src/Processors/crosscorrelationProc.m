@@ -60,11 +60,7 @@ classdef crosscorrelationProc < Processor
             
             if nargin>0     % Safeguard for Matlab empty calls
             
-                pObj.wSize = 2*round(pObj.parameters.map('cc_wSizeSec')*pObj.FsHzIn/2);
-                pObj.hSize = round(pObj.parameters.map('cc_hSizeSec')*pObj.FsHzIn);
-                pObj.win = window(pObj.parameters.map('cc_wname'),pObj.wSize);
                 pObj.do_mex = do_mex;
-                pObj.FsHzOut = 1/(pObj.hSizeSec);
                 
                 % Initialize buffers
                 pObj.buffer_l = [];
@@ -193,11 +189,21 @@ classdef crosscorrelationProc < Processor
              
         end
         
-        function verifyParameters(pObj)
-            % Add missing/default parameter values
-            pObj.extendParameters
-        end
+    end
+    
+    methods (Hidden = true)
         
+        function prepareForProcessing(pObj)
+            
+            % Compute internal parameters
+            pObj.wSize = 2*round(pObj.parameters.map('cc_wSizeSec')*pObj.FsHzIn/2);
+            pObj.hSize = round(pObj.parameters.map('cc_hSizeSec')*pObj.FsHzIn);
+            pObj.win = window(pObj.parameters.map('cc_wname'),pObj.wSize);
+            % Output sampling frequency
+            pObj.FsHzOut = 1/(pObj.hSizeSec);
+        
+        end
+            
     end
     
     % "Getter" methods

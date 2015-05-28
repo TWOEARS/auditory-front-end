@@ -69,10 +69,6 @@ classdef Processor < handle
             %
             % TO DO: This might take additional input arguments. TBD
             
-        verifyParameters(pObj)
-            % This method is called at instantiation of the processor, to verify that the
-            % provided parameters are valid, correct conflicts if needed, and add default 
-            % values to parameters missing in the list.
             
     end
     
@@ -92,7 +88,7 @@ classdef Processor < handle
             pObj.FsHzOut = fsOut;
 %             pObj.Dependencies = feval([procName '.getDependency']);
             
-%             pObj.extendParameters;
+            pObj.extendParameters;
             pObj.verifyParameters;
             
             end
@@ -261,8 +257,6 @@ classdef Processor < handle
 
         end
         
-        
-        
     end
     
     methods (Access=protected)
@@ -278,7 +272,14 @@ classdef Processor < handle
             
         end
         
-
+        
+        function verifyParameters(~)
+            % This method is called at setup of a processor parameters, to verify that the
+            % provided parameters are valid, and correct conflicts if needed.
+            % Not needed by many processors, hence is not made abstract, but need to be
+            % overriden in processors where it is needed.
+        end
+        
     end
     
     methods (Hidden = true)
@@ -613,19 +614,26 @@ classdef Processor < handle
             
         end
         
-%         function delete(pObj)
-%             %DELETE Augments the handle delete method to send a delete notification
-%             %
-%             %NB: DELETE is a particular case, in that it augments the parent's delete but
-%             %does not override it when defined as such. Hence, no need to take care of the
-%             %actual deletion here.
+        function prepareForProcessing(~)
+            %PREPAREFORPROCESSING  Sets up properties depending on outside factors and
+            % internal properties that are not parametrized.
+            %
+            % USAGE:
+            %  pObj.prepareForProcessing;
+            %
+            % This method is called after instantiating and inter-linking the processors
+            % into a processing chain, in order to finalize initialization steps which
+            % depend on outside factors (such as dependent processors) than processor pObj
+            %
+            % It is also called after a processor parameter update. Some processors
+            % include intermediate parameters that could need to be recomputed.
+            %
+            % It is left blank here as many processors do not need this additional step.
+            % If needed, the method should be overriden in specific processors class
+            % definitions.
             
-%             % Commented out here, as placing the notification in a custom destructor 
-%             % causes problems when "clear all" is called 
-%             
-%             notify(pObj,'isDeleted');
-%             
-%         end
+        end
+
         
     end
 

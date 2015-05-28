@@ -55,10 +55,7 @@ classdef onsetMapProc < Processor
             pObj = pObj@Processor(fs,fs,'onsetMapProc',parObj);
             
             if nargin > 0
-    
                 pObj.buffer = [];
-                pObj.fuseWithinSamples = ceil(pObj.fuseWithinSec*fs);
-                
             end
             
         end
@@ -121,13 +118,6 @@ classdef onsetMapProc < Processor
         function reset(pObj)
             pObj.buffer = [];
         end
-            
-        function verifyParameters(pObj)
-            
-            % Add missing/default parameter values
-            pObj.extendParameters
-            
-        end
         
         function output = instantiateOutput(pObj,dObj)
             %INSTANTIATEOUTPUT  Instantiate the output signal for this processor
@@ -149,10 +139,23 @@ classdef onsetMapProc < Processor
             output = {sig};
             
         end
+        
+    end
+    
+    methods (Hidden = true)
+        
+        function prepareForProcessing(pObj)
+            
+            % Compute internal parameter
+            pObj.fuseWithinSamples = ceil(pObj.fuseWithinSec*fs);
+            
+        end
+        
     end
     
     % "Getter" methods
     methods
+        
         function minStrengthdB = get.minStrengthdB(pObj)
             minStrengthdB = pObj.parameters.map('trm_minStrengthdB');            
         end

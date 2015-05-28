@@ -70,12 +70,8 @@ classdef autocorrelationProc < Processor
             
             if nargin>0 % Safeguard for Matlab empty calls
                 
-                pObj.wSize = 2*round(pObj.parameters.map('ac_wSizeSec')*pObj.FsHzIn/2);
-                pObj.hSize = round(pObj.parameters.map('ac_hSizeSec')*pObj.FsHzIn);
-                pObj.win = window(pObj.parameters.map('ac_wname'),pObj.wSize);
                 pObj.do_mex = do_mex;
-                pObj.FsHzOut = 1/(pObj.hSizeSec);
-
+                
                 % Initialize buffer
                 pObj.buffer = [];
             end
@@ -203,11 +199,18 @@ classdef autocorrelationProc < Processor
             pObj.buffer = [];
         end
         
-        function verifyParameters(pObj)
+    end
+    
+    methods (Hidden = true)
+        
+        function prepareForProcessing(pObj)
             
-            % Add missing/default parameter values
-            pObj.extendParameters
-            
+            % Compute internal parameters
+            pObj.wSize = 2*round(pObj.parameters.map('ac_wSizeSec')*pObj.FsHzIn/2);
+            pObj.hSize = round(pObj.parameters.map('ac_hSizeSec')*pObj.FsHzIn);
+            pObj.win = window(pObj.parameters.map('ac_wname'),pObj.wSize);
+            % Output sampling frequency
+            pObj.FsHzOut = 1/(pObj.hSizeSec);
             
         end
         

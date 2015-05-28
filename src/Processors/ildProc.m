@@ -54,11 +54,6 @@ classdef ildProc < Processor
                 % Initializa the buffers
                 pObj.buffer_l = [];
                 pObj.buffer_r = [];
-                
-                pObj.wSize = 2*round(pObj.parameters.map('ild_wSizeSec')*pObj.FsHzIn/2);
-                pObj.hSize = round(pObj.parameters.map('ild_hSizeSec')*pObj.FsHzIn);
-                pObj.win = window(pObj.parameters.map('ild_wname'),pObj.wSize);
-                pObj.FsHzOut = 1/(pObj.hSizeSec);
             end
             
         end
@@ -141,12 +136,19 @@ classdef ildProc < Processor
              
         end
         
-        function verifyParameters(pObj)
+    end
+    
+    methods (Hidden = true)
+        
+        function prepareForProcessing(pObj)
             
-            % Add missing/default parameter values
-            pObj.extendParameters
-            
-            
+            % Compute internal parameters
+            pObj.wSize = 2*round(pObj.parameters.map('ild_wSizeSec')*pObj.FsHzIn/2);
+            pObj.hSize = round(pObj.parameters.map('ild_hSizeSec')*pObj.FsHzIn);
+            pObj.win = window(pObj.parameters.map('ild_wname'),pObj.wSize);
+            % Output sampling frequency
+            pObj.FsHzOut = 1/(pObj.hSizeSec);
+                
         end
         
     end

@@ -60,15 +60,8 @@ classdef ratemapProc < Processor
             
             if nargin>0 % Safeguard for Matlab empty calls
                 
-                pObj.wSize = 2*round(pObj.parameters.map('rm_wSizeSec')*pObj.FsHzIn/2);
-                pObj.hSize = round(pObj.parameters.map('rm_hSizeSec')*pObj.FsHzIn);
-                pObj.win = window(pObj.parameters.map('rm_wname'),pObj.wSize);
                 pObj.do_mex = do_mex;
-                pObj.FsHzOut = 1/(pObj.hSizeSec);
-                
-                % Initialize buffer and filter
                 pObj.buffer = [];
-                pObj.rmFilter = leakyIntegratorFilter(fs,pObj.decaySec);
                 
             end
         end
@@ -184,11 +177,22 @@ classdef ratemapProc < Processor
             
         end
         
-        function verifyParameters(pObj)
+    end
+    
+    methods (Hidden = true)
+        
+        function prepareForProcessing(pObj)
             
-            % Add missing/default parameter values
-            pObj.extendParameters
+            % Compute internal parameters
+            pObj.wSize = 2*round(pObj.parameters.map('rm_wSizeSec')*pObj.FsHzIn/2);
+            pObj.hSize = round(pObj.parameters.map('rm_hSizeSec')*pObj.FsHzIn);
+            pObj.win = window(pObj.parameters.map('rm_wname'),pObj.wSize);
             
+            % Output sampling frequency
+            pObj.FsHzOut = 1/(pObj.hSizeSec);
+
+            % Initialize filter
+            pObj.rmFilter = leakyIntegratorFilter(fs,pObj.decaySec);
             
         end
         

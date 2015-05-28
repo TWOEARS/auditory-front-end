@@ -98,69 +98,6 @@ classdef preProc < Processor
             pObj.isBinaural = true;
             pObj.hasTwoOutputs = true;
             
-            % Specific instantiation
-            if nargin > 0
-                % Filter instantiation (if needed)
-            if pObj.bRemoveDC
-                pObj.dcFilter_l = bwFilter(fs,4,pObj.cutoffHzDC,[],'high');
-                pObj.dcFilter_r = bwFilter(fs,4,pObj.cutoffHzDC,[],'high');
-            else
-                pObj.dcFilter_l = [];
-                pObj.dcFilter_r = [];
-            end
-            
-            if pObj.bPreEmphasis
-                pObj.preEmphFilter_l = genericFilter([1 -abs(pObj.coefPreEmphasis)],1,fs);
-                pObj.preEmphFilter_r = genericFilter([1 -abs(pObj.coefPreEmphasis)],1,fs);
-            else
-                pObj.preEmphFilter_l = [];
-                pObj.preEmphFilter_r = [];
-            end
-            
-            if pObj.bNormalizeRMS
-                a = [1 -exp(-1/(pObj.intTimeSecRMS*fs))];
-                b = sum(a);
-                pObj.agcFilter_l = genericFilter(b,a,fs);
-                pObj.agcFilter_r = genericFilter(b,a,fs);
-            else
-                pObj.agcFilter_l = [];
-                pObj.agcFilter_r = [];
-            end
-            
-            if pObj.bMiddleEarFiltering
-                switch pObj.middleEarModel
-                    case 'jepsen'
-                        model = 'jepsenmiddleear';
-                    otherwise
-                        model = pObj.middleEarModel;
-                end
-                a = 1;
-                b = middleearfilter(fs, model);
-                pObj.midEarFilter_l = genericFilter(b,a,fs);
-                pObj.midEarFilter_r = genericFilter(b,a,fs);
-            else
-                pObj.midEarFilter_l = [];
-                pObj.midEarFilter_r = [];
-            end
-                
-            end
-                
-            
-            
-%             pObj.bRemoveDC = p.pp_bRemoveDC;
-%             pObj.cutoffHzDC = p.pp_cutoffHzDC;
-%             pObj.bPreEmphasis = p.pp_bPreEmphasis;
-%             pObj.coefPreEmphasis = p.pp_coefPreEmphasis;
-%             pObj.bNormalizeRMS = p.pp_bNormalizeRMS;
-%             pObj.bBinauralRMS = p.pp_bBinauralRMS;
-%             pObj.intTimeSecRMS = p.pp_intTimeSecRMS;
-%             pObj.bLevelScaling = p.pp_bLevelScaling;
-%             pObj.refSPLdB = p.pp_refSPLdB;
-%             pObj.bMiddleEarFiltering = p.pp_bMiddleEarFiltering;
-%             pObj.middleEarModel = p.pp_middleEarModel;
-%             % Do we need the following?
-%             pObj.bUnityComp = p.pp_bUnityComp;
-            
         end
         
         function [out_l, out_r] = processChunk(pObj,in_l,in_r)
@@ -284,10 +221,11 @@ classdef preProc < Processor
             
         end
     
+    end
+    
+    methods (Access=protected)
+        
         function verifyParameters(pObj)
-            
-            % Add missing parameter values
-            pObj.extendParameters;
             
             % TODO: Add more? e.g., what follows
 %             if numel(p.pp_refSPLdB)>2
@@ -304,8 +242,6 @@ classdef preProc < Processor
                 pObj.meFilterPeakdB = 0;
             end
         end
-            
-        
         
     end
     
@@ -364,6 +300,53 @@ classdef preProc < Processor
             
             if ~isempty(out_r)
                 pObj.Output{2}.appendChunk(out_r);
+            end
+            
+        end
+        
+        function prepareForProcessing(pObj)
+            
+            % Filter instantiation (if needed)
+            if pObj.bRemoveDC
+                pObj.dcFilter_l = bwFilter(fs,4,pObj.cutoffHzDC,[],'high');
+                pObj.dcFilter_r = bwFilter(fs,4,pObj.cutoffHzDC,[],'high');
+            else
+                pObj.dcFilter_l = [];
+                pObj.dcFilter_r = [];
+            end
+            
+            if pObj.bPreEmphasis
+                pObj.preEmphFilter_l = genericFilter([1 -abs(pObj.coefPreEmphasis)],1,fs);
+                pObj.preEmphFilter_r = genericFilter([1 -abs(pObj.coefPreEmphasis)],1,fs);
+            else
+                pObj.preEmphFilter_l = [];
+                pObj.preEmphFilter_r = [];
+            end
+            
+            if pObj.bNormalizeRMS
+                a = [1 -exp(-1/(pObj.intTimeSecRMS*fs))];
+                b = sum(a);
+                pObj.agcFilter_l = genericFilter(b,a,fs);
+                pObj.agcFilter_r = genericFilter(b,a,fs);
+            else
+                pObj.agcFilter_l = [];
+                pObj.agcFilter_r = [];
+            end
+            
+            if pObj.bMiddleEarFiltering
+                switch pObj.middleEarModel
+                    case 'jepsen'
+                        model = 'jepsenmiddleear';
+                    otherwise
+                        model = pObj.middleEarModel;
+                end
+                a = 1;
+                b = middleearfilter(fs, model);
+                pObj.midEarFilter_l = genericFilter(b,a,fs);
+                pObj.midEarFilter_r = genericFilter(b,a,fs);
+            else
+                pObj.midEarFilter_l = [];
+                pObj.midEarFilter_r = [];
             end
             
         end

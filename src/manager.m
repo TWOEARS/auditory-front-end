@@ -1554,6 +1554,9 @@ classdef manager < handle
                 newProcessor.addLowerDependencies(dependencies);
             end
             
+            % Finalize processor initialization
+            newProcessor.prepareForProcessing;
+            
             % Instantiate and integrate new output signal
             output = newProcessor.instantiateOutput(mObj.Data);
             newProcessor.addOutput(output);

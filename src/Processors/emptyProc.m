@@ -24,9 +24,6 @@ classdef emptyProc < Processor
             % Nothing to reset here
         end
         
-        function verifyParameters(pObj) %#ok<MANU>
-            % This processor has no parameters to verify
-        end
         
     end
     

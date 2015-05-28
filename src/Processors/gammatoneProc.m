@@ -90,8 +90,7 @@ classdef gammatoneProc < Processor
             pObj = pObj@Processor(fs,fs,'gammatoneProc',parObj);
             
             if nargin>0 && ~isempty(fs)
-                % Instantiate filters
-                pObj.Filters = pObj.populateFilters;
+                
             end
         end
         
@@ -161,13 +160,20 @@ classdef gammatoneProc < Processor
             
         end
         
+        function bInBranch = isSuitableForRequest(pObj)
+            if strcmp(pObj.parameters.map('fb_type'),'gammatone')
+                bInBranch = true;
+            else
+                bInBranch = false;
+            end
+        end
+        
+    end
+    
+    methods (Access=protected)
+        
         function verifyParameters(pObj)
-            % This method extends the list of parameters by computing the values of the
-            % missing ones
-            
-            % Add missing parameter values
-            pObj.extendParameters;
-            
+                        
             % Solve the conflicts between center frequencies, number of channels, and
             % distance between channels
             if ~isempty(pObj.parameters.map('fb_cfHz'))
@@ -213,12 +219,15 @@ classdef gammatoneProc < Processor
             
         end
         
-        function bInBranch = isSuitableForRequest(pObj)
-            if strcmp(pObj.parameters.map('fb_type'),'gammatone')
-                bInBranch = true;
-            else
-                bInBranch = false;
-            end
+    end
+    
+    methods (Hidden = true)
+        
+        function prepareForProcessing(pObj)
+            
+            % Instantiate filters
+                pObj.Filters = pObj.populateFilters;
+            
         end
         
     end

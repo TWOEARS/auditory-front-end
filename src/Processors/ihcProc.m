@@ -30,10 +30,6 @@ classdef ihcProc < Processor
              % Call super-constructor
              pObj = pObj@Processor(fs,fs,'ihcProc',parObj);
              
-             if nargin>0
-                pObj.populateFilters;
-             end
-             
          end
          
          function out = processChunk(pObj,in)
@@ -92,10 +88,11 @@ classdef ihcProc < Processor
              end
          end
          
+     end
+      
+     methods (Access=protected)
+         
          function verifyParameters(pObj)
-             
-             % Add missing parameter values
-             pObj.extendParameters;
              
              % Check that the IHC method name is valid
              validMeth = {'none',...
@@ -119,7 +116,7 @@ classdef ihcProc < Processor
          end
          
      end
-      
+     
      methods (Hidden = true)
          
          function update(pObj,~,~)
@@ -135,6 +132,13 @@ classdef ihcProc < Processor
             
          end
         
+         function prepareForProcessing(pObj)
+             
+             % Instantiate the filters
+             pObj.populateFilters;
+             
+         end
+         
      end
      
      methods (Static)

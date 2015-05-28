@@ -44,10 +44,8 @@ classdef offsetProc < Processor
             pObj = pObj@Processor(fs,fs,'offsetProc',parObj);
             
             if nargin>0
-            
                 % Initialize an empty buffer
                 pObj.buffer = [];
-            
             end
             
         end
@@ -94,13 +92,6 @@ classdef offsetProc < Processor
             
             % Reset the buffer
             pObj.buffer = [];
-            
-        end
-            
-        function verifyParameters(pObj)
-            
-            % Add missing/default parameter values
-            pObj.extendParameters
             
         end
         

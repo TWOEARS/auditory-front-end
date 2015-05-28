@@ -45,11 +45,6 @@ classdef itdProc < Processor
             % Call superconstructor
             pObj = pObj@Processor(fs,fs,'itdProc',parObj);
             
-            if nargin>0     % Safeguard for Matlab empty calls
-                % TODO: Find out a better way to access the signal sampling frequency
-                pObj.frameFsHz = [];
-            end
-            
         end
         
         function out = processChunk(pObj,in)
@@ -65,10 +60,6 @@ classdef itdProc < Processor
             %OUTPUT ARGUMENT
             %   out : Corresponding output
             
-            % Get original signal sampling frequency if necessary
-            if isempty(pObj.frameFsHz)
-                pObj.frameFsHz = pObj.LowerDependencies{1}.FsHzIn; 
-            end
             
             % Dimensionality of the input
             [nFrames,nChannels,nLags] = size(in);
@@ -112,13 +103,19 @@ classdef itdProc < Processor
             end
         end
         
-        function reset(pObj)
+        function reset(~)
             % Nothing to reset for this processor
         end
         
-        function verifyParameters(pObj)
-            % Add missing/default parameter values
-            pObj.extendParameters    
+    end
+    
+    methods (Hidden = true)
+        
+        function prepareForProcessing(pObj)
+            
+            % Get original signal sampling frequency to express ITDs in ms
+            pObj.frameFsHz = pObj.LowerDependencies{1}.FsHzIn;
+            
         end
         
     end

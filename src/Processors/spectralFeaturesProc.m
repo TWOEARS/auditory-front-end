@@ -43,6 +43,9 @@ classdef spectralFeaturesProc < Processor
     
     properties (Dependent = true)
         requestList     % Cell array of requested spectral features
+    end
+    
+    properties (SetAccess = private)
         cfHz            % Row vector of audio center frequencies 
     end
     
@@ -99,15 +102,7 @@ classdef spectralFeaturesProc < Processor
             pObj = pObj@Processor(fs,fs,'spectralFeaturesProc',parObj);
             
             if nargin>0
-            
-                % Hard-coded properties (for the moment)
-                pObj.eps = 1E-15;
-                pObj.ro_eps = 1E-10;
-                pObj.bUseInterp = true;
                 
-                pObj.brCF = pObj.parameters.map('sf_brCF');
-                pObj.roPerc = pObj.parameters.map('sf_roPerc');
-            
                 pObj.flux_buffer = [];
                 pObj.var_buffer = [];
             
@@ -336,10 +331,31 @@ classdef spectralFeaturesProc < Processor
             
         end
         
-        function verifyParameters(pObj)
+        function output = instantiateOutput(pObj,dObj)
+            %INSTANTIATEOUTPUT  Instantiate the output signal for this processor
+            %
+            %NB: This method is overloaded here from the master Processor class, as
+            %feature signals need additional input argument to construct
             
-            % Add missing/default parameter values
-            pObj.extendParameters
+            featureNames = pObj.requestList;
+            
+            sig = feval(pObj.getProcessorInfo.outputType, ...
+                        pObj, ...
+                        dObj.bufferSize_s, ...
+                        pObj.Channel,...
+                        [],...
+                        featureNames);
+            
+            dObj.addSignal(sig);
+            
+            output = {sig};
+            
+        end
+    end
+    
+    methods (Access=protected)
+       
+        function verifyParameters(pObj)
             
             % Check request validity...
             
@@ -385,36 +401,32 @@ classdef spectralFeaturesProc < Processor
             
         end
         
-        function output = instantiateOutput(pObj,dObj)
-            %INSTANTIATEOUTPUT  Instantiate the output signal for this processor
-            %
-            %NB: This method is overloaded here from the master Processor class, as
-            %feature signals need additional input argument to construct
+    end
+    
+    methods (Hidden = true)
+        
+        function prepareForProcessing(pObj)
             
-            featureNames = pObj.requestList;
+            % Hard-coded properties (for the moment)
+            pObj.eps = 1E-15;
+            pObj.ro_eps = 1E-10;
+            pObj.bUseInterp = true;
+
+            % Access center frequencies for computing statistics
+            pObj.cfHz = pObj.getDependentParameter('fb_cfHz');
             
-            sig = feval(pObj.getProcessorInfo.outputType, ...
-                        pObj, ...
-                        dObj.bufferSize_s, ...
-                        pObj.Channel,...
-                        [],...
-                        featureNames);
-            
-            dObj.addSignal(sig);
-            
-            output = {sig};
+            % Read private properties from parameters
+            pObj.brCF = pObj.parameters.map('sf_brCF');
+            pObj.roPerc = pObj.parameters.map('sf_roPerc');
             
         end
+        
     end
     
     % "Getter" methods
     methods
         function requestList = get.requestList(pObj)
             requestList = pObj.parameters.map('sf_requests');
-        end
-        
-        function cfHz = get.cfHz(pObj)
-            cfHz = pObj.getDependentParameter('fb_cfHz');
         end
     end
     

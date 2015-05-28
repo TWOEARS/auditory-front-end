@@ -90,14 +90,9 @@ classdef icProc < Processor
             end
         end
         
-        function reset(pObj)
+        function reset(~)
             % Nothing to reset for that processor, but this abstract method
             % has to be implemented to make this class concrete.
-        end
-        
-        function verifyParameters(pObj)
-            % Add missing/default parameter values
-            pObj.extendParameters    
         end
         
     end

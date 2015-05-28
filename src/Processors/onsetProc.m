@@ -47,10 +47,8 @@ classdef onsetProc < Processor
             pObj = pObj@Processor(fs,fs,'onsetProc',parObj);
             
             if nargin>0
-                
                 % Initialize an empty buffer
                 pObj.buffer = [];
-            
             end
             
         end
@@ -99,13 +97,7 @@ classdef onsetProc < Processor
             pObj.buffer = [];
             
         end
-            
-        function verifyParameters(pObj)
-            
-            % Add missing/default parameter values
-            pObj.extendParameters
-            
-        end
+                
     end
     
     % "Getter" methods

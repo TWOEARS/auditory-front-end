@@ -125,92 +125,9 @@ classdef modulationProc < Processor
             pObj = pObj@Processor(fs,[],'modulationProc',parObj);
             
             if nargin>0
-               
-                % Instantiate a down-sampler if needed
-                if pObj.dsRatio > 1
-                    pObj.dsProc = downSamplerProc(fs,pObj.dsRatio,1);
-                end
-                
                 pObj.buffer = [];
-                
-                pObj.fs_ds  = fs / pObj.dsRatio;
-                pObj.blockSize = 2 * round(pObj.blockSec * pObj.fs_ds / 2);
-                
-                pObj.lowFreqHz = pObj.parameters.map('ams_lowFreqHz');
-                pObj.highFreqHz = pObj.parameters.map('ams_highFreqHz');
-
-                % Get filterbank properties
-                if strcmp(pObj.filterType,'lin')
-                    
-                    if isempty(pObj.parameters.map('ams_cfHz'))
-                        % FFT-size
-                        fftFactor = 2;  
-                        pObj.nfft = pow2(nextpow2(fftFactor*pObj.blockSize));
-
-%                         if isempty(lowFreqHz);
-%                             lowFreqHz = 0;
-%                         end
-%                         if isempty(highFreqHz);
-%                             highFreqHz = 400;
-%                         end
-%                         if isempty(nFilters)
-%                             nFilters = 15;
-%                         end
-
-                        % Normalized lower and upper frequencies of the mod. filterbank
-                        fLow  = pObj.lowFreqHz  / pObj.fs_ds;
-                        fHigh = pObj.highFreqHz / pObj.fs_ds;
-                        [pObj.wts,pObj.modCfHz,pObj.mn,pObj.mx] = ...
-                            melbankm(pObj.parameters.map('ams_nFilters'), pObj.nfft, ...
-                                     pObj.fs_ds,fLow,fHigh,'fs');
-                    else
-                        error('The specification of center frequencies is not supported by the FFT-based method')
-                    end
-
-                elseif strcmp(pObj.filterType,'log')
-
-                    % Get center frequencies
-                    if isempty(pObj.parameters.map('ams_cfHz'))
-
-                        pObj.modCfHz = createFreqAxisLog(pObj.lowFreqHz, ...
-                                                         pObj.highFreqHz, ...
-                                                     pObj.parameters.map('ams_nFilters'));
-                    else
-                        % Overwrite frequency range
-                        pObj.modCfHz = pObj.parameters.map('ams_cfHz');
-
-                        pObj.lowFreqHz  = min(cfHz);
-                        pObj.highFreqHz = max(cfHz);
-                    end
-
-                    % Hard-coded filterbank properties
-                    Q = 1;              % Q-factor
-                    use_lp = true;      % Use low-pass filter as lowest filter
-                    use_hp = false;     % Use high-pass for highest filter   
-
-                    % Implement second-order butterworth modulation filterbank
-                    try
-                        [pObj.b,pObj.a,pObj.bw] = createFB_Mod(pObj.fs_ds, pObj.modCfHz, ...
-                                                               Q, use_lp, use_hp);
-                    catch
-                        % Try/catch is used here to avoid an error when generating a dummy
-                        % processor for the hasParameters method.
-                    end
-
-                    % Get bandwidths in hertz
-                    pObj.bw = pObj.bw*(pObj.fs_ds/2);
-                end
-               
-                % Compute framing parameters
-                stepSizeSamples = round(pObj.blockSize / (pObj.blockSec/pObj.stepSec));
-                pObj.overlap    = pObj.blockSize - stepSizeSamples;
-                pObj.win = window(pObj.winName,pObj.blockSize);
-
-                % Output sampling frequency (input was downsampled, and framed)
-                pObj.FsHzOut = pObj.fs_ds/stepSizeSamples;
-
-                
             end
+            
         end
         
         function out = processChunk(pObj,in)
@@ -226,14 +143,6 @@ classdef modulationProc < Processor
             %
             %OUTPUT ARGUMENT:
             %    out : Processor output for that chunk
-            
-            %TODO: Move this out of the processing routine once framework was updated to
-            %allow it
-            % Instantiate the filters if needed
-            if strcmp(pObj.filterType,'log') && isempty(pObj.Filters)
-                pObj.Filters = pObj.populateFilters;
-            end
-            
             
             % Down-sample the input if needed
             if pObj.dsRatio > 1
@@ -363,14 +272,15 @@ classdef modulationProc < Processor
             
         end
         
+    end
+    
+    methods (Access=protected)
+        
         function verifyParameters(pObj)
            
-            % Add missing/default parameter values
-            pObj.extendParameters
-            
             % Check inputs
             if mod(pObj.dsRatio,1)~=0 || pObj.dsRatio < 1
-                error('The down sampling ratio should be a positive integer')
+                error('The down-sampling ratio should be a positive integer')
             end
             
             if ~strcmp(pObj.filterType,'lin') && ~strcmp(pObj.filterType,'log')
@@ -382,6 +292,101 @@ classdef modulationProc < Processor
                 error('Highest modulation center frequency is above Nyquist frequency. Either reduce the downsampling ratio or decrease the upper frequency limit. ')
             end
         end
+        
+    end
+    
+    methods (Hidden = true)
+        
+        function prepareForProcessing(pObj)
+            
+            % Instantiate a down-sampler if needed
+            if pObj.dsRatio > 1
+                pObj.dsProc = downSamplerProc(fs,pObj.dsRatio,1);
+            end
+
+            % Compute internal parameters
+            pObj.fs_ds  = fs / pObj.dsRatio;
+            pObj.blockSize = 2 * round(pObj.blockSec * pObj.fs_ds / 2);
+
+            pObj.lowFreqHz = pObj.parameters.map('ams_lowFreqHz');
+            pObj.highFreqHz = pObj.parameters.map('ams_highFreqHz');
+
+            % Get filterbank properties
+            if strcmp(pObj.filterType,'lin')
+
+                if isempty(pObj.parameters.map('ams_cfHz'))
+                    % FFT-size
+                    fftFactor = 2;  
+                    pObj.nfft = pow2(nextpow2(fftFactor*pObj.blockSize));
+
+%                         if isempty(lowFreqHz);
+%                             lowFreqHz = 0;
+%                         end
+%                         if isempty(highFreqHz);
+%                             highFreqHz = 400;
+%                         end
+%                         if isempty(nFilters)
+%                             nFilters = 15;
+%                         end
+
+                    % Normalized lower and upper frequencies of the mod. filterbank
+                    fLow  = pObj.lowFreqHz  / pObj.fs_ds;
+                    fHigh = pObj.highFreqHz / pObj.fs_ds;
+                    [pObj.wts,pObj.modCfHz,pObj.mn,pObj.mx] = ...
+                        melbankm(pObj.parameters.map('ams_nFilters'), pObj.nfft, ...
+                                 pObj.fs_ds,fLow,fHigh,'fs');
+                else
+                    error('The specification of center frequencies is not supported by the FFT-based method')
+                end
+
+            elseif strcmp(pObj.filterType,'log')
+
+                % Get center frequencies
+                if isempty(pObj.parameters.map('ams_cfHz'))
+
+                    pObj.modCfHz = createFreqAxisLog(pObj.lowFreqHz, ...
+                                                     pObj.highFreqHz, ...
+                                                 pObj.parameters.map('ams_nFilters'));
+                else
+                    % Overwrite frequency range
+                    pObj.modCfHz = pObj.parameters.map('ams_cfHz');
+
+                    pObj.lowFreqHz  = min(cfHz);
+                    pObj.highFreqHz = max(cfHz);
+                end
+
+                % Hard-coded filterbank properties
+                Q = 1;              % Q-factor
+                use_lp = true;      % Use low-pass filter as lowest filter
+                use_hp = false;     % Use high-pass for highest filter   
+
+                % Implement second-order butterworth modulation filterbank
+                try
+                    [pObj.b,pObj.a,pObj.bw] = createFB_Mod(pObj.fs_ds, pObj.modCfHz, ...
+                                                           Q, use_lp, use_hp);
+                catch
+                    % Try/catch is used here to avoid an error when generating a dummy
+                    % processor for the hasParameters method.
+                end
+
+                % Get bandwidths in hertz
+                pObj.bw = pObj.bw*(pObj.fs_ds/2);
+                
+                % Instantiate the filters
+                pObj.Filters = pObj.populateFilters;
+                
+            end
+
+            % Compute framing parameters
+            stepSizeSamples = round(pObj.blockSize / (pObj.blockSec/pObj.stepSec));
+            pObj.overlap    = pObj.blockSize - stepSizeSamples;
+            pObj.win = window(pObj.winName,pObj.blockSize);
+
+            % Output sampling frequency (input was downsampled, and framed)
+            pObj.FsHzOut = pObj.fs_ds/stepSizeSamples;
+            
+        end
+        
     end
     
     % "Getter" methods

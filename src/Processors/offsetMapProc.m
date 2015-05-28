@@ -55,10 +55,7 @@ classdef offsetMapProc < Processor
             pObj = pObj@Processor(fs,fs,'offsetMapProc',parObj);
             
             if nargin > 0
-    
                 pObj.buffer = [];
-                pObj.fuseWithinSamples = ceil(pObj.fuseWithinSec*fs);
-                
             end
             
         end
@@ -122,13 +119,6 @@ classdef offsetMapProc < Processor
             pObj.buffer = [];
         end
             
-        function verifyParameters(pObj)
-            
-            % Add missing/default parameter values
-            pObj.extendParameters
-            
-        end
-        
         function output = instantiateOutput(pObj,dObj)
             %INSTANTIATEOUTPUT  Instantiate the output signal for this processor
             %
@@ -147,6 +137,17 @@ classdef offsetMapProc < Processor
             dObj.addSignal(sig);
             
             output = {sig};
+            
+        end
+        
+    end
+    
+    methods (Hidden = true)
+        
+        function prepareForProcessing(pObj)
+            
+            % Compute internal parameter
+            pObj.fuseWithinSamples = ceil(pObj.fuseWithinSec*fs);
             
         end
         

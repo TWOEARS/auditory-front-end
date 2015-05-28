@@ -76,18 +76,8 @@ classdef gaborProc < Processor
             
         end
         
-        function reset(pObj)
+        function reset(~)
             % Nothing to reset for that processor at the moment..
-            
-        end
-        
-        function verifyParameters(pObj)
-           
-            % Add missing/default parameter values
-            pObj.extendParameters
-            
-            % Check inputs
-            
         end
         
         function output = instantiateOutput(pObj,dObj)
@@ -116,6 +106,17 @@ classdef gaborProc < Processor
             output = {sig};
             
         end
+    end
+    
+    methods (Access=protected)
+        
+        function verifyParameters(~)
+           
+            % TODO: This implementation is designed to function only on ratemaps computed
+            % with a given window size/overlap. 
+            
+        end
+        
     end
     
     % "Getter" methods

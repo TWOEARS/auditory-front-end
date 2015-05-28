@@ -12,10 +12,6 @@ classdef identityProc < Processor
             
             pObj = pObj@Processor(fs,fs,'identityProc',parObj);
             
-%             pObj.Type = 'Empty processor';
-%             pObj.FsHzIn = fs;
-%             pObj.FsHzOut = fs;
-
             % Hide the processor from the list of processors
             pObj.bHidden = 1;
         end
@@ -24,14 +20,10 @@ classdef identityProc < Processor
             out = in;
         end
         
-        function reset(pObj) %#ok<MANU>
+        function reset(~)
             % Nothing to reset here
         end
-        
-        function verifyParameters(pObj) %#ok<MANU>
-            % This processor has no parameters to verify
-        end
-        
+                
     end
     
     methods (Static)
