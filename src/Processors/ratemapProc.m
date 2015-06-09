@@ -192,7 +192,7 @@ classdef ratemapProc < Processor
             pObj.FsHzOut = 1/(pObj.hSizeSec);
 
             % Initialize filter
-            pObj.rmFilter = leakyIntegratorFilter(fs,pObj.decaySec);
+            pObj.rmFilter = leakyIntegratorFilter(pObj.FsHzIn,pObj.decaySec);
             
         end
         

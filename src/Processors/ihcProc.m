@@ -121,8 +121,8 @@ classdef ihcProc < Processor
          
          function update(pObj,~,~)
             % Overloading the update method for that processor, for testing purposes
-            disp(['I am ' pObj.Type ', and I will not display the same message as the ' ...
-                'others because my update method is overloaded!'])
+            %disp(['I am ' pObj.Type ', and I will not display the same message as the ' ...
+            %   'others because my update method is overloaded!'])
             
             % Update means reset
             pObj.reset;

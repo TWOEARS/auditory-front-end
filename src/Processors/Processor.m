@@ -244,16 +244,44 @@ classdef Processor < handle
         
         function modifyParameter(pObj,parName,newValue)
             %MODIFYPARAMETER Requests a change of value of one parameter
-            % Implementation TBD
+            %
+            % USAGE:
+            %   pObj.modifyParameter('name',value)
+            %
+            % INPUT ARGUMENTS
+            %   pObj : Processor instance
+            % 'name' : Parameter name
+            %  value : New parameter value
+            %
+            % SEE ALSO: parameterHelper.m
             
             
-            % Change the parameter
-            
-            % ... TBD ...
-            
-            % Reset the processor internal states and notify listeners
-            pObj.reset;
-            notify(pObj,'hasChanged');
+            if ~ismember(parName,Processor.blacklistedParameters) 
+                
+                % Check that parName is a parameter of this processor
+                if pObj.parameters.map.isKey(parName)
+                
+                    % Change the parameter value
+                    pObj.parameters.map(parName) = newValue;
+                    
+                    % Solve parameter conflicts and update internal values
+                    pObj.verifyParameters;
+                    pObj.prepareForProcessing;
+                    
+                    % Reset the processor internal states and notify listeners
+                    pObj.reset;
+                    notify(pObj,'hasChanged');
+                
+                else
+                    warning(['Parameter ' parName ' is not a parameter '...
+                        'of this processor'])
+                end
+                
+            else
+                % This specific parameter is blacklisted for modification due to technical
+                % limitations
+                warning(['Cannot modify ' parName '. Consider making a new request.'])
+            end
 
         end
         
@@ -271,7 +299,6 @@ classdef Processor < handle
             pObj.parameters.updateWithDefault(class(pObj));
             
         end
-        
         
         function verifyParameters(~)
             % This method is called at setup of a processor parameters, to verify that the
@@ -577,7 +604,7 @@ classdef Processor < handle
             % overloaded in children class definitions.
             
             % Display a message for testing purpose
-            disp([pObj.Type ' was reseted due to an update in ' procRequestingUpdate.Type])
+            %disp([pObj.Type ' was reseted due to an update in ' procRequestingUpdate.Type])
             
             % Update means reset
             pObj.reset;
@@ -886,6 +913,24 @@ classdef Processor < handle
             
         end
         
+        function blackList = blacklistedParameters()
+            % Returns the list of parameters that cannot be affected in real-time. Most
+            % (all) of them cannot be modified as they involve a change in dimension of
+            % the output signal. A work-around allowing changes in dimension might be
+            % implemented in the future but remains a technical challenge at the moment.
+            %
+            % To modify one of these parameters, the corresponding processor should be
+            % deleted and a new one, with the new parameter value, instantiated via a 
+            % user request.
+            
+            
+            blackList = {   'fb_type',...   % Cannot change auditory filterbank on the fly
+                            'fb_lowFreqHz',...
+                            'fb_highFreqHz',...
+                            'fb_nERBs',...
+                            'fb_cfHz'};
+            
+        end
         
         
     end

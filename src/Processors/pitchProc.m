@@ -222,7 +222,7 @@ classdef pitchProc < Processor
             
             % Compute internal parameters
             bufferDurSec = 5;   % Maximum confidence is taken in the past 5 seconds
-            pObj.maxConfBuf = circVBuf(bufferDurSec*fs,1);
+            pObj.maxConfBuf = circVBuf(bufferDurSec*pObj.FsHzIn,1);
             pObj.maxConf = circVBufArrayInterface(pObj.maxConfBuf);
             pObj.lags = pObj.getDependentProperty('lags');
             

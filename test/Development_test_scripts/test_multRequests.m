@@ -7,7 +7,7 @@ clc
 
 
 % Which demo(s) to run:
-demo = [1 2 3 4];
+demo = [4];
 
 % Load a signal
 load('TestBinauralCues');
@@ -160,8 +160,8 @@ mObj = manager(dObj);
 mObj.processSignal
 
 % Plot the results from the provided signal handles
-h1 = out1.plot;
-h2 = out2.plot;
+h1 = out1{1}.plot;
+h2 = out2{1}.plot;
 h3 = out3{1}.plot;  % out3 is a ratemap, hence it is a cell array with left and right channels
 
 % Position the figures

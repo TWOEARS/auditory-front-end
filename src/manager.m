@@ -193,7 +193,6 @@ classdef manager < handle
                     if size(mObj.Processors,2) == 2 && ~isempty(mObj.Processors{jj,2})
                         mObj.Processors{jj,2}.initiateProcessing;
                     end
-                    % TODO: Adapt to stereo
                     
 %                     if ~mObj.Processors{jj,1}.isBinaural
 %                         % Apply processing for left channel (or mono if
@@ -285,68 +284,80 @@ classdef manager < handle
             for ii = 1:n_proc
                 % Get index of current processor
                 jj = mObj.Map(ii);
-                
-                if ~mObj.Processors{jj,1}.isBinaural
-                    % Apply processing for left channel (or mono if
-                    % interaural cue/feature):
 
-                    % Getting input signal handle (for code readability)
-                    in = mObj.InputList{jj,1};
+                mObj.Processors{jj,1}.initiateProcessing;
 
-                    % Perform the processing
-                    out = mObj.Processors{jj,1}.processChunk(in.Data('new'));
-
-                    % Store the result
-                    mObj.OutputList{jj,1}.appendChunk(out);
-
-                    % Apply similarly for right channel if binaural cue/feature
-                    if mObj.Data.isStereo && ~isempty(mObj.Processors{jj,2})
-                        in = mObj.InputList{jj,2};
-                        out = mObj.Processors{jj,2}.processChunk(in.Data('new'));
-                        mObj.OutputList{jj,2}.appendChunk(out);
-                    end
-                    
-                else
-                    % Inputs from left AND right channels are needed at
-                    % once
-                    
-                    % Getting input signal handles for both channels
-                    in_l = mObj.InputList{jj,1};
-                    
-                    if ~mObj.Processors{jj,1}.hasTwoOutputs
-                        
-                        in_r = mObj.InputList{jj,2};
-                        
-                        % Perform the processing
-                        out = mObj.Processors{jj,1}.processChunk(...
-                            in_l.Data('new'),...
-                            in_r.Data('new'));
-
-                        % Store the result
-                        mObj.OutputList{jj,1}.appendChunk(out);
-                    else
-                        
-                        if size(mObj.InputList,2)>1
-                            in_r = mObj.InputList{jj,2};
-                            
-                            % Perform the processing
-                            [out_l, out_r] = mObj.Processors{jj,1}.processChunk(...
-                                in_l.Data('new'),...
-                                in_r.Data('new'));
-                        else
-                            % Perform the processing
-                            [out_l, out_r] = mObj.Processors{jj,1}.processChunk(...
-                                in_l.Data('new'));
-                        end
-
-                        % Store the result
-                        mObj.OutputList{jj,1}.appendChunk(out_l);
-                        
-                        if ~isempty(out_r)
-                            mObj.OutputList{jj,2}.appendChunk(out_r);
-                        end
-                    end
+                if size(mObj.Processors,2) == 2 && ~isempty(mObj.Processors{jj,2})
+                    mObj.Processors{jj,2}.initiateProcessing;
                 end
+            end
+            
+            % Loop on each processor
+%             for ii = 1:n_proc
+%                 % Get index of current processor
+%                 jj = mObj.Map(ii);
+%                 
+%                 if ~mObj.Processors{jj,1}.isBinaural
+%                     % Apply processing for left channel (or mono if
+%                     % interaural cue/feature):
+% 
+%                     % Getting input signal handle (for code readability)
+%                     in = mObj.InputList{jj,1};
+% 
+%                     % Perform the processing
+%                     out = mObj.Processors{jj,1}.processChunk(in.Data('new'));
+% 
+%                     % Store the result
+%                     mObj.OutputList{jj,1}.appendChunk(out);
+% 
+%                     % Apply similarly for right channel if binaural cue/feature
+%                     if mObj.Data.isStereo && ~isempty(mObj.Processors{jj,2})
+%                         in = mObj.InputList{jj,2};
+%                         out = mObj.Processors{jj,2}.processChunk(in.Data('new'));
+%                         mObj.OutputList{jj,2}.appendChunk(out);
+%                     end
+%                     
+%                 else
+%                     % Inputs from left AND right channels are needed at
+%                     % once
+%                     
+%                     % Getting input signal handles for both channels
+%                     in_l = mObj.InputList{jj,1};
+%                     
+%                     if ~mObj.Processors{jj,1}.hasTwoOutputs
+%                         
+%                         in_r = mObj.InputList{jj,2};
+%                         
+%                         % Perform the processing
+%                         out = mObj.Processors{jj,1}.processChunk(...
+%                             in_l.Data('new'),...
+%                             in_r.Data('new'));
+% 
+%                         % Store the result
+%                         mObj.OutputList{jj,1}.appendChunk(out);
+%                     else
+%                         
+%                         if size(mObj.InputList,2)>1
+%                             in_r = mObj.InputList{jj,2};
+%                             
+%                             % Perform the processing
+%                             [out_l, out_r] = mObj.Processors{jj,1}.processChunk(...
+%                                 in_l.Data('new'),...
+%                                 in_r.Data('new'));
+%                         else
+%                             % Perform the processing
+%                             [out_l, out_r] = mObj.Processors{jj,1}.processChunk(...
+%                                 in_l.Data('new'));
+%                         end
+% 
+%                         % Store the result
+%                         mObj.OutputList{jj,1}.appendChunk(out_l);
+%                         
+%                         if ~isempty(out_r)
+%                             mObj.OutputList{jj,2}.appendChunk(out_r);
+%                         end
+%                     end
+%                 end
                 
 %                 % Getting input signal handle (for code readability)
 %                 in = mObj.InputList{jj};
@@ -357,7 +368,7 @@ classdef manager < handle
 %                 % Store the result
 %                 mObj.OutputList{jj}.appendChunk(out);
                 
-            end
+            
         end
         
         function hProc = hasProcessor(mObj,name,p,channel)

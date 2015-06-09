@@ -175,8 +175,7 @@ classdef Parameters < handle
             end
             
         end
-            
-        
+         
         function parObjCopy = copy(parObj)
             %copy   Returns a new parameter object containing the same information
             %
