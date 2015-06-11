@@ -40,7 +40,7 @@ dObj = dataObject([],fsHz,10,1);
 mObj = manager(dObj);
 
 % Add the request
-s = mObj.addProcessor({request 'pitch'},p);
+[s pitch] = mObj.addProcessor({request 'pitch'},p);
 
 
 %% Processing
@@ -89,3 +89,9 @@ linkaxes([h1 h2],'x')
 xlabel('Time (s)','fontsize',12)
 ylabel(parName,'fontsize',12,'interpreter','none')
 set(gca,'YLim',[0 1.1*max(range)])
+
+dObj.autocorrelation{1}.plot;  
+% ylim([0 0.02])
+% hold on
+dObj.pitch{1}.plot%(h3,'pitch')%,'pitchRange',mObj.Processors{6}.pitchRangeHz,...
+                              %   'lagDomain',1);

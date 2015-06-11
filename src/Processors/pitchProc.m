@@ -78,6 +78,13 @@ classdef pitchProc < Processor
             % Input size
             [nFrames,nLags] = size(sacf);
             
+            % Restrict lags to plausible pitch range (only for first call)
+            if isempty(pObj.bValidLags)
+                rangeLagSec = 1./pObj.pitchRangeHz;
+                pObj.bValidLags = (pObj.lags >= min(rangeLagSec)) & ...
+                    (pObj.lags <= min(max(rangeLagSec),nLags));
+            end
+            
             % Restrict lags to predefined pitch range
             sacf = sacf(:,pObj.bValidLags);
             lagsSec = pObj.lags(pObj.bValidLags);
@@ -226,10 +233,8 @@ classdef pitchProc < Processor
             pObj.maxConf = circVBufArrayInterface(pObj.maxConfBuf);
             pObj.lags = pObj.getDependentProperty('lags');
             
-            % Restrict lags to plausible pitch range (only for first call?)
-            rangeLagSec = 1./pObj.pitchRangeHz;
-            pObj.bValidLags = (pObj.lags >= min(rangeLagSec)) & ...
-                (pObj.lags <= min(max(rangeLagSec),nLags));
+            % Reset the valid lags vector
+            pObj.bValidLags = [];
             
         end
         
