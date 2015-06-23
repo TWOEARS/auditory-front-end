@@ -1,11 +1,11 @@
 classdef Parameters < dynamicprops
     % Help on this class is a work in progress..
     
-    properties (GetAccess = public) % Private?
+    properties (GetAccess = public, Hidden = true) % Private?
         map             % Map container for the parameter values
     end
     
-    properties (GetAccess = public, Dependent = true)
+    properties (GetAccess = public, Dependent = true, Hidden = true)
         description     % Map container for the description of individual parameters
     end
     
