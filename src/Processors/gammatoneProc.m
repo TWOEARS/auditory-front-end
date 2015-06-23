@@ -227,7 +227,6 @@ classdef gammatoneProc < Processor
             
             % Instantiate filters
             pObj.Filters = pObj.populateFilters;
-            disp('Updated my filters')
             
         end
         
