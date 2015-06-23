@@ -1,4 +1,4 @@
-classdef Parameters < handle
+classdef Parameters < dynamicprops
     % Help on this class is a work in progress..
     
     properties (GetAccess = public) % Private?
@@ -38,6 +38,9 @@ classdef Parameters < handle
                     parObj.map(keys{ii}) = values{ii};
                 end
             end
+            
+            % Update dynamic properties
+            parObj.updateProperties;
             
         end
           
@@ -116,6 +119,9 @@ classdef Parameters < handle
                 end
             end
             
+            % Update dynamic properties
+            parObj.updateProperties;
+            
         end
         
         function updateWithDefault(parObj,procName)
@@ -145,6 +151,9 @@ classdef Parameters < handle
                 end
             end
             
+            % Update dynamic properties
+            parObj.updateProperties;
+            
         end
         
         function appendParameters(parObj,newParObj)
@@ -161,6 +170,9 @@ classdef Parameters < handle
                 parObj.map = [parObj.map ; newParObj.map];
             end
             
+            % Update dynamic properties
+            parObj.updateProperties;
+            
         end
         
         function replaceParameters(parObj,newParObj)
@@ -173,6 +185,9 @@ classdef Parameters < handle
                 % Will append a new parameter, or replace its value if already existing
                 parObj.map(keyList{ii}) = newParObj.map(keyList{ii});
             end
+            
+            % Update dynamic properties
+            parObj.updateProperties;
             
         end
          
@@ -189,6 +204,37 @@ classdef Parameters < handle
             %  parObjCopy : Copy of the parameter object
             
             parObjCopy = Parameters(parObj.map.keys, parObj.map.values);
+            
+        end
+        
+    end
+    
+    methods (Access = private)
+        
+        function updateProperties(parObj)
+            
+            n_param = parObj.map.Count;
+            keys = parObj.map.keys;
+            
+            for ii = 1:n_param
+                if ~isprop(parObj,keys{ii})
+                    parObj.addDynProp(keys{ii});
+                end
+            end
+            
+            
+        end
+        
+        function addDynProp(parObj,name)
+            
+            p = parObj.addprop(name);
+            p.GetMethod = @get_method;
+            p.Dependent = true;
+            p.SetAccess = 'private';
+            
+            function value = get_method(parObj)
+                value = parObj.map(name);
+            end
             
         end
         
