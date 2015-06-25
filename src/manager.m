@@ -1303,6 +1303,9 @@ classdef manager < handle
                     if size(initProc,2)==2
                         out{1,1} = initProc{1}.Output{1};
                         out{1,2} = initProc{2}.Output{1};
+                    elseif size(initProc{1}.Output,2) == 2
+                        out{1,1} = initProc{1}.Output{1};
+                        out{1,2} = initProc{1}.Output{2};
                     else
                         out{1} = initProc{1}.Output{1};
                     end
