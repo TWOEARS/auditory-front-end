@@ -1,4 +1,4 @@
-classdef Parameters < dynamicprops
+classdef Parameters < dynamicprops & Hashable
     % Help on this class is a work in progress..
     
     properties (GetAccess = public, Hidden = true) % Private?
@@ -205,6 +205,15 @@ classdef Parameters < dynamicprops
             
             parObjCopy = Parameters(parObj.map.keys, parObj.map.values);
             
+        end
+        
+        function hashMembers = getHashObjects( parObj )
+            % List of parameter names
+            parList = parObj.map.keys;
+            
+            for ii = 1:size(parList,2)
+                hashMembers.(parList{ii}) = parObj.map(parList{ii});
+            end
         end
         
     end
