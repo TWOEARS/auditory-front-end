@@ -3,24 +3,66 @@ classdef Processor < handle
 %   This abstract class defines properties and methods that are shared among all processor
 %   classes of the AFE.
 %
-%   PROCESSOR properties:
-%       Type          - Describes briefly the processing performed
-%       Input         - Handle to input signal
-%       Output        - Handle to output signal
-%       FsHzIn        - Sampling frequency of input (i.e., prior to processing)
-%       FsHzOut       - Sampling frequency of output (i.e., resulting from processing)
-%       Dependencies  - Handle to the processor that generated this processor's input
-%       isBinaural    - Flag indicating the need for two inputs
-%       hasTwoOutputs - Flag indicating the need for two outputs
+%   PROCESSOR public properties:
+%     Type               - Describes briefly the processing performed
 %
-%   PROCESSOR abstract methods (implemented by each subclasses):
-%       processChunk  - Returns the output from the processing of a new chunk of input
-%       reset         - Resets internal states of the processor, if any
-%       hasParameters - Returns true if the processor uses the parameters passed as input
+%   PROCESSOR hidden public properties:
+%     Input              - Handle to input signal
+%     Output             - Handle to output signal
+%     FsHzIn             - Sampling frequency of input (i.e., prior to processing)
+%     FsHzOut            - Sampling frequency of output (i.e., resulting from processing)
+%     LowerDependencies  - List of the processor(s) that generated this processor's input
+%     UpperDependencies  - List of the processor(s) using this processor's output
+%     isBinaural         - Flag indicating the need for two inputs
+%     hasTwoOutputs      - Flag indicating the need for two outputs
+%     Channel            - On which channel (left, right or mono) the processor operates
+%     parameters         - The parameters used by this processor
 %
-%   PROCESSOR methods:
-%       getDependentParameter - Returns the value of a parameter used in a dependency
-%       getCurrentParameters  - Returns the parameter values used by this processor
+%   PROCESSOR events:   (used for feedback implementation)
+%     hasChanged - Notification of a change in the processor
+%     isDeleted  - Notification of incoming deletion of the processor
+%
+%
+%   PROCESSOR abstract methods (to be implemented by each subclasses):
+%     processChunk  - Returns the output from the processing of a new chunk of input
+%     reset         - Resets internal states of the processor, if any
+%       
+%   PROCESSOR public methods:
+%     Processor             - Class constructor
+%     getDependentParameter - Returns the value of a parameter used in a dependency
+%     getDependentProperty  - Returns the value of a property of dependent processors
+%     getCurrentParameters  - Returns the parameter values used by this processor
+%     modifyParameter       - Change the value of a parameter used by the processor
+%
+%   PROCESSOR hidden public methods:
+%     addUpperDependencies            - Add an element to the upper dependencies list
+%     removeUpperDependencies         - Remove an element of the upper dependencies list
+%     addLowerDependencies            - Add an element to the lower dependencies list
+%     removeHandleInLowerDependencies - Remove the processor from its lower dependencies'
+%                                       list of upper dependencies
+%     addInput                        - Add a signal to the input list
+%     addOutput                       - Add a signal to the output list
+%     instantiateOutput               - Instantiate the output of the processor and add it
+%                                       to the Data object
+%     initiateProcessing              - Route I/Os and call the processing
+%     isSuitableForRequest            - Test if this processor is a suitable alternative
+%     update                          - Update the processor following a change of its
+%                                       lower dependency
+%     remove                          - Destroys the processor and notify others
+%     prepareForProcessing            - Perform initialization steps following feedback
+%
+%   PROCESSOR static methods:
+%     processorList              - Return a list of valid processors
+%     requestList                - Return a list of valid user requests
+%     findProcessorFromParameter - Find which processor uses a given parameter
+%     findProcessorFromSignal    - Find which processor generates a given signal
+%     findProcessorFromRequest   - Find which processor corresponds to a given request
+%     chooseAlternativeProcessor - Find which processor is suitable given a request and 
+%                                  a list of alternatives
+%     getDependencyList          - Return a list of processor hierarchy needed for a given
+%                                  processor to be instantiated
+%     blackListedParameters      - Blacklist of parameters that cannot be affected by
+%                                  feedback.
 %
 %   See also Processors (folder)
 
@@ -47,10 +89,6 @@ classdef Processor < handle
         listenToDelete = [];
     end
     
-%     properties (GetAccess = protected)
-%         parameters
-%     end
-    
     events
         hasChanged;
         isDeleted;
@@ -66,9 +104,6 @@ classdef Processor < handle
             % incompatibility with the stored states of the processor is
             % carried out. The method should reset the states of all
             % filters, and reinitialize components of the processor.
-            %
-            % TO DO: This might take additional input arguments. TBD
-            
             
     end
     
@@ -224,21 +259,29 @@ classdef Processor < handle
         end
         
         function hp = hasParameters(pObj,parObj)
-            %TODO: Write h1
+            %HASPARAMETERS Test if the processor uses specific parameters
+            %
+            % USAGE:
+            %  hp = pObj.hasParameters(parObj);
+            %
+            % INPUT ARGUMENTS:
+            %    pObj : Processor instance
+            %  parObj : Parameter object instance
+            %
+            % OUTPUT ARGUMENT:
+            %      hp : Boolean, true if all non-default values in parObj are used by
+            %           pObj, false otherwise.
+            %
+            % N.B: This method will only test for the parameters used by this processor
+            % and will not look into its eventual dependencies.
+            %
+            % See also: genParStruct.m
             
-%             % Extract the parameters related to this processor only
-%             testParameters = parObj.getProcessorParameters(class(pObj));
-%             
-%             % Extend it with the default values for this processor
-%             testParameters.updateWithDefault(class(pObj))
-
             % Instantiate a dummy processor
             dummyProc = feval(class(pObj),1,parObj);
 
             % Compare them with current processor parameters
-%             hp = (pObj.parameters == testParameters);
             hp = (pObj.parameters == dummyProc.parameters);
-            
             
         end
         
