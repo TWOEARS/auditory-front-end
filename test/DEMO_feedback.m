@@ -31,7 +31,7 @@ t = (0:1/fsHz:T)';
 data = 0.5*sin(2*pi*f*t);
 
 % Number of chunks in the signal
-n_chunks = ceil(size(data,1)/chunkSize);
+n_chunks = floor(size(data,1)/chunkSize);
 
 % Zero-pad the signal for online vs. offline direct comparison
 % data = [data;zeros(n_chunks*chunkSize-size(data,1),1)];

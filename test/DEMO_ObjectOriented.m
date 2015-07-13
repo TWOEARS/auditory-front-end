@@ -20,6 +20,7 @@
 
 clear all
 close all
+clc
 
 % Get to correct directory and add working directories to path
 path = fileparts(mfilename('fullpath')); 
@@ -49,7 +50,7 @@ dObj.innerhaircell{1}.plot;
 
 % The object dObj contains all the signals computed in the process as 
 % objects, each having specific methods, e.g.:
-fprintf('%s for %s signal was computed for %i frequency channels.\n',...
+fprintf('\n%s for %s signal was computed for %i frequency channels.\n',...
     dObj.innerhaircell{1}.Label,...
     dObj.innerhaircell{1}.Channel,...
     size(dObj.innerhaircell{1}.cfHz,2))
@@ -58,12 +59,18 @@ fprintf('%s for %s signal was computed for %i frequency channels.\n',...
 % to call them "by reference" instead of Matlab typical "by value",
 % limiting memory usage from duplicates and allowing for using pointers to
 % objects instances instead of duplicates.
-% For example, the input and output lists properties of the manager class
+% For example, the input and output lists properties of each processor
 % (used for routing inputs and outputs) are pointers to the actual
-% input/output signals in the data object:
-mObj.OutputList{1}.plot;
-%mObj.InputList{1}.play      % Uncomment for sound
+% signals in the data object instead of copies:
+if mObj.Processors{2}.Output{1} == dObj.filterbank{1}
+    fprintf(['\nmObj.Processors{2}.Output{1} and dObj.filterbank{1} are ' ...
+          'two handles to the same signal.\n'])
+end
 
+% Having signals implemented as objects allow to attach functions (methods)
+% to them. For example the plotting routines already used above, or a 
+% method to play the sound as below.
+%mObj.Processors{1}.Input{1}.play      % Uncomment for sound
 
 clear dObj mObj data
 
@@ -111,8 +118,8 @@ mObj2 = manager(dObj2,request); % Create a new manager
 mObj2.processSignal;            % Do the processing
 
 % Compute and plot the difference between the two approaches
-delta_ild = TimeFrequencySignal(fsHz,dObj.bufferSize_s,'ild',dObj.ild{1}.cfHz,...
-    'Difference in ILD, chunk vs. signal-based',...
+delta_ild = TimeFrequencySignal.construct(fsHz,dObj.bufferSize_s,'ild',...
+    'Difference in ILD, chunk vs. signal-based',dObj.ild{1}.cfHz,'mono',...
     dObj.ild{1}.Data(:)-dObj2.ild{1}.Data(:));
 delta_ild.plot;
 
