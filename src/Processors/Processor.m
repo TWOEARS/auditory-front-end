@@ -67,31 +67,31 @@ classdef Processor < handle
 %   See also Processors (folder)
 
     properties
-        Type
+        Type    % Processor identifier
     end
     
     properties (Hidden = true)
-        Input = {};
-        Output = {};
-        isBinaural = false;
+        Input = {};             % List of input(s)
+        Output = {};            % List of output(s)
+        isBinaural = false;     
         hasTwoOutputs = false;
-        FsHzIn
-        FsHzOut
-        UpperDependencies = {};
-        LowerDependencies = {};
-        Channel
-        parameters
+        FsHzIn                  % Input sampling frequency (Hz)
+        FsHzOut                 % Output sampling frequency (Hz)
+        UpperDependencies = {}; % List of upper dependencies in the processing tree
+        LowerDependencies = {}; % List of lower dependencies in the processing tree
+        Channel                 % Which channel the processor operates on
+        parameters              % List of parameters used by the processor
     end
 
     properties (GetAccess = private)
-        bHidden = 0;
-        listenToModify = [];
-        listenToDelete = [];
+        bHidden = 0;            % Set to one to hide the processor from the framework
+        listenToModify = [];    % Event listener for modification
+        listenToDelete = [];    % Event listener for deletion
     end
     
     events
-        hasChanged;
-        isDeleted;
+        hasChanged;     % Notifies upper dependencies of a change
+        isDeleted;      % Notifies upper dependencies of an incoming deletion
     end
 
     methods (Abstract = true)
@@ -109,7 +109,16 @@ classdef Processor < handle
     
     methods
         function pObj = Processor(fsIn,fsOut,procName,parObj)
-            %Super-constructor
+            %PROCESSOR Super-constructor of the processor class
+            %
+            % USAGE: 
+            %  pObj = Processor(fsIn,fsOut,procName,parObj)
+            % 
+            % INPUT ARGUMENTS:
+            %      fsIn : Input sampling frequency (Hz)
+            %     fsOut : Output sampling frequency (Hz)
+            %  procName : Name of children processor to implement
+            %    parObj : Parameters instance to use for this processor
             
             if nargin>0
             
@@ -121,8 +130,8 @@ classdef Processor < handle
             pObj.Type = pInfo.name;
             pObj.FsHzIn = fsIn;
             pObj.FsHzOut = fsOut;
-%             pObj.Dependencies = feval([procName '.getDependency']);
             
+            % Extend with default parameters, verify compatibility of parameters
             pObj.extendParameters;
             pObj.verifyParameters;
             
@@ -131,8 +140,8 @@ classdef Processor < handle
         end
         
         function  parValue = getDependentParameter(pObj,parName)
-            %getDependentParameter   Finds the value of a parameter in the
-            %                        list of dependent processors
+            %GETDEPENDENTPARAMETER   Finds the value of a parameter in the list of 
+            % dependent processors
             %
             %USAGE:
             %  parValue = pObj.getDependentParameter(parName)
@@ -176,8 +185,8 @@ classdef Processor < handle
         end
         
         function propValue = getDependentProperty(pObj,propName)
-            %getDependentParameter   Finds the value of a property in the
-            %                        list of dependent processors
+            %GETDEPENDENTPROPERTY   Finds the value of a property in the list of 
+            % dependent processors
             %
             %USAGE:
             %  parValue = pObj.getDependentProperty(propName)
@@ -218,19 +227,19 @@ classdef Processor < handle
         end
         
         function parObj = getCurrentParameters(pObj,bRecursiveList)
-            %getCurrentParameters  This methods returns a list of parameter
+            %GETCURRENTPARAMETERS  This methods returns a list of parameter
             %values used by a given processor.
             %
             %USAGE:
             %   parObj = pObj.getCurrentParameters
-            %   parObj = pObj.getCurrentParameters(full_list)
+            %   parObj = pObj.getCurrentParameters(bRecursiveList)
             %
-            %INPUT PARAMETERS:
+            %INPUT ARGUMENTS:
             %           pObj : Processor object instance
             % bRecursiveList : Set to true to return also the parameter values
             %                  used by parent processors.
             %
-            %OUTPUT PARAMETERS:
+            %OUTPUT ARGUMENTS:
             %   parObj : Parameter object instance
             
             % TODO: Will have to be modified when introducing processors
@@ -640,16 +649,13 @@ classdef Processor < handle
             
         end
         
-        function update(pObj,procRequestingUpdate,~)
+        function update(pObj,~,~)
             %UPDATE Update the processor in response to a change notification
             % This method is called when a lower-dependent processor has been modified, or
             % updated itself. Usually, update means only resetting, but this method can be
             % overloaded in children class definitions.
             
-            % Display a message for testing purpose
-            %disp([pObj.Type ' was reseted due to an update in ' procRequestingUpdate.Type])
-            
-            % Update means reset
+            % Update usually means reset
             pObj.reset;
             
             % Notify possible listeners that there was a modification
@@ -680,8 +686,6 @@ classdef Processor < handle
             % Delete the processor
             pObj.delete();
             
-            
-            
         end
         
         function prepareForProcessing(~)
@@ -704,13 +708,12 @@ classdef Processor < handle
             
         end
 
-        
     end
 
     methods (Static)
        
         function pList = processorList()
-            %Processor.processorList    Returns a list of valid processor object names
+            %Processor.processorList    Returns a list of valid processor names
             %
             %USAGE:
             %  pList = Processor.processorList
@@ -750,7 +753,7 @@ classdef Processor < handle
         end
         
         function list = requestList()
-            %Processor.requestList  Returns a list of supported request names
+            %Processor.requestList  Returns a list of valid request names
             %
             %USAGE:
             %   rList = Processor.requestList
@@ -771,7 +774,8 @@ classdef Processor < handle
         end
         
         function procName = findProcessorFromParameter(parameterName,no_warning)
-            %Processor.findProcessorFromParameter   Finds the processor that uses a given parameter
+            %Processor.findProcessorFromParameter   Finds the processor that uses a 
+            % given parameter
             %
             %USAGE:
             %   procName = Processor.findProcessorFromParameter(parName)
@@ -824,10 +828,9 @@ classdef Processor < handle
             %   signalName : Name of the signal
             %
             %OUTPUT ARGUMENT:
-            %     procName : Name of the processor generating that signal
+            %     procName : Name of the processor generating that signal or cell array of
+            %                names if multiple alternatives
             
-            % TODO: Should be able to return multiple procNames, should there be
-            % alternative processors (e.g. Gammatone vs. DRNL)
             
             procList = Processor.processorList;
             procName = cell(0);
@@ -845,8 +848,6 @@ classdef Processor < handle
                 procName = procName{1};
             end
             
-            
-            
         end
         
         function procName = findProcessorFromRequest(signalName,parObj)
@@ -855,6 +856,15 @@ classdef Processor < handle
             % This method does the same as .findProcessorFromSignal, with the only
             % addition that it will look into the request parameters if multiple
             % processors can generate the signal to find which one should be returned
+            %
+            % USAGE:
+            %  pName = Processor.findProcessorFromRequest(signalName,parObj)
+            % 
+            % INPUT ARGUMENTS:
+            %  signalName : Name of the request
+            %      parObj : Parameter object instance
+            %
+            % See also Processor.findProcessorFromSignal genParStruct.m
             
             procName = Processor.findProcessorFromSignal(signalName);
             
@@ -900,20 +910,23 @@ classdef Processor < handle
         
         function depList = getDependencyList(procName,parObj)
            %getDependencyList   Returns a list of processor names a given processor needs
+           %
+           % USAGE: 
+           %  depList = Processor.getDependencyList(procName,parObj)
+           %
+           % INPUT ARGUMENTS:
+           %   procName : Name of the processor
+           %     parObj : Instance of parameter object
+           %
+           % OUTPUT ARGUMENT:
+           %    depList : List of lower dependencies needed for that processor
            
            depList = cell(0);
-           
-           %TODO: Add a possibility for branching (e.g. Gammatone vs. DRNL) here in the
-           %loop, e.g. via a test on the size of procName. Then call a processor-specific
-           %method that decides based on a parameter object which one should be
-           %instantiated.
            
            if iscell(procName)
                % Multiple processor are possible for that request, find a suitable one
                
                for ii = 1:size(procName,1)
-%                    parCopy = parObj.copy;
-%                    parCopy.updateWithDefault(procName{ii});
                    dummyProc = feval(procName{ii},[],parObj);
                    if dummyProc.isSuitableForRequest
                        procName = procName{ii};
@@ -938,8 +951,6 @@ classdef Processor < handle
                if iscell(procName)
                    % Multiple processor are possible for that request, find a suitable one
                    for ii = 1:size(procName,1)
-%                        parCopy = parObj.copy;
-%                        parCopy.updateWithDefault(procName{ii});
                        dummyProc = feval(procName{ii},[],parObj);
                        if dummyProc.isSuitableForRequest
                            procName = procName{ii};
