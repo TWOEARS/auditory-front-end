@@ -208,7 +208,7 @@ classdef ildProc < Processor
             pInfo = struct;
             
             pInfo.name = 'ILD Extractor';
-            pInfo.label = 'ILD Extractor';
+            pInfo.label = 'Inter-aural Level Difference Extractor';
             pInfo.requestName = 'ild';
             pInfo.requestLabel = 'Inter-aural level difference';
             pInfo.outputType = 'TimeFrequencySignal';

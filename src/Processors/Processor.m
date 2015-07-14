@@ -771,6 +771,8 @@ classdef Processor < handle
                 list{ii} = pInfo.requestName;
             end
             
+            list = sort(unique(list));
+            
         end
         
         function procName = findProcessorFromParameter(parameterName,no_warning)
@@ -922,6 +924,8 @@ classdef Processor < handle
            %    depList : List of lower dependencies needed for that processor
            
            depList = cell(0);
+           
+           if nargin<2||isempty(parObj); parObj = Parameters; end
            
            if iscell(procName)
                % Multiple processor are possible for that request, find a suitable one
