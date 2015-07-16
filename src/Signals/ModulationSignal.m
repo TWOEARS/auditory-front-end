@@ -16,62 +16,48 @@ classdef ModulationSignal < Signal
     
     methods
         
-        function sObj = ModulationSignal(fs,bufferSize_s,name,cfHz,modCfHz,label,data,channel)
-            %ModulationSignal   Constructor for the modulation signal class
+        function sObj = ModulationSignal(procHandle,bufferSize,channel,data)
+            %ModulationSignal  Class constructor
             %
-            %USAGE:
-            %   sObj = ModulationSignal(fs,name)
-            %   sObj = ModulationSignal(fs,name,cfHz,modCfHz,label,data,channel)
+            %USAGE
+            %     sObj = ModulationSignal(procHandle)
+            %     sObj = ModulationSignal(procHandle,bufferSize,channel,data)
             %
-            %INPUT ARGUMENTS:
-            %      fs : Sampling frequency (Hz)
-            %    name : Name tag for the signal, shouldl be compatible with
-            %           variable name syntax.
-            %    cfHz : Audio channel center frequencies (Hz)
-            % modCfHz : Modulation channel center frequencies (Hz)
-            %   label : Label for the signal, to be used e.g. in figures
-            %           (default: label = name)
-            %    data : Data matrix to construct an object from existing
-            %           data. Time should span the first dimension, audio
-            %           frequency the second dimension, and modulation
-            %           frequency the third. Alternatively, audio and
-            %           modulation frequencies can be interleaved in the
-            %           second dimension.
-            %  channel : Flag indicating 'left', 'right', or 'mono'
-            %           (default: channel = 'mono')
+            %INPUT ARGUMENTS
+            % procHandle : Handle to the processor generating this signal as output
+            % bufferSize : Size of the ring buffer in s (default: bufferSize = 10)
+            %    channel : Flag indicating 'left', 'right', or 'mono' (default: 
+            %              channel = 'mono')
+            %       data : Array of amplitudes to construct an object from existing data
             %
-            %OUTPUT ARGUMENT:
-            %    sObj : Instance of modulation signal object
+            %OUTPUT ARGUMENT
+            %  sObj : Modulation signal object inheriting the signal class
             
-            sObj = sObj@Signal(fs,bufferSize_s,[length(cfHz), length(modCfHz)]);
+            if nargin<4; data = []; end
+            if nargin<3||isempty(channel); channel = 'mono'; end
+            if nargin<2||isempty(bufferSize); bufferSize = 10; end
+            if nargin<1||isempty(procHandle); procHandle = emptyProc; end
+            
+            cfHz = procHandle.getDependentParameter('fb_cfHz'); %#ok<PROP>
+            if isprop(procHandle,'modCfHz')
+                modCfHz = procHandle.modCfHz; %#ok<PROP>
+            else
+                modCfHz = []; %#ok<PROP>
+            end
+            
+            sObj = sObj@Signal( procHandle, bufferSize, ...
+                                [length(cfHz) length(modCfHz)]); %#ok<PROP>
             
             if nargin>0     % Safeguard for Matlab empty calls
-               
-            % Check input arguments
-            if nargin<3||isempty(name)
-                name = 'correlation';
-                warning(['A name tag should be assigned to the signal. '...
-                    'The name %s was chosen by default'],name)
-            end
-            if nargin<8; channel = 'mono'; end
-            if nargin<7||isempty(data); data = []; end
-            if nargin<6||isempty(label)
-                label = name;
-            end
-            if nargin<5||isempty(modCfHz); modCfHz = []; end
-            if nargin<4||isempty(cfHz); cfHz = []; end
-            if nargin<1||isempty(fs)
-                fs = [];
-            end
-            
+                
             % Data dimensionality check: if there is a mismatch between
             % provided center frequencies and data dimension, try to
             % transpose the data to fix the problem. If impossible, the
             % provided center frequencies are discarded, data is not
             % transposed, and a warning is issued.
             s = size(data);             % Data dimensions
-            n_f = size(cfHz(:),1);      % Number of audio frequency bins
-            n_fm = size(modCfHz(:),1);  % Number of modulation freq. bins
+            n_f = size(cfHz(:),1);      %#ok<PROP> Number of audio frequency bins 
+            n_fm = size(modCfHz(:),1);  %#ok<PROP> Number of modulation freq. bins
             
             if size(s,2)==2
                 % Add a third dimension to avoid generating an
@@ -80,7 +66,6 @@ classdef ModulationSignal < Signal
             end
             
             % Check for a mismatch
-            
             if ismember(n_f*n_fm,s) && s(3)==0
                 % Then the provided data contained interleaved channels,
                 % need to sort them out
@@ -100,8 +85,8 @@ classdef ModulationSignal < Signal
                 % Then provided center frequencies do not match the data
                 
                 warning('Provided vectors of center frequencies do not match the data, ignoring them')
-                cfHz = [];
-                modCfHz = [];
+                cfHz = [];      %#ok<PROP>
+                modCfHz = [];   %#ok<PROP>
                 
             else
                 % Dimensions matches, but a permutation is required
@@ -127,12 +112,11 @@ classdef ModulationSignal < Signal
             % proper input was provided in this case!
             
             % Populate object properties
-            populateProperties(sObj,'Label',label,'Name',name,...
-                'Dimensions','nSample x nFilters x nModulationFilters');
-            sObj.cfHz = cfHz(:)';
+            sObj.Dimensions = 'nSample x nFilters x nModulationFilters';
+            sObj.cfHz = cfHz(:)';       %#ok<PROP>
             sObj.setData(data);
             sObj.Channel = channel;
-            sObj.modCfHz = modCfHz(:)';
+            sObj.modCfHz = modCfHz(:)'; %#ok<PROP>
                 
             end
             
@@ -159,10 +143,11 @@ classdef ModulationSignal < Signal
             % Manage plotting parameters
             if nargin < 3 || isempty(p) 
                 % Get default plotting parameters
-                p = getDefaultParameters([],'plotting');
+                p = Parameters.getPlottingParameters('TimeFrequencySignal');
             else
-                p.fs = sObj.FsHz;   % Add the sampling frequency to satisfy parseParameters
-                p = parseParameters(p);
+                defaultPar = Parameters.getPlottingParameters('TimeFrequencySignal');
+                defaultPar.replaceParameters(p);
+                p = defaultPar;
             end
             
             % Extract the data from the buffer
@@ -170,7 +155,7 @@ classdef ModulationSignal < Signal
             s = size(data);
             
             % Limit dynamic range of AMS representation
-            maxDynamicRangedB = p.dynrange;
+            maxDynamicRangedB = p.map('dynrange');
 
             % Reshape data to incorporate borders
             rsAMS = permute(data,[3 2 1]);
@@ -212,13 +197,13 @@ classdef ModulationSignal < Signal
             
             % Set color map
             try
-                colormap(p.colormap)
+                colormap(p.map('colormap'))
             catch
-                warning('No colormap %s is available, using ''jet''.',p.colormap)
+                warning('No colormap %s is available, using ''jet''.',p.map('colormap'))
                 colormap('jet')
             end
             
-            if p.bColorbar
+            if p.map('bColorbar')
                 colorbar;
             end
 
@@ -233,9 +218,10 @@ classdef ModulationSignal < Signal
             end
             
             % Set up title and labels
-            title(pTitle,'fontsize',p.fsize_title,'fontname',p.ftype)
-            xlabel('Time (s)','fontsize',p.fsize_label,'fontname',p.ftype)
-            ylabel('Center frequency (Hz)','fontsize',p.fsize_label,'fontname',p.ftype)
+            title(pTitle,'fontsize',p.map('fsize_title'),'fontname',p.map('ftype'))
+            xlabel('Time (s)','fontsize',p.map('fsize_label'),'fontname',p.map('ftype'))
+            ylabel('Center frequency (Hz)','fontsize',p.map('fsize_label'),...
+                   'fontname',p.map('ftype'))
             
             nYLabels = 5;
             
@@ -249,7 +235,9 @@ classdef ModulationSignal < Signal
             set(gca,'yticklabel',round(sObj.cfHz(yPosInt)));
 
             for ii = 1:s(2)
-                text([timeSec(3) timeSec(3)],floor(s(3)/2)+[((ii-1)*(s(3)+1)) ((ii-1)*(s(3)+1))],num2str(ii),'verticalalignment','middle','fontsize',8);
+                text([timeSec(3) timeSec(3)], ...
+                    floor(s(3)/2)+[((ii-1)*(s(3)+1)) ((ii-1)*(s(3)+1))], ...
+                    num2str(ii),'verticalalignment','middle','fontsize',8);
             end
             
             % 

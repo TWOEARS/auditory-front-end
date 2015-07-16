@@ -35,8 +35,11 @@ classdef ccFeatureProc < Processor
             pObj.FsHzIn = fs;
             pObj.FsHzOut = fs;
             pObj.factor = factor;
-                
+
             end
+
+            % Hide the processor (for the moment)
+            pObj.bHidden = 1;
             
         end
         

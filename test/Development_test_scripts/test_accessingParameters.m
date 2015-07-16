@@ -34,17 +34,17 @@ echo on
 % Get the parameters of the requested signal...
 
 % ... via its processor (has to be known)
-mObj.Processors{5,1}.getCurrentParameters
+mObj.Processors{6,1}.getCurrentParameters
 
 % ... or directly from the signal handle 
-sOut.getParameters(mObj)
+sOut{1}.getParameters(mObj)
 
 % Summary of all parameters used for the computation of all signals:
 p = dObj.getParameterSummary(mObj);
 
 % It shows that two different filterbanks and IHC representation exist,
 % e.g.:
-p.gammatone
+p.filterbank
 
 % Though it stores which of these were used for dependent representations,
 % e.g.:

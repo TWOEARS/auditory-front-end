@@ -14,7 +14,7 @@ classdef ildProc < Processor
 %   See also: Processor, ihcProc
 %
     
-    properties
+    properties (Dependent = true)
         wname       % Window shape descriptor (see window.m)
         wSizeSec    % Window duration in seconds
         hSizeSec    % Step size between windows in seconds
@@ -29,49 +29,38 @@ classdef ildProc < Processor
     end
     
     methods
-        function pObj = ildProc(fs,p)
-            %ildProc    Constructs an ILD extraction processor
-            %
-            %USAGE
-            %   pObj = ildProc(fs)
-            %   pObj = ildProc(fs,p)
-            %
-            %INPUT PARAMETERS
-            %   fs : Sampling frequency in Hz
-            %    p : Structure of non-default parameters
-            %
-            %OUTPUT PARAMETER
-            % pObj : Processor object
-            
-            % TO DO: Document parameter handling once implemented
-            
-            if nargin>0     % Safeguard for Matlab empty calls
+        function pObj = ildProc(fs,parObj)
+		%ildProc   Construct an inter-aural level differences extractor processor
+        %
+        % USAGE:
+        %   pObj = ildProc(fs, parObj)
+        %
+        % INPUT ARGUMENTS:
+        %     fs : Input sampling frequency (Hz)
+        % parObj : Parameter object instance
+        %
+        % OUTPUT ARGUMENTS:
+        %   pObj : Processor instance
+        %
+        % NOTE: Parameter object instance, parObj, can be generated using genParStruct.m
+        % User-controllable parameters for this processor and their default values can be
+        % found by browsing the script parameterHelper.m
+        %
+        % See also: genParStruct, parameterHelper, Processor
             
             % Checking input parameter
-            if nargin<2||isempty(p)
-                p = getDefaultParameters(fs,'processing');
-            end
-            if isempty(fs)
-                error('Sampling frequency needs to be provided')
+            if nargin<2||isempty(parObj); parObj = Parameters; end
+            if nargin<1; fs = []; end
+            
+            % Call superconstructor
+            pObj = pObj@Processor(fs,[],'ildProc',parObj);
+            
+            if nargin>0
+                % Initializa the buffers
+                pObj.buffer_l = [];
+                pObj.buffer_r = [];
             end
             
-            % Populate properties
-            pObj.wname = p.ild_wname;
-            pObj.wSizeSec = p.ild_wSizeSec;
-            pObj.wSize = 2*round(pObj.wSizeSec*fs/2);
-            pObj.hSizeSec = p.ild_hSizeSec;
-            pObj.hSize = round(pObj.hSizeSec*fs);
-            pObj.win = window(pObj.wname,pObj.wSize);
-            pObj.Type = 'ILD extractor';
-            pObj.FsHzIn = fs;
-            pObj.FsHzOut = 1/(pObj.hSizeSec);
-            pObj.isBinaural = true;
-            
-            % Initialize buffer
-            pObj.buffer_l = [];
-            pObj.buffer_r = [];
-            
-            end
         end
         
         function out = processChunk(pObj,in_l,in_r)
@@ -152,49 +141,87 @@ classdef ildProc < Processor
              
         end
         
-        function hp = hasParameters(pObj,p)
-            %hasParameters  This method compares the parameters of the
-            %               processor with the parameters given as input
-            %
-            %USAGE
-            %    hp = pObj.hasParameters(p)
-            %
-            %INPUT ARGUMENTS
-            %  pObj : Processor instance
-            %     p : Structure containing parameters to test
+    end
+    
+    methods (Hidden = true)
+        
+        function prepareForProcessing(pObj)
             
-            %NB: Could be moved to private?
-            
-            p_list_proc = {'wname','wSizeSec','hSizeSec'};
-            p_list_par = {'ild_wname','ild_wSizeSec','ild_hSizeSec'};
-            
-            % Initialization of a parameters difference vector
-            delta = zeros(size(p_list_proc,2),1);
-            
-            % Loop on the list of parameters
-            for ii = 1:size(p_list_proc,2)
-                try
-                    if ischar(pObj.(p_list_proc{ii}))
-                        delta(ii) = ~strcmp(pObj.(p_list_proc{ii}),p.(p_list_par{ii}));
-                    else
-                        delta(ii) = abs(pObj.(p_list_proc{ii}) - p.(p_list_par{ii}));
-                    end
-                    
-                catch err
-                    % Warning: something is missing
-                    warning('Parameter %s is missing in input p.',p_list_par{ii})
-                    delta(ii) = 1;
-                end
-            end
-            
-            % Check if delta is a vector of zeros
-            if max(delta)>0
-                hp = false;
-            else
-                hp = true;
-            end
-         end 
+            % Compute internal parameters
+            pObj.wSize = 2*round(pObj.parameters.map('ild_wSizeSec')*pObj.FsHzIn/2);
+            pObj.hSize = round(pObj.parameters.map('ild_hSizeSec')*pObj.FsHzIn);
+            pObj.win = window(pObj.parameters.map('ild_wname'),pObj.wSize);
+            % Output sampling frequency
+            pObj.FsHzOut = 1/(pObj.hSizeSec);
+                
+        end
         
     end
+    
+    % "Getter" methods
+    methods
+        function wSizeSec = get.wSizeSec(pObj)
+            wSizeSec = pObj.parameters.map('ild_wSizeSec');
+        end
+        
+        function hSizeSec = get.hSizeSec(pObj)
+            hSizeSec = pObj.parameters.map('ild_hSizeSec');
+        end
+        
+        function wname = get.wname(pObj)
+            wname = pObj.parameters.map('ild_wname');
+        end
+        
+    end
+    
+    methods (Static)
+        
+        function dep = getDependency()
+            dep = 'innerhaircell';
+        end
+        
+        function [names, defaultValues, descriptions] = getParameterInfo()
+            %getParameterInfo   Returns the parameter names, default values
+            %                   and descriptions for that processor
+            %
+            %USAGE:
+            %  [names, defaultValues, description] =  ...
+            %                           gammatoneProc.getParameterInfo;
+            %
+            %OUTPUT ARGUMENTS:
+            %         names : Parameter names
+            % defaultValues : Parameter default values
+            %  descriptions : Parameter descriptions
+            
+            
+            names = {'ild_wname',...
+                    'ild_wSizeSec',...
+                    'ild_hSizeSec'};
+            
+            descriptions = {'Window name',...
+                    'Window duration (s)',...
+                    'Window step size (s)'};
+            
+            defaultValues = {'hann',...
+                            20E-3,...
+                            10E-3};
+                
+        end
+        
+        function pInfo = getProcessorInfo
+            
+            pInfo = struct;
+            
+            pInfo.name = 'ILD Extractor';
+            pInfo.label = 'Inter-aural Level Difference Extractor';
+            pInfo.requestName = 'ild';
+            pInfo.requestLabel = 'Inter-aural level difference';
+            pInfo.outputType = 'TimeFrequencySignal';
+            pInfo.isBinaural = true;
+            
+        end
+        
+    end
+        
     
 end

@@ -14,7 +14,7 @@ classdef offsetProc < Processor
 %   [1] Bregman, A. S. (1990), Auditory scene analysis: The perceptual 
 %       organization of sound, the MIT Press, Cambridge, MA, USA.
 
-    properties (SetAccess = protected)
+    properties (Dependent = true)
         maxOffsetdB      % Upper limit for onset value
     end
     
@@ -23,36 +23,35 @@ classdef offsetProc < Processor
     end
     
     methods
-        function pObj = offsetProc(fs,p)
-            %onsetProc      Instantiates an offset detector
-            %
-            %USAGE:
-            %       pObj = onsetProc(fs,p)
-            %
-            %INPUT ARGUMENTS:
-            %  fs : Sampling frequency (Hz)
-            %   p : Non-default parameters
-            %
-            %OUTPUT ARGUMENTS:
-            %        pObj : Processor instance
+        function pObj = offsetProc(fs,parObj)
+        %offsetProc   Construct an offset detection processor
+        %
+        % USAGE:
+        %   pObj = offsetProc(fs, parObj)
+        %
+        % INPUT ARGUMENTS:
+        %     fs : Input sampling frequency (Hz)
+        % parObj : Parameter object instance
+        %
+        % OUTPUT ARGUMENTS:
+        %   pObj : Processor instance
+        %
+        % NOTE: Parameter object instance, parObj, can be generated using genParStruct.m
+        % User-controllable parameters for this processor and their default values can be
+        % found by browsing the script parameterHelper.m
+        %
+        % See also: genParStruct, parameterHelper, Processor
+            
+            % Checking input parameter
+            if nargin<2||isempty(parObj); parObj = Parameters; end
+            if nargin<1; fs = []; end
+            
+            % Call superconstructor
+            pObj = pObj@Processor(fs,fs,'offsetProc',parObj);
             
             if nargin>0
-                
-            if nargin<2||isempty(p)
-                p = getDefaultParameters(fs,'processing');
-            else
-                p.fs = fs;
-                p = parseParameters(p);
-            end
-                
-            pObj.Type = 'Offset detection';
-            pObj.FsHzIn = fs;
-            pObj.FsHzOut = fs;
-            pObj.maxOffsetdB = p.ofs_maxOffsetdB;
-            
-            % Initialize an empty buffer
-            pObj.buffer = [];
-            
+                % Initialize an empty buffer
+                pObj.buffer = [];
             end
             
         end
@@ -101,26 +100,58 @@ classdef offsetProc < Processor
             pObj.buffer = [];
             
         end
-            
-        function hp = hasParameters(pObj,p)
-            %hasParameters  This method compares the parameters of the
-            %               processor with the parameters given as input
+        
+    end
+    
+    % "Getter" methods
+    methods
+        function maxOffsetdB = get.maxOffsetdB(pObj)
+            maxOffsetdB = pObj.parameters.map('ofs_maxOffsetdB');
+        end
+    end
+    
+    methods (Static)
+        
+        function dep = getDependency()
+            dep = 'ratemap';
+        end
+        
+        function [names, defaultValues, descriptions] = getParameterInfo()
+            %getParameterInfo   Returns the parameter names, default values
+            %                   and descriptions for that processor
             %
-            %USAGE
-            %    hp = pObj.hasParameters(p)
+            %USAGE:
+            %  [names, defaultValues, description] =  ...
+            %                           gammatoneProc.getParameterInfo;
             %
-            %INPUT ARGUMENTS
-            %  pObj : Processor instance
-            %     p : Structure containing parameters to test
+            %OUTPUT ARGUMENTS:
+            %         names : Parameter names
+            % defaultValues : Parameter default values
+            %  descriptions : Parameter descriptions
             
-            % Only one parameter to test for
-            hp = isequal(pObj.maxOffsetdB,p.ofs_maxOffsetdB);
+            
+            names = {'ofs_maxOffsetdB'};
+            
+            descriptions = {'Upper limit for offset value (dB)'};
+            
+            defaultValues = {30};
+                
+        end
+        
+        function pInfo = getProcessorInfo
+            
+            pInfo = struct;
+            
+            pInfo.name = 'Offset detection';
+            pInfo.label = 'Offset detection';
+            pInfo.requestName = 'offsetStrength';
+            pInfo.requestLabel = 'Offset strength';
+            pInfo.outputType = 'TimeFrequencySignal';
+            pInfo.isBinaural = false;
             
         end
         
     end
-    
-    
     
     
 end

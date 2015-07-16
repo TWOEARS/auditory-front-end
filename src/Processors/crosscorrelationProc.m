@@ -16,72 +16,62 @@ classdef crosscorrelationProc < Processor
 %   See also: Processor, ihcProc
 %
     
-    properties
+    properties (Dependent = true)
         wname       % Window shape descriptor (see window.m)
         wSizeSec    % Window duration in seconds
         hSizeSec    % Step size between windows in seconds
+        lags        % Vector of lags at which cross-correlation is computed
         maxDelaySec % Maximum delay in cross-correlation computation (s)
-        do_mex      % TEMP flag indicating the use of the Tobias' mex code (1)
     end
     
     properties (GetAccess = private)
         wSize       % Window duration in samples
         hSize       % Step size between windows in samples
         win         % Window vector
-        lags        % Vector of lags at which cross-correlation is computed
         buffer_l    % Buffered input signals (left ear)
         buffer_r    % Buffered input signals (right ear)
+        do_mex      % TEMP flag indicating the use of the Tobias' mex code (1)
     end
         
     methods
         
-        function pObj = crosscorrelationProc(fs,p,do_mex)
-            %crosscorrelationProc    Constructs a cross-correlation
-            %                        processor
-            %
-            %USAGE
-            %  pObj = autocorrelation(fs)
-            %  pObj = autocorrelation(fs,p)
-            %
-            %INPUT PARAMETERS
-            %    fs : Sampling frequency (Hz)
-            %     p : Structure of non-default parameters
-            %
-            %OUTPUT PARAMETERS
-            %  pObj : Processor Object
+        function pObj = crosscorrelationProc(fs,parObj,do_mex)
+		%crosscorrelationProc   Construct a cross-correlation processor
+        %
+        % USAGE:
+        %   pObj = crosscorrelationProc(fs, parObj)
+        %   pObj = crosscorrelationProc(fs, parObj, do_mex)
+        %
+        % INPUT ARGUMENTS:
+        %     fs : Input sampling frequency (Hz)
+        % parObj : Parameter object instance
+        % do_mex : Set to 0 to disable use of pre-compiled mex file in computation
+        %
+        % OUTPUT ARGUMENTS:
+        %   pObj : Processor instance
+        %
+        % NOTE: Parameter object instance, parObj, can be generated using genParStruct.m
+        % User-controllable parameters for this processor and their default values can be
+        % found by browsing the script parameterHelper.m
+        %
+        % See also: genParStruct, parameterHelper, Processor
+            
+            % Checking input parameter
+            if nargin<3||isempty(do_mex);do_mex = 1; end
+            if nargin<2||isempty(parObj); parObj = Parameters; end
+            if nargin<1; fs = []; end
+            
+            % Call superconstructor
+            pObj = pObj@Processor(fs,[],'crosscorrelationProc',parObj);
             
             if nargin>0     % Safeguard for Matlab empty calls
             
-            % Checking input parameter
-            if nargin<2||isempty(p)
-                p = getDefaultParameters(fs,'processing');
-            end
-            if isempty(fs)
-                error('Sampling frequency needs to be provided')
-            end
-            
-            % Populate properties
-            pObj.wname = p.cc_wname;
-            pObj.wSizeSec = p.cc_wSizeSec;
-            pObj.wSize = 2*round(pObj.wSizeSec*fs/2);
-            pObj.hSizeSec = p.cc_hSizeSec;
-            pObj.hSize = round(pObj.hSizeSec*fs);
-            pObj.win = window(pObj.wname,pObj.wSize);
-            pObj.Type = 'Cross-correlation extractor';
-            pObj.FsHzIn = fs;
-            pObj.FsHzOut = 1/(pObj.hSizeSec);
-            pObj.maxDelaySec = p.cc_maxDelaySec;
-            pObj.isBinaural = true;
-            
-            % TEMP:
-            pObj.do_mex = do_mex;
-            
-            % Initialize buffer
-            pObj.buffer_l = [];
-            pObj.buffer_r = [];
-            
-            end
-            
+                pObj.do_mex = do_mex;
+                
+                % Initialize buffers
+                pObj.buffer_l = [];
+                pObj.buffer_r = [];
+            end 
         end
         
         function out = processChunk(pObj,in_l,in_r)
@@ -144,9 +134,6 @@ classdef crosscorrelationProc < Processor
                     % Back to time domain
                     c = real(ifft(XY));
                     
-                    % Vector of lags 
-                    pObj.lags = (-maxLag:maxLag).';
-                    
                     % Adjust to requested maximum lag and move negative
                     % lags upfront
                     if maxLag >= pObj.wSize
@@ -208,49 +195,99 @@ classdef crosscorrelationProc < Processor
              
         end
         
-        function hp = hasParameters(pObj,p)
-            %hasParameters  This method compares the parameters of the
-            %               processor with the parameters given as input
-            %
-            %USAGE
-            %    hp = pObj.hasParameters(p)
-            %
-            %INPUT ARGUMENTS
-            %  pObj : Processor instance
-            %     p : Structure containing parameters to test
-            
-            %NB: Could be moved to private?
-            
-            p_list_proc = {'wname','wSizeSec','hSizeSec','maxDelaySec'};
-            p_list_par = {'cc_wname','cc_wSizeSec','cc_hSizeSec','cc_maxDelaySec'};
-            
-            % Initialization of a parameters difference vector
-            delta = zeros(size(p_list_proc,2),1);
-            
-            % Loop on the list of parameters
-            for ii = 1:size(p_list_proc,2)
-                try
-                    if ischar(pObj.(p_list_proc{ii}))
-                        delta(ii) = ~strcmp(pObj.(p_list_proc{ii}),p.(p_list_par{ii}));
-                    else
-                        delta(ii) = abs(pObj.(p_list_proc{ii}) - p.(p_list_par{ii}));
-                    end
-                    
-                catch err
-                    % Warning: something is missing
-                    warning('Parameter %s is missing in input p.',p_list_par{ii})
-                    delta(ii) = 1;
-                end
-            end
-            
-            % Check if delta is a vector of zeros
-            if max(delta)>0
-                hp = false;
-            else
-                hp = true;
-            end
-        end 
-         
     end
+    
+    methods (Hidden = true)
+        
+        function prepareForProcessing(pObj)
+            
+            % Compute internal parameters
+            pObj.wSize = 2*round(pObj.parameters.map('cc_wSizeSec')*pObj.FsHzIn/2);
+            pObj.hSize = round(pObj.parameters.map('cc_hSizeSec')*pObj.FsHzIn);
+            pObj.win = window(pObj.parameters.map('cc_wname'),pObj.wSize);
+            % Output sampling frequency
+            pObj.FsHzOut = 1/(pObj.hSizeSec);
+        
+        end
+            
+    end
+    
+    % "Getter" methods
+    methods
+        function wSizeSec = get.wSizeSec(pObj)
+            wSizeSec = pObj.parameters.map('cc_wSizeSec');
+        end
+        
+        function hSizeSec = get.hSizeSec(pObj)
+            hSizeSec = pObj.parameters.map('cc_hSizeSec');
+        end
+        
+        function wname = get.wname(pObj)
+            wname = pObj.parameters.map('cc_wname');
+        end
+        
+        function lags = get.lags(pObj)
+            maxLag = ceil(pObj.maxDelaySec*pObj.FsHzIn);
+            lags = (-maxLag:maxLag).'./pObj.FsHzIn;
+        end
+        
+        function maxDelaySec = get.maxDelaySec(pObj)
+            maxDelaySec = pObj.parameters.map('cc_maxDelaySec');
+        end
+        
+    end
+    
+    methods (Static)
+        
+        function dep = getDependency()
+            dep = 'innerhaircell';
+        end
+        
+        function [names, defaultValues, descriptions] = getParameterInfo()
+            %getParameterInfo   Returns the parameter names, default values
+            %                   and descriptions for that processor
+            %
+            %USAGE:
+            %  [names, defaultValues, description] =  ...
+            %                           gammatoneProc.getParameterInfo;
+            %
+            %OUTPUT ARGUMENTS:
+            %         names : Parameter names
+            % defaultValues : Parameter default values
+            %  descriptions : Parameter descriptions
+            
+            
+            names = {'cc_wname',...
+                    'cc_wSizeSec',...
+                    'cc_hSizeSec',...
+                    'cc_maxDelaySec'};
+            
+            descriptions = {'Window name',...
+                    'Window duration (s)',...
+                    'Window step size (s)',...
+                    'Maximum delay in cross-correlation computation (s)'};
+            
+            defaultValues = {'hann',...
+                            20E-3,...
+                            10E-3,...
+                            1.1E-3};
+                
+        end
+        
+        function pInfo = getProcessorInfo
+            
+            pInfo = struct;
+            
+            pInfo.name = 'Cross-correlation';
+            pInfo.label = 'Cross-correlation';
+            pInfo.requestName = 'crosscorrelation';
+            pInfo.requestLabel = 'Crosscorrelation computation';
+            pInfo.outputType = 'CorrelationSignal';
+            pInfo.isBinaural = true;
+            
+        end
+        
+    end
+    
     
 end

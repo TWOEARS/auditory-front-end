@@ -14,78 +14,53 @@ classdef TimeFrequencySignal < Signal
     end
        
     properties (GetAccess = protected)
-%         isSigned    % True for representations that are multi-channel 
-                    % waveforms (e.g., a filterbank output) as opposed to
-                    % spectrograms. Used for plotting only.
         scaling
     end
     
     methods 
-        function sObj = TimeFrequencySignal(fs,bufferSize_s,name,cfHz,label,data,channel,scaling)
-            %TimeFrequencySignal    Constructor for the "time-frequency
-            %                       representation" children signal class
+        function sObj = TimeFrequencySignal(procHandle,bufferSize,channel,data)
+            %TimeFrequencySignal   Class constructor 
             %
-            %USAGE 
-            %     sObj = TimeFrequencySignal(fs,name)
-            %     sObj = TimeFrequencySignal(fs,name,cfHz,label,data,channel)
+            %USAGE
+            %     sObj = TimeFrequencySignal(procHandle)
+            %     sObj = TimeFrequencySignal(procHandle,bufferSize,channel,data)
             %
             %INPUT ARGUMENTS
-            %       fs : Sampling frequency (Hz)
-            %     name : Name tag of the signal, should be compatible with
-            %            variable name syntax.
-            %     cfHz : Center frequencies of the channels in Hertz.
-            %    label : Label for the signal, to be used in e.g. figures
-            %            (default: label = name)
-            %     data : Data matrix to construct an object from existing 
-            %            data. Time should span lines and frequency spans
-            %            columns.
-            %   channel : Flag indicating 'left', 'right', or 'mono'
-            %            (default: channel = 'mono')
+            % procHandle : Handle to the processor generating this signal as output
+            % bufferSize : Size of the ring buffer in s (default: bufferSize = 10)
+            %    channel : Flag indicating 'left', 'right', or 'mono' (default: 
+            %              channel = 'mono')
+            %       data : Array of amplitudes to construct an object from existing data
+            %
             %OUTPUT ARGUMENT
-            %     sObj : Time-frequency representation signal object 
-            %            inheriting the signal class
+            %  sObj : Time-frequency signal object inheriting the signal class
              
-            sObj = sObj@Signal( fs, bufferSize_s, length(cfHz) );
+            if nargin<4; data = []; end
+            if nargin<3||isempty(channel); channel = 'mono'; end
+            if nargin<2||isempty(bufferSize); bufferSize = 10; end
+            if nargin<1||isempty(procHandle); procHandle = emptyProc; end
+            
+            sObj = sObj@Signal( procHandle, bufferSize, ...
+                                length(procHandle.getDependentParameter('fb_cfHz')));
             
             if nargin>0     % Safeguard for Matlab empty calls
             
-            % Check input arguments
-            if nargin<3||isempty(name)
-                name = 'tfRepresentation';
-                warning(['A name tag should be assigned to the signal. '...
-                    'The name %s was chosen by default'],name)
-            end
-            if nargin<8; scaling = 'magnitude'; end
-            if nargin<7; channel = 'mono'; end
-            if nargin<6||isempty(data); data = []; end
-            if nargin<5||isempty(label)
-                label = name;
-            end
-            if nargin<4||isempty(cfHz); cfHz = []; end
-            if nargin<1||isempty(fs)
-%                 error('The sampling frequency needs to be provided')
-                fs = [];
-            end
-            
-            % N.B: We are not checking the dimensionality of the provided
-            % data and leave this to the user's responsibility. Assuming
-            % for example that there should be more frequency bins than
-            % time samples might not be compatible with processing in short
-            % time chunks.
-            
-            % Populate object properties
-            populateProperties(sObj,'Label',label,'Name',name,...
-                'Dimensions','nSamples x nFilters');
-            sObj.cfHz = cfHz;
+            sObj.Dimensions = 'nSamples x nFilters';
+            sObj.cfHz = procHandle.getDependentParameter('fb_cfHz');
             sObj.setData( data );
             sObj.Channel = channel;
-            sObj.scaling = scaling;
+            
+            % TODO: do something non-specific for the scaling?
+            if isa(procHandle,'ratemapProc')
+                sObj.scaling = procHandle.scaling;
+            else
+                sObj.scaling = 'magnitude';
+            end
             
             end
             
         end
         
-
         function h = plot(sObj,h0,p,varargin)
             %plot       This method plots the data from a time-frequency
             %           domain signal object
@@ -111,8 +86,9 @@ classdef TimeFrequencySignal < Signal
             
                 % Decide if the plot should be on a linear or dB scale
                 switch sObj.Name
-                    case {'gammatone','ild','ic','itd','onset_strength',...
-                            'offset_strength','innerhaircell','adaptation','onset_map','drnl'}
+                    case {'filterbank','ild','ic','itd','onsetStrength',...
+                            'offsetStrength','innerhaircell','adaptation','onsetMap',...
+                            'offsetMap','drnl'}
                         do_dB = 0;
                     case {'ratemap'}
                         do_dB = 1;
@@ -123,10 +99,11 @@ classdef TimeFrequencySignal < Signal
                 % Manage plotting parameters
                 if nargin < 3 || isempty(p) 
                     % Get default plotting parameters
-                    p = getDefaultParameters([],'plotting');
+                    p = Parameters.getPlottingParameters('TimeFrequencySignal');
                 else
-                    p.fs = sObj.FsHz;   % Add the sampling frequency to satisfy parseParameters
-                    p = parseParameters(p);
+                    defaultPar = Parameters.getPlottingParameters('TimeFrequencySignal');
+                    defaultPar.replaceParameters(p);
+                    p = defaultPar;
                 end
                 
                 % Manage optional arguments
@@ -179,7 +156,7 @@ classdef TimeFrequencySignal < Signal
                     linspace(0.5,M+0.5,n_points));
                 %
                 % Restrain ticks to signal range (+/- a half channel)
-                aud_ticks = p.aud_ticks;
+                aud_ticks = p.map('aud_ticks');
                 aud_ticks=aud_ticks(aud_ticks<=interpolate_ticks(end));
                 aud_ticks=aud_ticks(aud_ticks>=interpolate_ticks(1));
                 n_ticks = size(aud_ticks,2);        % Number of ticks
@@ -194,17 +171,17 @@ classdef TimeFrequencySignal < Signal
                 
                 % Set the color map
                 try
-                    colormap(p.colormap)
+                    colormap(p.map('colormap'))
                 catch
-                    warning('No colormap %s is available, using ''jet''.',p.colormap)
+                    warning('No colormap %s is available, using ''jet''.',p.map('colormap'))
                     colormap('jet')
                 end
                 
                 % Plot the figure
                 switch sObj.Name
                     
-                    case {'gammatone','innerhaircell','drnl','adaptation'}
-                        waveplot(data(:,1:p.wavPlotDS:end).',t(1:p.wavPlotDS:end),sObj.cfHz,p.wavPlotZoom,1);
+                    case {'filterbank','innerhaircell','drnl','adaptation'}
+                        waveplot(data(:,1:p.map('wavPlotDS'):end).',t(1:p.map('wavPlotDS'):end),sObj.cfHz,p.map('wavPlotZoom'),1);
                     
                     otherwise
                         imagesc(t,1:M,data)  % Plot the data
@@ -212,10 +189,10 @@ classdef TimeFrequencySignal < Signal
                         
                         % Set up y-axis
                         set(gca,'YTick',ticks_pos,...
-                            'YTickLabel',aud_ticks,'fontsize',p.fsize_axes,...
-                            'fontname',p.ftype)
+                            'YTickLabel',aud_ticks,'fontsize',p.map('fsize_axes'),...
+                            'fontname',p.map('ftype'))
                 
-                        if p.bColorbar
+                        if p.map('bColorbar')
                             colorbar             % Display a colorbar
                         end
                 end
@@ -239,9 +216,9 @@ classdef TimeFrequencySignal < Signal
                 end
                 
                 % Set up axes labels
-                xlabel('Time (s)','fontsize',p.fsize_label,'fontname',p.ftype)
-                ylabel('Frequency (Hz)','fontsize',p.fsize_label,'fontname',p.ftype)
-                title(pTitle,'fontsize',p.fsize_title,'fontname',p.ftype)
+                xlabel('Time (s)','fontsize',p.map('fsize_label'),'fontname',p.map('ftype'))
+                ylabel('Frequency (Hz)','fontsize',p.map('fsize_label'),'fontname',p.map('ftype'))
+                title(pTitle,'fontsize',p.map('fsize_title'),'fontname',p.map('ftype'))
 
                 % Set up plot properties
                 
@@ -250,7 +227,7 @@ classdef TimeFrequencySignal < Signal
                 switch sObj.Name
                     case {'innerhaircell','ratemap'}
                         m = max(data(:));    % Get maximum value for scaling
-                        set(gca,'CLim',[m-p.dynrange m])
+                        set(gca,'CLim',[m-p.map('dynrange') m])
 
                     case {'ild','itd'}
                         m = max(abs(data(:)))+eps;
@@ -266,5 +243,68 @@ classdef TimeFrequencySignal < Signal
                 
             
         end
+    end
+    
+    methods (Static)
+       
+        function sObj = construct(fs,bufferSize,name,label,cfHz,channel,data)
+            %construct
+            %
+            %
+            
+            if nargin<7; data = []; end
+            if nargin<6; channel = []; end
+            if nargin<5; cfHz = []; end
+            if nargin<4; label = []; end
+            if nargin<3; name = []; end
+            if nargin<2||isempty(bufferSize); bufferSize = 10; end
+            if nargin<1; fs = []; end
+            
+            % Create a dummy structure with that information to emulate a processor and
+            % correctly call the class constructor
+            dummyStruct = struct;
+            dummyStruct.FsHzOut = fs;
+            dummyStruct.getProcessorInfo.requestName = name;
+            dummyStruct.getProcessorInfo.requestLabel = label;
+            dummyStruct.getDependentParameter = containers.Map;
+            dummyStruct.getDependentParameter('fb_cfHz') = cfHz;
+            
+            % Instantiate the signal
+            sObj = TimeFrequencySignal(dummyStruct,bufferSize,channel,data);
+            
+        end
+        
+        function [names, defaultValues, descriptions] = getPlottingParameterInfo()
+            %GETPLOTTINGPARAMETERINFO   Stores plot parameters that are common to all
+            %signals.
+            
+            
+            names = {'colormap',...
+                    'bColorbar',...
+                    'dynrange',...
+                    'aud_ticks',...
+                    'wavPlotDS',...
+                    'wavPlotZoom',...
+                    'binaryMaskColor'};
+                 
+            descriptions = {'Colormap for time-frequency plots',...
+                    'Boolean for displaying colorbar in time-frequency plots',...
+                    'Dynamic range for time-frequency plots (dB)',...
+                    'Auditory ticks for ERB-based representations',...
+                    'Decimation ratio for plotting undecimated wave plot representations',...
+                    'Zoom factor in wave plot representations',...
+                    'Color for binary mask (in RGB value)'};
+                
+            defaultValues = {'jet',...
+                    1,...
+                    80,...
+                    [100 250 500 1000 2000 4000 8000 16000 32000],...
+                    3,...
+                    5,...
+                    [0 0 0]};
+            
+        end
+        
+        
     end
 end

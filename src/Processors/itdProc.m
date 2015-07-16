@@ -24,39 +24,32 @@ classdef itdProc < Processor
     
     methods
         
-        function pObj = itdProc(fs,p)
-            %icProc     Constructs an interaural correlation processor
-            %
-            %USAGE
-            %  pObj = icProc(fs)
-            %  pObj = icProc(fs,p)
-            %
-            %INPUT PARAMETERS
-            %    fs : Sampling frequency (Hz)
-            %     p : Set of non-default parameters
-            %
-            %OUTPUT PARAMETERS
-            %  pObj : Processor object
+        function pObj = itdProc(fs,parObj)
+        %itdProc   Construct an inter-aural time difference detection processor
+        %
+        % USAGE:
+        %   pObj = itdProc(fs, parObj)
+        %
+        % INPUT ARGUMENTS:
+        %     fs : Input sampling frequency (Hz)
+        % parObj : Parameter object instance
+        %
+        % OUTPUT ARGUMENTS:
+        %   pObj : Processor instance
+        %
+        % NOTE: Parameter object instance, parObj, can be generated using genParStruct.m
+        % User-controllable parameters for this processor and their default values can be
+        % found by browsing the script parameterHelper.m
+        %
+        % See also: genParStruct, parameterHelper, Processor
             
-            if nargin>0     % Safeguard for Matlab empty calls
-                
             % Checking input parameter
-            if nargin<2||isempty(p)
-                p = getDefaultParameters(fs,'processing');
-                % Temporary warning while no adequate parameter handling
-                warning('ITDs are normally obtained from down-sampled signals, check your sampling frequencies')
-            end
-            if isempty(fs)
-                error('Sampling frequency needs to be provided')
-            end
+            if nargin<2||isempty(parObj); parObj = Parameters; end
+            if nargin<1; fs = []; end
             
-            % Populate properties
-            pObj.populateProperties('Type','ITD extractor',...
-                'FsHzIn',fs,'FsHzOut',fs);
+            % Call superconstructor
+            pObj = pObj@Processor(fs,fs,'itdProc',parObj);
             
-            pObj.frameFsHz = p.fs;
-                
-            end
         end
         
         function out = processChunk(pObj,in)
@@ -71,6 +64,7 @@ classdef itdProc < Processor
             %
             %OUTPUT ARGUMENT
             %   out : Corresponding output
+            
             
             % Dimensionality of the input
             [nFrames,nChannels,nLags] = size(in);
@@ -114,18 +108,64 @@ classdef itdProc < Processor
             end
         end
         
-        function reset(pObj)
-            % Nothing to reset for that processor, but this abstract method
-            % has to be implemented to make this class concrete.
+        function reset(~)
+            % Nothing to reset for this processor
         end
         
-        function hp = hasParameters(pObj,p)
-            % This processor has no additional parameters, always return
-            % true.
+    end
+    
+    methods (Hidden = true)
+        
+        function prepareForProcessing(pObj)
             
-            hp = true;
+            % Get original signal sampling frequency to express ITDs in ms
+            pObj.frameFsHz = pObj.LowerDependencies{1}.FsHzIn;
+            
         end
-          
+        
+    end
+    
+    methods (Static)
+        
+        function dep = getDependency()
+            dep = 'crosscorrelation';
+        end
+        
+        function [names, defaultValues, descriptions] = getParameterInfo()
+            %getParameterInfo   Returns the parameter names, default values
+            %                   and descriptions for that processor
+            %
+            %USAGE:
+            %  [names, defaultValues, description] =  ...
+            %                           gammatoneProc.getParameterInfo;
+            %
+            %OUTPUT ARGUMENTS:
+            %         names : Parameter names
+            % defaultValues : Parameter default values
+            %  descriptions : Parameter descriptions
+            
+            
+            names = {};
+            
+            descriptions = {};
+            
+            defaultValues = {};
+                
+        end
+        
+        function pInfo = getProcessorInfo
+            
+            pInfo = struct;
+            
+            pInfo.name = 'ITD Extractor';
+            pInfo.label = 'ITD Extractor';
+            pInfo.requestName = 'itd';
+            pInfo.requestLabel = 'Inter-aural time difference';
+            pInfo.outputType = 'TimeFrequencySignal';
+            pInfo.isBinaural = true;
+            
+        end
+        
     end
     
 end

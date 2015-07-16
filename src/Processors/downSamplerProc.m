@@ -26,6 +26,9 @@ classdef downSamplerProc < Processor
             %OUTPUT PARAMETERS
             %  pObj : Processor instance
             
+            % Hide this processor from the framework
+            pObj.bHidden = 1;
+            
             if nargin>0     % Safeguard for Matlab empty calls
                 
             % Checking input parameters
@@ -153,24 +156,6 @@ classdef downSamplerProc < Processor
             
         end
             
-        function hp = hasParameters(pObj,p)
-            %hasParameters  This method compares the parameters of the
-            %               processor with the parameters given as input
-            %
-            %USAGE
-            %    hp = pObj.hasParameters(p)
-            %
-            %INPUT ARGUMENTS
-            %  pObj : Processor instance
-            %     p : Structure containing parameters to test
-            
-            % TODO: Find a way to implement this if needed (probably not)
-            
-            hp = 1;
-            warning('Method hasParameters() not implemented yet for class downSamplerProc!')
-            
-        end 
-        
         function reset(pObj)
             %reset     Resets the internal states of the processor
              %
@@ -184,6 +169,7 @@ classdef downSamplerProc < Processor
              pObj.buffer = [];
             
         end
+        
         
     end
    

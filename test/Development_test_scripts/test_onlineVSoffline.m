@@ -2,7 +2,7 @@
 % for a given feature
 
 clear 
-% close all
+close all
 
 
 % Request and parameters for feature extraction
