@@ -1,6 +1,8 @@
 % Test script to compare the output from TwoEars adaptation processor
 % to the output from the adaptation loop test code from AMToolbox 
 % 
+% NB: Adapt path definitions to your own system
+
 clear all
 close all
 clc

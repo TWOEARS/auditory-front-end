@@ -1,8 +1,9 @@
+% This script illustrates the three different ways of requesting an auditory filterbank,
+% and the priorities between them in case of a conflict in the user-provided parameters.
+
 clear 
 close all
-% clc
-
-% test_startup;
+clc
 
 % Load a signal
 load('TestBinauralCues');
@@ -15,9 +16,9 @@ dObj = dataObject(earSignals,fsHz); % Data object
 mObj = manager(dObj);               % Manager instance
 
 % ... in three different ways
-p1 = genParStruct('fb_lowFreqHz',80,'fb_highFreqHz',8000,'fb_nERBs',1);                      % Standard (default) way, frequency range and distance between channels
-p2 = genParStruct('fb_lowFreqHz',80,'fb_highFreqHz',8000,'fb_nChannels',20);                 % Frequency range and number of channels
-p3 = genParStruct('fb_cfHz',[50 100 200 400 800 1600 3200],'fb_nChannels',20);    % Entire vector of center frequencies (note the conflicting number of channels, to generate an example warning
+p1 = genParStruct('fb_lowFreqHz',80,'fb_highFreqHz',8000,'fb_nERBs',1);          % Standard (default) way, frequency range and distance between channels
+p2 = genParStruct('fb_lowFreqHz',80,'fb_highFreqHz',8000,'fb_nChannels',20);     % Frequency range and number of channels
+p3 = genParStruct('fb_cfHz',[50 100 200 400 800 1600 3200]);                     % Entire vector of center frequencies
 
 % Note the priority order when conflicting infos are provided:
 
@@ -38,13 +39,9 @@ fprintf('Third filterbank has center frequencies: \n%s\n\n',mat2str(out3{1}.cfHz
 out2_bis = mObj.addProcessor(request,p2_bis);
 out3_bis = mObj.addProcessor(request,p3_bis);
 
-% Illustrate the priority between parameters
+% Illustrate the priority between parameters, both tests should return true (1)
 echo on
 out2_bis{1} == out2{1}
 out3_bis{1} == out3{1}
 echo off
 
-%% Start processing (not really required in this test)
-
-% Request processing
-% mObj.processSignal();

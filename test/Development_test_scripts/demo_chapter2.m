@@ -22,7 +22,7 @@ parameters = genParStruct('ild_wSizeSec',0.04,'ild_hSizeSec',0.02);
 sOut = managerObj.addProcessor('ild',parameters);
 
 % Place another request
-sOut2 = managerObj.addProcessor('onset_strength');
+sOut2 = managerObj.addProcessor('onsetStrength');
 
 % And a last one, with some parameter changes
 moreParameters = genParStruct('ac_hSizeSec',0.015);

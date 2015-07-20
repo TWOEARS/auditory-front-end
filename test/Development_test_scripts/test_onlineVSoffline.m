@@ -8,7 +8,6 @@ close all
 % Request and parameters for feature extraction
 % request = {'modulation'};
 request = {'filterbank'};
-% request = {'adaptation'};
 p = [];
 p = genParStruct('ihc_method','fullwave','fb_type','drnl');
 
@@ -44,7 +43,7 @@ mObj_on = manager(dObj_on);
 s_off = mObj_off.addProcessor(request,p);
 s_on = mObj_on.addProcessor(request,p);
 
-fprintf(['Online performance of ' signal2procName(s_off.Name) ':\n'])
+fprintf(['Online performance of ' Processor.findProcessorFromRequest(request,p) ':\n'])
 
 %% Processing
 
@@ -67,7 +66,7 @@ t_on = toc;
 %% Results comparison
 
 % Normalized RMS error
-RMS = 20*log10(norm(reshape(s_on.Data(:),[],1)-reshape(s_off.Data(:),[],1),2)/norm(reshape(s_off.Data(:),[],1),2));
+RMS = 20*log10(norm(reshape(s_on{1}.Data(:),[],1)-reshape(s_off{1}.Data(:),[],1),2)/norm(reshape(s_off{1}.Data(:),[],1),2));
 fprintf('\tNormalized RMS error in offline vs. online processing: %d dB\n',round(RMS))
 
 % Timing
@@ -76,19 +75,14 @@ fprintf('\tComputation time for offline: %f s (%d%% of signal duration)\n',t_off
 
 % Try and plot the difference
 % Try to add your own case to the loop if it is missing
-switch s_off.Name
-    case 'modulation'
-        delta = ModulationSignal(s_off.FsHz,'modulation',s_off.cfHz,s_off.modCfHz,['''' mObj_on.Processors{4,1}.filterType '''-based modulation: online vs offline'],s_off.Data(:)-s_on.Data(:)+eps);
-        delta.plot;
-        colorbar
-        
+switch s_off{1}.Name
 
     case {'innerhaircell' 'gammatone' 'onset_strength' 'offset_strength' 'ratemap_magnitude' ...
-            'ratemap_power' 'drnl' 'adaptation'}
-        figure,imagesc(20*log10(abs(s_off.Data(:)-s_on.Data(:))+eps).')
+            'ratemap_power' 'filterbank' 'adaptation'}
+        figure,imagesc(20*log10(abs(s_off{1}.Data(:)-s_on{1}.Data(:))+eps).')
         axis xy
         colorbar
-        title(['Error for chunk vs signal-based, ' s_off.Name])
+        title(['Error for chunk vs signal-based, ' s_off{1}.Name])
         
     otherwise
         fprintf('\tCould not print the online vs. offline data difference\n')

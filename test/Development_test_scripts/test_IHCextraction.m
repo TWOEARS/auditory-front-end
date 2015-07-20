@@ -26,8 +26,6 @@ p = {genParStruct('ihc_method','none') ...
     genParStruct('ihc_method','breebart') ...
     genParStruct('ihc_method','bernstein')};
 
-% Replicate the request 
-request = repmat({request},size(p));
 
 %% Instantiate manager and data object, add requests, and process
 dObj = dataObject(data,fsHz);

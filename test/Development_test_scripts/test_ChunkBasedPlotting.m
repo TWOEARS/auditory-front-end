@@ -1,4 +1,8 @@
-% This script tests the block-based ploting routine
+% This script tests the block-based ploting routine.
+% Block-based plotting is done simply by recalling the plot routine at each block. It is
+% very inefficient, and this script is at the moment only a place-holder. "Real" testing
+% will be conducted if/when new plotting methods are devised for "real-time" plotting of
+% signals (e.g., routines that would not involve recomputing all axes properties)
 
 clear 
 close all
@@ -53,6 +57,6 @@ for ii = 1:n_chunks
     mObj.processChunk(chunk,1);
     
     % Plot the computed representation
-    s.plot(h);
+    s{1}.plot(h);
     
 end
