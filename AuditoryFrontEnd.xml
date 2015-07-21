@@ -6,6 +6,6 @@
 
 <requirements>
     <TwoEarsPart startup="startAuditoryFrontEnd">auditory-front-end</TwoEarsPart>
-    <!-- Tools are not needed at the current state, or? -->
-    <!--<TwoEarsPart branch="master" sub="src" startup="startTools" >tools</TwoEarsPart>-->
+    <!-- Tools are not needed -->
+    <!-- TwoEarsPart branch="master" sub="src" startup="startTools" >tools</TwoEarsPart>
 </requirements>

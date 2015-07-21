@@ -12,10 +12,10 @@ classdef BinaryMask < TimeFrequencySignal
     end
     
     methods
-        function sObj = BinaryMask(fs,bufferSize_s,name,cfHz,label,data,channel,maskedSignal)
+        function sObj = BinaryMask(procHandle,bufferSize,channel,data,maskedSignal)
             
             % Call to the superconstructor
-            sObj = sObj@TimeFrequencySignal(fs,bufferSize_s,name,cfHz,label,data,channel);
+            sObj = sObj@TimeFrequencySignal(procHandle,bufferSize,channel,data);
             
             sObj.maskedSignal = maskedSignal;
             
@@ -41,10 +41,11 @@ classdef BinaryMask < TimeFrequencySignal
             
             if nargin < 3 || isempty(p) 
                 % Get default plotting parameters
-                p = getDefaultParameters([],'plotting');
+                p = Parameters.getPlottingParameters('TimeFrequencySignal');
             else
-                p.fs = sObj.FsHz;
-                p = parseParameters(p);
+                defaultPar = Parameters.getPlottingParameters('TimeFrequencySignal');
+                defaultPar.replaceParameters(p);
+                p = defaultPar;
             end
             
             if nargin < 2 || isempty(h0)
@@ -52,11 +53,11 @@ classdef BinaryMask < TimeFrequencySignal
             end
             
             % Mask color
-            color = reshape(p.binaryMaskColor,1,1,3);
+            color = reshape(p.map('binaryMaskColor'),1,1,3);
             
             if ~bOverlay
                 % Plot the masked signal without colorbar
-                p.bColorbar = 0;
+                p.map('bColorbar') = 0;
                 h = sObj.maskedSignal.plot(h0,p);
                 hold on
 
@@ -75,8 +76,8 @@ classdef BinaryMask < TimeFrequencySignal
                 set(im,'CData',repmat(color,size(y,2),size(x,2)))
 
                 % Overwrite the title
-                if isfield(p,'fsize_title')
-                    title(sObj.Label,'fontsize',p.fsize_title)
+                if isKey(p.map,'fsize_title')
+                    title(sObj.Label,'fontsize',p.map('fsize_title'))
                 else
                     title(sObj.Label)
                 end

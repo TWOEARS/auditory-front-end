@@ -89,23 +89,28 @@ classdef dataObject < dynamicprops
             dObj.isStereo = channelNumber-1;
             
             % Populate the signal property
-            
-            % TO DO: Do something with the label of this signal?
             if dObj.isStereo
                 if ~isempty(s)
-                    sig_l = TimeDomainSignal(fs,dObj.bufferSize_s,'input','Ear Signal',s(:,1),'left');
-                    sig_r = TimeDomainSignal(fs,dObj.bufferSize_s,'input','Ear Signal',s(:,2),'right');
+                    sig_l = TimeDomainSignal.construct(fs, dObj.bufferSize_s, ...
+                            'input', 'Ear Signal', 'left', s(:,1));
+                    sig_r = TimeDomainSignal.construct(fs, dObj.bufferSize_s, ...
+                            'input', 'Ear Signal', 'right', s(:,2));
                 else
-                    sig_l = TimeDomainSignal(fs,dObj.bufferSize_s,'input','Ear Signal',[],'left');
-                    sig_r = TimeDomainSignal(fs,dObj.bufferSize_s,'input','Ear Signal',[],'right');
+                    sig_l = TimeDomainSignal.construct(fs, dObj.bufferSize_s, ...
+                            'input', 'Ear Signal', 'left', []);
+                    sig_r = TimeDomainSignal.construct(fs, dObj.bufferSize_s, ...
+                            'input', 'Ear Signal', 'right', []);
                 end
                 dObj.addSignal(sig_l);
                 dObj.addSignal(sig_r);
             else
                 if ~isempty(s)
-                    sig = TimeDomainSignal(fs,dObj.bufferSize_s,'input','Ear signal (mono)',s);
+%                     sig = TimeDomainSignal(fs,dObj.bufferSize_s,'input','Ear signal (mono)',s);
+                    sig = TimeDomainSignal.construct(fs, dObj.bufferSize_s, ...
+                            'input', 'Ear signal', 'mono', s);
                 else
-                    sig = TimeDomainSignal(fs,dObj.bufferSize_s,'input','Ear signal (mono)',[]);
+                    sig = TimeDomainSignal.construct(fs, dObj.bufferSize_s, ...
+                            'input', 'Ear signal', 'mono', []);
                 end
                 dObj.addSignal(sig);
             end          
@@ -205,6 +210,8 @@ classdef dataObject < dynamicprops
             %
             %OUTPUT ARGUMENTS:
             %      p : Structure of used parameter values
+            
+            % TODO: Update to refactored code version
             
             % Get a list of instantiated signals
             prop_list = properties(dObj);
@@ -308,12 +315,13 @@ classdef dataObject < dynamicprops
             % Manage plotting parameters
             if nargin < 3 || isempty(p) 
                 % Get default plotting parameters
-                p = getDefaultParameters([],'plotting');
+                p = Parameters.getPlottingParameters();
             else
-                p.fs = dObj.input{1}.FsHz;   % Add the sampling frequency to satisfy parseParameters
-                p = parseParameters(p);
+                defaultPar = Parameters.getPlottingParameters();
+                defaultPar.replaceParameters(p);
+                p = defaultPar;
             end
-        
+
             % Manage handles
             if nargin < 2 || isempty(h0)
                     h = figure;             % Generate a new figure
@@ -341,10 +349,10 @@ classdef dataObject < dynamicprops
                 if opt.bGray
                     colors = {[0 0 0] [.5 .5 .5]};
                 else
-                    colors = p.colors;
+                    colors = p.map('colors');
                 end
             else
-                colors = p.colors;
+                colors = p.map('colors');
             end
             
             % Plot before/after pre-processing
@@ -385,27 +393,47 @@ classdef dataObject < dynamicprops
             
             % Plot channel with highest energy (or mono channel) first
             if size(sig,2)==1 || norm(data(:,1),2) > norm(data(:,2),2)
-                plot(t,data(:,1),'linewidth',p.linewidth_s,'color',colors{1});
+                plot(t,data(:,1),'linewidth',p.map('linewidth_s'),'color',colors{1});
                 
                 if size(sig,2)>1
                     hold on
-                    plot(t,data(:,2),'linewidth',p.linewidth_s,'color',colors{2});
+                    plot(t,data(:,2),'linewidth',p.map('linewidth_s'),'color',colors{2});
                     legend([sig{1}.Channel ' ear'],[sig{2}.Channel ' ear'],'location','NorthEast')
                 end
             else
-                plot(t,data(:,2),'linewidth',p.linewidth_s,'color',colors{1});
+                plot(t,data(:,2),'linewidth',p.map('linewidth_s'),'color',colors{1});
                 hold on
-                plot(t,data(:,1),'linewidth',p.linewidth_s,'color',colors{2});
+                plot(t,data(:,1),'linewidth',p.map('linewidth_s'),'color',colors{2});
                 legend([sig{2}.Channel ' ear'],[sig{1}.Channel ' ear'],'location','NorthEast')
             end
-            xlabel('Time (s)','fontsize',p.fsize_axes)
-            ylabel('Amplitude','fontsize',p.fsize_axes)
+            xlabel('Time (s)','fontsize',p.map('fsize_axes'))
+            ylabel('Amplitude','fontsize',p.map('fsize_axes'))
             xlim([t(1) t(end)])
-            title('Time domain signals','fontsize',p.fsize_title)
-            set(gca,'fontname',p.ftype,'fontsize',p.fsize_label)
+            title('Time domain signals','fontsize',p.map('fsize_title'))
+            set(gca,'fontname',p.map('ftype'),'fontsize',p.map('fsize_label'))
             
         end
             
+    end
+    
+    methods (Hidden = true)
+       
+% NB: following was moved to Procesor.m to allow overloading in particular cases of
+% processors
+%         function newSignal(dObj,pObj)
+%             %NEWSIGNAL Instantiate and integrate the output signal of a processor
+%             
+%             % NB: Do something about the channel here
+% %             sig = {feval(mObj.Processors{ii,1}.getProcessorInfo.outputType,...
+% %                             mObj.Processors{ii,1},...
+% %                             mObj.Data.bufferSize_s,...
+% %                             'mono')};
+%             sig = feval(pObj.getProcessorInfo.outputType,pObj,dObj.bufferSize_s,'mono');
+%             
+%             dObj.addSignal(sig);
+%             
+%         end
+        
     end
     
     

@@ -26,10 +26,11 @@ classdef autocorrelationProc < Processor
 %       multipitch analysis model," IEEE Transactions on Audio, Speech, and
 %       Language Processing 8(6), pp. 708?716.
 
-    properties 
+    properties (Dependent = true)
         wname       % Window shape descriptor (see window.m)
         wSizeSec    % Window duration in seconds
         hSizeSec    % Step size between windows in seconds
+        lags        % Vector of lags
         clipMethod  % Center clipping method ('clc','clp','sgn')
         alpha       % Threshold coefficient in center clipping
         K           % Exponent in auto-correlation
@@ -44,54 +45,41 @@ classdef autocorrelationProc < Processor
     end
     
     methods
-        function pObj = autocorrelationProc(fs,p,do_mex)
-            %autocorrelationProc    Constructs an auto-correlation
-            %                       processor
-            %
-            %USAGE
-            %  pObj = autocorrelation(fs)
-            %  pObj = autocorrelation(fs,p)
-            %
-            %INPUT PARAMETERS
-            %    fs : Sampling frequency (Hz)
-            %     p : Structure of non-default parameters
-            %
-            %OUTPUT PARAMETERS
-            %  pObj : Processor Object
+        function pObj = autocorrelationProc(fs,parObj,do_mex)
+        %autocorrelationProc   Construct an autocorrelation processor
+        %
+        % USAGE:
+        %   pObj = autocorrelationProc(fs, parObj)
+        %   pObj = autocorrelationProc(fs, parObj, do_mex)
+        %
+        % INPUT ARGUMENTS:
+        %     fs : Input sampling frequency (Hz)
+        % parObj : Parameter object instance
+        % do_mex : Set to 0 to disable use of pre-compiled mex file in the computation
+        %
+        % OUTPUT ARGUMENTS:
+        %   pObj : Processor instance
+        %
+        % NOTE: Parameter object instance, parObj, can be generated using genParStruct.m
+        % User-controllable parameters for this processor and their default values can be
+        % found by browsing the script parameterHelper.m
+        %
+        % See also: genParStruct, parameterHelper, Processor
             
+            % Checking input parameter
+            if nargin<3||isempty(do_mex);do_mex = 1; end
+            if nargin<2||isempty(parObj); parObj = Parameters; end
+            if nargin<1; fs = []; end
+            
+            % Call superconstructor
+            pObj = pObj@Processor(fs,[],'autocorrelationProc',parObj);
             
             if nargin>0 % Safeguard for Matlab empty calls
-               
-            % Checking input parameters
-            if nargin<3||isempty(do_mex);do_mex = 1;end
-            if nargin<2||isempty(p)
-                p = getDefaultParameters(fs,'processing');
-            else
-                p = parseParameters(p);
-            end
-            if isempty(fs)
-                error('Sampling frequency needs to be provided')
-            end
-            
-            % Populate properties
-            pObj.wname = p.ac_wname;
-            pObj.wSizeSec = p.ac_wSizeSec;
-            pObj.wSize = 2*round(pObj.wSizeSec*fs/2);
-            pObj.hSizeSec = p.ac_hSizeSec;
-            pObj.hSize = round(pObj.hSizeSec*fs);
-            pObj.win = window(pObj.wname,pObj.wSize);
-            pObj.clipMethod = p.ac_clipMethod;
-            pObj.alpha = p.ac_clipAlpha;
-            pObj.K = p.ac_K;
-            
-            pObj.Type = 'Auto-correlation extractor';
-            pObj.FsHzIn = fs;
-            pObj.FsHzOut = 1/(pObj.hSizeSec);
-            pObj.do_mex = do_mex;
-            
-            % Initialize buffer
-            pObj.buffer = [];
                 
+                pObj.do_mex = do_mex;
+                
+                % Initialize buffer
+                pObj.buffer = [];
             end
         end
         
@@ -216,51 +204,112 @@ classdef autocorrelationProc < Processor
             % Empty the buffer
             pObj.buffer = [];
         end
-            
-        function hp = hasParameters(pObj,p)
-            %hasParameters  This method compares the parameters of the
-            %               processor with the parameters given as input
-            %
-            %USAGE
-            %    hp = pObj.hasParameters(p)
-            %
-            %INPUT ARGUMENTS
-            %  pObj : Processor instance
-            %     p : Structure containing parameters to test
-            
-            
-            p_list_proc = {'wname','wSizeSec','hSizeSec','clipMethod','alpha','K'};
-            p_list_par = {'ac_wname','ac_wSizeSec','ac_hSizeSec','ac_clipMethod','ac_clipAlpha','ac_K'};
-            
-            % Initialization of a parameters difference vector
-            delta = zeros(size(p_list_proc,2),1);
-            
-            % Loop on the list of parameters
-            for ii = 1:size(p_list_proc,2)
-                try
-                    if ischar(pObj.(p_list_proc{ii}))
-                        delta(ii) = ~strcmp(pObj.(p_list_proc{ii}),p.(p_list_par{ii}));
-                    else
-                        delta(ii) = abs(pObj.(p_list_proc{ii}) - p.(p_list_par{ii}));
-                    end
-                    
-                catch err
-                    % Warning: something is missing
-                    warning('Parameter %s is missing in input p.',p_list_par{ii})
-                    delta(ii) = 1;
-                end
-            end
-            
-            % Check if delta is a vector of zeros
-            if max(delta)>0
-                hp = false;
-            else
-                hp = true;
-            end
-         end 
-            
         
     end
     
+    methods (Hidden = true)
+        
+        function prepareForProcessing(pObj)
+            
+            % Compute internal parameters
+            pObj.wSize = 2*round(pObj.parameters.map('ac_wSizeSec')*pObj.FsHzIn/2);
+            pObj.hSize = round(pObj.parameters.map('ac_hSizeSec')*pObj.FsHzIn);
+            pObj.win = window(pObj.parameters.map('ac_wname'),pObj.wSize);
+            % Output sampling frequency
+            pObj.FsHzOut = 1/(pObj.hSizeSec);
+            
+        end
+        
+    end
+    
+    % "Getter" methods
+    methods
+        function wSizeSec = get.wSizeSec(pObj)
+            wSizeSec = pObj.parameters.map('ac_wSizeSec');
+        end
+        
+        function hSizeSec = get.hSizeSec(pObj)
+            hSizeSec = pObj.parameters.map('ac_hSizeSec');
+        end
+        
+        function wname = get.wname(pObj)
+            wname = pObj.parameters.map('ac_wname');
+        end
+        
+        function clipMethod = get.clipMethod(pObj)
+            clipMethod = pObj.parameters.map('ac_clipMethod');
+        end
+        
+        function alpha = get.alpha(pObj)
+            alpha = pObj.parameters.map('ac_clipAlpha');
+        end
+        
+        function K = get.K(pObj)
+            K = pObj.parameters.map('ac_K');
+        end
+        
+        function lags = get.lags(pObj)
+            lags = ((1:(2 * round(pObj.wSizeSec * pObj.FsHzIn * 0.5)-1))-1)/pObj.FsHzIn;
+        end
+        
+    end
+    
+    methods (Static)
+        
+        function dep = getDependency()
+            dep = 'innerhaircell';
+        end
+        
+        function [names, defaultValues, descriptions] = getParameterInfo()
+            %getParameterInfo   Returns the parameter names, default values
+            %                   and descriptions for that processor
+            %
+            %USAGE:
+            %  [names, defaultValues, description] =  ...
+            %                           gammatoneProc.getParameterInfo;
+            %
+            %OUTPUT ARGUMENTS:
+            %         names : Parameter names
+            % defaultValues : Parameter default values
+            %  descriptions : Parameter descriptions
+            
+            
+            names = {'ac_wname',...
+                    'ac_wSizeSec',...
+                    'ac_hSizeSec',...
+                    'ac_clipMethod',...
+                    'ac_clipAlpha',...
+                    'ac_K'};
+            
+            descriptions = {'Window name',...
+                    'Window duration (s)',...
+                    'Window step size (s)',...
+                    'Center clipping method (''clc'', ''clp'', or ''sgn'')',...
+                    'Threshold in center clipping (between 0 and 1)',...
+                    'Exponent in auto-correlation'};
+            
+            defaultValues = {'hann',...
+                            20E-3,...
+                            10E-3,...
+                            'clp',...
+                            0.6,...
+                            2};
+                
+        end
+        
+        function pInfo = getProcessorInfo
+            
+            pInfo = struct;
+            
+            pInfo.name = 'Auto-correlation';
+            pInfo.label = 'Auto-correlation';
+            pInfo.requestName = 'autocorrelation';
+            pInfo.requestLabel = 'Autocorrelation computation';
+            pInfo.outputType = 'CorrelationSignal';
+            pInfo.isBinaural = false;
+            
+        end
+        
+    end
     
 end

@@ -17,7 +17,7 @@ dObj = dataObject(earSignals(:,2),fsHz);
 % 
 % 
 % Request amplitude modulation spectrogram (AMS) feaures
-requests = 'ams_features';
+requests = 'amsFeatures';
 
 % Parameters of auditory filterbank
 fb_type       = 'gammatone';  
@@ -71,10 +71,10 @@ dObj.time{1}.plot;grid on;ylim([-1 1]);title('Time domain signal')
 dObj.innerhaircell{1}.plot([],p);title('IHC signal')
 
 % Plot linear AMS pattern
-dObj.ams_features{1}.plot;title('linear AMS features')
+dObj.amsFeatures{1}.plot;title('linear AMS features')
 delete(findobj( 0, 'tag', 'Colorbar' ));
 
 % Plot logarithmic AMS pattern
-dObj.ams_features{2}.plot;title('logarithmic AMS features')
+dObj.amsFeatures{2}.plot;title('logarithmic AMS features')
 delete(findobj( 0, 'tag', 'Colorbar' ))
 

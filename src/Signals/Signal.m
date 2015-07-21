@@ -52,14 +52,14 @@ classdef Signal < matlab.mixin.Copyable
     
     methods
         
-        function sObj = Signal( fs, bufferSize_s, bufferElemSize )
+        function sObj = Signal( procHandle, bufferSize_s, bufferElemSize )
             %Signal     Super-constructor for the signal class
             %
             %USAGE:
-            %   sObj = Signal(fs,bufferSize_s,bufferElemSize)
+            %   sObj = Signal(procHandle,bufferSize_s,bufferElemSize)
             %
             %INPUT ARGUMENTS:
-            %             fs : Sampling frequency (Hz)
+            %     procHandle : Handle to the processor generating this signal
             %   bufferSize_s : Buffer duration in s
             % bufferElemSize : Additional dimensions of the buffer
             %                  [dim2,dim3,...]
@@ -68,7 +68,7 @@ classdef Signal < matlab.mixin.Copyable
             %           sObj : Signal instance
             
             % Set up sampling frequency
-            sObj.FsHz = fs;
+            sObj.FsHz = procHandle.FsHzOut;
             
             % Get the buffer size in samples
             bufferSizeSamples = ceil( bufferSize_s * sObj.FsHz );
@@ -76,6 +76,10 @@ classdef Signal < matlab.mixin.Copyable
             % Instantiate a buffer, and an array interface
             sObj.Buf = circVBuf( bufferSizeSamples, bufferElemSize );
             sObj.Data = circVBufArrayInterface( sObj.Buf );
+            
+            % Populate name and label
+            sObj.Name = procHandle.getProcessorInfo.requestName;
+            sObj.Label = procHandle.getProcessorInfo.requestLabel;
         end
         
         function setBufferSize( sObj, newBufferSize_s )
@@ -253,8 +257,10 @@ classdef Signal < matlab.mixin.Copyable
                 % Check that it is actually a processors
                 if isa(mObj.Processors{ii},'Processor')
                     % Check if it outputs the signal of interest
-                    if sObj == mObj.Processors{ii}.Output
-                        pObj = mObj.Processors{ii};
+                    for jj = 1:size(mObj.Processors{ii}.Output,2)
+                        if sObj == mObj.Processors{ii}.Output{jj}
+                            pObj = mObj.Processors{ii};
+                        end
                     end
                 end
             end 
@@ -294,37 +300,127 @@ classdef Signal < matlab.mixin.Copyable
         
     end
     
-    methods (Access = protected)
-        function sObj = populateProperties(sObj,varargin)
-            % This protected method is called by class childrens to
-            % populate the default properties of the signal class, in order
-            % to avoid code repetition.
+    methods (Static)
+        
+        function sList = signalList()
             
-            % First check on input
-            if mod(size(varargin,2),2)||isempty(varargin)
-                error('Additional input arguments have to come in pairs of ...,''property name'',value,...')
-            end
+            % Signal directory
+            signalDir = mfilename('fullpath');
             
-            % List of valid properties % TO DO: should this be hardcoded
-            % here?
-            validProp = {'Label',...
-                         'Name',...
-                         'Dimensions'};
-                     
-            % Loop on the additional arguments
-            for ii = 1:2:size(varargin,2)-1
-                % Check that provided property name is a string
-                if ~ischar(varargin{ii})
-                    error('Property names should be given as strings, %s isn''t one!',num2str(varargin{ii}))
+            % Get file information
+            fileList = listFiles(signalDir(1:end-7),'*.m',-1);
+            
+            % Extract name only
+            sList = cell(size(fileList));
+            for ii = 1:size(fileList)
+                % Get file name
+                [~,fName] = fileparts(fileList(ii).name);
+                
+                % Check if it is a valid signal
+                try
+                    s = feval(str2func(fName));
+                    if isa(s,'Signal')
+                        sList{ii} = fName;
+                    else
+                        sList{ii} = [];
+                    end
+                catch
+                    sList{ii} = [];
                 end
-                % Check that provided property name is valid
-                if ~ismember(varargin{ii},validProp)
-                    error('Property name ''%s'' is invalid',varargin{ii})
-                end
-                % Then add the property value
-                sObj.(varargin{ii})=varargin{ii+1};
+                
             end
+                
+            % Remove empty elements
+            sList = sList(~cellfun('isempty',sList));
             
         end
+       
+        function signalName = findSignalFromParameter(parameterName,no_warning)
+            %Signal.findSignalFromParameter   Finds the signal that uses a given plotting
+            %parameter
+            %
+            %USAGE:
+            %   signalName = Signal.findSignalFromParameter(parName)
+            %   signalName = Signal.findSignalFromParameter(parName, no_warning)
+            %
+            %INPUT ARGUMENT:
+            %      parName : Name of the parameter
+            %   no_warning : Set to 1 (default: 0) to suppress warning message
+            %
+            %OUTPUT ARGUMENT:
+            %   signalName : Name of the signal using that parameter
+
+            if nargin<2||isempty(no_warning); no_warning = 0; end
+            
+            % Get a list of processor
+            signalList = Signal.signalList;
+
+            % Add the general plot properties to the list
+            signalList = ['Signal'; signalList];
+            
+            % Loop over each processor
+            for ii = 1:size(signalList,1)
+                try
+                    sigParNames = feval([signalList{ii} '.getPlottingParameterInfo']);
+                    
+                    if ismember(parameterName,sigParNames)
+                        signalName = signalList{ii};
+                        return
+                    end
+                    
+                catch
+                    % Do not return a warning here, as this is called in a loop
+                end
+
+            end
+
+            % If still running, then we haven't found it
+            if ~no_warning
+                warning('Could not find a signal which uses plotting parameter ''%s''',...
+                        parameterName)
+            end
+            signalName = [];
+            
+            
+        end
+        
+        function [names, defaultValues, descriptions] = getPlottingParameterInfo()
+            %GETPLOTTINGPARAMETERINFO   Stores plot parameters that are common to all
+            %signals.
+            
+            
+            names = {'ftype',...
+                    'fsize_label',...
+                    'fsize_title',...
+                    'fsize_axes',...
+                    'color',...
+                    'colors',...
+                    'linewidth_s',...
+                    'linewidth_m',...
+                    'linewidth_l'};
+                 
+            descriptions = {'Plots font name', ...
+                    'Labels font size', ...
+                    'Titles font size', ...
+                    'Axes font size', ...
+                    'Main plot color', ...
+                    'Multiple plot colors', ...
+                    'Small linewidth', ...
+                    'Medium linewidth', ...
+                    'Large linewidth'};
+                
+            defaultValues = {'Helvetica', ...
+                    12, ...
+                    14, ...
+                    10, ...
+                    'b', ...
+                    {'b', 'r', 'g', 'c'}, ...
+                    1, ...
+                    2, ...
+                    3};
+            
+        end
+        
     end
+    
 end

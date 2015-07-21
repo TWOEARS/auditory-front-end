@@ -1,7 +1,8 @@
-clear all
+clear 
 close all
-clc
+% clc
 
+% test_startup;
 
 % Load a signal
 load('TestBinauralCues');

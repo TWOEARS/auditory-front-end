@@ -28,7 +28,7 @@ classdef gammatoneProc < Processor
 %   [1] Glasberg, B.R. and Moore, B.C.J. (1990), "Derivation of auditory filter shapes
 %       from notched-noise data", Hearing Research 47(1-2), pp. 103-138.
     
-    properties
+    properties (Dependent = true)
         cfHz            % Filters center frequencies
         nERBs           % Distance between neighboring filters in ERBs
         nGamma          % Gammatone order of the filters
@@ -42,121 +42,38 @@ classdef gammatoneProc < Processor
     end
         
     methods
-        function pObj = gammatoneProc(fs,flow,fhigh,nERBs,nChan,cfHz,bAlign,...
-                                        n,bw)
-            %gammatoneProc      Construct a gammatone filterbank inheriting
-            %                   the "processor" class
-            %
-            %USAGE
-            % -Minimal usage, either (in order of priority)
-            %   pObj = gammatoneProc(fs,[],[],[],[],cfHz)
-            %   pObj = gammatoneProc(fs,flow,fhigh,[],nChan)
-            %   pObj = gammatoneProc(fs,flow,fhigh,nERBs)
-            %   pObj = gammatoneProc(fs,flow,fhigh)
-            %
-            % -Additional arguments:
-            %   pObj = gammatoneProc(...,irType,bAlign,n,bw,dur)
-            %
-            %INPUT ARGUMENTS
-            %     fs : Sampling frequency (Hz)
-            %   flow : Lowest center frequency for the filterbank (in Hz)
-            %  fhigh : Highest center frequency for the filterbank (in Hz)
-            %  nERBs : Distance in ERBS between neighboring center
-            %          frequencies (default: nERBS = 1)
-            %  nChan : Number of channels
-            %   cfHz : Vector of channels center frequencies
-            %
-            % irType : 'FIR' to generate finite impulse response Gammatone
-            %          filters or 'IIR' for infinite (default: 'FIR')
-            % bAlign : Set to true for phase correction and time alignment
-            %          between channels (default: bAlign = false)
-            %      n : Filter order (default: n = 4)
-            %     bw : Bandwidth of the filters in ERBS 
-            %          (default: bw = 1.08 ERBS)
-            %    dur : Duration of the impulse response in seconds 
-            %          (default: dur = 0.128)
-            %
-            %OUTPUT ARGUMENTS
-            %   pObj : Processor object
+        function pObj = gammatoneProc(fs,parObj)
+        %gammatoneProc   Construct a Gammatone filterbank processor
+        %
+        % USAGE:
+        %   pObj = gammatoneProc(fs, parObj)
+        %
+        % INPUT ARGUMENTS:
+        %     fs : Input sampling frequency (Hz)
+        % parObj : Parameter object instance
+        %
+        % OUTPUT ARGUMENTS:
+        %   pObj : Processor instance
+        %
+        % NOTE: Parameter object instance, parObj, can be generated using genParStruct.m
+        % User-controllable parameters for this processor and their default values can be
+        % found by browsing the script parameterHelper.m
+        %
+        % See also: genParStruct, parameterHelper, Processor
             
             % TODO: 
             %  - Implement solution to allow for different impulse response
             %    durations for different filters (if necessary)
             %  - Implement bAlign option
             
-            if nargin>0  % Failsafe for constructor calls without arguments
+            if nargin<2||isempty(parObj); parObj = Parameters; end
+            if nargin<1; fs = []; end
             
-            % Checking input arguments
-            if nargin < 3 || nargin > 9
-                help(mfilename);
-                error('Wrong number of input arguments!')
-            end
+            % Call super-constructor
+            pObj = pObj@Processor(fs,fs,'gammatoneProc',parObj);
             
-            % Set default optional parameter
-            if nargin < 7 || isempty(bAlign); bAlign = false; end
-            if nargin < 8 || isempty(n); n = 4; end
-            if nargin < 9 || isempty(bw); 
-                bw = (factorial(n-1))^2/(pi*factorial(2*n-2)*2^(-(2*n-2)));
-            end
-            
-            % Parse mandatory arguments: three scenarios
-            
-            if ~isempty(cfHz)
-                % 3- A vector of channels center frequencies is provided
+            if nargin>0 && ~isempty(fs)
                 
-                % Do nothing, we already have a vector of center
-                % frequencies in Hz
-                
-                
-            elseif ~isempty(flow)&&~isempty(fhigh)&&~isempty(nChan)
-                % 2- Frequency range and number of channels is provided
-                
-                % Give a warning if conflicting properties were specified
-%                 if ~isempty(nERBs)
-%                     warning(['Conflicting parameters were provided for '...
-%                         'the Gammatone filterbank instantiation. The '...
-%                         'filterbank will be generated from the provided'...
-%                         ' frequency range and number of channels.']) 
-%                 end
-                
-                % Get vector of center frequencies
-                ERBS = linspace(freq2erb(flow),freq2erb(fhigh),nChan);  % In ERBS
-                cfHz = erb2freq(ERBS);                                  % In Hz
-                
-            elseif ~isempty(flow)&&~isempty(fhigh)&&isempty(nChan)&&isempty(cfHz)
-                % 3- Frequency range and distance between channels is provided
-                
-                % Set distance between two channel to default is unspecified
-                if nargin < 4 || isempty(nERBs);  nERBs  = 1;     end
-                
-                % Get vector of center frequencies
-                ERBS = freq2erb(flow):double(nERBs):freq2erb(fhigh);    % In ERBS
-                cfHz = erb2freq(ERBS);                                  % In Hz
-                
-            else
-                % Else, something is missing in the input
-                error('Not enough or incoherent input arguments.')
-            end
-            
-            
-            % Number of gammatone filters
-            nFilter = numel(cfHz); 
-            
-            % Instantiating the filters
-            pObj.Filters = pObj.populateFilters(cfHz,fs,n,bw,bAlign);
-            
-            % Setting up additional properties
-            % 1- Global properties
-            populateProperties(pObj,'Type','Gammatone filterbank',...
-                'FsHzIn',fs,'FsHzOut',fs);
-            % 2- Specific properties
-            pObj.cfHz = cfHz;
-            pObj.nERBs = nERBs;
-            pObj.nGamma = n;
-            pObj.bwERBs = bw;
-            pObj.lowFreqHz = flow;
-            pObj.highFreqHz = fhigh;
-            
             end
         end
         
@@ -226,73 +143,117 @@ classdef gammatoneProc < Processor
             
         end
         
-        function hp = hasParameters(pObj,p)
-            %hasParameters  This method compares the parameters of the
-            %               processor with the parameters given as input
-            %
-            %USAGE
-            %    hp = pObj.hasParameters(p)
-            %
-            %INPUT ARGUMENTS
-            %  pObj : Processor instance
-            %     p : Structure containing parameters to test
-            
-            %NB: Could be moved to private
-            
-            % There are three ways to initialize a gammatone filterbank, of
-            % which only the center frequencies of the channel is in
-            % common. Hence only this parameter is checked regarding
-            % channel positionning.
-            
-            p_list = {'fb_cfHz','fb_nGamma','fb_bwERBs'};
-            p_list_proc = {'cfHz','nGamma','bwERBs'};
-            
-            % The center frequency position needs to be computed for
-            % scenario where it is not explicitely provided
-            if isempty(p.fb_cfHz)&&~isempty(p.fb_nChannels)
-                ERBS = linspace(freq2erb(p.fb_lowFreqHz),freq2erb(p.fb_highFreqHz),p.fb_nChannels);    % In ERBS
-                p.fb_cfHz = erb2freq(ERBS);                                              % In Hz
-            elseif isempty(p.fb_cfHz)&&isempty(p.fb_nChannels)
-                ERBS = freq2erb(p.fb_lowFreqHz):double(p.fb_nERBs):freq2erb(p.fb_highFreqHz);   % In ERBS
-                p.fb_cfHz = erb2freq(ERBS);                                       % In Hz
-            end
-            
-            
-            % Initialization of a parameters difference vector
-            delta = zeros(size(p_list,2),1);
-            
-            % Loop on the list of parameters
-            for ii = 1:size(p_list,2)
-                try
-                    if size(pObj.(p_list_proc{ii}))==size(p.(p_list{ii}))
-                        delta(ii) = max(abs(pObj.(p_list_proc{ii}) - p.(p_list{ii})));
-                    else
-                        delta(ii) = 1;
-                    end
-                    
-                catch err
-                    % Warning: something is missing
-                    warning('Parameter %s is missing in input p.',p_list{ii})
-                    delta(ii) = 1;
-                end
-            end
-            
-            % Check if delta is a vector of zeros
-            if max(delta)>0
-                hp = false;
+        function bInBranch = isSuitableForRequest(pObj)
+            if strcmp(pObj.parameters.map('fb_type'),'gammatone')
+                bInBranch = true;
             else
-                hp = true;
+                bInBranch = false;
             end
-            
-        end  
+        end
         
     end
     
+    methods (Access=protected)
+        
+        function verifyParameters(pObj)
+                        
+            % Solve the conflicts between center frequencies, number of channels, and
+            % distance between channels
+            if ~isempty(pObj.parameters.map('fb_cfHz'))
+                % Highest priority case: a vector of channels center 
+                %   frequencies is provided
+                centerFreq = pObj.parameters.map('fb_cfHz');
+                
+                pObj.parameters.map('fb_lowFreqHz') = centerFreq(1);
+                pObj.parameters.map('fb_highFreqHz') = centerFreq(end);
+                pObj.parameters.map('fb_nChannels') = numel(centerFreq);
+                pObj.parameters.map('fb_nERBs') = 'n/a';
+                
+                
+            elseif ~isempty(pObj.parameters.map('fb_nChannels'))
+                % Medium priority: frequency range and number of channels
+                %   are provided
+               
+                % Build a vector of center ERB frequencies
+                ERBS = linspace( freq2erb(pObj.parameters.map('fb_lowFreqHz')), ...
+                                freq2erb(pObj.parameters.map('fb_highFreqHz')), ...
+                                pObj.parameters.map('fb_nChannels') );  
+                centerFreq = erb2freq(ERBS);    % Convert to Hz
+                
+                pObj.parameters.map('fb_nERBs') = (ERBS(end)-ERBS(1)) ...
+                                                / pObj.parameters.map('fb_nChannels');
+                pObj.parameters.map('fb_cfHz') = centerFreq;
+                
+                
+            else
+                % Lowest (default) priority: frequency range and distance 
+                %   between channels is provided (or taken by default)
+                
+                % Build vector of center ERB frequencies
+                ERBS = freq2erb(pObj.parameters.map('fb_lowFreqHz')): ...
+                                double(pObj.parameters.map('fb_nERBs')): ...
+                                            freq2erb(pObj.parameters.map('fb_highFreqHz'));
+                centerFreq = erb2freq(ERBS);    % Convert to Hz
+                
+                pObj.parameters.map('fb_nChannels') = numel(centerFreq);
+                pObj.parameters.map('fb_cfHz') = centerFreq;
+                
+            end
+            
+        end
+        
+    end
+    
+    methods (Hidden = true)
+        
+        function prepareForProcessing(pObj)
+            
+            % Instantiate filters
+            pObj.Filters = pObj.populateFilters;
+            
+        end
+        
+    end
+    
+    % "Getter" methods
+    methods
+        function cfHz = get.cfHz(pObj)
+            cfHz = pObj.parameters.map('fb_cfHz');
+        end
+        
+        function nERBs = get.nERBs(pObj)
+            nERBs = pObj.parameters.map('fb_nERBs');
+        end
+        
+        function nGamma = get.nGamma(pObj)
+            nGamma = pObj.parameters.map('fb_nGamma');
+        end
+        
+        function bwERBs = get.bwERBs(pObj)
+            bwERBs = pObj.parameters.map('fb_bwERBs');
+        end
+        
+        function lowFreqHz = get.lowFreqHz(pObj)
+            lowFreqHz = pObj.parameters.map('fb_lowFreqHz');
+        end
+        
+        function highFreqHz = get.highFreqHz(pObj)
+            highFreqHz = pObj.parameters.map('fb_highFreqHz');
+        end
+        
+    end
+    
+    
     methods (Access = private)
-        function obj = populateFilters(pObj,cfHz,fs,n,bw,bAlign)
+        function obj = populateFilters(pObj)
             % This function is a workaround to assign an array of objects
             % as one of the processor's property, should remain private
 
+            fs = pObj.FsHzIn;
+            cfHz = pObj.parameters.map('fb_cfHz');
+            n = pObj.parameters.map('fb_nGamma');
+            bw = pObj.parameters.map('fb_bwERBs');
+            bAlign = false; %pObj.parameters.map('bAlign');
             nFilter = numel(cfHz);
             
             % Preallocate memory by instantiating last filter
@@ -305,6 +266,70 @@ classdef gammatoneProc < Processor
             end                        
             
         end
+    end
+
+    methods (Static)
+        
+        function dep = getDependency()
+            dep = 'time';
+        end
+        
+        function [names, defaultValues, descriptions] = getParameterInfo()
+            %getParameterInfo   Returns the parameter names, default values
+            %                   and descriptions for that processor
+            %
+            %USAGE:
+            %  [names, defaultValues, description] =  ...
+            %                           gammatoneProc.getParameterInfo;
+            %
+            %OUTPUT ARGUMENTS:
+            %         names : Parameter names
+            % defaultValues : Parameter default values
+            %  descriptions : Parameter descriptions
+            
+            
+            names = {'fb_type',...
+                    'fb_lowFreqHz',...
+                    'fb_highFreqHz',...
+                    'fb_nERBs',...
+                    'fb_nChannels',...
+                    'fb_cfHz',...
+                    'fb_nGamma',...
+                    'fb_bwERBs'};
+            
+            descriptions = {'Filterbank type (''gammatone'' or ''drnl'')',...
+                    'Lowest center frequency (Hz)',...
+                    'Highest center frequency (Hz)',...
+                    'Distance between neighbor filters in ERBs',...
+                    'Number of channels',...
+                    'Channels center frequencies (Hz)',...
+                    'Gammatone rising slope order',...
+                    'Bandwidth of the filters (ERBs)'};
+            
+            defaultValues = {'gammatone',...
+                            80,...
+                            8000,...
+                            1,...
+                            [],...
+                            [],...
+                            4,...
+                            1.018};
+                
+        end
+        
+        function pInfo = getProcessorInfo
+            
+            pInfo = struct;
+            
+            pInfo.name = 'Gammatone filterbank';
+            pInfo.label = 'Gammatone filterbank';
+            pInfo.requestName = 'filterbank';
+            pInfo.requestLabel = 'Gammatone filterbank output';
+            pInfo.outputType = 'TimeFrequencySignal';
+            pInfo.isBinaural = false;
+            
+        end
+        
     end
         
 end

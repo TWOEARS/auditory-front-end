@@ -5,9 +5,5 @@ function requestList
 %USAGE:
 %   requestList()
 
-list = getDependencies('available');
-fprintf('The following requests for Two!Ears Auditory Front-End processing are currently valid:\n')
-
-for ii = 1:size(list,2)
-   fprintf('\t''%s''\n',list{ii})
-end
+% Wraps to a Processor.m static method
+Processor.requestList

@@ -43,8 +43,11 @@ classdef framingProc < Processor
             
             pObj.win = window(wname,wSize);
             pObj.buffer = [];
-                
+
             end
+
+            % Hide the processor (for the moment)
+            pObj.bHidden = 1;
         
         end
         

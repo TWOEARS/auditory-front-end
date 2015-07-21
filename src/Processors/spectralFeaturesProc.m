@@ -41,112 +41,55 @@ classdef spectralFeaturesProc < Processor
 %       Applications in Signal Processing and Music Informatics, 
 %       John Wiley & Sons, Hoboken, NJ, USA.
     
-    properties
+    properties (Dependent = true)
         requestList     % Cell array of requested spectral features
-        cfHz            % Row vector of audio center frequencies
+    end
+    
+    properties (SetAccess = private)
+        cfHz            % Row vector of audio center frequencies 
     end
     
     properties (GetAccess = private)
         eps             % Factor used to prevent division by 0 (hard-coded)
-        br_cf           % Cutoff frequency for brightness feature
-        hfc_cf          % Cutoff frequency for high frequency content
+        brCF           % Cutoff frequency for brightness feature
         flux_buffer     % Buffered last frame of previous chunk for spectral flux
         var_buffer      % Buffered last frame for spectral variation
         ro_eps          % Epsilon value for spectral rolloff (hard-coded)
-        ro_perc         % threshold value for spectral rolloff
+        roPerc         % threshold value for spectral rolloff
         bUseInterp      % Flag indicating use of interpolation for spectral rolloff (hard-coded)
     end
     
     methods
-        function pObj = spectralFeaturesProc(fs,cfHz,requests,br_cf,ro_perc)
-            %spectralFeaturesProc   Instantiate a processor for spectral
-            %                       features extraction
-            %
-            %USAGE:
-            %   pObj = spectralFeaturesProc(fs,cfHz)
-            %   pObj = spectralFeaturesProc(fs,cfHz,requests)
-            %
-            %INPUT ARGUMENTS:
-            %       fs : Sampling frequency of the input signal (ratemap)
-            %     cfHz : Vector of audio center frequencies (Hz)
-            % requests : Cell array of requests, valid requests as follow
-            %            - 'all'          : All of the following (default)
-            %            - 'centroid'     : Spectral centroid
-            %            - 'crest'        : Spectral crest measure
-            %            - 'spread'       : Spectral spread
-            %            - 'entropy'      : Spectral entropy
-            %            - 'brightness'   : Spectral brightness
-            %            - 'hfc'          : Spectral high-frequency content
-            %            - 'decrease'     : Spectral decrease
-            %            - 'flatness'     : Spectral flatness
-            %            - 'flux'         : Spectral flux
-            %            - 'kurtosis'     : Spectral kurtosis
-            %            - 'skewness'     : Spectral skewness
-            %            - 'irregularity' : Spectral irregularity
-            %            - 'rolloff'      : Spectral rolloff
-            %            - 'variation'    : Spectral variation
-            %
-            %OUTPUT ARGUMENT:
-            %     pObj : Processor instance
-            %
-            %TODO: error messages to be changed to warnings
+        function pObj = spectralFeaturesProc(fs,parObj)
+		%spectralFeaturesProc   Construct a spectral features extraction processor
+        %
+        % USAGE:
+        %   pObj = spectralFeaturesProc(fs, parObj)
+        %
+        % INPUT ARGUMENTS:
+        %     fs : Input sampling frequency (Hz)
+        % parObj : Parameter object instance
+        %
+        % OUTPUT ARGUMENTS:
+        %   pObj : Processor instance
+        %
+        % NOTE: Parameter object instance, parObj, can be generated using genParStruct.m
+        % User-controllable parameters for this processor and their default values can be
+        % found by browsing the script parameterHelper.m
+        %
+        % See also: genParStruct, parameterHelper, Processor
             
-            % Failsafe for Matlab empty calls
+            % Checking input parameter
+            if nargin<2||isempty(parObj); parObj = Parameters; end
+            if nargin<1; fs = []; end
+            
+            % Call superconstructor
+            pObj = pObj@Processor(fs,fs,'spectralFeaturesProc',parObj);
+            
             if nargin>0
-            
-            if nargin<4||isempty(ro_perc);ro_perc = 0.85;end
-            if nargin<3||isempty(br_cf);br_cf=1500;end
                 
-            % Check request validity...
-            
-            available = {'all' 'centroid' 'crest' 'spread' 'entropy' ...
-                'brightness' 'hfc' 'decrease' 'flatness' 'flux' ... 
-                'kurtosis' 'skewness' 'irregularity' 'rolloff' ...
-                'variation'};
-            
-            % Check if a single request was given but not as a cell array
-            if ischar(requests)
-                requests = {requests};
-            end
-            
-            % Check that requests is a cell of strings
-            if ~iscellstr(requests)
-                error('Requests for spectral features processor should be provided as a cell array of strings.')
-            end
-            
-            % Check for typos/incorrect feature name
-            if ~isequal(union(available,requests,'stable'),available)
-                error(['Incorrect request name. Valid names are as follow: '...
-                    strjoin(available,', ')])
-            end
-            
-            % Change the requests to actual names if 'all' was requested
-            if ismember('all',requests)
-                requests = setdiff(available,{'all'},'stable');
-            end
-            
-            % Check if provided brightness cutoff frequency is in a valid
-            % range
-            if (br_cf<cfHz(1)||br_cf>cfHz(end))&&ismember('brightness',requests)
-                error('Brightness cutoff frequency should be in Nyquist range')
-            end
-            
-            
-            % Ready to populate the processor properties
-            pObj.Type = 'Spectral features extractor';
-            pObj.FsHzIn = fs;
-            pObj.FsHzOut = fs;
-            pObj.cfHz = cfHz(:).';
-            pObj.requestList = requests;
-            pObj.br_cf = br_cf;
-            pObj.flux_buffer = [];
-            pObj.var_buffer = [];
-            pObj.ro_perc = ro_perc;
-            
-            % Hard-coded properties (for the moment)
-            pObj.eps = 1E-15;
-            pObj.ro_eps = 1E-10;
-            pObj.bUseInterp = true;
+                pObj.flux_buffer = [];
+                pObj.var_buffer = [];
             
             end
         end
@@ -224,7 +167,7 @@ classdef spectralFeaturesProc < Processor
                     case 'brightness'   % Spectral brightness
                         % Ratio of energy above cutoff to total energy in
                         % each frame
-                        out(:,ii) = sum(in(:,pObj.cfHz>pObj.br_cf),2)./(sum(in,2)+pObj.eps);
+                        out(:,ii) = sum(in(:,pObj.cfHz>pObj.brCF),2)./(sum(in,2)+pObj.eps);
                         
                     case 'hfc'          % Spectral high frequency content
                         % Average channel amplitude weighted by squared
@@ -303,7 +246,7 @@ classdef spectralFeaturesProc < Processor
                         % lower frequencies and the remaining above.
                         
                         % Spectral energy across frequencies multiplied by threshold parameter
-                        spec_sum_thres = pObj.ro_perc * sum(in,2);
+                        spec_sum_thres = pObj.roPerc * sum(in,2);
                         % Cumulative sum (+ epsilon ensure that cumsum increases monotonically)
                         spec_cumsum = cumsum(in + pObj.ro_eps,2);
                         
@@ -379,53 +322,153 @@ classdef spectralFeaturesProc < Processor
             
         end
         
-        function hp = hasParameters(pObj,p)
-            %hasParameters  This method compares the parameters of the
-            %               processor with the parameters given as input
+        function output = instantiateOutput(pObj,dObj)
+            %INSTANTIATEOUTPUT  Instantiate the output signal for this processor
             %
-            %USAGE
-            %    hp = pObj.hasParameters(p)
-            %
-            %INPUT ARGUMENTS
-            %  pObj : Processor instance
-            %     p : Structure containing parameters to test
+            %NB: This method is overloaded here from the master Processor class, as
+            %feature signals need additional input argument to construct
             
+            featureNames = pObj.requestList;
             
-            % If the requests in p is 'all', list all possible requests
-            if strcmp(p.sf_requests,'all')
-                requests = {'centroid' 'crest' 'spread' 'entropy' ...
-                'brightness' 'hfc' 'decrease' 'flatness' 'flux' ... 
-                'kurtosis' 'skewness' 'irregularity' 'rolloff' ...
-                'variation'};
-            else
-                requests = p.sf_requests;
-            end
+            sig = feval(pObj.getProcessorInfo.outputType, ...
+                        pObj, ...
+                        dObj.bufferSize_s, ...
+                        pObj.Channel,...
+                        [],...
+                        featureNames);
             
-            % Check for the same request list, disregard order
-            hp = isempty(setdiff(pObj.requestList,requests));
+            dObj.addSignal(sig);
             
-            % Check that the optional parameters have the same value
-%             try
-                if ismember('brightness',requests) && hp
-                    hp = isequal(pObj.br_cf,p.sf_br_cf);
-                end
-
-                if ismember('hfc',requests) && hp
-                    hp = isequal(pObj.hfc_cf,p.sf_hfc_cf);
-                end
-
-                if ismember('rolloff',requests) && hp
-                    hp = isequal(pObj.ro_thres,p.sf_ro_thres);
-                end
-            
-%             catch err
-%                 warning('hasParameters: a parameter is missing in the parameter list')
-%             
-%             end
+            output = {sig};
             
         end
     end
     
+    methods (Access=protected)
+       
+        function verifyParameters(pObj)
+            
+            % Check request validity...
+            
+            available = {'all' 'centroid' 'crest' 'spread' 'entropy' ...
+                'brightness' 'hfc' 'decrease' 'flatness' 'flux' ... 
+                'kurtosis' 'skewness' 'irregularity' 'rolloff' ...
+                'variation'};
+            
+            requests = pObj.parameters.map('sf_requests');
+            
+            % Check if a single request was given but not as a cell array
+            if ischar(requests)
+                requests = {requests};
+            end
+            
+            % Check that requests is a cell array of strings
+            if ~iscellstr(requests)
+                error('Requests for spectral features processor should be provided as a cell array of strings.')
+            end
+            
+            % Check for typos/incorrect feature name
+            if ~isequal(union(available,requests,'stable'),available)
+                error(['Incorrect request name. Valid names are as follow: '...
+                    strjoin(available,', ')])
+            end
+            
+            % Change the requests to actual names if 'all' was requested
+            if ismember('all',requests)
+                requests = setdiff(available,{'all'},'stable');
+            end
+            
+            % Check if provided brightness cutoff frequency is in a valid
+            % range
+            if ~isempty(pObj.cfHz)
+                if (pObj.parameters.map('sf_brCF') < pObj.cfHz(1) || ...
+                        pObj.parameters.map('sf_brCF') > pObj.cfHz(end)) && ...
+                        ismember('brightness',requests)
+                    error('Brightness cutoff frequency should be in Nyquist range')
+                end
+            end
+            
+            pObj.parameters.map('sf_requests') = requests;
+            
+        end
+        
+    end
     
+    methods (Hidden = true)
+        
+        function prepareForProcessing(pObj)
+            
+            % Hard-coded properties (for the moment)
+            pObj.eps = 1E-15;
+            pObj.ro_eps = 1E-10;
+            pObj.bUseInterp = true;
+
+            % Access center frequencies for computing statistics
+            pObj.cfHz = pObj.getDependentParameter('fb_cfHz');
+            
+            % Read private properties from parameters
+            pObj.brCF = pObj.parameters.map('sf_brCF');
+            pObj.roPerc = pObj.parameters.map('sf_roPerc');
+            
+        end
+        
+    end
+    
+    % "Getter" methods
+    methods
+        function requestList = get.requestList(pObj)
+            requestList = pObj.parameters.map('sf_requests');
+        end
+    end
+    
+    methods (Static)
+        
+        function dep = getDependency()
+            dep = 'ratemap';
+        end
+        
+        function [names, defaultValues, descriptions] = getParameterInfo()
+            %getParameterInfo   Returns the parameter names, default values
+            %                   and descriptions for that processor
+            %
+            %USAGE:
+            %  [names, defaultValues, description] =  ...
+            %                           gammatoneProc.getParameterInfo;
+            %
+            %OUTPUT ARGUMENTS:
+            %         names : Parameter names
+            % defaultValues : Parameter default values
+            %  descriptions : Parameter descriptions
+            
+            
+            names = {'sf_requests',...
+                    'sf_brCF',...
+                    'sf_roPerc'};
+            
+            descriptions = {['List (cell array) of requested spectral features, type ' ...
+                '''help SpectralFeaturesProc'' for a list'],...
+                    'Cutoff frequency for brightness computation',...
+                    'Threshold (re. 1) for spectral rolloff computation'};
+            
+            defaultValues = {'all',...
+                            1500,...
+                            0.8};
+                
+        end
+        
+        function pInfo = getProcessorInfo
+            
+            pInfo = struct;
+            
+            pInfo.name = 'Spectral features extractor';
+            pInfo.label = 'Spectral features';
+            pInfo.requestName = 'spectralFeatures';
+            pInfo.requestLabel = 'Spectral features';
+            pInfo.outputType = 'FeatureSignal';
+            pInfo.isBinaural = false;
+            
+        end
+        
+    end
     
 end
