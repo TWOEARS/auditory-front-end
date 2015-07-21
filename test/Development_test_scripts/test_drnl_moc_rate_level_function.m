@@ -1,9 +1,11 @@
 % Test script to generate the AN firing rate-input level function using
 % DRNL and Adaptation loops
 % (Remember to change the dependency of innerhaircell)
+%
+% DISCLAIMER: This script can take up to several minutes to run
 
 clear all
-% close all
+close all
 clc
 
 %% Add paths
@@ -101,7 +103,7 @@ for ii=1:length(toneFrequency)
     inputSignal=inputSignal.*ramp_temp;
     % add silence
     inputSignal= [repmat(intialSilence, [length(leveldBSPL), 1]) ...
-        inputSignal repmat(finalSilence, [length(leveldBSPL), 1])];
+        inputSignal repmat(finalSilence, [length(leveldBSPL), 1])]; %#ok<AGROW>
     
     % Obtain the dboffset currently used
     dboffset=dbspl(1);
@@ -152,7 +154,7 @@ for ii=1:length(mocFactor)
             mObj.processSignal();
             mObj_noisy.processSignal();
             
-            bmOut = max(dObj.drnl{1}.Data(:));
+            bmOut = max(dObj.filterbank{1}.Data(:));
             bmOutdB = 20*log10(bmOut);
             anOut = dObj.adaptation{1}.Data(:);
             anOutOnset = max(anOut);

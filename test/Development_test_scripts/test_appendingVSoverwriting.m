@@ -1,3 +1,5 @@
+% This scripts compares appending and replacing data when processing signals in chunks
+
 clear all
 close all
 

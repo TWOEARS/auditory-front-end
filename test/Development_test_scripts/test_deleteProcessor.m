@@ -1,6 +1,6 @@
 % This is a test script to investigate Matlab's event-based programming
 
-% clear all
+clear all
 close all
 
 % Load a signal
@@ -24,6 +24,5 @@ sOut = mObj.addProcessor(request,p);
 mObj.Processors{4}.remove;
 mObj.cleanup;
 
-echo on
+disp('mObj.Processors :')
 mObj.Processors
-echo off

@@ -1,5 +1,10 @@
 % This script tests the various methods to access the parameter values that
-% were used for the computation of some representations
+% were used for the computation of some representations. It demonstrates the three
+% alternatives:
+%   - Access parameters used by a processor via its getCurrentParameters method
+%   - Access parameters used to compute a given signal (getParameters method)
+%   - Access a summary of all parameters used in a processing tree (manager's
+%     getParameterSummary method)
 
 clear all
 close all

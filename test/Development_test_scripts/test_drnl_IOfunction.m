@@ -1,8 +1,10 @@
 % Test script to compare the output from TwoEars DRNL filterbank processor
 % to the I/O function in (Jepsen et al. 2008) (Figure 2, p425)
 
+% DISCLAIMER: The script can take up to a couple minutes to run!!
+
 clear all
-% close all
+close all
 clc
 
 %% Add paths
@@ -112,7 +114,7 @@ for jj=1:length(toneFrequency)
         mObj = manager(dObj);
         out = mObj.addProcessor(request, param_struct);
         mObj.processSignal();
-        peakOut = max(dObj.drnl{1}.Data(:));
+        peakOut = max(dObj.filterbank{1}.Data(:));
         peakOutdB = 20*log10(peakOut);
         ioFunctionMatrix(jj, kk) = peakOutdB;
         clear dObj mObj out

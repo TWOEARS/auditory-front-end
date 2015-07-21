@@ -1,13 +1,13 @@
 % This script demonstrates the different approaches to requesting multiple
 % representations at a time in the Two!Ears Auditory Front-End processing framework.
 
-% clear all
+clear all
 close all
 clc
 
 
 % Which demo(s) to run:
-demo = [4];
+demo = [1:4];
 
 % Load a signal
 load('TestBinauralCues');

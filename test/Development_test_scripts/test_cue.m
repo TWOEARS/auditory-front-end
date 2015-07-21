@@ -1,7 +1,7 @@
 % This script tests the capability of the manager to extract a specific
-% cue
+% cue. It is generally used as an initial test when implementing a new processor.
 
-clear 
+% clear 
 close all
 
 

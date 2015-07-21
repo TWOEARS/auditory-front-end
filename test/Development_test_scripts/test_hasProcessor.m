@@ -1,22 +1,23 @@
-clear all
-close all
-
 % This script is for testing the behavior of the hasProcessor method of the
 % manager class. It illustrates how the method hasProcessor does not look
 % only at the final processing stage, but also checks lower-level stages to
 % control that they also have the requested parameters.
 
+clear all
+close all
+
+%#ok<*NOPTS>
+%#ok<*EQEFF>
 
 % Load a signal
 load('TestBinauralCues');
 
 % Multiple requests
 request1 = 'innerhaircell';
-p1 = struct;
+p1 = genParStruct;
 
 request2 = 'innerhaircell';
-p2 = struct;
-p2.fb_nERBs = 1/3;
+p2 = genParStruct('fb_nERBs',1/3);
 
 
 % Instantiate data and manager objects
@@ -31,27 +32,21 @@ out2 = mObj.addProcessor(request2,p2);
 mObj.processSignal
 
 
-% Get full parameter structures
-p1.fs = fsHz;
-p1full = parseParameters(p1);
-p2.fs = fsHz;
-p2full = parseParameters(p2);
-
 echo on
-% Find an IHC processor with parameters p2:
-
-h = mObj.hasProcessor('ihcProc',p2full);
-
 
 % There are two IHC Processors (3 & 5), both have the same IHC parameters:
 
-mObj.Processors{3}
+mObj.Processors{3} 
 mObj.Processors{5}
 
+% Find which IHC processor has parameters p2:
 
-% But only one has its dependencies with the right set of parameters:
+h = mObj.hasProcessor('ihcProc',p2);
 
-h == mObj.Processors{3}
+% Even though both IHC processors have same parameters, only one has its dependencies
+% with the right set of parameters:
+
+h == mObj.Processors{3} 
 h == mObj.Processors{5}
 
 echo off
