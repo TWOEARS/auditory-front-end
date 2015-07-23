@@ -268,6 +268,7 @@ classdef Parameters < dynamicprops & Hashable
             % List of parameter names
             parList = parObj.map.keys;
             
+            hashMembers = [];
             for ii = 1:size(parList,2)
                 hashMembers.(parList{ii}) = parObj.map(parList{ii});
             end
