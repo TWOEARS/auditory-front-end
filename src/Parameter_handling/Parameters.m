@@ -282,13 +282,13 @@ classdef Parameters < dynamicprops & Hashable
             
             n_param = parObj.map.Count;
             keys = parObj.map.keys;
-            
+            p = properties( parObj );
+
             for ii = 1:n_param
-                if ~isprop(parObj,keys{ii})
+                if ~any(strcmp(keys{ii}, p))
                     parObj.addDynProp(keys{ii});
                 end
             end
-            
             
         end
         
