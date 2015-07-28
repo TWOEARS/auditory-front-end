@@ -35,7 +35,7 @@ Model, it will automatically be started by
 >> startTwoEars
 ```
 Have a look at the documentation of the [Two!Ears
-Auditory Model](https://github.com/TWOEARS/TwoEars).
+Auditory Model](http://twoears.aipa.tu-berlin.de/doc/).
 
 The AFE was developed under Matlab version 8.3.0.532 (R2014a) and tested for backward
 compatibility down to Matlab version 8.0.0.783 (R2012b).
@@ -215,7 +215,7 @@ The ILD processor is further demonstrated by the script `DEMO_ILD.m` in the
 ### More help
 
 The complete functionality of the AFE is discussed in detail in the accompanying
-[User manual](doc/The_auditory_front-end_framework_User_manual.pdf).
+[Online user manual](http://twoears.aipa.tu-berlin.de/doc/afe/).
 
 
 ## Credits
