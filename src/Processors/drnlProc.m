@@ -191,7 +191,7 @@ classdef drnlProc < Processor
             if nargin<1; fs = []; end
 
             % Call super-constructor
-            pObj = pObj@Processor(fs,fs,'gammatoneProc',parObj);
+            pObj = pObj@Processor(fs,fs,'drnlProc',parObj);
             
             if nargin>0 && ~isempty(fs)
                 
