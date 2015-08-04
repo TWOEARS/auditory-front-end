@@ -108,7 +108,7 @@ for ii = 1 : nFilter
     end
     
     % Check if resulting filter coefficients are stable
-    if ~isstable(b{ii},a{ii})
+    if ~isStable(b{ii},a{ii})
         error('IIR filter is not stable, reduce the filter order!')
     end    
 end
