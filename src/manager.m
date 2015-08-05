@@ -157,7 +157,7 @@ classdef manager < handle
             end
         end
         
-        function processSignal(mObj)
+        function processSignal(mObj,s)
             %processSignal      Requests a manager object to extract the requested 
             %                   features for the complete signal in mObj.Data.input
             %
@@ -172,6 +172,11 @@ classdef manager < handle
             %processing, assuming a completely new signal.
             %
             %SEE ALSO: processChunk
+            
+            if nargin == 2 && ~isempty(s)
+                % Then use the input signal provided as input
+                mObj.Data.replaceInputSignal(s);
+            end
             
             % Check that there is an available signal
             if isempty(mObj.Data.input)
@@ -193,41 +198,6 @@ classdef manager < handle
                     if size(mObj.Processors,2) == 2 && ~isempty(mObj.Processors{jj,2})
                         mObj.Processors{jj,2}.initiateProcessing;
                     end
-                    
-%                     if ~mObj.Processors{jj,1}.isBinaural
-%                         % Apply processing for left channel (or mono if
-%                         % interaural cue/feature)
-%                         mObj.OutputList{jj,1}.setData( ...
-%                             mObj.Processors{jj,1}.processChunk(mObj.InputList{jj,1}.Data(:)) );
-% 
-%                         % Apply for right channel if stereo cue/feature
-%                         if mObj.Data.isStereo && ~isempty(mObj.Processors{jj,2})
-%                             mObj.OutputList{jj,2}.setData(...
-%                                 mObj.Processors{jj,2}.processChunk(mObj.InputList{jj,2}.Data(:))...
-%                                 );
-%                         end
-%                     else
-%                         if ~mObj.Processors{jj,1}.hasTwoOutputs
-%                             % If the processor extracts a binaural cue, inputs
-%                             % from left and right channel should be routed
-%                             mObj.OutputList{jj,1}.setData( ...
-%                                 mObj.Processors{jj,1}.processChunk(mObj.InputList{jj,1}.Data(:),...
-%                                 mObj.InputList{jj,2}.Data(:))...
-%                                 );
-%                         else
-%                             if size(mObj.InputList,2)>1
-%                                 [out_l, out_r] = mObj.Processors{jj,1}.processChunk(mObj.InputList{jj,1}.Data(:),...
-%                                     mObj.InputList{jj,2}.Data(:));
-%                             else
-%                                 [out_l, out_r] = mObj.Processors{jj,1}.processChunk(mObj.InputList{jj,1}.Data(:),...
-%                                     []);
-%                             end
-%                             mObj.OutputList{jj,1}.setData(out_l);
-%                             if ~isempty(out_r)
-%                                 mObj.OutputList{jj,2}.setData(out_r);
-%                             end
-%                         end
-%                     end
                 end
             end
         end
