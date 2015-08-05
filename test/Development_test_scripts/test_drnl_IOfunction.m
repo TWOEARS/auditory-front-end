@@ -80,11 +80,11 @@ for ii=1:length(toneFrequency)
     inputSignal= [repmat(intialSilence, [length(leveldBSPL), 1]) ...
         inputSignal repmat(finalSilence, [length(leveldBSPL), 1])];
     
-    % Obtain the dboffset currently used
-    dboffset=dbspl(1);
-
-    % Switch signal to the correct scaling
-    inputSignal=gaindb(inputSignal, dboffset-100);
+%     % Obtain the dboffset currently used
+%     dboffset=dbspl(1);
+% 
+%     % Switch signal to the correct scaling
+%     inputSignal=gaindb(inputSignal, dboffset-100);
     
     inputSignalMatrix(:, :, ii) = inputSignal;
 end
@@ -105,8 +105,8 @@ for jj=1:length(toneFrequency)
     % parameter structure for testing on-freq stimulation
     param_struct = genParStruct('pp_bLevelScaling', true, ...
             'pp_bMiddleEarFiltering', true, ...
-            'fb_type', 'drnl', 'fb_cfHz', toneFrequency(jj), ...
-            'fb_mocIpsi', 0.5);
+            'fb_type', 'drnl', 'fb_cfHz', toneFrequency(jj));%, ...
+%             'fb_mocIpsi', 0.5);
 %     % parameter structure for testing different stimulation freq at single CF
 %     param_struct = genParStruct('drnl_cfHz', 4000);
     for kk=1:length(leveldBSPL)
