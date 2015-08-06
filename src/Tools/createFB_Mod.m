@@ -75,7 +75,7 @@ if nargin < 2 || isempty(cfModHz);     cfModHz     = pow2(0:10); end
 filterOrder = 2;
 
 % Check filter order
-if isodd(filterOrder)
+if filterOrder ~= (round(filterOrder / 2) * 2)
     error('Filter order must be even-numbered!')    
 else
     % Order of band-pass filters is 2 * N, thus N = filterOrder / 2 
