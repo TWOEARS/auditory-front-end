@@ -470,6 +470,15 @@ classdef drnlProc < Processor
             
             % Compute internal parameters and instantiate filters
             
+            % Switch bUnityComp of preProc to zero to make the middle ear
+            % filtering fully effective
+            % (By default this is set to 1 for the use with gammatone
+            % filterbank, enabling unity gain middle ear filtering)
+            % The cell array given by the .LowerDependencies of a processor 
+            % contains handle(s) to the processor(s) just below 
+            % in the processing tree.
+            pObj.LowerDependencies{1}.parameters.map('pp_bUnityComp') = false;
+            
             % mocIpsi, mocContra can be a scalar or vector with the same
                 % length as cfHz (individual nonlinear gain per channel)
                 if isscalar(pObj.mocIpsi)            % single mocIpsi across all channels
