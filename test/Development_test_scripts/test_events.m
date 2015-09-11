@@ -9,8 +9,8 @@ close all
 
 
 % Load a signal
-load('TestBinauralCues');
-data = earSignals(1:62E3,2);     % Right channel has higher energy
+load('AFE_earSignals_16kHz');
+data = earSignals(:,2);     % Right channel has higher energy
 
 % Parameters
 request = {'ratemap'};

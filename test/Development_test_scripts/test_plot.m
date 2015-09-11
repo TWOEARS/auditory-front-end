@@ -5,7 +5,7 @@ clear
 close all
 
 % Load a signal
-load('TestBinauralCues');
+load('AFE_earSignals_16kHz');
 
 data = earSignals;
 clear earSignals

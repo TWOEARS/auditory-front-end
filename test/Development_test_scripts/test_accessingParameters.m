@@ -14,7 +14,7 @@ close all
 do_stereo = 1;
 
 % Load a signal
-load('TestBinauralCues');
+load('AFE_earSignals_16kHz');
 data = earSignals;
 clear earSignals
 

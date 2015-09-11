@@ -14,7 +14,7 @@ clc
 % addpath(['..',filesep,'Test_signals',filesep]);
 
 % Load a signal
-load('TestBinauralCues');
+load('AFE_earSignals_16kHz');
 
 % Take right ear signal
 data = earSignals(:,2);     

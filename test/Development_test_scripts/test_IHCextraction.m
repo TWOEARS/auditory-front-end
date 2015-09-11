@@ -7,7 +7,7 @@ close all
 
 %% Load a mono signal
 path = fileparts(mfilename('fullpath'));
-load([path filesep '..' filesep 'Test_signals' filesep 'TestBinauralCues']);
+load([path filesep '..' filesep 'Test_signals' filesep 'AFE_earSignals_16kHz']);
 data = earSignals(:,2);
 clear earSignals
 

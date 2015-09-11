@@ -19,7 +19,7 @@ steps = 3;              % In how many steps this range should be spanned
 
 %% Signal
 % Load a signal
-load('TestBinauralCues');
+load('AFE_earSignals_16kHz');
 
 % Only mono processing for this test
 data = earSignals(:,2);

@@ -3,14 +3,14 @@
 % only at the final processing stage, but also checks lower-level stages to
 % control that they also have the requested parameters.
 
-clear all
+clear
 close all
 
 %#ok<*NOPTS>
 %#ok<*EQEFF>
 
 % Load a signal
-load('TestBinauralCues');
+load('AFE_earSignals_16kHz');
 
 % Multiple requests
 request1 = 'innerhaircell';

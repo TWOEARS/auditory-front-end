@@ -1,11 +1,11 @@
 % This is a test script to investigate Matlab's event-based programming
 
-clear all
+clear;
 close all
 
 % Load a signal
-load('TestBinauralCues');
-data = earSignals(1:62E3,:);   
+load('AFE_earSignals_16kHz');
+data = earSignals;   
 
 % Parameters
 request = {'itd'};

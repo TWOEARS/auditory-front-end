@@ -4,7 +4,7 @@ close all
 % Basic script used throughout chapter 2 of deliverable 2.2
 % Using echo for copy/pasting to deliverable text
 
-load('TestBinauralCues');
+load('AFE_earSignals_16kHz');
 s = earSignals;
 clear earSignals
 

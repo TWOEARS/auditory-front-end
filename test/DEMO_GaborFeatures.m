@@ -53,7 +53,7 @@ mObj.processSignal();
 % Ratemap
 dObj.ratemap{1}.plot;
 set(gca,'YTick',5:5:20,'YTickLabel',num2str((5:5:20)'))
-ylabel('\# channels')
+ylabel('# channels')
 
 
 % Gabor features

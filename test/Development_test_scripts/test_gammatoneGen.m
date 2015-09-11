@@ -6,7 +6,8 @@ close all
 clc
 
 % Load a signal
-load('TestBinauralCues');
+load('AFE_earSignals_16kHz');
+
 
 %% Instantiate manager and data object
 

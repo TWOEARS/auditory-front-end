@@ -9,7 +9,7 @@ close all
 do_stereo = 1;
 
 % Load a signal
-load('TestBinauralCues');
+load('AFE_earSignals_16kHz');
 
 if ~do_stereo
     data = earSignals(1:62E3,2);     % Right channel has higher energy

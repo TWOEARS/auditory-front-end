@@ -1,4 +1,4 @@
-% clear;
+clear;
 close all
 clc
 

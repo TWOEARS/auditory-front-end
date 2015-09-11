@@ -17,7 +17,7 @@ chunkSize = 10000;    % Chunk size in samples
 
 %% Signal
 % Load a signal
-load('TestBinauralCues');
+load('AFE_earSignals_16kHz');
 
 % Only mono processing for this test
 data = earSignals(:,2);

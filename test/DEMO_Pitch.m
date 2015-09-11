@@ -1,6 +1,6 @@
 clear;
-close all
-clc
+close all;
+clc;
 
 
 %% LOAD SIGNAL

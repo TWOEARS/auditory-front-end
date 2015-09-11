@@ -10,7 +10,7 @@ close all
 clc
 
 % Load a signal
-load('TestBinauralCues');
+load('AFE_earSignals_16kHz');
 
 % Original request with default parameters
 request = 'crosscorrelation';

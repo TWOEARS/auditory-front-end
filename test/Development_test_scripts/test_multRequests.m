@@ -10,7 +10,7 @@ clc
 demo = [1:4];
 
 % Load a signal
-load('TestBinauralCues');
+load('AFE_earSignals_16kHz');
 
 % data = earSignals(:,2);     % Take channel with higher energy
 data = earSignals;
