@@ -28,7 +28,7 @@ run([path filesep '..' filesep 'startAuditoryFrontEnd.m'])
 
 
 % Load a signal
-load('AFE_earSignals_16kHz');
+load('Test_signals/AFE_earSignals_16kHz');
 
 
 %% 1- Basic advantages of object-oriented approach: 

@@ -6,7 +6,7 @@ close all;
 % It goes along the description in section 2.4 of the user manual (Deliverable 2.2)
 
 % Loading a signal
-load('AFE_earSignals_16kHz');
+load('Test_signals/AFE_earSignals_16kHz');
 sIn = earSignals;
 clear earSignals
 
