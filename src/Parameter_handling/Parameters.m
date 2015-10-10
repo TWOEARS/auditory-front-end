@@ -147,10 +147,12 @@ classdef Parameters < dynamicprops & Hashable
             % NB: Keys are naturally ordered in map containers, no need to do it here
             if ~isa(parObj1, 'Parameters') || ~isa(parObj2, 'Parameters')
                 r = 0;
-            elseif isequal(parObj1.map.keys,parObj2.map.keys)
-                r = isequal(parObj1.map.values,parObj2.map.values);
+%             elseif isequal(parObj1.map.keys,parObj2.map.keys)
+%                 r = isequal(parObj1.map.values,parObj2.map.values);
+%             else
+%                 r = 0;
             else
-                r = 0;
+                r = isequal(parObj1.map,parObj2.map);
             end
             
         end
