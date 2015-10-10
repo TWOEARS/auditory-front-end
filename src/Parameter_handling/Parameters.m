@@ -443,8 +443,22 @@ classdef Parameters < dynamicprops & Hashable
         end
         
         function obj = loadobj(obj)
-            obj.updateProperties();
+            if Parameters.dynPropsOnLoad( false )
+                obj.updateProperties();
+            end
         end
+        
+        function e = dynPropsOnLoad( setNewValue, newValue )
+            persistent dpol;
+            if isempty( dpol )
+                dpol = true;
+            end
+            if setNewValue
+                dpol = newValue;
+            end
+            e = dpol;
+        end
+        
     end
     
 end
