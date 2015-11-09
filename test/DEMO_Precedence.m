@@ -29,8 +29,8 @@ fb_highFreqHz = 1400;
 % minimum windowlength needs to be in order of binaural sluggishness for
 % the model to operate properly (now set to 1024 tabs). Needs sufficient
 % length to perform autocorrelation over both lead and lag.
-prec_wSizeSec = 0.03;
-prec_hSizeSec = 0.015;
+prec_wSizeSec = 0.02;
+prec_hSizeSec = 0.01;
 
 par = genParStruct('fb_lowFreqHz',fb_lowFreqHz, ...
     'fb_highFreqHz',fb_highFreqHz, ...
@@ -49,6 +49,11 @@ mObj.processSignal();
 
 %% PLOT RESULTS
 
+% Input signals
+dObj.plot([],[],'rangeSec', [0 0.05], 'bGray',1,'decimateRatio',3,'bSignal',1);
+ylim([-0.8 0.8]);
+
+% Output ITD / ILD
 figure
 subplot(2,1,1)
 plot(dObj.precedence{1}.Data(:))
