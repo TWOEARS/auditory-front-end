@@ -57,14 +57,13 @@ ylim([-0.8 0.8]);
 figure
 subplot(2,1,1)
 plot(dObj.precedence{1}.Data(:))
-title('accumulated ITD') 
-xlabel('iteration steps/# number of analyzed windows')
+title('Accumulated ITD') 
 ylabel('ITD [ms]');
 
 subplot(2,1,2)
 plot(dObj.precedence{2}.Data(:))
-title('accumulated ILD') 
-xlabel('iteration steps/# number of analyzed windows')
+title('Accumulated ILD') 
+xlabel('Iteration steps / number of analyzed windows')
 ylabel('ILD [dB]');
 
 
