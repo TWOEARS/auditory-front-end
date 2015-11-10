@@ -54,13 +54,13 @@ dObj.plot([],[],'rangeSec', [0 0.05], 'bGray',1,'decimateRatio',3,'bSignal',1);
 ylim([-0.8 0.8]);
 
 % Output ITD / ILD
-figure
-subplot(2,1,1)
+figure;
 plot(dObj.precedence{1}.Data(:))
 title('Accumulated ITD') 
+xlabel('Iteration steps / number of analyzed windows')
 ylabel('ITD [ms]');
 
-subplot(2,1,2)
+figure;
 plot(dObj.precedence{2}.Data(:))
 title('Accumulated ILD') 
 xlabel('Iteration steps / number of analyzed windows')

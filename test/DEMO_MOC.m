@@ -204,14 +204,15 @@ for jj=1:length(toneFrequency)
         % Input vs MOC attenuation output
         mocLevelFunctionMatrix(jj, kk) = mocOutMax;
 
-        % Plot output with/without MOC for a single input for comparison
+        % Plot output example with/without MOC for a single input for comparison
         % example
         if jj==1 && kk==5 
-            subplot(2,1,1);
+            figure;
             plot(totalTime, dObj_moc.input{1}.Data(:));
+            xlabel('Time (s)');
             ylabel('Amplitude');
             title(sprintf('Input signal, %ddB SPL, %dHz', leveldBSPL(kk), toneFrequency(jj)));
-            subplot(2,1,2);
+            figure;
             plot(totalTime, bmOut_moc);
             xlabel('Time (s)');
             ylabel('Amplitude');
