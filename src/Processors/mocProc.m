@@ -17,12 +17,12 @@ classdef mocProc < Processor
 %   other references are to be used.
 %
 %   MOCPROC properties:
-%       mocIpsi     - Ipsilateral MOC feedback (as nonlinear gain factor)
-%       mocContra   - Contralateral MOC feedback (as nonlinear gain factor)
-%       mocThresholdRatedB      
+%       extIpsi     - External Ipsilateral MOC feedback (as nonlinear gain factor)
+%       extContra   - External Contralateral MOC feedback (as nonlinear gain factor)
+%       thresholdRatedB      
 %                   - threshold AN rate (in dB scale) over which the MOC 
 %                       attenuation will be driven
-%       mocMaxAttenuationdB
+%       maxAttenuationdB
 %                   - Maximum MOC attenuation in dB
 %
 %   See also: Processor, drnlProc, ratemapProc
@@ -41,10 +41,10 @@ classdef mocProc < Processor
 
         % The values of these properties are not stored here, but instead read via a
         % "getter" method implemented below
-        mocIpsi                     % ipsilateral moc 
-        mocContra                   % contralateral moc
-        mocThresholdRatedB          % threshold AN rate (in dB scale) over which the MOC attenuation will be driven
-        mocMaxAttenuationdB         % Maximum MOC attenuation in dB
+        extIpsi                     % external ipsilateral moc 
+        extContra                   % external contralateral moc
+        thresholdRatedB          % threshold AN rate (in dB scale) over which the MOC attenuation will be driven
+        maxAttenuationdB         % Maximum MOC attenuation in dB
         
     end
     
@@ -113,46 +113,46 @@ classdef mocProc < Processor
             %SEE ALSO:
             %       templateProc.m
  
-            % input level -> ratemap output -> MOC attenuation mapping,
-            % based on Clark et al. 2012 paper (and Liberman 1988) data
+                % input level -> ratemap output -> MOC attenuation mapping,
+                % based on Clark et al. 2012 paper (and Liberman 1988) data
 
-            % Note that input can be zero - in that case log will give -inf
-            % So firstly assume out will be 0 for zero input
-            % set up the default zeros for out
-            out = zeros(size(in));
-            
-            % relationship found from curve fitting at 520Hz and 3980Hz
-            % (Liberman data)
-            % ratemap data should be in log scale first
-            x = 20*log10(in);       % this relationship is monotonic
-            % The [cubic] curve shape used for the fitting (below) makes it
-            % irrelevant to use the "intermediate" x values lower than -180
-            % so place a threshold for x here
-%             x(x<-180) = -180;
-            x(x<pObj.mocThresholdRatedB) = pObj.mocThresholdRatedB;
+                % Note that input can be zero - in that case log will give -inf
+                % So firstly assume out will be 0 for zero input
+                % set up the default zeros for out
+                out = zeros(size(in));
+            if ~isempty(in)
 
-            out(in>0) = pObj.p1*x(in>0).^3 + pObj.p2*x(in>0).^2 + ...
-                pObj.p3*x(in>0) + pObj.p4;
+                % relationship found from curve fitting at 520Hz and 3980Hz
+                % (Liberman data)
+                % ratemap data should be in log scale first
+                x = 20*log10(in);       % this relationship is monotonic
+                % The [cubic] curve shape used for the fitting (below) makes it
+                % irrelevant to use the "intermediate" x values lower than -180
+                % so place a threshold for x here
+                x(x<pObj.thresholdRatedB) = pObj.thresholdRatedB;
+
+                out(in>0) = pObj.p1*x(in>0).^3 + pObj.p2*x(in>0).^2 + ...
+                    pObj.p3*x(in>0) + pObj.p4;
+
+                % set negative output to zero
+                out(out<0) = 0;
+
+                % set output saturation at 40 dB - this also corresponds to the
+                % fitted curve shape
+                out(out>pObj.maxAttenuationdB) = pObj.maxAttenuationdB;
+
+                % apply the dB value as the "multiplication factor"
+                % currently only use the very last (window) frame for the
+                % feedback, 
+                mocIpsiFeed = pObj.extIpsi .* (10.^(-out(1, :)/20));
+                mocContraFeed = pObj.extContra;
+
+                % Access the DRNL MOC parameters directly without
+                % affecting anything else
+                pObj.LowerDependencies{1}.LowerDependencies{1}.LowerDependencies{1}.parameters.map('fb_mocIpsi') = mocIpsiFeed;
+                pObj.LowerDependencies{1}.LowerDependencies{1}.LowerDependencies{1}.parameters.map('fb_mocContra') = mocContraFeed;          
             
-            % set negative output to zero
-            out(out<0) = 0;
-            
-            % set output saturation at 40 dB - this also corresponds to the
-            % fitted curve shape
-%             out(out>40) = 40;
-            out(out>pObj.mocMaxAttenuationdB) = pObj.mocMaxAttenuationdB;
-           
-            % apply the dB value as the "multiplication factor"
-            % currently only use the very last (window) frame for the
-            % feedback, 
-            mocIpsiFeed = pObj.mocIpsi .* (10.^(-out(1, :)/20));
-            mocContraFeed = pObj.mocContra;
-          
-            % Access the DRNL MOC parameters directly without
-            % affecting anything else
-            pObj.LowerDependencies{1}.LowerDependencies{1}.LowerDependencies{1}.parameters.map('fb_mocIpsi') = mocIpsiFeed;
-            pObj.LowerDependencies{1}.LowerDependencies{1}.LowerDependencies{1}.parameters.map('fb_mocContra') = mocContraFeed;          
-            
+            end
         end
         
         function reset(pObj)
@@ -389,27 +389,20 @@ classdef mocProc < Processor
         % All properties listed as "Dependent" in the beginning of the class definition
         % should have a corresponding "getter" method here.
         
-        function mocIpsi = get.mocIpsi(pObj)
-            % For example, par1 corresponds to the user-controlled parameter 'XX_para1'
-            mocIpsi = pObj.parameters.map('moc_mocIpsi');
+        function extIpsi = get.extIpsi(pObj)
+            extIpsi = pObj.parameters.map('moc_extIpsi');
         end
         
-        function mocContra = get.mocContra(pObj)
-            % Another example, par2 is just used to simplify the code and avoid having a
-            % long expression re-occuring throughout the code.
-            mocContra = pObj.parameters.map('moc_mocContra'); 
+        function extContra = get.extContra(pObj)
+            extContra = pObj.parameters.map('moc_extContra'); 
         end
         
-        function mocThresholdRatedB = get.mocThresholdRatedB(pObj)
-            % Another example, par2 is just used to simplify the code and avoid having a
-            % long expression re-occuring throughout the code.
-            mocThresholdRatedB = pObj.parameters.map('moc_mocThresholdRatedB'); 
+        function thresholdRatedB = get.thresholdRatedB(pObj)
+            thresholdRatedB = pObj.parameters.map('moc_thresholdRatedB'); 
         end
 
-        function mocMaxAttenuationdB = get.mocMaxAttenuationdB(pObj)
-            % Another example, par2 is just used to simplify the code and avoid having a
-            % long expression re-occuring throughout the code.
-            mocMaxAttenuationdB = pObj.parameters.map('moc_mocMaxAttenuationdB'); 
+        function maxAttenuationdB = get.maxAttenuationdB(pObj)
+            maxAttenuationdB = pObj.parameters.map('moc_maxAttenuationdB'); 
         end
         
         
@@ -430,7 +423,7 @@ classdef mocProc < Processor
             %
             %USAGE:
             %  [names, defaultValues, description] =  ...
-            %                           gammatoneProc.getParameterInfo;
+            %                           mocProc.getParameterInfo;
             %
             %OUTPUT ARGUMENTS:
             %         names : Parameter names
@@ -438,13 +431,13 @@ classdef mocProc < Processor
             %  descriptions : Parameter descriptions
             
             
-            names = {'moc_mocIpsi', ...
-                'moc_mocContra', ...
-                'moc_mocThresholdRatedB', ...
-                'moc_mocMaxAttenuationdB'};
+            names = {'moc_extIpsi', ...
+                'moc_extContra', ...
+                'moc_thresholdRatedB', ...
+                'moc_maxAttenuationdB'};
             
-            descriptions = {'Ipsilateral MOC feedback factor', ...
-                            'Contralateral MOC feedback factor', ...
+            descriptions = {'External ipsilateral MOC feedback factor', ...
+                            'External contralateral MOC feedback factor', ...
                             'Threshold ratemap value for MOC activation in dB', ...
                             'Maximum possible MOC attenuation in dB'};
             

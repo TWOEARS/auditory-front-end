@@ -1,26 +1,18 @@
-% Test script for MOC - DRNL feedback function
-
 clear all
 close all
 clc
 
-%% test signal
+%% CREATE TEST SIGNALS
 % sinusoid with some onset/offset ramps
-% pasted from MAP1_14h test codes to potentially test against the MAP
+% adopted from MAP1_14h test codes to potentially test against the MAP
 % implementation
-sampleRate = 44100;
-fs = sampleRate;             % trying to unify the input characteristics
-toneFrequency= [520 3980];           % (Hz)
-toneDuration = 0.05;                 % trying to unify the input characteristics
+fsHz = 44100;             
+toneFrequency= [520 3980];          % (Hz)
+toneDuration = 0.05;                % 
 beginSilence=0.05;
 endSilence=0;
-rampDuration=.0025;              % raised cosine ramp (seconds)
+rampDuration=.0025;                 % raised cosine ramp (seconds)
 leveldBSPL= 0:10:90;   
-% mocFactordB = 0;
-% mocFactor = 10.^(mocFactordB/20);
-
-% Chunk size in samples (for online processing)
-chunkSize = sampleRate * 20E-3;    
 
 % calibration factor (see Jepsen et al. 2008)
 dBSPLCal = 100;         % signal amplitude 1 should correspond to max SPL 100 dB
@@ -32,16 +24,16 @@ levelPressure = pRef*10.^(leveldBSPL/20);
 
 % define 20-ms onset sample after ramp completed 
 %  allowing 5-ms response delay
-onsetPTR1=round((rampDuration+ beginSilence +0.005)*sampleRate);
-onsetPTR2=round((rampDuration+ beginSilence +0.005 + 0.020)*sampleRate);
+onsetPTR1=round((rampDuration+ beginSilence +0.005)*fsHz);
+onsetPTR2=round((rampDuration+ beginSilence +0.005 + 0.020)*fsHz);
 % last half 
-lastHalfPTR1=round((beginSilence+toneDuration/2)*sampleRate);
-lastHalfPTR2=round((beginSilence+toneDuration-rampDuration)*sampleRate);
+lastHalfPTR1=round((beginSilence+toneDuration/2)*fsHz);
+lastHalfPTR2=round((beginSilence+toneDuration-rampDuration)*fsHz);
 % output window
-outputWindowStart = round((beginSilence)*sampleRate);
-outputWindowEnd = round((beginSilence+toneDuration)*sampleRate);
+outputWindowStart = round((beginSilence)*fsHz);
+outputWindowEnd = round((beginSilence+toneDuration)*fsHz);
 
-dt = 1/sampleRate; % seconds
+dt = 1/fsHz; % seconds
 toneTime = dt: dt: toneDuration;
 totalTime = dt:dt:beginSilence+toneDuration+endSilence;
 
@@ -57,6 +49,9 @@ intialSilence= zeros(1,round(beginSilence/dt));
 finalSilence= zeros(1,round(endSilence/dt));
 
 % Online processing parameters
+% Chunk size in samples (for online processing)
+chunkSize = fsHz * 10E-3;    
+
 % Number of chunks in the signal - use inputSignal to calculate the signal
 % length
 n_chunks = ceil(length(totalTime)/chunkSize);
@@ -64,27 +59,11 @@ n_chunks = ceil(length(totalTime)/chunkSize);
 % Zero-pad the signal for online vs. offline direct comparison
 finalSilence = [finalSilence zeros(1, n_chunks*chunkSize-length(totalTime))];
 % Now the lengths of finalSilence section and totalTime have changed
-totalTime = (1:length(toneTime)+length(intialSilence)+length(finalSilence))/sampleRate;
+totalTime = (1:length(toneTime)+length(intialSilence)+length(finalSilence))/fsHz;
 
 inputSignalMatrix = zeros(length(leveldBSPL), ...
     length(totalTime), ...
     length(toneFrequency));
-
-noisyInputSignalMatrix = zeros(length(leveldBSPL), ...
-    length(totalTime), ...
-    length(toneFrequency));
-
-% Use pink noise to add to the input signal (Brown et al., JASA 2010)
-pinkNoise = pinknoise(length(totalTime));
-
-% Band pass filter - this needs Signal Processing Toolbox
-bpFilt = designfilt('bandpassiir','FilterOrder',20, ...
-         'HalfPowerFrequency1',100,'HalfPowerFrequency2',22000, ...
-         'SampleRate',fs);
-pinkNoiseFiltered = filter(bpFilt,pinkNoise);
-
-% Set pink noise amplitude SNR dB below the ear signal
-pinkNoiseScaled = setdbspl(pinkNoiseFiltered, 27);
 
 for ii=1:length(toneFrequency)
     inputSignal=sin(2*pi*toneFrequency(ii)'*toneTime) .* sqrt(2);      % amplitude -1~+1 -> sqrt(2)
@@ -93,8 +72,7 @@ for ii=1:length(toneFrequency)
     % calibration: calculate difference between input level dB SPL and the
     % given SPL for calibration (100 dB)
     inputSignal = calibrationFactor'*inputSignal;
-    % % "signal amplitude is scaled in pascals in prior to OME"
-    % inputSignal = levelPressure'*inputSignal;
+    % "signal amplitude is scaled in pascals in prior to OME"
     
     % apply ramp
     inputSignal=inputSignal.*ramp_temp;
@@ -102,7 +80,7 @@ for ii=1:length(toneFrequency)
     inputSignal=inputSignal.*ramp_temp;
     % add silence
     inputSignal= [repmat(intialSilence, [length(leveldBSPL), 1]) ...
-        inputSignal repmat(finalSilence, [length(leveldBSPL), 1])]; %#ok<AGROW>
+        inputSignal repmat(finalSilence, [length(leveldBSPL), 1])]; 
     
     % Obtain the dboffset currently used
     dboffset=dbspl(1);
@@ -111,10 +89,10 @@ for ii=1:length(toneFrequency)
     inputSignal=gaindb(inputSignal, dboffset-100);
     
     inputSignalMatrix(:, :, ii) = inputSignal;
-    noisyInputSignalMatrix(:, :, ii) = inputSignal + ...
-        repmat(pinkNoiseScaled, [length(leveldBSPL), 1]);
 end
 
+
+%% OUTPUT PREPARATION
 
 % matrix to store output (I/O function)
 ioFunctionMatrix = zeros(length(toneFrequency), length(leveldBSPL));
@@ -122,144 +100,172 @@ ioFunctionMatrix_moc = zeros(length(toneFrequency), length(leveldBSPL));
 
 % (AN firing rate-level function)
 rateLevelFunctionMatrix = zeros(length(toneFrequency), length(leveldBSPL));
-rateLevelFunctionMatrix_noisy = zeros(length(toneFrequency), length(leveldBSPL));
 
 % (MOC activity-level function)
 mocLevelFunctionMatrix = zeros(length(toneFrequency), length(leveldBSPL));
 
+
+%% PLACE REQUEST AND CONTROL PARAMETERS
+
 request = 'ratemap';
 request_moc = 'moc';
 
-% Introduce outer ear filter (imported from AMT)
-oe_fir = headphonefilter(fs);
+% Parameters of pre-processing
+pp_bLevelScaling = true;
+pp_bMiddleEarFiltering = true;
 
-% for ii=1:length(mocFactor)
-    for jj=1:length(toneFrequency)
+% Parameters of auditory filterbank 
+fb_type = 'drnl';
+fb_cfHz = toneFrequency;
 
-        % Convert input to stapes output, through outer-middle ear filters
-        xME = filter(oe_fir, 1, inputSignalMatrix(:, :, jj).');
-        xME_noisy = filter(oe_fir, 1, noisyInputSignalMatrix(:, :, jj).');
+% Parameters of ratemap 
+rm_wSizeSec = 20E-3;
+rm_hSizeSec = 10E-3;
+rm_decaySec = 8E-3;
 
-        % parameter structure for testing on-freq stimulation
-        param_struct = genParStruct('pp_bLevelScaling', true, ...
-            'pp_bMiddleEarFiltering', true, ...
-            'fb_type', 'drnl', 'fb_cfHz', toneFrequency(jj));
-        param_struct_moc = genParStruct('pp_bLevelScaling', true, ...
-            'pp_bMiddleEarFiltering', true, ...
-            'fb_type', 'drnl', 'fb_cfHz', toneFrequency(jj), ...
-            'rm_wSizeSec', 10E-3, 'rm_hSizeSec', 5E-3, ...
-            'rm_decaySec', 5E-3);
+% Number of ratemap frames in the input signal
+nFrames = floor((length(totalTime)-(rm_wSizeSec*fsHz - round(rm_hSizeSec*fsHz)))/round(rm_hSizeSec*fsHz));
 
-    %     % parameter structure for testing different stimulation freq at single CF
-    %     param_struct = genParStruct('drnl_cfHz', 4000);
+% Introduce outer ear filter (imported from AMT, in src/Tools folder)
+oe_fir = headphonefilter(fsHz);
+
+for jj=1:length(toneFrequency)
+
+    % Filter input through outer ear filter
+    xME = filter(oe_fir, 1, inputSignalMatrix(:, :, jj).');
+
+    % parameter structure for testing on-freq stimulation
+    param_struct = genParStruct('pp_bLevelScaling', pp_bLevelScaling, ...
+        'pp_bMiddleEarFiltering', pp_bMiddleEarFiltering, ...
+        'fb_type', fb_type, 'fb_cfHz', fb_cfHz(jj));
+    param_struct_moc = genParStruct('pp_bLevelScaling', pp_bLevelScaling, ...
+        'pp_bMiddleEarFiltering', pp_bMiddleEarFiltering, ...
+        'fb_type', fb_type, 'fb_cfHz', fb_cfHz(jj), ...
+        'rm_wSizeSec', rm_wSizeSec, 'rm_hSizeSec', rm_hSizeSec, ...
+        'rm_decaySec', rm_decaySec);
+
+    %% PERFORM PROCESSING
     
-        for kk=1:length(leveldBSPL)
-            dObj = dataObject(xME(:, kk), fs);
-            dObj_noisy = dataObject(xME_noisy(:, kk), fs);
-            dObj_moc = dataObject(xME(:, kk), fs);
-            
-            mObj = manager(dObj, request, param_struct);
-            mObj_noisy = manager(dObj_noisy, request, param_struct);
-            mObj_moc = manager(dObj_moc, request_moc, param_struct_moc);
-                       
-            mObj.processSignal();
-            mObj_noisy.processSignal();
-            
-            % MOC processor will work only in online (chunk-based) mode
-            for nn = 1:n_chunks
+    for kk=1:length(leveldBSPL)
+        dObj = dataObject(xME(:, kk), fsHz);
+        dObj_moc = dataObject([], fsHz);
 
-                % Read a new chunk of signal
-                chunk = xME((nn-1)*chunkSize+1:nn*chunkSize, kk);
+        mObj = manager(dObj, request, param_struct);
+        mObj_moc = manager(dObj_moc, request_moc, param_struct_moc);
 
-                % Request processing for the chunk
-                mObj_moc.processChunk(chunk,1);
+        mObj.processSignal();
 
-            end
+        % MOC processor will work only in online (chunk-based) mode
+        for nn = 1:n_chunks
 
-            % DRNL maximum output
-            bmOut = dObj.filterbank{1}.Data(:);
-            bmOutMax = max(bmOut);
-            bmOutMaxdB = 20*log10(bmOutMax);
-            
-            % ratemap maximum output
-            anOut = dObj.ratemap{1}.Data(:);
-            anOutMax = max(anOut);
-            anOutMaxdB = 20*log10(anOutMax);
-%             anOutOffsetMean = mean(anOut(outputWindowStart:outputWindowEnd));
-            
-            % DRNL maximum output, with MOC working
-            bmOut_moc = dObj_moc.filterbank{1}.Data(:);
-            bmOutMax_moc = max(bmOut_moc);
-            bmOutMaxdB_moc = 20*log10(bmOutMax_moc);
+            % Read a new chunk of signal
+            chunk = xME((nn-1)*chunkSize+1:nn*chunkSize, kk);
 
-            % ratemap maximum output, with MOC working
-            anOut_moc = dObj_moc.ratemap{1}.Data(:);
-            anOutMax_moc = max(anOut_moc);
-            anOutMaxdB_moc = 20*log10(anOutMax_moc);
-%             anOutOffsetMean_moc = mean(anOut_moc(outputWindowStart:outputWindowEnd));
-            
-            % MOC maximum output
-            mocOut = dObj_moc.moc{1}.Data(:);
-            mocOutMax = max(mocOut);
+            % Request processing for the chunk
+            mObj_moc.processChunk(chunk,1);
 
-            % Input vs DRNL maximum output
-            ioFunctionMatrix(jj, kk) = bmOutMaxdB;
-            ioFunctionMatrix_moc(jj, kk) = bmOutMaxdB_moc;
+        end
 
-            % Input vs ratemap maximum output
-            rateLevelFunctionMatrix(jj, kk) = anOutMaxdB;
-                        
-            % Input vs MOC attenuation output
-            mocLevelFunctionMatrix(jj, kk) = mocOutMax;
-            
-%             dObj.time{1}.plot;
+       %% SAVE OUTPUT
+        
+        % DRNL output
+        bmOut = dObj.filterbank{1}.Data(:);
+        bmOutMax = max(bmOut);
+        bmOutMaxdB = 20*log10(bmOutMax);
+        bmOutRMSdB = 20*log10(rms(bmOut(outputWindowStart:outputWindowEnd)));
+
+        % ratemap output
+        anOut = dObj.ratemap{1}.Data(:);
+        anOutMax = max(anOut);
+        anOutMaxdB = 20*log10(anOutMax);
+
+        % DRNL output, with MOC working
+        bmOut_moc = dObj_moc.filterbank{1}.Data(:);
+        bmOutMax_moc = max(bmOut_moc);
+        bmOutMaxdB_moc = 20*log10(bmOutMax_moc);
+        bmOutRMSdB_moc = 20*log10(rms(bmOut_moc(outputWindowStart:outputWindowEnd)));
+
+        % ratemap maximum output, with MOC working
+        anOut_moc = dObj_moc.ratemap{1}.Data(:);
+        anOutMax_moc = max(anOut_moc);
+        anOutMaxdB_moc = 20*log10(anOutMax_moc);
+
+        % MOC maximum output
+        mocOut = dObj_moc.moc{1}.Data(:);
+        mocOutMax = max(mocOut);
+
+        % Input vs DRNL maximum output
+        ioFunctionMatrix(jj, kk) = bmOutRMSdB;
+        ioFunctionMatrix_moc(jj, kk) = bmOutRMSdB_moc;
+
+        % Input vs ratemap maximum output
+        rateLevelFunctionMatrix(jj, kk) = anOutMaxdB;
+
+        % Input vs MOC attenuation output
+        mocLevelFunctionMatrix(jj, kk) = mocOutMax;
+
+        % Plot output with/without MOC for a single input for comparison
+        % example
+        if jj==1 && kk==5 
+            subplot(2,1,1);
+            plot(totalTime, dObj_moc.input{1}.Data(:));
+            ylabel('Amplitude');
+            title('Input signal');
+            subplot(2,1,2);
+            plot(totalTime, bmOut_moc);
+            xlabel('Time (s)');
+            ylabel('Amplitude');
+            title('DRNL output with reflexive MOC feedback');
 %             figure; plot(bmOut);
 %             figure; plot(bmOut_moc);
 %             figure; plot(anOut);
 %             figure; plot(anOut_moc);
-%            
-%             clear dObj mObj out
+%             figure; plot(mocOut);
         end
-        clear xME xME_noisy param_struct
-    end
-% end
 
+    end
+    clear xME param_struct param_struct_moc dObj dObj_moc mObj mObj_moc
+end
+
+%% PLOT RESULTS
 
 figure;
-% % set(gcf,'DefaultAxesColorOrder',[0 0 0], ...
-% %     'DefaultAxesLineStyleOrder','-o|--s|:x|-.*');
+set(gcf,'DefaultAxesColorOrder',[0 0 0], ...
+    'DefaultAxesLineStyleOrder','-o|--s|:x|-.*');
 plot(leveldBSPL, ioFunctionMatrix);
+grid on
 xlabel('Input tone level (dB SPL)');
 ylabel('DRNL output (dB re 1 m/s)');
-% title(sprintf('Input-output characteristics of  DRNL filterbank\nfor on-frequency stimulation at various CFs'));
-% legendCell=cellstr(num2str(toneFrequency', '%-dHz'));
-% legend(legendCell, 'Location', 'NorthWest');
+title(sprintf('Input-output characteristics of  DRNL filterbank\non-frequency stimulation, RMS over tone duration'));
+legendCell=cellstr(num2str(toneFrequency', '%-dHz'));
+legend(legendCell, 'Location', 'NorthWest');
+
 
 figure;
+set(gcf,'DefaultAxesColorOrder',[0 0 0], ...
+    'DefaultAxesLineStyleOrder','-o|--s|:x|-.*');
 plot(leveldBSPL, ioFunctionMatrix_moc);
+grid on
+xlabel('Input tone level (dB SPL)');
+ylabel('DRNL output (dB re 1 m/s)');
+title(sprintf('Input-output characteristics of  DRNL filterbank with MOC feedback\non-frequency stimulation, RMS over tone duration'));
+legendCell=cellstr(num2str(toneFrequency', '%-dHz'));
+legend(legendCell, 'Location', 'NorthWest');
 
 
-
-figure;
-plot(leveldBSPL, rateLevelFunctionMatrix);
-% set(gca, 'FontSize', 12);
-xlabel('Input tone level (dB SPL)', 'FontSize', 13);
-% ylabel(sprintf('Auditory nerve model output\n(Adaptation loop Model Unit)'), 'FontSize', 13);
-% title(sprintf('Rate-level characteristics of AN using DRNL filterbank\nfor on-frequency stimulation at %d Hz', toneFrequency), 'FontSize', 13);
-% legendCell=cellstr(num2str(mocFactordB', 'MOC factor = %-d dB'));
-% legend(legendCell, 'Location', 'NorthWest', 'FontSize', 10);
-% 
-% figure;
-% plot(leveldBSPL, rateLevelFunctionMatrix_noisy, '-x');
-% set(gca, 'FontSize', 12);
-% xlabel('Input tone level (dB SPL)', 'FontSize', 13);
-% ylabel(sprintf('Auditory nerve model output\n(Adaptation loop Model Unit)'), 'FontSize', 13);
-% title(sprintf('Rate-level characteristics of AN using DRNL filterbank\nfor on-frequency stimulation at %d Hz (noisy background)', toneFrequency), 'FontSize', 13);
-% legendCell=cellstr(num2str(mocFactordB', 'MOC factor = %-d dB'));
-% legend(legendCell, 'Location', 'NorthWest', 'FontSize', 10);
+libermanMOCdata_520Hz = [0 0 0 5 18.5 29.5 36 38 39 37];       % scaled to MOC attenuation in Clark et al. 2012!!
+libermanMOCdata_3980Hz = [0 0 0 10 17.5 24 30 34 37 38];
 
 figure;
-plot(leveldBSPL, mocLevelFunctionMatrix, '-x');
-
+set(gcf,'DefaultAxesColorOrder',[0 0 0], ...
+    'DefaultAxesLineStyleOrder','-o|-s|:x|:*');
+plot(leveldBSPL, mocLevelFunctionMatrix, leveldBSPL, libermanMOCdata_520Hz, leveldBSPL, libermanMOCdata_3980Hz);
+grid on
+xlabel('Input tone level (dB SPL)');
+ylabel('Maximum MOC activity (dB)');
+title(sprintf('Input-output characteristics of MOC processor (on-frequency stimulation)\nRelationship derived by curve fitting to Liberman-Clark data'));
+legendCell=[cellstr(num2str(toneFrequency', '%-dHz')); ...
+    cellstr(num2str(toneFrequency', '%-dHz Liberman data'))];
+legend(legendCell, 'Location', 'NorthWest', 'FontSize', 10);
 
 
