@@ -208,14 +208,14 @@ for jj=1:length(toneFrequency)
         % example
         if jj==1 && kk==5 
             figure;
-            plot(totalTime, dObj_moc.input{1}.Data(:));
+            plot(totalTime, 1E3*dObj_moc.input{1}.Data(:));
             xlabel('Time (s)');
-            ylabel('Amplitude');
+            ylabel('Amplitude (x 1E$^{-3}$)');
             title(sprintf('Input signal, %ddB SPL, %dHz', leveldBSPL(kk), toneFrequency(jj)));
             figure;
-            plot(totalTime, bmOut_moc);
+            plot(totalTime, 1E3*bmOut_moc);
             xlabel('Time (s)');
-            ylabel('Amplitude');
+            ylabel('Amplitude (x 1E$^{-3}$)');
             title('DRNL output with reflexive MOC feedback');
 %             figure; plot(bmOut);
 %             figure; plot(bmOut_moc);
@@ -239,7 +239,7 @@ xlabel('Input tone level (dB SPL)');
 ylabel('DRNL output (dB re 1 m/s)');
 title(sprintf('Input-output characteristics of  DRNL filterbank\non-frequency stimulation, RMS over tone duration'));
 legendCell=cellstr(num2str(toneFrequency', '%-dHz'));
-legend(legendCell, 'Location', 'NorthWest');
+legend(legendCell, 'Location', 'NorthWest'); legend('boxoff');
 
 
 figure;
@@ -251,7 +251,7 @@ xlabel('Input tone level (dB SPL)');
 ylabel('DRNL output (dB re 1 m/s)');
 title(sprintf('Input-output characteristics of  DRNL filterbank with MOC feedback\non-frequency stimulation, RMS over tone duration'));
 legendCell=cellstr(num2str(toneFrequency', '%-dHz'));
-legend(legendCell, 'Location', 'NorthWest');
+legend(legendCell, 'Location', 'NorthWest'); legend('boxoff');
 
 
 libermanMOCdata_520Hz = [0 0 0 5 18.5 29.5 36 38 39 37];       % scaled to MOC attenuation in Clark et al. 2012!!
@@ -259,14 +259,15 @@ libermanMOCdata_3980Hz = [0 0 0 10 17.5 24 30 34 37 38];
 
 figure;
 set(gcf,'DefaultAxesColorOrder',[0 0 0], ...
-    'DefaultAxesLineStyleOrder','-o|-s|:x|:*');
+    'DefaultAxesLineStyleOrder','-o|-s|:o|:s');
 plot(leveldBSPL, mocLevelFunctionMatrix, leveldBSPL, libermanMOCdata_520Hz, leveldBSPL, libermanMOCdata_3980Hz);
 grid on
 xlabel('Input tone level (dB SPL)');
 ylabel('Maximum MOC activity (dB)');
-title(sprintf('Input-output characteristics of mocProc (on-frequency stimulation)\nRelationship derived by curve fitting to Liberman-Clark data'));
+title(sprintf('Input-output characteristics of mocProc'));
 legendCell=[cellstr(num2str(toneFrequency', '%-dHz')); ...
-    cellstr(num2str(toneFrequency', '%-dHz Liberman data'))];
-legend(legendCell, 'Location', 'NorthWest', 'FontSize', 10);
+    cellstr(num2str(toneFrequency', 'Liberman %-dHz'))];
+legend(legendCell, 'Location', 'SouthEast', 'FontSize', 10);
+legend('boxoff');
 
 

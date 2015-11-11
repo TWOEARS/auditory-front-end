@@ -52,6 +52,7 @@ mObj.processSignal();
 % Input signals
 dObj.plot([],[],'rangeSec', [0 0.05], 'bGray',1,'decimateRatio',3,'bSignal',1);
 ylim([-0.8 0.8]);
+legend('boxoff');
 
 % Output ITD / ILD
 figure;
