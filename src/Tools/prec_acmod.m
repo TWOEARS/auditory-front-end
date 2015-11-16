@@ -172,6 +172,8 @@ ICCintF(index)=0;
 
 ITD=sum((-Fms:Fms).*ICCintF./sum(ICCintF))./Fms; % ITD estimation based on centroid
 
+[maxCorr,indexITD]=max(ICCintF);
+ITD=(indexITD-Fms-1)./Fms;
 % ILD calculation amplitude weighted over frequency bands
 ILD=sum(cc.ILDint.*cc.Eint)./sum(cc.Eint);
 
