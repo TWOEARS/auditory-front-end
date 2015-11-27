@@ -13,7 +13,7 @@ StimDuration=200;       % stimulus duration [ms]
 % create test stimulus (binaural)
 % usage: STIMULUS(Fs,mode,len,f,bw,itd1,itd2,isi,at,dc)
 % this function is copied from Braasch's model into AFE src/Tools
-x = stimulusBraasch(fsHz, 2, 400, 500, 800, 0.4, -0.4, 3, 20, 20, 0,db2amp(0));
+x = stimulusBraasch(fsHz, 2, 400, 500, 800, 0.6, -0.6, 3, 20, 20, 0,db2amp(0));
 
 % Create a data object based on parts of the right ear signal
 dObj = dataObject(x, fsHz);

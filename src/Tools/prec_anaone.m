@@ -9,8 +9,7 @@ function [xLgS,xLgL,lag,B,ac]=prec_anaone(xb,Fs,cfHz,maxLag,ac)
 % contact: jonasbraasch@gmail.com
 %
 % Modified by Ryan Chungeun Kim for Two!Ears software framework, 2015
-% TODO: remove dependency on Signal Processing toolbox (xcorr)
-%       and potentially test with inner hair cell output
+% TODO: potentially test with inner hair cell output
 %
 % INPUT PARAMETERS:
 % xb        : time-frequency representation of mono signal (out of filterbank, e.g., gammatone)
@@ -65,14 +64,16 @@ if nargin==5 % previous ac is given -> go with cummulative autocorrelation funct
 % if isempty(ac) % go with cummulative autocorrelation function
     % Determine autocorrelation function for lag detection, see Eq. A2
     for n=1:length(cfHz) % loop over all auditory bands
-        xba(n,:)=xcorr(xb(:,n),xb(:,n),lags)';
+%         xba(n,:)=xcorr(xb(:,n),xb(:,n),lags)';
+        xba(n,:)=calcXCorr(xb(:,n),xb(:,n),lags)';
         ac(n,:)=ac(n,:)+xba(n,:)./(max([cfHz(n) 100]));
         xba(n,:)=ac(n,:);%.^0.5;
     end  
 else % new model instantiation   
     % Determine autocorrelation function for lag detection, see Eq. A2
     for n=1:length(cfHz) % loop over all auditory bands
-        xba(n,:)=xcorr(xb(:,n),xb(:,n),lags)';
+%         xba(n,:)=xcorr(xb(:,n),xb(:,n),lags)';
+        xba(n,:)=calcXCorr(xb(:,n),xb(:,n),lags)';
         ac(n,:)=xba(n,:)./(max([cfHz(n) 100]));
     end
 end 

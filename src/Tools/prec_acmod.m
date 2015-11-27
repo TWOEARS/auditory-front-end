@@ -12,7 +12,6 @@ function [ITD,ILD,lagL,lagR,BL,BR,LLARmode,cc]=prec_acmod(x1,x2,Fs,cfHz,maxLag,c
 % contact: jonasbraasch@gmail.com
 %
 % Modified by Ryan Chungeun Kim for Two!Ears software framework, 2015
-% TODO: remove dependency on Signal Processing toolbox (xcorr)
 %
 % INPUT PARAMETERS:
 % x1, x2    : binaural input signal, time x frequency domain (after filterbank)
@@ -67,15 +66,25 @@ end
 
 % if nargin==3 
 if isempty(cc.cc1)  % ??
-    cc.cc1=xcorr(sum(yL_LgS),sum(yR_LgS),Fms); % calc ICC ofr LLAR mode 1
-    cc.cc2=xcorr(sum(yL_LgL),sum(yR_LgL),Fms); % calc ICC ofr LLAR mode 2
-    cc.cc3=xcorr(sum(yL_LgS),sum(yR_LgL),Fms); % calc ICC ofr LLAR mode 3
-    cc.cc4=xcorr(sum(yL_LgL),sum(yR_LgS),Fms); % calc ICC ofr LLAR mode 4
+%     cc.cc1=xcorr(sum(yL_LgS),sum(yR_LgS),Fms); % calc ICC ofr LLAR mode 1
+%     cc.cc2=xcorr(sum(yL_LgL),sum(yR_LgL),Fms); % calc ICC ofr LLAR mode 2
+%     cc.cc3=xcorr(sum(yL_LgS),sum(yR_LgL),Fms); % calc ICC ofr LLAR mode 3
+%     cc.cc4=xcorr(sum(yL_LgL),sum(yR_LgS),Fms); % calc ICC ofr LLAR mode 4   
+    cc.cc1=calcXCorr(sum(yL_LgS).',sum(yR_LgS).',Fms); % calc ICC ofr LLAR mode 1
+    cc.cc2=calcXCorr(sum(yL_LgL).',sum(yR_LgL).',Fms); % calc ICC ofr LLAR mode 2
+    cc.cc3=calcXCorr(sum(yL_LgS).',sum(yR_LgL).',Fms); % calc ICC ofr LLAR mode 3
+    cc.cc4=calcXCorr(sum(yL_LgL).',sum(yR_LgS).',Fms); % calc ICC ofr LLAR mode 4
+    
 else 
-    cc.cc1=cc.cc1+xcorr(sum(yL_LgS),sum(yR_LgS),Fms); % calc ICC ofr LLAR mode 1
-    cc.cc2=cc.cc2+xcorr(sum(yL_LgL),sum(yR_LgL),Fms); % calc ICC ofr LLAR mode 2
-    cc.cc3=cc.cc3+xcorr(sum(yL_LgS),sum(yR_LgL),Fms); % calc ICC ofr LLAR mode 3
-    cc.cc4=cc.cc4+xcorr(sum(yL_LgL),sum(yR_LgS),Fms); % calc ICC ofr LLAR mode 4
+%     cc.cc1=cc.cc1+xcorr(sum(yL_LgS),sum(yR_LgS),Fms); % calc ICC ofr LLAR mode 1
+%     cc.cc2=cc.cc2+xcorr(sum(yL_LgL),sum(yR_LgL),Fms); % calc ICC ofr LLAR mode 2
+%     cc.cc3=cc.cc3+xcorr(sum(yL_LgS),sum(yR_LgL),Fms); % calc ICC ofr LLAR mode 3
+%     cc.cc4=cc.cc4+xcorr(sum(yL_LgL),sum(yR_LgS),Fms); % calc ICC ofr LLAR mode 4
+    cc.cc1=cc.cc1+calcXCorr(sum(yL_LgS).',sum(yR_LgS).',Fms); % calc ICC ofr LLAR mode 1
+    cc.cc2=cc.cc2+calcXCorr(sum(yL_LgL).',sum(yR_LgL).',Fms); % calc ICC ofr LLAR mode 2
+    cc.cc3=cc.cc3+calcXCorr(sum(yL_LgS).',sum(yR_LgL).',Fms); % calc ICC ofr LLAR mode 3
+    cc.cc4=cc.cc4+calcXCorr(sum(yL_LgL).',sum(yR_LgS).',Fms); % calc ICC ofr LLAR mode 4
+    
 end
 % cross-correlation to determine best combination
 n1=max(cc.cc1); % calc ICC ofr LLAR mode 1
@@ -117,7 +126,8 @@ h=triang(windowlength); % window for overlap-add method
 for n=1:length(cfHz) % loop over all frequency bands
     xL=x1(n,:)';
     xR=x2(n,:)';
-        ICC=xcorr(xL,xR,Fms)'; % interaural cross-correlation
+%         ICC=xcorr(xL,xR,Fms)'; % interaural cross-correlation
+        ICC=calcXCorr(xL,xR,Fms)'; % interaural cross-correlation
         eL=mean(sqrt(xL.^2)); % rms energy in left channel
         eR=mean(sqrt(xR.^2)); % rms energy in right channel
         if eL>0 & eR>0; % if signal in both channels exist
