@@ -33,7 +33,7 @@ data = [data;zeros(n_chunks*chunkSize-size(data,1),1)];
 
 % Create data objects
 dObj_off = dataObject(data,fsHz);
-dObj_on = dataObject(data,fsHz);
+dObj_on = dataObject([],fsHz);
 
 % Instantiate managers
 mObj_off = manager(dObj_off);
