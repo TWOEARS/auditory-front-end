@@ -2,13 +2,16 @@ clear;
 close all
 clc
 
-%% LOAD SIGNAL
 
+%% CREATE INPUT SIGNAL
+% 
+% 
 % Input signal, created for the demo using stimulusBraasch function
 % (see below for the input parameters and usage)
 
-fsHz = 48000;           % Sampling Frequency [Hz]
-waveForm = 2;           % Used for the stimulusBraasch function
+% Sampling Frequency [Hz]
+fsHz = 48000;           
+
 % integer to select a waveform:
 %           0 - Sine Wave
 %           1 - Triangle Wave
@@ -17,6 +20,7 @@ waveForm = 2;           % Used for the stimulusBraasch function
 %           4 - Two sine waves (1st & 3rd harmonics; f = f of 2nd harmonic)
 %           5 - Three sine waves (1st, 2nd & 3rd harmonics; f = f of 2nd harmonic)
 %           6 - peak train
+waveForm = 2;           % Used for the stimulusBraasch function
 
 length = 400;           % Signal length in ms
 fc = 500;               % For periodic waves: Frequency in Hz,
@@ -27,41 +31,15 @@ itd = 0.6;              % ITD in ms (applied in positive/negative pair to
 ISI = 3;                % Inter-Stimulus Interval in ms
 attackTime = 20;        % Attach time in ms
 decayTime = 20;         % Decay time in ms
-operationMode = 0;      % Used for the stimulusBraasch function
+
 %           0: specified operation (both lead and lag are present), 
 %           1: switch off the lead, 2: switch off the lag
-
+operationMode = 0;      % Used for the stimulusBraasch function
 lagLevel = 0;           % Lag level in dB
 
 % Binaural test stimulus using Braasch's function
-% Usage: 
-%   stimulusBraasch(Fs, mode, len, f, bw, itd1, itd2, isi, at, dc, nn, lag_level)
-% This function is copied from Braasch's model into AFE src/Tools folder.
-% Parameters:
-% 
-%         Fs:    sampling frequency
-%         mode:  integer to select a waveform
-%         len:   Signal length in milliseconds
-%         f:     For periodic waves: Frequency in Hz
-%                For Bandpass Noise: Fc of the bandpass filter
-%         bw:    Bandwidth of the FFT bandpass filters
-%         itd1,
-%         itd2:  ITDs in milliseconds
-%               (positive for right channel first - left channel last,
-%               negative for left channel first - right channel last)
-%               Indices 1 and 2 correspond to the incidence of the
-%               the two signals.
-%         isi:   ISI in milliseconds
-%         at:    attack time (ms)
-%         dc:    decay time (ms)
-%         nn:    0: specified operation, 1: switch off S1, 2: switch off S2
-%         lag_level: lag level in dB
-
-x = stimulusBraasch(fsHz, waveForm, length, fc, bw, ...
-    itd, -itd, ...
-    ISI, attackTime, decayTime, ...
-    operationMode, ...
-    db2amp(lagLevel));
+x = stimulusBraasch(fsHz, waveForm, length, fc, bw, itd, -itd, ISI, ...
+    attackTime, decayTime, operationMode, db2amp(lagLevel));
 
 % Create a data object
 dObj = dataObject(x, fsHz);
