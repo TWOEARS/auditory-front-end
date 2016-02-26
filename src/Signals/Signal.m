@@ -163,6 +163,35 @@ classdef Signal < matlab.mixin.Copyable
             dataBlock = sObj.getSignalBlock( blocksize_s, backOffset_s );
             newSobj.setData( dataBlock );
         end
+                
+        function newSobj = maskSignalCopy( sObj, mask )
+            newSobj = sObj.copy();
+            dataBlock = newSobj.Data;
+            [rm, cm, dm] = size(mask);
+            [rd, cd, dd] = size(dataBlock);
+            if rm > rd
+                % crop
+                mask = mask(end+1-max(1, rd):end, :);
+            else
+                error('mask too short for dataBlock');
+            end
+            if cm > cd
+                % resize mask to fit no. of features in dataBlock
+                kernel = ones(1, cm + 1-cd) ./ (cm + 1-cd);
+                mask_eff = conv2( mask, kernel, 'valid' );
+            elseif cm < cd
+                error('mask too small for dataBlock'); % handle better
+            else
+                mask_eff = mask;
+            end
+            if dd > dm
+                mask_eff = repmat(mask_eff, [1, 1, dd]);
+            elseif dd < dm
+                error('cannot mask dataBlock dimensions < mask');
+            end
+            dataBlock = dataBlock .* mask_eff;
+            newSobj.setData( dataBlock );
+        end
         
         function reduceBufferToArray( sObj )
             %reduceBufferToArray    This method converts the
