@@ -184,6 +184,15 @@ classdef Signal < matlab.mixin.Copyable
         end
                 
         function newSobj = maskSignalCopy( sObj, mask, maskHopSize )
+            %maskSignalCopy  mask a copy of a Signal's dataBlock
+            %
+            %USAGE:
+            %   newSobj = sObj.maskSignalCopy( mask, maskHopSize )
+            %
+            %INPUT ARGUMENTS:
+            %  mask : A 2-d mask to apply on the Signal's dataBlock
+            %  maskHopSize : the mask's sampling rate (tmeporal resolution)
+            %  
             if nargin < 3
                 % assume both are sampled at equal rates
                 maskHopSize = 1./sObj.FsHz;
