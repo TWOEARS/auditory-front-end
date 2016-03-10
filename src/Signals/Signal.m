@@ -163,10 +163,34 @@ classdef Signal < matlab.mixin.Copyable
             dataBlock = sObj.getSignalBlock( blocksize_s, backOffset_s );
             newSobj.setData( dataBlock );
         end
+        
+        function dataBlockResampled = resampleToFsHz( sObj, dataBlock, srcFsHz )
+            %resampleToFsHz  This method resamples a data block
+            %               to match the signal's sampling rate.
+            %               Resampling is perforrmed via linear
+            %               interpolation without decimation.
+            %
+            %USAGE:
+            %   resample = sObj.resampleToFsHz( dataBlock, srcFsHz )
+            %
+            %INPUT ARGUMENTS:
+            %  dataBlock : The data block to resample with signal's FsHz
+            %  srcFsHz : the original sampling rate of the data block
+            %  
+            [rows, ~] = size(dataBlock);
+            x = 0 : 1 / srcFsHz : (rows-1) / srcFsHz;
+            xq = 0 : 1 / sObj.FsHz : (rows-1) / srcFsHz;
+            dataBlockResampled = interp1( x, dataBlock, xq );
+        end
                 
-        function newSobj = maskSignalCopy( sObj, mask )
+        function newSobj = maskSignalCopy( sObj, mask, maskHopSize )
+            if nargin < 3
+                % assume both are sampled at equal rates
+                maskHopSize = 1./sObj.FsHz;
+            end
+            mask = sObj.resampleToFsHz( mask, 1./maskHopSize );
             newSobj = sObj.copy();
-            dataBlock = newSobj.Data;
+            dataBlock = newSobj.Data(:,:,:,:,:);
             [rm, cm, dm] = size(mask);
             [rd, cd, dd] = size(dataBlock);
             if rm > rd
@@ -175,12 +199,10 @@ classdef Signal < matlab.mixin.Copyable
             else
                 error('mask too short for dataBlock');
             end
-            if cm > cd
-                % resize mask to fit no. of features in dataBlock
-                kernel = ones(1, cm + 1-cd) ./ (cm + 1-cd);
-                mask_eff = conv2( mask, kernel, 'valid' );
-            elseif cm < cd
-                error('mask too small for dataBlock'); % handle better
+            if cm ~= cd                
+                freq_src = 0 : 1 / cm : (cm-1) / cm;
+                freq_dst = 0 : 1 / cd : (cd-1) / cd;
+                mask_eff = interp1( freq_src, mask', freq_dst )';
             else
                 mask_eff = mask;
             end
@@ -190,7 +212,11 @@ classdef Signal < matlab.mixin.Copyable
                 error('cannot mask dataBlock dimensions < mask');
             end
             dataBlock = dataBlock .* mask_eff;
-            newSobj.setData( dataBlock );
+            if isa(newSobj, 'circVBufArrayInterface')
+                newSobj.setData( dataBlock );
+            else
+                newSobj.Data = dataBlock;
+            end
         end
         
         function reduceBufferToArray( sObj )
