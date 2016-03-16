@@ -66,18 +66,32 @@ classdef gammatoneFilter < filterObj
                 bwHz = bwERB * ERBHz;
                 
                 % Generate an IIR Gammatone filter
-                        
-                btmp=1-exp(-2*pi*bwHz/fs);
-                atmp=[1, -exp(-(2*pi*bwHz + 1i*2*pi*cf)/fs)];
-
-                b=1;
-                a=1;
-
-                for jj=1:n
-                  b=conv(btmp,b);
-                  a=conv(atmp,a);
+                if do_align
+                    % This is when the function peaks
+                    delay = 3./(2*pi*bwHz);
+                    
+                    % Compute the position of the pole
+                    atilde = exp(-2*pi*bwHz/fs - 1i*2*pi*cf/fs);
+                    
+                    % Repeat the pole n times, and expand the polynomial
+                    a = poly(atilde*ones(1,n));
+                    
+                    btmp = 1-exp(-2*pi*bwHz/fs);
+                    b = btmp.^n;
+                    b = b*exp(2*pi*1i*cf*delay);
+                else
+                    btmp=1-exp(-2*pi*bwHz/fs);
+                    atmp=[1, -exp(-(2*pi*bwHz + 1i*2*pi*cf)/fs)];
+                    
+                    b=1;
+                    a=1;
+                    
+                    for jj=1:n
+                        b=conv(btmp,b);
+                        a=conv(atmp,a);
+                    end
                 end
-
+                
                 delaySpl = 0;
 
                 % The transfer function is complex-valued
