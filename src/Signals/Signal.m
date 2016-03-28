@@ -180,6 +180,23 @@ classdef Signal < matlab.mixin.Copyable
             delete( sObj.Buf );
         end
         
+        function newSobj = cutSignalCopyReducedToArray( sObj, blocksize_s, backOffset_s )
+            %cutSignalCopyReducedToArray  This method copies the Signal object into a new
+            %                             instance, cutting out the specified data block
+            %                             and reducing it to a matlab array.
+            %
+            %USAGE:
+            %   cutSignalCopy = sObj.cutSignalCopyReducedToArray( blockSize_s, backOffset_s )
+            %
+            %INPUT ARGUMENTS:
+            %  blocksize_s : Length of the required data block in seconds
+            % backOffset_s : Offset from the end of the signal to the 
+            %                requested block's end in seconds (default: 0s)
+            newSobj = sObj.copy();
+            newSobj.Buf = [];
+            newSobj.Data = sObj.getSignalBlock( blocksize_s, backOffset_s );
+        end
+        
         function sb = getSignalBlock(sObj,blocksize_s,backOffset_s,padFront)
             %getSignalBlock   Returns this Signal object's signal data
             %truncated to the last blocksize_s seconds. In case of too
