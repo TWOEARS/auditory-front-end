@@ -3,7 +3,9 @@
 % yourself the Matlab workspace, if that is necessary.
 
 basePath = fileparts(mfilename('fullpath'));
-addpath(genpath(fullfile(basePath, 'src')))
-addpath(genpath(fullfile(basePath, 'test')))
+addPathsIfNotIncluded( ...
+    [ strsplit( genpath(fullfile(basePath, 'src')), pathsep ) ...
+      strsplit( genpath(fullfile(basePath, 'test')), pathsep )] ...
+      );
 
 clear basePath
