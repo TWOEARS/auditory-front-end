@@ -164,6 +164,70 @@ classdef Signal < matlab.mixin.Copyable
             newSobj.setData( dataBlock );
         end
         
+        function dataBlockResampled = resampleToFsHz( sObj, dataBlock, srcFsHz )
+            %resampleToFsHz  This method resamples a data block
+            %               to match the signal's sampling rate.
+            %               Resampling is perforrmed via linear
+            %               interpolation without decimation.
+            %
+            %USAGE:
+            %   resample = sObj.resampleToFsHz( dataBlock, srcFsHz )
+            %
+            %INPUT ARGUMENTS:
+            %  dataBlock : The data block to resample with signal's FsHz
+            %  srcFsHz : the original sampling rate of the data block
+            %  
+            [rows, ~] = size(dataBlock);
+            x = 0 : 1 / srcFsHz : (rows-1) / srcFsHz;
+            xq = 0 : 1 / sObj.FsHz : (rows-1) / srcFsHz;
+            dataBlockResampled = interp1( x, dataBlock, xq );
+        end
+                
+        function newSobj = maskSignalCopy( sObj, mask, maskHopSize )
+            %maskSignalCopy  mask a copy of a Signal's dataBlock
+            %
+            %USAGE:
+            %   newSobj = sObj.maskSignalCopy( mask, maskHopSize )
+            %
+            %INPUT ARGUMENTS:
+            %  mask : A 2-d mask to apply on the Signal's dataBlock
+            %  maskHopSize : the mask's sampling rate (tmeporal resolution)
+            %  
+            if nargin < 3
+                % assume both are sampled at equal rates
+                maskHopSize = 1./sObj.FsHz;
+            end
+            mask = sObj.resampleToFsHz( mask, 1./maskHopSize );
+            newSobj = sObj.copy();
+            dataBlock = newSobj.Data(:,:,:,:,:);
+            [rm, cm, dm] = size(mask);
+            [rd, cd, dd] = size(dataBlock);
+            if rm > rd
+                % crop
+                mask = mask(end+1-max(1, rd):end, :);
+            else
+                error('mask too short for dataBlock');
+            end
+            if cm ~= cd                
+                freq_src = 0 : 1 / cm : (cm-1) / cm;
+                freq_dst = 0 : 1 / cd : (cd-1) / cd;
+                mask_eff = interp1( freq_src, mask', freq_dst )';
+            else
+                mask_eff = mask;
+            end
+            if dd > dm
+                mask_eff = repmat(mask_eff, [1, 1, dd]);
+            elseif dd < dm
+                error('cannot mask dataBlock dimensions < mask');
+            end
+            dataBlock = dataBlock .* mask_eff;
+            if isa(newSobj, 'circVBufArrayInterface')
+                newSobj.setData( dataBlock );
+            else
+                newSobj.Data = dataBlock;
+            end
+        end
+        
         function reduceBufferToArray( sObj )
             %reduceBufferToArray    This method converts the
             %                       buffer+interface combination into a
