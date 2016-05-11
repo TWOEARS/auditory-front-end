@@ -244,10 +244,27 @@ classdef Signal < matlab.mixin.Copyable
             delete( sObj.Buf );
         end
         
-        function sb = getSignalBlock(sObj,blocksize_s,backOffset_s)
+        function newSobj = cutSignalCopyReducedToArray( sObj, blocksize_s, backOffset_s )
+            %cutSignalCopyReducedToArray  This method copies the Signal object into a new
+            %                             instance, cutting out the specified data block
+            %                             and reducing it to a matlab array.
+            %
+            %USAGE:
+            %   cutSignalCopy = sObj.cutSignalCopyReducedToArray( blockSize_s, backOffset_s )
+            %
+            %INPUT ARGUMENTS:
+            %  blocksize_s : Length of the required data block in seconds
+            % backOffset_s : Offset from the end of the signal to the 
+            %                requested block's end in seconds (default: 0s)
+            newSobj = sObj.copy();
+            newSobj.Buf = [];
+            newSobj.Data = sObj.getSignalBlock( blocksize_s, backOffset_s );
+        end
+        
+        function sb = getSignalBlock(sObj,blocksize_s,backOffset_s,padFront)
             %getSignalBlock   Returns this Signal object's signal data
             %truncated to the last blocksize_s seconds. In case of too
-            %little data, the block gets filled with zeros from beginning.
+            %little data, the block can get filled with zeros from beginning.
             %
             %USAGE:
             %   sb = sObj.getSignalBlock(blocksize_s)
@@ -258,6 +275,7 @@ classdef Signal < matlab.mixin.Copyable
             %  blocksize_s : Length of the required data block in seconds
             % backOffset_s : Offset from the end of the signal to the 
             %                requested block's end in seconds (default: 0s)
+            %     padFront : whether to pad with zeros or not. Default: true
             %
             %OUTPUT ARGUMENTS:
             %    sb : signal data block
@@ -269,7 +287,10 @@ classdef Signal < matlab.mixin.Copyable
             if nargin < 3, backOffset_s = 0; end;
             
             % Get the offset in samples...
-            offset_samples = ceil( sObj.FsHz * backOffset_s );
+            % floor it because the last few milliseconds usually are lost in the current
+            % processchunk()
+            % subtract 1 because the last frame is the last full window (before: shifts)
+            offset_samples = max( 0, floor( sObj.FsHz * backOffset_s ) - 1 );
             
             % ... with a warning if the requested signal is "too old"
             if offset_samples >= length(sObj.Data)
@@ -285,7 +306,8 @@ classdef Signal < matlab.mixin.Copyable
             sb = sObj.Data(blockStart:end-offset_samples,:,:,:,:,:,:);
             
             % Zero-pad the data if not enough samples are available
-            if size( sb, 1 ) < blocksize_samples
+            if nargin < 4, padFront = true; end
+            if padFront && (size( sb, 1 ) < blocksize_samples)
                 sb = [zeros( blocksize_samples - size(sb,1), size(sb,2), size(sb,3) ); sb];
             end
             
