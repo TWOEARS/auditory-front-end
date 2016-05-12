@@ -28,7 +28,8 @@ function [xLgS,xLgL,lag,B,ac]=prec_anaone(xb,Fs,cfHz,maxLag,ac)
 Fms=Fs./1000; % Sampling frequency based on milliseconds
 % lags=round(10.*Fms); % number of lags for autocorrelation process 
 lags=maxLag; % number of lags for autocorrelation process 
-MainPeakWidth=0.75.*Fms; % max main peak width to determine minimum lag
+% MainPeakWidth=0.75.*Fms; % max main peak width to determine minimum lag
+MainPeakWidth=floor(0.75.*Fms); % max main peak width to determine minimum lag
 
     
 

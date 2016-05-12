@@ -88,7 +88,7 @@ classdef TimeFrequencySignal < Signal
                 switch sObj.Name
                     case {'filterbank','ild','ic','itd','onsetStrength',...
                             'offsetStrength','innerhaircell','adaptation','onsetMap',...
-                            'offsetMap','drnl'}
+                            'offsetMap','drnl','precedence'}
                         do_dB = 0;
                     case {'ratemap'}
                         do_dB = 1;

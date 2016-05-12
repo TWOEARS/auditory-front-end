@@ -142,9 +142,12 @@ classdef precedenceProc < Processor
             % How many frames are in the buffered input?
             nFrames = floor((nSamples-(pObj.wSize-pObj.hSize))/pObj.hSize);
             
-            ITD = zeros(nFrames, 1);
-            ILD = zeros(nFrames, 1);
+%             ITD = zeros(nFrames, 1);
+%             ILD = zeros(nFrames, 1);
 
+            ITD = zeros(nChannels, nFrames);    % (freq) x (time frame)
+            ILD = zeros(nChannels, nFrames);    % because of acmod output format
+            
             % Determine maximum lag
             maxLag = ceil(pObj.maxDelaySec*pObj.FsHzIn);
             
@@ -158,15 +161,21 @@ classdef precedenceProc < Processor
                 frame_r = repmat(hanning(pObj.wSize), 1, nChannels) .* in_r(n_start:n_end, :);
 
                 % Run the acmod function
-                [ITD(ii),ILD(ii),lagL,lagR,BL,BR,LLARmode,pObj.stateStore] = ...
+%                 [ITD(ii),ILD(ii),lagL,lagR,BL,BR,LLARmode,pObj.stateStore] = ...
+%                     prec_acmod(frame_l, frame_r, pObj.FsHzIn, ...
+%                     pObj.LowerDependencies{1}.cfHz, maxLag, pObj.stateStore);             
+                [ITD(:, ii),ILD(:, ii),lagL,lagR,BL,BR,LLARmode,pObj.stateStore] = ...
                     prec_acmod(frame_l, frame_r, pObj.FsHzIn, ...
-                    pObj.LowerDependencies{1}.cfHz, maxLag, pObj.stateStore);             
+                    pObj.LowerDependencies{1}.cfHz, maxLag, pObj.stateStore);   
                 
             end
             
-            itd = ITD;
-            ild = ILD;
-
+%             itd = ITD;
+%             ild = ILD;
+            
+            itd = ITD.'./1000;    % prec_acmod function returns ITD in ms!!
+            ild = ILD.';          % output itd, ild are (time)x(freq) signals
+            
             % Update the buffer: the input that was not extracted as a
             % frame should be stored            
             pObj.buffer_l = in_l(nFrames*pObj.hSize+1:end,:);
@@ -245,7 +254,8 @@ classdef precedenceProc < Processor
             % Finalize initialization of processor 
             pObj.wSize = 2*round(pObj.parameters.map('prec_wSizeSec')*pObj.FsHzIn/2);
             pObj.hSize = round(pObj.parameters.map('prec_hSizeSec')*pObj.FsHzIn);
-            
+            % Output sampling frequency
+            pObj.FsHzOut = 1/(pObj.hSizeSec);
         end
         
 
@@ -274,23 +284,34 @@ classdef precedenceProc < Processor
             
             % Specify two outputs (itd and ild) for the received dObj
             
+%             sig_itd = feval(pObj.getProcessorInfo.outputType, ...
+%                         pObj, ...
+%                         dObj.bufferSize_s, ...
+%                         'mono', ...
+%                         [], ...
+%                         {'itd'});
+%             sig_ild = feval(pObj.getProcessorInfo.outputType, ...
+%                         pObj, ...
+%                         dObj.bufferSize_s, ...
+%                         'mono', ...
+%                         [], ...
+%                         {'ild'});                    
+                    
             sig_itd = feval(pObj.getProcessorInfo.outputType, ...
                         pObj, ...
                         dObj.bufferSize_s, ...
                         'mono', ...
-                        [], ...
-                        {'itd'});
+                        []);
             sig_ild = feval(pObj.getProcessorInfo.outputType, ...
                         pObj, ...
                         dObj.bufferSize_s, ...
                         'mono', ...
-                        [], ...
-                        {'ild'});                    
+                        []);                            
             
             dObj.addSignal(sig_itd);
             dObj.addSignal(sig_ild);
             
-            output = {sig_itd, sig_ild};
+            output = {sig_itd sig_ild};
             
         end
 
@@ -389,7 +410,7 @@ classdef precedenceProc < Processor
             
             % Attach the outputs to the pObj
             for ii = 1:numel(sObj)
-                pObj.Output{ii} = sObj{ii};
+                pObj.Output{1, ii} = sObj{ii};
             end           
         end
 
@@ -462,7 +483,8 @@ classdef precedenceProc < Processor
             pInfo.label = 'Precedence effect';
             pInfo.requestName = 'precedence';
             pInfo.requestLabel = 'Precedence effect';
-            pInfo.outputType = 'FeatureSignal';
+%             pInfo.outputType = 'FeatureSignal';
+            pInfo.outputType = 'TimeFrequencySignal';
             pInfo.isBinaural = 1; % 0 or 1 (or 2 if it can do both, e.g., preProc.m)
             
         end

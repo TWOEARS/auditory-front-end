@@ -48,8 +48,12 @@ dObj = dataObject(x, fsHz);
 %% PLACE REQUEST AND CONTROL PARAMETERS
 
 requests = 'precedence';
-fb_lowFreqHz = 100;
-fb_highFreqHz = 1400;
+% fb_lowFreqHz = 100;
+% fb_highFreqHz = 1400;
+
+fb_lowFreqHz  = 80;
+fb_highFreqHz = 8000;
+fb_nChannels  = 32; 
 
 % Note copied from Braasch's code:
 % minimum windowlength needs to be in order of binaural sluggishness for
@@ -76,24 +80,31 @@ mObj.processSignal();
 %% PLOT RESULTS
 
 % Input signals
-dObj.plot([],[],'rangeSec', [0 0.05], 'bGray',1,'decimateRatio',3,'bSignal',1);
+% dObj.plot([],[],'rangeSec', [0 0.05], 'bGray',1,'decimateRatio',3,'bSignal',1);
+dObj.plot([],[], 'bGray',1,'decimateRatio',3,'bSignal',1);
 ylim([-0.8 0.8]);
 legend('boxoff');
 
+% % Output ITD / ILD
+% figure;
+% plot(dObj.precedence{1}.Data(:))
+% title('Accumulated ITD') 
+% xlabel('Iteration steps / number of analyzed windows')
+% ylabel('ITD [ms]');
+% 
+% figure;
+% plot(dObj.precedence{2}.Data(:))
+% title('Accumulated ILD') 
+% xlabel('Iteration steps / number of analyzed windows')
+% ylabel('ILD [dB]');
+
 % Output ITD / ILD
-figure;
-plot(dObj.precedence{1}.Data(:))
-title('Accumulated ITD') 
-xlabel('Iteration steps / number of analyzed windows')
-ylabel('ITD [ms]');
+dObj.precedence{1}.plot;
+title('ITD') 
 
-figure;
-plot(dObj.precedence{2}.Data(:))
-title('Accumulated ILD') 
-xlabel('Iteration steps / number of analyzed windows')
+dObj.precedence{2}.plot;
+title('ILD') 
 ylabel('ILD [dB]');
-
-
 
 
 

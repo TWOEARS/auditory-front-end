@@ -40,6 +40,7 @@ function [ITD,ILD,lagL,lagR,BL,BR,LLARmode,cc]=prec_acmod(x1,x2,Fs,cfHz,maxLag,c
 % reconHW.m   =
 
 Fms=Fs./1000; % sampling frequency based on milliseconds
+lagFms = ceil(Fms);     % lag to use for XCorr calculation (samples for 1ms)
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Monaural preprocessing (Section II.E) ^
@@ -70,21 +71,28 @@ if isempty(cc.cc1)  % ??
 %     cc.cc2=xcorr(sum(yL_LgL),sum(yR_LgL),Fms); % calc ICC ofr LLAR mode 2
 %     cc.cc3=xcorr(sum(yL_LgS),sum(yR_LgL),Fms); % calc ICC ofr LLAR mode 3
 %     cc.cc4=xcorr(sum(yL_LgL),sum(yR_LgS),Fms); % calc ICC ofr LLAR mode 4   
-    cc.cc1=calcXCorr(sum(yL_LgS).',sum(yR_LgS).',Fms); % calc ICC ofr LLAR mode 1
-    cc.cc2=calcXCorr(sum(yL_LgL).',sum(yR_LgL).',Fms); % calc ICC ofr LLAR mode 2
-    cc.cc3=calcXCorr(sum(yL_LgS).',sum(yR_LgL).',Fms); % calc ICC ofr LLAR mode 3
-    cc.cc4=calcXCorr(sum(yL_LgL).',sum(yR_LgS).',Fms); % calc ICC ofr LLAR mode 4
+%     cc.cc1=calcXCorr(sum(yL_LgS).',sum(yR_LgS).',Fms); % calc ICC ofr LLAR mode 1
+%     cc.cc2=calcXCorr(sum(yL_LgL).',sum(yR_LgL).',Fms); % calc ICC ofr LLAR mode 2
+%     cc.cc3=calcXCorr(sum(yL_LgS).',sum(yR_LgL).',Fms); % calc ICC ofr LLAR mode 3
+%     cc.cc4=calcXCorr(sum(yL_LgL).',sum(yR_LgS).',Fms); % calc ICC ofr LLAR mode 4
+    cc.cc1=calcXCorr(sum(yL_LgS).',sum(yR_LgS).',lagFms); % calc ICC ofr LLAR mode 1
+    cc.cc2=calcXCorr(sum(yL_LgL).',sum(yR_LgL).',lagFms); % calc ICC ofr LLAR mode 2
+    cc.cc3=calcXCorr(sum(yL_LgS).',sum(yR_LgL).',lagFms); % calc ICC ofr LLAR mode 3
+    cc.cc4=calcXCorr(sum(yL_LgL).',sum(yR_LgS).',lagFms); % calc ICC ofr LLAR mode 4
     
 else 
 %     cc.cc1=cc.cc1+xcorr(sum(yL_LgS),sum(yR_LgS),Fms); % calc ICC ofr LLAR mode 1
 %     cc.cc2=cc.cc2+xcorr(sum(yL_LgL),sum(yR_LgL),Fms); % calc ICC ofr LLAR mode 2
 %     cc.cc3=cc.cc3+xcorr(sum(yL_LgS),sum(yR_LgL),Fms); % calc ICC ofr LLAR mode 3
 %     cc.cc4=cc.cc4+xcorr(sum(yL_LgL),sum(yR_LgS),Fms); % calc ICC ofr LLAR mode 4
-    cc.cc1=cc.cc1+calcXCorr(sum(yL_LgS).',sum(yR_LgS).',Fms); % calc ICC ofr LLAR mode 1
-    cc.cc2=cc.cc2+calcXCorr(sum(yL_LgL).',sum(yR_LgL).',Fms); % calc ICC ofr LLAR mode 2
-    cc.cc3=cc.cc3+calcXCorr(sum(yL_LgS).',sum(yR_LgL).',Fms); % calc ICC ofr LLAR mode 3
-    cc.cc4=cc.cc4+calcXCorr(sum(yL_LgL).',sum(yR_LgS).',Fms); % calc ICC ofr LLAR mode 4
-    
+%     cc.cc1=cc.cc1+calcXCorr(sum(yL_LgS).',sum(yR_LgS).',Fms); % calc ICC ofr LLAR mode 1
+%     cc.cc2=cc.cc2+calcXCorr(sum(yL_LgL).',sum(yR_LgL).',Fms); % calc ICC ofr LLAR mode 2
+%     cc.cc3=cc.cc3+calcXCorr(sum(yL_LgS).',sum(yR_LgL).',Fms); % calc ICC ofr LLAR mode 3
+%     cc.cc4=cc.cc4+calcXCorr(sum(yL_LgL).',sum(yR_LgS).',Fms); % calc ICC ofr LLAR mode 4
+    cc.cc1=cc.cc1+calcXCorr(sum(yL_LgS).',sum(yR_LgS).',lagFms); % calc ICC ofr LLAR mode 1
+    cc.cc2=cc.cc2+calcXCorr(sum(yL_LgL).',sum(yR_LgL).',lagFms); % calc ICC ofr LLAR mode 2
+    cc.cc3=cc.cc3+calcXCorr(sum(yL_LgS).',sum(yR_LgL).',lagFms); % calc ICC ofr LLAR mode 3
+    cc.cc4=cc.cc4+calcXCorr(sum(yL_LgL).',sum(yR_LgS).',lagFms); % calc ICC ofr LLAR mode 4
 end
 % cross-correlation to determine best combination
 n1=max(cc.cc1); % calc ICC ofr LLAR mode 1
@@ -119,24 +127,35 @@ end % switch
 % differ by less than 0.1 (p. 428)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-windowlength=50.*Fms; % windowlength for temporal steps
-steps=ceil(length(x1(1,:))/windowlength); % determine number of steps
-h=triang(windowlength); % window for overlap-add method
+% windowlength=50.*Fms; % windowlength for temporal steps
+% steps=ceil(length(x1(1,:))/windowlength); % determine number of steps
+% h=triang(windowlength); % window for overlap-add method
+
+% ICCintT = zeros(length(cfHz), 2*Fms+1);
+ICCintT = zeros(length(cfHz), 2*lagFms+1);
+ILDint = zeros(length(cfHz), 1);
+Eint = zeros(length(cfHz), 1);
 
 for n=1:length(cfHz) % loop over all frequency bands
     xL=x1(n,:)';
     xR=x2(n,:)';
 %         ICC=xcorr(xL,xR,Fms)'; % interaural cross-correlation
-        ICC=calcXCorr(xL,xR,Fms)'; % interaural cross-correlation
-        eL=mean(sqrt(xL.^2)); % rms energy in left channel
-        eR=mean(sqrt(xR.^2)); % rms energy in right channel
-        if eL>0 & eR>0; % if signal in both channels exist
-            ILD_f=20*log10(eL./eR); % ILD within frequency band
+%         ICC=calcXCorr(xL,xR,Fms)'; % interaural cross-correlation
+        ICC=calcXCorr(xL,xR,lagFms)'; % interaural cross-correlation
+%         eL=mean(sqrt(xL.^2)); % rms energy in left channel
+%         eR=mean(sqrt(xR.^2)); % rms energy in right channel 
+        % aren't the above (original acmod) wrong for rms? - corrected below
+        eL=sqrt(mean(xL.^2)); % rms energy in left channel
+        eR=sqrt(mean(xR.^2)); % rms energy in right channel
+        if eL>0 && eR>0; % if signals in both channels exist
+%             ILD_f=20*log10(eL./eR); % ILD within frequency band
+            % right/left to be switched (for AFE ILD comparability)
+            ILD_f = 20*log10(eR./eL); % ILD within frequency band
             En=eL.*eR; % Amplitude
         else 
             ILD_f=0;
             En=0;
-        end % of of                    
+        end % of if                    
 
     % Frequency weighting according to Stern et al. (1988)
     % frequency weighting filter coefficients: b1, b2, b3
@@ -173,19 +192,33 @@ end
 % See Section III.A.1. Decision device
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-ICCintF=sum(cc.ICCintT); % Detemine ICC collapsed over all frequency bands
+% ICCintF=sum(cc.ICCintT); % Detemine ICC collapsed over all frequency bands
 
+% % Normalize signal for centroid calculation
+% ICCintF=ICCintF-min(ICCintF);
+% index=find(ICCintF<max(ICCintF)./2);
+% ICCintF(index)=0;
+% 
+% ITD=sum((-Fms:Fms).*ICCintF./sum(ICCintF))./Fms; % ITD estimation based on centroid
+
+% [maxCorr,indexITD]=max(ICCintF);
+% ITD=(indexITD-Fms-1)./Fms;
+
+% ITD calculation without summation over frqeuency bands
 % Normalize signal for centroid calculation
-ICCintF=ICCintF-min(ICCintF);
-index=find(ICCintF<max(ICCintF)./2);
-ICCintF(index)=0;
+% Use cc.ICCintT before summation over freq bands
+ICCintF = cc.ICCintT - repmat(min(cc.ICCintT, [], 2), 1, size(cc.ICCintT, 2));  % min/max should be across the column (2nd dimension)!
+% index = find(ICCintF<repmat(max(ICCintF, [], 2), 1, size(ICCintF, 2))./2);
+ICCintF(ICCintF<repmat(max(ICCintF, [], 2), 1, size(ICCintF, 2))./2) = 0;
 
-ITD=sum((-Fms:Fms).*ICCintF./sum(ICCintF))./Fms; % ITD estimation based on centroid
+[maxCorr,indexITD]=max(ICCintF, [], 2);
+ITD=(indexITD-lagFms-1)./Fms;
 
-[maxCorr,indexITD]=max(ICCintF);
-ITD=(indexITD-Fms-1)./Fms;
-% ILD calculation amplitude weighted over frequency bands
-ILD=sum(cc.ILDint.*cc.Eint)./sum(cc.Eint);
+% % ILD calculation amplitude weighted over frequency bands
+% ILD=sum(cc.ILDint.*cc.Eint)./sum(cc.Eint);
+
+% ILD calculation without summation over frqeucney bands
+ILD=cc.ILDint;
 
 % convert lag delays to ms:
 lagL=lagL./Fms;
