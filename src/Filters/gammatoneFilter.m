@@ -64,12 +64,12 @@ classdef gammatoneFilter < filterObj
 
                 % Bandwidth of the filter in Hertz
                 bwHz = bwERB * ERBHz;
+
+                % This is when the function peaks
+                delay = 3./(2*pi*bwHz);
                 
                 % Generate an IIR Gammatone filter
                 if do_align
-                    % This is when the function peaks
-                    delay = 3./(2*pi*bwHz);
-                    
                     % Compute the position of the pole
                     atilde = exp(-2*pi*bwHz/fs - 1i*2*pi*cf/fs);
                     
@@ -92,12 +92,8 @@ classdef gammatoneFilter < filterObj
                     end
                 end
                 
-                delaySpl = 0;
-
                 % The transfer function is complex-valued
                 realTF = false;
-                        
-                
                 
                 % Populate filter Object properties
                 %   1- Global properties
@@ -106,9 +102,8 @@ classdef gammatoneFilter < filterObj
                 %   2- Specific properties
                 obj.CenterFrequency = cf;
                 obj.FilterOrder = n;
-                obj.delay = delaySpl;
+                obj.delay = delay;
                 obj.CascadeOrder = cascade;
-                
             end
         end
         

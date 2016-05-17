@@ -12,6 +12,7 @@ classdef gammatoneProc < Processor
 %       lowFreqHz  - Requested center frequency of lowest channel (Hz)
 %       highFreqHz - Requested approximate center frequency of highest channel (Hz)
 %       bAlign     - Use phase-aligned filters
+%       delaySec   - Time delay in seconds
 % 
 %   There are three different ways of setting up a vector of channel center frequencies
 %   (cfHz) when instantiating this processor:
@@ -37,6 +38,7 @@ classdef gammatoneProc < Processor
         lowFreqHz       % Lowest center frequency used at instantiation
         highFreqHz      % Highest center frequency used at instantiation
         bAlign          % Use phase-aligned filters
+        delaySec        % Time delay in seconds
     end
     
     properties (GetAccess = private)
@@ -202,8 +204,12 @@ classdef gammatoneProc < Processor
                 
             end
             
+            % Calculate filter bandwidth in Hertz
+            bwHz = pObj.parameters.fb_bwERBs * (24.7 + 0.108 * centerFreq);
+            
+            % Map bandwidth to time delay in seconds
+            pObj.parameters.map('fb_delaySec') = 3./(2*pi*bwHz);
         end
-        
     end
     
     methods (Hidden = true)
@@ -245,6 +251,10 @@ classdef gammatoneProc < Processor
         
         function bAlign = get.bAlign(pObj)
             bAlign = pObj.parameters.map('fb_bAlign');
+        end
+        
+        function delaySec = get.delaySec(pObj)
+            delaySec = pObj.parameters.map('fb_delaySec');
         end
         
     end
@@ -301,7 +311,8 @@ classdef gammatoneProc < Processor
                     'fb_cfHz',...
                     'fb_nGamma',...
                     'fb_bwERBs',...
-                    'fb_bAlign'};
+                    'fb_bAlign',...
+                    'fb_delaySec'};
             
             descriptions = {'Filterbank type (''gammatone'' or ''drnl'')',...
                     'Lowest center frequency (Hz)',...
@@ -311,7 +322,8 @@ classdef gammatoneProc < Processor
                     'Channels center frequencies (Hz)',...
                     'Gammatone rising slope order',...
                     'Bandwidth of the filters (ERBs)',...
-                    'Create phase-aligned filters'};
+                    'Create phase-aligned filters',...
+                    'Time delay in seconds'};
             
             defaultValues = {'gammatone',...
                             80,...
@@ -321,7 +333,8 @@ classdef gammatoneProc < Processor
                             [],...
                             4,...
                             1.018,...
-                            false};
+                            false,...
+                            []};
                 
         end
         

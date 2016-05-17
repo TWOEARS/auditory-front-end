@@ -10,7 +10,7 @@ clc
 fsHz = 44.1E3;
 
 % Create centered impulse 
-dObj = dataObject([zeros(1E3,1); 1; zeros(1E3,1)],fsHz);
+dObj = dataObject([zeros(1024,1); 1; zeros(7167,1)],fsHz);
 
 
 %% PLACE REQUEST AND CONTROL PARAMETERS
@@ -21,9 +21,9 @@ requests = {'filterbank'};
 
 % Parameters of auditory filterbank 
 fb_type       = 'gammatone';
-fb_nChannels  = [];  
-fb_lowFreqHz  = 0;
-fb_highFreqHz = fsHz/2;
+fb_nChannels  = 64;  
+fb_lowFreqHz  = 50;
+fb_highFreqHz = fsHz / 2;
 fb_bAlign_1   = false;   % without phase-alignment
 fb_bAlign_2   = true;    % with phase-alignment
 
@@ -48,55 +48,154 @@ mObj1.processSignal();
 mObj2.processSignal();
 
 
-%% PERFORM TIME-ALIGNMENT
+%% DELAY COMPENSATION
 % 
 % 
-% Filter bandwidth in Hertz
-bwHz  = 1.018 * (24.7 + 0.108 * dObj.filterbank{1}.cfHz);
-delay = 3./(2*pi*bwHz);
+% Get subband signals
+subband1 = dObj.filterbank{1}.Data(:);
+subband2 = dObj.filterbank{2}.Data(:);
 
-% This is when the function peaks
-delayInSamples = round(delay * dObj.filterbank{1}.FsHz);
+% Allocate signals
+aligned1 = zeros(size(subband1));
+aligned2 = zeros(size(subband2));
 
-% Compensate for integer delays
-aligned1 = dObj.filterbank{1}.Data(:).';
-aligned2 = dObj.filterbank{2}.Data(:).';
+% Get delay in samples
+delay = round(mObj1.Processors{2}.delaySec * fsHz);
 
-% Loop over number of subbands
-for ii = 1 : numel(delayInSamples)
-    aligned1(ii,:) = circshift(aligned1(ii,:),[1 -delayInSamples(ii)]);
-    aligned2(ii,:) = circshift(aligned2(ii,:),[1 -delayInSamples(ii)]);
+% Loop over number of subbands and compensate for integer delays
+for ii = 1 : numel(delay)
+    aligned1(:,ii) = circshift(subband1(:,ii),[max(delay) - delay(ii) 1]);
+    aligned2(:,ii) = circshift(subband2(:,ii),[max(delay) - delay(ii) 1]);
 end
 
+% Reconstruct input by integrating subband signals across frequency 
+out1 = sum(aligned1,2);
+out2 = sum(aligned2,2);
 
-%% PLOT RESULTS
+% Delay input
+input = circshift(dObj.input{1}.Data(:),[max(delay) 1]);
+
+
+%% GAIN COMPENSATION
+% 
+% 
+% Center frequencies in Hertz 
+cfHz = dObj.filterbank{1}.cfHz;
+
+% Dimension of input
+nSamples = numel(dObj.input{1}.Data(:));
+
+% Identify FFT bins which correspond to the center frequencies
+cfFFTIdx = round(cfHz * nSamples / fsHz);
+
+% Spectral analysis of aligned gammatone output
+specAligned = fft(aligned2,[],1);
+
+% Initialize gain factors
+gain = ones(numel(cfHz),1);
+
+% Number of iterations
+nIterations = 100;
+
+% Loop over the number of iterations
+for ii = 1:nIterations
+    
+    % Select FFT bins
+    specAlignedSelected = specAligned(cfFFTIdx,:);
+        
+    % Apply gain factors
+    specAlignedSelected = specAlignedSelected * gain;
+    
+    % Calculate better gain factors 
+    gain = gain ./ abs(specAlignedSelected);
+end
+
+% Apply gain factors to subband signals
+out3 = aligned2 * gain;
+
+
+%% SHOW RESULTS
 % 
 % 
 % Plot-related parameters
 wavPlotZoom = 5; % Zoom factor
 wavPlotDS   = 3; % Down-sampling factor
 
-% Summarize plot parameters
-p = genParStruct('wavPlotZoom',wavPlotZoom,'wavPlotDS',wavPlotDS);
-
-% Plot filterbank output (no delay compensation)
-dObj.filterbank{1}.plot([],p);
-dObj.filterbank{2}.plot([],p);
-
 % Time vector
-timeSec = (0:size(aligned1,2)-1)/fsHz;
+timeSec = (0:size(subband1,1)-1)/fsHz;
+
+% Plot filterbank output
+figure; 
+waveplot(subband1,timeSec,dObj.filterbank{1}.cfHz,wavPlotZoom,wavPlotDS);
+title('Output (without phase compensation)')
+xlim([0 0.08])
+
+figure; 
+waveplot(subband2,timeSec,dObj.filterbank{1}.cfHz,wavPlotZoom,wavPlotDS);
+title('Output (with phase compensation)')
+xlim([0 0.08])
 
 % Plot delay-compensated filterbank output
 figure; 
-waveplot(aligned1',timeSec,dObj.filterbank{1}.cfHz,wavPlotZoom,wavPlotDS);
+waveplot(aligned1,timeSec,dObj.filterbank{1}.cfHz,wavPlotZoom,wavPlotDS);
 title('Delay-compensated output (without phase compensation)')
+xlim([0 0.08])
 
 figure; 
-waveplot(aligned2',timeSec,dObj.filterbank{1}.cfHz,wavPlotZoom,wavPlotDS);
+waveplot(aligned2,timeSec,dObj.filterbank{1}.cfHz,wavPlotZoom,wavPlotDS);
 title('Delay-compensated output (with phase compensation)')
+xlim([0 0.08])
+
+% Stack data that should be plotted
+data2plot = cat(2,input,out1,out2,out3);
+
+% Create colormap
+cmap = colormapVoicebox(size(data2plot,2));
+
+% Reconstructed impulse
+figure;
+h = plot(timeSec,data2plot);
+for ii = 1 : numel(h)
+    set(h(ii),'linewidth',1.5,'color',cmap(ii,:))
+end
+grid on;
+h = legend({'input' 'output' 'output with phase compensation' 'output with phase and gain compensation'},'Location','SouthWest');
+set(h,'box','off');
+xlim([0.0382 0.0394])
+xlabel('Time (s)')
+ylabel('Amplitude')
+
+% RMS reconstruction error in dB
+20*log10(sqrt(mean((input-out1).^2)))
+20*log10(sqrt(mean((input-out2).^2)))
+20*log10(sqrt(mean((input-out3).^2)))
+
+% FFT size
+nfft = pow2(nextpow2(nSamples));
+
+% Spectral analysis
+spec1 = fft(input,nfft,1);
+spec2 = fft(aligned1,nfft,1);
+spec3 = fft(aligned2,nfft,1);
+spec4 = fft(aligned2 .* repmat(gain(:)',[size(aligned1,1) 1]),nfft,1);
+
+freqHz = (0:nfft-1)'/(nfft) * fsHz;
+
+% Stack data that should be plotted
+data2plot = cat(2,sum(spec1,2),sum(spec2,2),sum(spec3,2),sum(spec4,2));
 
 figure;
-plot(timeSec,[sum(aligned1,1); sum(aligned2,1)]);
-title('Reconstructed impulse');
+h = semilogx(freqHz,20*log10(abs(data2plot)));
+for ii = 1 : numel(h)
+    set(h(ii),'linewidth',1.5,'color',cmap(ii,:))
+end
 grid on;
-legend({'without phase compensation' 'with phase compensation'})
+set(gca,'xscale','log');
+set(gca,'xticklabel',num2str([10 100 1000 10000]'));
+xlim([10 fsHz/2]);
+xlabel('Frequency (Hz)')
+ylabel('Response (dB)')
+h = legend({'input' 'output' 'output with phase compensation' ...
+    'output with phase and gain compensation'},'Location','SouthEast');
+set(h,'box','off');
+

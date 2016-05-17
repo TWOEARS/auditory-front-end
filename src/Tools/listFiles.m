@@ -30,9 +30,9 @@ function [ stFileList ] = listFiles(szCurDir, szFileMask, iRecursionDepth)
 
 %-------------------------------------------------------------------------%
 % Check input arguments.
-error(nargchk(0,3,nargin));
+narginchk(0,3);
 % Check output arguments.
-error(nargoutchk(0,1,nargout));
+nargoutchk(0,1);
 %-------------------------------------------------------------------------%
 
 %-------------------------------------------------------------------------%
