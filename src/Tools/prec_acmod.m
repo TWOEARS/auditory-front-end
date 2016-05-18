@@ -1,4 +1,4 @@
-function [ITD,ILD,lagL,lagR,BL,BR,LLARmode,cc]=prec_acmod(x1,x2,Fs,cfHz,maxLag,cc)
+function [CC,ITD,ILD,lagL,lagR,BL,BR,LLARmode,cc]=prec_acmod(x1,x2,Fs,cfHz,maxLag,cc)
 
 % function [ITD,ILD,lagL,lagR,BL,BR,LLARmode,info]=acmod(y,Fs);
 %
@@ -132,7 +132,8 @@ end % switch
 % h=triang(windowlength); % window for overlap-add method
 
 % ICCintT = zeros(length(cfHz), 2*Fms+1);
-ICCintT = zeros(length(cfHz), 2*lagFms+1);
+CC = zeros(length(cfHz), 2*maxLag+1);
+ICCintT = zeros(length(cfHz), 2*maxLag+1);
 ILDint = zeros(length(cfHz), 1);
 Eint = zeros(length(cfHz), 1);
 
@@ -141,7 +142,7 @@ for n=1:length(cfHz) % loop over all frequency bands
     xR=x2(n,:)';
 %         ICC=xcorr(xL,xR,Fms)'; % interaural cross-correlation
 %         ICC=calcXCorr(xL,xR,Fms)'; % interaural cross-correlation
-        ICC=calcXCorr(xL,xR,lagFms)'; % interaural cross-correlation
+        ICC=calcXCorr(xL,xR,maxLag)'; % interaural cross-correlation
 %         eL=mean(sqrt(xL.^2)); % rms energy in left channel
 %         eR=mean(sqrt(xR.^2)); % rms energy in right channel 
         % aren't the above (original acmod) wrong for rms? - corrected below
@@ -176,7 +177,7 @@ end % of for
 
 % if nargin==3 
 if isempty(cc.ICCintT) 
-    cc.ICCintT=ICCintT;
+    cc.ICCintT=ICCintT;     % Dimension: [nChannels x 2*MAXLAGS+1]
     cc.ILDint=ILDint;
     cc.Eint=Eint;
 else 
@@ -211,8 +212,10 @@ ICCintF = cc.ICCintT - repmat(min(cc.ICCintT, [], 2), 1, size(cc.ICCintT, 2));  
 % index = find(ICCintF<repmat(max(ICCintF, [], 2), 1, size(ICCintF, 2))./2);
 ICCintF(ICCintF<repmat(max(ICCintF, [], 2), 1, size(ICCintF, 2))./2) = 0;
 
+CC = ICCintF;               % cross-correlation to be returned to precedenceProc
+
 [maxCorr,indexITD]=max(ICCintF, [], 2);
-ITD=(indexITD-lagFms-1)./Fms;
+ITD=(indexITD-maxLag-1)./Fs;        % no more Fms! (return ITD in seconds)
 
 % % ILD calculation amplitude weighted over frequency bands
 % ILD=sum(cc.ILDint.*cc.Eint)./sum(cc.Eint);

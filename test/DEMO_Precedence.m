@@ -26,7 +26,7 @@ length = 400;           % Signal length in ms
 fc = 500;               % For periodic waves: Frequency in Hz,
                         % For Bandpass Noise: Fc of the bandpass filter
 bw = 800;               % Bandwidth of the FFT bandpass filters
-itd = 0.6;              % ITD in ms (applied in positive/negative pair to 
+itd = 0.7;              % ITD in ms (applied in positive/negative pair to 
                         % stimulusBraasch function)                      
 ISI = 3;                % Inter-Stimulus Interval in ms
 attackTime = 20;        % Attach time in ms
@@ -48,12 +48,12 @@ dObj = dataObject(x, fsHz);
 %% PLACE REQUEST AND CONTROL PARAMETERS
 
 requests = 'precedence';
-% fb_lowFreqHz = 100;
-% fb_highFreqHz = 1400;
+fb_lowFreqHz = 100;
+fb_highFreqHz = 1400;
 
-fb_lowFreqHz  = 80;
-fb_highFreqHz = 8000;
-fb_nChannels  = 32; 
+% fb_lowFreqHz  = 80;
+% fb_highFreqHz = 8000;
+% fb_nChannels  = 32; 
 
 % Note copied from Braasch's code:
 % minimum windowlength needs to be in order of binaural sluggishness for
@@ -106,6 +106,30 @@ dObj.precedence{2}.plot;
 title('ILD') 
 ylabel('ILD [dB]');
 
+
+% Plot-related parameters
+wavPlotZoom = 5; % Zoom factor
+wavPlotDS   = 1; % Down-sampling factor
+
+% Summarize plot parameters
+p = genParStruct('wavPlotZoom',wavPlotZoom,'wavPlotDS',wavPlotDS);
+
+% Plot the CCF of a single frame
+frameIdx2Plot = 10;
+
+% Get sample indexes in that frame to limit waveforms plot
+wSizeSamples = 0.5 * round((prec_wSizeSec * fsHz * 2));
+wStepSamples = round((prec_hSizeSec * fsHz));
+samplesIdx = (1:wSizeSamples) + ((frameIdx2Plot-1) * wStepSamples);
+
+lagsMS = dObj.precedence{3}.lags*1E3;
+
+% Plot the waveforms in that frame
+dObj.plot([],[],'bGray',1,'rangeSec',[samplesIdx(1) samplesIdx(end)]/fsHz)
+ylim([-0.35 0.35])
+
+% Plot the cross-correlation in that frame
+dObj.precedence{3}.plot([],p,frameIdx2Plot);
 
 
 

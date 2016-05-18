@@ -38,7 +38,7 @@ classdef precedenceProc < Processor
         % "getter" method implemented below
         wSizeSec            % windowlength for temporal steps
         hSizeSec            % Window step size 
-%         lags                % Vector of lags at which cross-correlation is computed
+        lags                % Vector of lags at which cross-correlation is computed
         maxDelaySec         % Maximum delay in correlation computation (s)      
     end
     
@@ -105,7 +105,7 @@ classdef precedenceProc < Processor
             end
         end
         
-        function [itd, ild] = processChunk(pObj,in_l,in_r)
+        function [itd, ild, cc] = processChunk(pObj,in_l,in_r)
             %processChunk       Processing method of your processor
             %
             %USAGE
@@ -142,14 +142,16 @@ classdef precedenceProc < Processor
             % How many frames are in the buffered input?
             nFrames = floor((nSamples-(pObj.wSize-pObj.hSize))/pObj.hSize);
             
+            % Determine maximum lag
+            maxLag = ceil(pObj.maxDelaySec*pObj.FsHzIn);
+            
 %             ITD = zeros(nFrames, 1);
 %             ILD = zeros(nFrames, 1);
 
             ITD = zeros(nChannels, nFrames);    % (freq) x (time frame)
             ILD = zeros(nChannels, nFrames);    % because of acmod output format
-            
-            % Determine maximum lag
-            maxLag = ceil(pObj.maxDelaySec*pObj.FsHzIn);
+            % Allocate memory for cc output
+            CC = zeros(max(1,nFrames),nChannels,maxLag*2+1);
             
             for ii = 1:nFrames
                 % Get start and end indices for the current frame
@@ -164,7 +166,7 @@ classdef precedenceProc < Processor
 %                 [ITD(ii),ILD(ii),lagL,lagR,BL,BR,LLARmode,pObj.stateStore] = ...
 %                     prec_acmod(frame_l, frame_r, pObj.FsHzIn, ...
 %                     pObj.LowerDependencies{1}.cfHz, maxLag, pObj.stateStore);             
-                [ITD(:, ii),ILD(:, ii),lagL,lagR,BL,BR,LLARmode,pObj.stateStore] = ...
+                [CC(ii, :, :),ITD(:, ii),ILD(:, ii),lagL,lagR,BL,BR,LLARmode,pObj.stateStore] = ...
                     prec_acmod(frame_l, frame_r, pObj.FsHzIn, ...
                     pObj.LowerDependencies{1}.cfHz, maxLag, pObj.stateStore);   
                 
@@ -173,8 +175,9 @@ classdef precedenceProc < Processor
 %             itd = ITD;
 %             ild = ILD;
             
-            itd = ITD.'./1000;    % prec_acmod function returns ITD in ms!!
+            itd = ITD.';          % prec_acmod function used to return ITD in ms!!
             ild = ILD.';          % output itd, ild are (time)x(freq) signals
+            cc = CC;
             
             % Update the buffer: the input that was not extracted as a
             % frame should be stored            
@@ -296,22 +299,32 @@ classdef precedenceProc < Processor
 %                         'mono', ...
 %                         [], ...
 %                         {'ild'});                    
-                    
-            sig_itd = feval(pObj.getProcessorInfo.outputType, ...
+            
+
+            sig_itd = feval(pObj.getProcessorInfo.outputType{1}, ...
                         pObj, ...
                         dObj.bufferSize_s, ...
                         'mono', ...
                         []);
-            sig_ild = feval(pObj.getProcessorInfo.outputType, ...
+            sig_ild = feval(pObj.getProcessorInfo.outputType{1}, ...
                         pObj, ...
                         dObj.bufferSize_s, ...
                         'mono', ...
-                        []);                            
+                        []);            
+        
+            % adding CorrelationSignal to have cc output as well
+            sig_cc = feval(pObj.getProcessorInfo.outputType{2}, ...
+                        pObj, ...
+                        dObj.bufferSize_s, ...
+                        'mono', ...
+                        []);        
             
             dObj.addSignal(sig_itd);
             dObj.addSignal(sig_ild);
             
-            output = {sig_itd sig_ild};
+            dObj.addSignal(sig_cc);
+            
+            output = {sig_itd sig_ild sig_cc};
             
         end
 
@@ -335,11 +348,12 @@ classdef precedenceProc < Processor
             %   pObj : Processor instance
             
             % Call processChunk function using the binaural inputs
-            [itd, ild] = pObj.processChunk( pObj.Input{1,1}.Data('new'),...
+            [itd, ild, cc] = pObj.processChunk( pObj.Input{1,1}.Data('new'),...
                 pObj.Input{1,2}.Data('new'));
             % Append the [two] outputs
             pObj.Output{1}.appendChunk(itd);
             pObj.Output{2}.appendChunk(ild);
+            pObj.Output{3}.appendChunk(cc);
 
         end
 
@@ -429,6 +443,11 @@ classdef precedenceProc < Processor
             hSizeSec = pObj.parameters.map('prec_hSizeSec');
         end
                 
+        function lags = get.lags(pObj)
+            maxLag = ceil(pObj.maxDelaySec*pObj.FsHzIn);
+            lags = (-maxLag:maxLag).'./pObj.FsHzIn;
+        end
+        
         function maxDelaySec = get.maxDelaySec(pObj)
             maxDelaySec = pObj.parameters.map('prec_maxDelaySec');
         end
@@ -470,7 +489,7 @@ classdef precedenceProc < Processor
             
             defaultValues = {20e-3,...
                              10e-3,...
-                             10e-3
+                             1e-3
                             };
                 
         end
@@ -484,7 +503,7 @@ classdef precedenceProc < Processor
             pInfo.requestName = 'precedence';
             pInfo.requestLabel = 'Precedence effect';
 %             pInfo.outputType = 'FeatureSignal';
-            pInfo.outputType = 'TimeFrequencySignal';
+            pInfo.outputType = {'TimeFrequencySignal' 'CorrelationSignal'};
             pInfo.isBinaural = 1; % 0 or 1 (or 2 if it can do both, e.g., preProc.m)
             
         end
