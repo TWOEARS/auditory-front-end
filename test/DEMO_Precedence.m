@@ -26,8 +26,8 @@ length = 400;           % Signal length in ms
 fc = 500;               % For periodic waves: Frequency in Hz,
                         % For Bandpass Noise: Fc of the bandpass filter
 bw = 800;               % Bandwidth of the FFT bandpass filters
-itd = 0.7;              % ITD in ms (applied in positive/negative pair to 
-                        % stimulusBraasch function)                      
+itd = 0.5;              % ITD in ms (applied in positive/negative pair for 
+                        %   lead/lag to stimulusBraasch function)                      
 ISI = 3;                % Inter-Stimulus Interval in ms
 attackTime = 20;        % Attach time in ms
 decayTime = 20;         % Decay time in ms
@@ -48,12 +48,12 @@ dObj = dataObject(x, fsHz);
 %% PLACE REQUEST AND CONTROL PARAMETERS
 
 requests = 'precedence';
-fb_lowFreqHz = 100;
-fb_highFreqHz = 1400;
+% fb_lowFreqHz = 100;
+% fb_highFreqHz = 1400;
 
-% fb_lowFreqHz  = 80;
-% fb_highFreqHz = 8000;
-% fb_nChannels  = 32; 
+fb_lowFreqHz  = 80;
+fb_highFreqHz = 8000;
+fb_nChannels  = 32; 
 
 % Note copied from Braasch's code:
 % minimum windowlength needs to be in order of binaural sluggishness for
@@ -64,6 +64,7 @@ prec_hSizeSec = 0.01;
 
 par = genParStruct('fb_lowFreqHz',fb_lowFreqHz, ...
     'fb_highFreqHz',fb_highFreqHz, ...
+    'fb_nChannels', fb_nChannels, ...
     'prec_wSizeSec', prec_wSizeSec, ...
     'prec_hSizeSec', prec_hSizeSec);
  
@@ -108,14 +109,14 @@ ylabel('ILD [dB]');
 
 
 % Plot-related parameters
-wavPlotZoom = 5; % Zoom factor
+wavPlotZoom = 2; % Zoom factor
 wavPlotDS   = 1; % Down-sampling factor
 
 % Summarize plot parameters
 p = genParStruct('wavPlotZoom',wavPlotZoom,'wavPlotDS',wavPlotDS);
 
 % Plot the CCF of a single frame
-frameIdx2Plot = 10;
+frameIdx2Plot = 20;
 
 % Get sample indexes in that frame to limit waveforms plot
 wSizeSamples = 0.5 * round((prec_wSizeSec * fsHz * 2));

@@ -50,13 +50,13 @@ lagFms = ceil(Fms);     % lag to use for XCorr calculation (samples for 1ms)
 if isempty(cc.ac1) % new instance 
 %     [yL_LgS,yL_LgL,lagL,BL,midFreq,cc.ac1]=anaoneR(x1,Fs); % left channel
 %     [yR_LgS,yR_LgL,lagR,BR,midFreq,cc.ac2]=anaoneR(x2,Fs); % right channel
-    [yL_LgS,yL_LgL,lagL,BL,cc.ac1]=prec_anaone(x1, Fs, cfHz, maxLag); % left channel
-    [yR_LgS,yR_LgL,lagR,BR,cc.ac2]=prec_anaone(x2, Fs, cfHz, maxLag); % right channel
+    [yL_LgS,yL_LgL,lagL,BL,cc.ac1]=prec_anaone(x1, Fs, cfHz, round(0.01*Fs)); % left channel
+    [yR_LgS,yR_LgL,lagR,BR,cc.ac2]=prec_anaone(x2, Fs, cfHz, round(0.01*Fs)); % right channel
 else
 %     [yL_LgS,yL_LgL,lagL,BL,midFreq,cc.ac1]=anaoneR(x1,Fs,cc.ac1); % left channel
 %     [yR_LgS,yR_LgL,lagR,BR,midFreq,cc.ac2]=anaoneR(x2,Fs,cc.ac2); % right channel
-    [yL_LgS,yL_LgL,lagL,BL,cc.ac1]=prec_anaone(x1, Fs, cfHz, maxLag, cc.ac1); % left channel
-    [yR_LgS,yR_LgL,lagR,BR,cc.ac2]=prec_anaone(x2, Fs, cfHz, maxLag, cc.ac2); % right channel
+    [yL_LgS,yL_LgL,lagL,BL,cc.ac1]=prec_anaone(x1, Fs, cfHz, round(0.01*Fs), cc.ac1); % left channel
+    [yR_LgS,yR_LgL,lagR,BR,cc.ac2]=prec_anaone(x2, Fs, cfHz, round(0.01*Fs), cc.ac2); % right channel
 
 end    
     
@@ -102,7 +102,7 @@ n4=max(cc.cc4); % calc ICC ofr LLAR mode 4
 % Pick LLARmode based on highest coherence
 [maxi,LLARmode]=max([n1 n2 n3 n4]);
 
-% asign left and right signals x1/x2 form best LLAR mode
+% assign left and right signals x1/x2 from best LLAR mode
 switch LLARmode
     case 1
         x1=yL_LgS;
@@ -132,7 +132,6 @@ end % switch
 % h=triang(windowlength); % window for overlap-add method
 
 % ICCintT = zeros(length(cfHz), 2*Fms+1);
-CC = zeros(length(cfHz), 2*maxLag+1);
 ICCintT = zeros(length(cfHz), 2*maxLag+1);
 ILDint = zeros(length(cfHz), 1);
 Eint = zeros(length(cfHz), 1);
@@ -143,6 +142,8 @@ for n=1:length(cfHz) % loop over all frequency bands
 %         ICC=xcorr(xL,xR,Fms)'; % interaural cross-correlation
 %         ICC=calcXCorr(xL,xR,Fms)'; % interaural cross-correlation
         ICC=calcXCorr(xL,xR,maxLag)'; % interaural cross-correlation
+        
+        
 %         eL=mean(sqrt(xL.^2)); % rms energy in left channel
 %         eR=mean(sqrt(xR.^2)); % rms energy in right channel 
         % aren't the above (original acmod) wrong for rms? - corrected below
@@ -169,9 +170,10 @@ for n=1:length(cfHz) % loop over all frequency bands
     else
         w=10.^((-b1.*1200-b2.*1200.^2-b3.*1200.^3)./10)./276;
     end % of if 
-    ICCintT(n,:)=ICC.*w; % integrate ICC over time with Freq weighting
+    ICCintT(n,:)=ICC.*w; % Apply freq. weighting to ICC
+%     ICCintT(n,:)=ICC; % Pass ICC without applying freq. weighting
    % whos
-    ILDint(n)=ILD_f.*En./sum(En); % integrated ILD, energy weighted
+    ILDint(n)=ILD_f.*En./sum(En); % Energy weighted ILD
     Eint(n)=En; % integrated Energy
 end % of for 
 
@@ -193,35 +195,52 @@ end
 % See Section III.A.1. Decision device
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Left for comparison to original code!
+% a) ICC, ITD and ILD collapsed over all frequency bands (summed)
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
 % ICCintF=sum(cc.ICCintT); % Detemine ICC collapsed over all frequency bands
 
 % % Normalize signal for centroid calculation
 % ICCintF=ICCintF-min(ICCintF);
 % index=find(ICCintF<max(ICCintF)./2);
 % ICCintF(index)=0;
-% 
 % ITD=sum((-Fms:Fms).*ICCintF./sum(ICCintF))./Fms; % ITD estimation based on centroid
-
+% % Jonas' comment: the centroid method didn't work somehow so 
+% % simple maxima-based ITD suggested below
 % [maxCorr,indexITD]=max(ICCintF);
 % ITD=(indexITD-Fms-1)./Fms;
-
-% ITD calculation without summation over frqeuency bands
-% Normalize signal for centroid calculation
-% Use cc.ICCintT before summation over freq bands
-ICCintF = cc.ICCintT - repmat(min(cc.ICCintT, [], 2), 1, size(cc.ICCintT, 2));  % min/max should be across the column (2nd dimension)!
-% index = find(ICCintF<repmat(max(ICCintF, [], 2), 1, size(ICCintF, 2))./2);
-ICCintF(ICCintF<repmat(max(ICCintF, [], 2), 1, size(ICCintF, 2))./2) = 0;
-
-CC = ICCintF;               % cross-correlation to be returned to precedenceProc
-
-[maxCorr,indexITD]=max(ICCintF, [], 2);
-ITD=(indexITD-maxLag-1)./Fs;        % no more Fms! (return ITD in seconds)
-
 % % ILD calculation amplitude weighted over frequency bands
 % ILD=sum(cc.ILDint.*cc.Eint)./sum(cc.Eint);
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-% ILD calculation without summation over frqeucney bands
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% b) ICC, ITD and ILD without summation over frqeuency bands
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+% ITD calculation without summation over frqeuency bands
+% Centroid-based version, converted to no-summation version
+% Normalize signal for centroid calculation:
+% Use cc.ICCintT before summation over freq bands
+% ICCintF = cc.ICCintT - repmat(min(cc.ICCintT, [], 2), 1, size(cc.ICCintT, 2));  % min/max should be across the column (2nd dimension)!
+% index = find(ICCintF<repmat(max(ICCintF, [], 2), 1, size(ICCintF, 2))./2);
+% ICCintF(ICCintF<repmat(max(ICCintF, [], 2), 1, size(ICCintF, 2))./2) = 0;
+
+% CC, ITD and ILD based on cumulative calculation (using cc structure) 
+CC = cc.ICCintT;                      % cumulative CC
+[maxCorr,indexITD]=max(CC, [], 2);
+ITD=(indexITD-maxLag-1)./Fs;          % no more Fms! (return ITD in seconds)
 ILD=cc.ILDint;
+
+% % CC, ITD and ILD without cumulative calculation 
+% % (copying directly after calculation per frame instead of using cc structure) 
+% CC = ICCintT;                           % momentary CC (per frame)
+% [maxCorr,indexITD]=max(CC, [], 2);
+% ITD=(indexITD-maxLag-1)./Fs;            % no more Fms! (return ITD in seconds)
+% ILD=ILDint;
+
 
 % convert lag delays to ms:
 lagL=lagL./Fms;

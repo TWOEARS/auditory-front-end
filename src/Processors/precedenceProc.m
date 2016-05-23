@@ -51,12 +51,8 @@ classdef precedenceProc < Processor
         buffer_r    % Buffered input signals (right ear)
         
         stateStore     % data stored from previous calculation
-                       % includes ac, cc, integrated ITD/ILDs    
-                       
-%         mainPeakWidth   % max main peak width to determine minimum lag
-%         b1              % Frequency weighting according to Stern et al. (1988)
-%         b2              % frequency weighting filter coefficients: b1, b2, b3
-%         b3
+                       % includes cumulative ac, cc, integrated ITD/ILDs    
+
     end
 
     
@@ -118,10 +114,12 @@ classdef precedenceProc < Processor
             %      in_r : time-frequency signal (time (row) x frequency (column))
             %
             %OUTPUT ARGUMENTS
-            %       itd : one-dimensional ITD output in given time frame, 
-            %             weighted-summed over frequency bands
-            %       ild : one-dimensional ILD output in given time frame, 
-            %             weighted-summed over frequency bands
+            %       itd : ITD output in given time frame
+            %             (timeframe) x (frequency)
+            %       ild : ILD output in given time frame
+            %             (timeframe) x (frequency)
+            %       cc  : CC output in given time frame
+            %             (timeframe) x (frequency) x (lags)
             %
             %SEE ALSO:
             %       precedenceProc.m
