@@ -21,6 +21,7 @@ classdef precedenceProc < Processor
 %       prec_peakratio.m
 %       prec_reconHW.m
 %       prec_rev_conv.m
+%       calcXCorr.m 
 %
 %   See also: Processor, gammatoneProc
 %
@@ -51,7 +52,8 @@ classdef precedenceProc < Processor
         buffer_r    % Buffered input signals (right ear)
         
         stateStore     % data stored from previous calculation
-                       % includes cumulative ac, cc, integrated ITD/ILDs    
+                       % includes cumulative ac, cc, ITD, ILD, and frame
+                       % counter
 
     end
 
@@ -87,16 +89,11 @@ classdef precedenceProc < Processor
                 % additional initialization steps which need only be called
                 % once at instantiation. Additional initialization steps that should be
                 % performed again after receiving feedback are implemented below
-                
-%                 pObj.b1=-0.0938272;          % Frequency weighting according to Stern et al. (1988)
-%                 pObj.b2=0.000112586;         % frequency weighting filter coefficients: b1, b2, b3
-%                 pObj.b3=-0.0000000399154;
-%                 pObj.mainPeakWidth = 0.75e-3*fs;
-                
+                                
                 % initialise stateStore 
                 pObj.stateStore = struct('ac1', [], 'ac2', [], ...
                     'cc1', [], 'cc2', [], 'cc3', [], 'cc4', [], ...
-                    'ICCintT', [], 'ILDint', [], 'Eint', []);
+                    'ICCintT', [], 'ILDint', [], 'Eint', [], 'lastFrame', []);
 
             end
         end
@@ -143,13 +140,10 @@ classdef precedenceProc < Processor
             % Determine maximum lag
             maxLag = ceil(pObj.maxDelaySec*pObj.FsHzIn);
             
-%             ITD = zeros(nFrames, 1);
-%             ILD = zeros(nFrames, 1);
-
             ITD = zeros(nChannels, nFrames);    % (freq) x (time frame)
             ILD = zeros(nChannels, nFrames);    % because of acmod output format
-            % Allocate memory for cc output
-            CC = zeros(max(1,nFrames),nChannels,maxLag*2+1);
+            % Allocate memory also for cc output
+            CC = zeros(max(0,nFrames),nChannels,maxLag*2+1);
             
             for ii = 1:nFrames
                 % Get start and end indices for the current frame
@@ -160,19 +154,12 @@ classdef precedenceProc < Processor
                 frame_l = repmat(hanning(pObj.wSize), 1, nChannels) .* in_l(n_start:n_end, :);
                 frame_r = repmat(hanning(pObj.wSize), 1, nChannels) .* in_r(n_start:n_end, :);
 
-                % Run the acmod function
-%                 [ITD(ii),ILD(ii),lagL,lagR,BL,BR,LLARmode,pObj.stateStore] = ...
-%                     prec_acmod(frame_l, frame_r, pObj.FsHzIn, ...
-%                     pObj.LowerDependencies{1}.cfHz, maxLag, pObj.stateStore);             
                 [CC(ii, :, :),ITD(:, ii),ILD(:, ii),lagL,lagR,BL,BR,LLARmode,pObj.stateStore] = ...
                     prec_acmod(frame_l, frame_r, pObj.FsHzIn, ...
                     pObj.LowerDependencies{1}.cfHz, maxLag, pObj.stateStore);   
                 
             end
-            
-%             itd = ITD;
-%             ild = ILD;
-            
+                       
             itd = ITD.';          % prec_acmod function used to return ITD in ms!!
             ild = ILD.';          % output itd, ild are (time)x(freq) signals
             cc = CC;
@@ -199,7 +186,7 @@ classdef precedenceProc < Processor
             if any(~structfun(@isempty, pObj.stateStore))
                 pObj.stateStore = struct('ac1', [], 'ac2', [], ...
                     'cc1', [], 'cc2', [], 'cc3', [], 'cc4', [], ...
-                    'ICCintT', [], 'ILDint', [], 'Eint', []);
+                    'ICCintT', [], 'ILDint', [], 'Eint', [], 'lastFrame', []);
             end
             
         end
@@ -284,21 +271,6 @@ classdef precedenceProc < Processor
             % signal constructor).
             
             % Specify two outputs (itd and ild) for the received dObj
-            
-%             sig_itd = feval(pObj.getProcessorInfo.outputType, ...
-%                         pObj, ...
-%                         dObj.bufferSize_s, ...
-%                         'mono', ...
-%                         [], ...
-%                         {'itd'});
-%             sig_ild = feval(pObj.getProcessorInfo.outputType, ...
-%                         pObj, ...
-%                         dObj.bufferSize_s, ...
-%                         'mono', ...
-%                         [], ...
-%                         {'ild'});                    
-            
-
             sig_itd = feval(pObj.getProcessorInfo.outputType{1}, ...
                         pObj, ...
                         dObj.bufferSize_s, ...
@@ -309,7 +281,6 @@ classdef precedenceProc < Processor
                         dObj.bufferSize_s, ...
                         'mono', ...
                         []);            
-        
             % adding CorrelationSignal to have cc output as well
             sig_cc = feval(pObj.getProcessorInfo.outputType{2}, ...
                         pObj, ...
@@ -319,7 +290,6 @@ classdef precedenceProc < Processor
             
             dObj.addSignal(sig_itd);
             dObj.addSignal(sig_ild);
-            
             dObj.addSignal(sig_cc);
             
             output = {sig_itd sig_ild sig_cc};
@@ -348,7 +318,7 @@ classdef precedenceProc < Processor
             % Call processChunk function using the binaural inputs
             [itd, ild, cc] = pObj.processChunk( pObj.Input{1,1}.Data('new'),...
                 pObj.Input{1,2}.Data('new'));
-            % Append the [two] outputs
+            % Append the [three] outputs
             pObj.Output{1}.appendChunk(itd);
             pObj.Output{2}.appendChunk(ild);
             pObj.Output{3}.appendChunk(cc);
@@ -500,7 +470,6 @@ classdef precedenceProc < Processor
             pInfo.label = 'Precedence effect';
             pInfo.requestName = 'precedence';
             pInfo.requestLabel = 'Precedence effect';
-%             pInfo.outputType = 'FeatureSignal';
             pInfo.outputType = {'TimeFrequencySignal' 'CorrelationSignal'};
             pInfo.isBinaural = 1; % 0 or 1 (or 2 if it can do both, e.g., preProc.m)
             
