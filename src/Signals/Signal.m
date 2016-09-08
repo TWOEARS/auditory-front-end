@@ -181,6 +181,7 @@ classdef Signal < matlab.mixin.Copyable
             x = 0 : 1 / srcFsHz : (rows-1) / srcFsHz;
             xq = 0 : size( sObj.Data, 1 ) - 1;
             xq = xq * 1 / sObj.FsHz;
+            x = x + (max( xq ) - max( x ));
             dataBlockResampled = interp1( x, dataBlock, xq, 'linear', 'extrap' );
         end
                 
