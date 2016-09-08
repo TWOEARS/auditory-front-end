@@ -199,24 +199,28 @@ classdef Signal < matlab.mixin.Copyable
                 % assume both are sampled at equal rates
                 maskHopSize = 1./sObj.FsHz;
             end
-            mask = sObj.resampleToFsHz( mask, 1./maskHopSize );
             newSobj = sObj.copy();
             dataBlock = newSobj.Data(:,:,:,:,:);
-            [rm, cm, dm] = size(mask);
-            [rd, cd, dd] = size(dataBlock);
+            [rd, ~, dd] = size(dataBlock);
+            if ((1/maskHopSize) ~= sObj.FsHz) || (size( mask, 1 ) ~= rd)
+                mask = sObj.resampleToFsHz( mask, 1./maskHopSize );
+            end
+            [rm, ~, dm] = size(mask);
             if rm > rd
                 % crop
                 mask = mask(end+1-max(1, rd):end, :);
             elseif rm < rd
                 error('mask too short for dataBlock');
             end
-            mask_eff = interp1( freq_src, mask', sObj.cfHz, 'linear', 'extrap' )';
+            if freq_src ~= sObj.cfHz
+                mask = interp1( freq_src, mask', sObj.cfHz, 'linear', 'extrap' )';
+            end
             if dd > dm
-                mask_eff = repmat(mask_eff, [1, 1, dd]);
+                mask = repmat(mask, [1, 1, dd]);
             elseif dd < dm
                 error('cannot mask dataBlock dimensions < mask');
             end
-            dataBlock = dataBlock .* mask_eff;
+            dataBlock = dataBlock .* mask;
             if isa(newSobj.Buf, 'circVBufArray')
                 newSobj.setData( dataBlock );
             else
