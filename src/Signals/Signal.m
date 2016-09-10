@@ -212,7 +212,7 @@ classdef Signal < matlab.mixin.Copyable
             elseif rm < rd
                 error('mask too short for dataBlock');
             end
-            if freq_src ~= sObj.cfHz
+            if (size( freq_src ) ~= size( sObj.cfHz )) || (freq_src ~= sObj.cfHz)
                 mask = interp1( freq_src, mask', sObj.cfHz, 'linear', 'extrap' )';
             end
             if dd > dm
