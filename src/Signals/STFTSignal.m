@@ -35,7 +35,7 @@ classdef STFTSignal < Signal
             if nargin<1||isempty(procHandle); procHandle = emptyProc; end
             
             sObj = sObj@Signal( procHandle, bufferSize, length(cfHz));
-            % buffer will store doubles at this point but have correct dimensions etc.
+            % buffer will store double reals at this point but have correct dimensions.
             % we will call the overloaded setBufferSize to get a complex buffer
             sObj.setBufferSize(bufferSize);
             
