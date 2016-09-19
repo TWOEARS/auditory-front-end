@@ -1,15 +1,15 @@
 classdef stftProc < Processor
     %stftProc Processor providing STFT of a time-domain ear signal.
     %
-    % Returns the complex STFT time frequency spectrum per frame.
-    %
-    % TODO: some reference
+    % Returns the complex STFT time frequency spectrum per frame. To be more cache
+    % friendly the output will have single precision. There are options to remove
+    % the negative frequency bins (symmetry for real inputs).
     %
     
     %% Properties
     properties (Dependent = true)
-        wSizeSec    % window size in seconds
-        hSizeSec    % window shift in seconds
+        wSizeSec        % window size in seconds
+        isPruned        % if true, remove DC and negative frequencies from output
     end
     
     properties (GetAccess = protected)
@@ -27,24 +27,17 @@ classdef stftProc < Processor
     %% Methods
     methods
         
-        function pObj = stftProc(fs, parObj)
-            %stftProc   constructor
-            
+        function pObj = stftProc(fs, parObj)            
             if nargin<2 || isempty(parObj); parObj = Parameters; end
             if nargin<1; fs = []; end
-            
-            % Call super-constructor
-            pObj = pObj@Processor(fs, fs, 'stftProc', parObj);
+            pObj = pObj@Processor(fs, fs, 'stftProc', parObj);            
             
             if nargin>0
                 pObj.buffer = [];
-            end
-            
+            end            
         end
         
-        function out = processChunk(pObj, in)
-            %processChunk   main compute context
-            
+        function out = processChunk(pObj, in)            
             % prepend buffer content to data
             if ~isempty(pObj.buffer)
                 in = [pObj.buffer; in];
@@ -65,16 +58,18 @@ classdef stftProc < Processor
                 % compute frame FFT
                 out(ii,:) = fft(frame, pObj.nFFT);
             end
+            if pObj.isPruned
+                out = out(:,1:pObj.nFFT/2);
+            end
+            % make sure output is single precision
+            out = single(out);
             
             % save remaining time samples to buffer
             pObj.buffer = in(nFrames*pObj.hSize+1:end,:);            
         end
         
         function reset(pObj)
-            %reset   reset internal buffer
-            
             pObj.buffer = [];
-            
         end
         
     end
@@ -84,11 +79,19 @@ classdef stftProc < Processor
         
         function prepareForProcessing(pObj)            
             pObj.wSize = 2*round(pObj.parameters.map('stft_wSizeSec')*pObj.FsHzIn/2);
-            pObj.hSize = round(pObj.parameters.map('stft_hSizeSec')*pObj.FsHzIn);
+            pObj.hSize = pObj.wSize/2;
             pObj.win = hamming(pObj.wSize,'periodic');
-            pObj.nFFT = max(256,2^nextpow2(2*pObj.wSize-1));
-            pObj.FsHzOut = 1/(pObj.hSizeSec);
-            pObj.cfHz = [(0:pObj.nFFT/2) ((-pObj.nFFT/2)+1):-1]*pObj.FsHzIn/pObj.nFFT;            
+            pObj.nFFT = 2^nextpow2(2*pObj.wSize-1);
+            pObj.FsHzOut = 2/(pObj.wSizeSec);
+            
+            % freqz
+            if pObj.isPruned
+                % returns nFFT/2-1 bins, pruning symmetry and DC
+                pObj.cfHz = (1:pObj.nFFT/2) * pObj.FsHzIn/pObj.nFFT;
+            else
+                % returns all frequencies
+            	pObj.cfHz = [ (0:pObj.nFFT/2) ((pObj.nFFT+1):-1:1) ] * pObj.FsHzIn/pObj.nFFT;
+            end            
         end
         
     end
@@ -96,12 +99,12 @@ classdef stftProc < Processor
     %% "Getter" methods
     methods
         
-        function wSizeSec = get.wSizeSec(pObj)
-            wSizeSec = pObj.parameters.map('stft_wSizeSec');
+        function rval = get.wSizeSec(pObj)
+            rval = pObj.parameters.map('stft_wSizeSec');
         end
         
-        function hSizeSec = get.hSizeSec(pObj)
-            hSizeSec = pObj.parameters.map('stft_hSizeSec');
+        function rval = get.isPruned(pObj)
+            rval = pObj.parameters.map('stft_isPruned');
         end
         
     end
@@ -109,46 +112,32 @@ classdef stftProc < Processor
     %% Static methods
     methods (Static)
         
-        function dep = getDependency()
-            dep = 'time';
+        function dep = getDependency()            
+            dep = 'time';            
         end
         
-        function [names, defaultValues, descriptions] = getParameterInfo()
-            %getParameterInfo   Returns the parameter names, default values
-            %                   and descriptions for that processor
-            %
-            %USAGE:
-            %  [names, defaultValues, description] =  ...
-            %                           gammatoneProc.getParameterInfo;
-            %
-            %OUTPUT ARGUMENTS:
-            %         names : Parameter names
-            % defaultValues : Parameter default values
-            %  descriptions : Parameter descriptions
-            
+        function [names, defaultValues, descriptions] = getParameterInfo()            
             names = {...
                 'stft_wSizeSec',...
-                'stft_hSizeSec'};
-            
+                'stft_isPruned'};
+                        
             descriptions = {...
                 'Window duration (s)',...
-                'Window step size (s)'};
+                'if true, remove DC and negative frequencies from output'};
             
             defaultValues = {...
                 20E-3,...
-                10E-3};
+                true};
         end
         
-        function pInfo = getProcessorInfo()
-            
-            pInfo = struct;
-            
+        function pInfo = getProcessorInfo()            
+            pInfo = struct;            
             pInfo.name = 'STFT';
-            pInfo.label = 'STFT features';
+            pInfo.label = 'STFT';
             pInfo.requestName = 'stft';
-            pInfo.requestLabel = 'Short-Time-Fourier-Transform Features';
+            pInfo.requestLabel = 'Short-Time-Fourier-Transform';
             pInfo.outputType = 'STFTSignal';
-            pInfo.isBinaural = false;
+            pInfo.isBinaural = false;            
         end
         
     end

@@ -1,7 +1,6 @@
 classdef circVBufC < handle
-    %circVBufC class defines a circular complex double buffered vector buffer
+    %circVBufC class defines a circular complex single vector ring buffer
     %   for details see circVBuf.m
-    
     
     %% properties
     
@@ -41,9 +40,9 @@ classdef circVBufC < handle
             % buffer initialized once here
             obj.bufSz = int64(bufSize); % fixed values         
             obj.matSz = int64(matSize); % fixed values
-            
-            obj.dat = nan([bufSize*2, matSize], 'double');
-            % ONLY CHANGE HERE
+            % CHANGE TO SINGLE PRECISION
+            obj.dat = nan([bufSize*2, matSize], 'single');
+            % CHANGE TO COMPLEX
             obj.dat = obj.dat * 1i;
               
             obj.clear();
@@ -134,8 +133,8 @@ classdef circVBufC < handle
             testObj = circVBufC(int64(bufferSz),int64(vectorLen));
                         
             % fill circular buffer with steps*stepSz vectors
-            vecs_r = zeros(stepSz,vectorLen,'double');
-            vecs_i = zeros(stepSz,vectorLen,'double');
+            vecs_r = zeros(stepSz,vectorLen,'single');
+            vecs_i = zeros(stepSz,vectorLen,'single');
             vecs = complex(vecs_r, vecs_i);
             
             %tic
