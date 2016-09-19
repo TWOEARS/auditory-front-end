@@ -1,15 +1,11 @@
 classdef DuetHistogramSignal < Signal
-%DUETHISTOGRAM Signal class for three-dimensional correlation signals.
-%   This class collects all signals resulting from a correlation computation on a
-%   time-frequency representation in short time windows (e.g., auto-correlation, 
-%   cross-correlation). Its data is therefore three dimensional, with first to third
-%   dimension respectively related to time, frequency, and lag.
+%DUETHISTOGRAMSIGNAL 2d histogram signal
 %
 %   DuetHistogramSignal properties:
 %       nAlpha - number of bins for alpha
 %       nDelta - number of bisn for delta
 %
-% See also Signal, crosscorrelationProc, autocorrelationProc
+% See also Signal, duetProc
     
     properties (SetAccess=protected)
         binsAlpha;
@@ -47,7 +43,7 @@ classdef DuetHistogramSignal < Signal
                  procHandle.getDependentParameter('duet_binsDelta')]);
                         
             if nargin>0
-                sObj.Dimensions = 'binsAlpha x binsDelta';
+                sObj.Dimensions = 'nSamples x binsAlpha x binsDelta';
                 sObj.binsAlpha = procHandle.getDependentParameter('duet_binsAlpha');
                 sObj.binsDelta = procHandle.getDependentParameter('duet_binsDelta');
                 sObj.maxAlpha = procHandle.getDependentParameter('duet_maxAlpha');
