@@ -81,7 +81,7 @@ classdef Signal < matlab.mixin.Copyable
             sObj.Name = procHandle.getProcessorInfo.requestName;
             sObj.Label = procHandle.getProcessorInfo.requestLabel;
         end
-        
+
         function setBufferSize( sObj, newBufferSize_s )
             %setBufferSize  This method sets the buffer to a new size,
             %               erasing all data previously stored.
@@ -384,6 +384,20 @@ classdef Signal < matlab.mixin.Copyable
             
         end
         
+    end
+    
+    methods (Access = protected)
+
+        function cpObj = copyElement(obj)
+            %copyElement	Override of Copyable method. Needed because Buf is handle.
+            %               If Subclasses of Signal have private properties, override
+            %               copyElement in those classes!
+
+            cpObj = copyElement@matlab.mixin.Copyable(obj);
+            cpObj.setBufferSize( ceil( size( obj.Buf.dat, 1 ) / obj.FsHz ) );
+            cpObj.setData( obj.Data(:) ); 
+        end
+      
     end
     
     methods (Static)
