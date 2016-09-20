@@ -221,7 +221,7 @@ classdef Signal < matlab.mixin.Copyable
                 error('cannot mask dataBlock dimensions < mask');
             end
             dataBlock = dataBlock .* mask;
-            if isa(newSobj.Buf, 'circVBufArray')
+            if isa(newSobj.Buf, 'circVBuf')
                 newSobj.setData( dataBlock );
             else
                 newSobj.Data = dataBlock;
