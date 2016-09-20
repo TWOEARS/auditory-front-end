@@ -394,8 +394,10 @@ classdef Signal < matlab.mixin.Copyable
             %               copyElement in those classes!
 
             cpObj = copyElement@matlab.mixin.Copyable(obj);
-            cpObj.setBufferSize( ceil( size( obj.Buf.dat, 1 ) / obj.FsHz ) );
-            cpObj.setData( obj.Data(:) ); 
+            if isa( cpObj.Buf, 'circVBufArray' )
+                cpObj.setBufferSize( ceil( size( obj.Buf.dat, 1 ) / obj.FsHz ) );
+                cpObj.setData( obj.Data(:) );
+            end
         end
       
     end
