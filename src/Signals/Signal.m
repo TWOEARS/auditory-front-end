@@ -256,7 +256,9 @@ classdef Signal < matlab.mixin.Copyable
             %  blocksize_s : Length of the required data block in seconds
             % backOffset_s : Offset from the end of the signal to the 
             %                requested block's end in seconds (default: 0s)
+            Signal.doShallowCopy( true, true );
             newSobj = sObj.copy();
+            Signal.doShallowCopy( true, false );
             newSobj.Buf = [];
             newSobj.Data = sObj.getSignalBlock( blocksize_s, backOffset_s );
         end
@@ -394,15 +396,29 @@ classdef Signal < matlab.mixin.Copyable
             %               copyElement in those classes!
 
             cpObj = copyElement@matlab.mixin.Copyable(obj);
-            if isa( cpObj.Buf, 'circVBuf' ) && cpObj.Buf.isvalid()
-                cpObj.setBufferSize( ceil( size( obj.Buf.dat, 1 ) / obj.FsHz ) );
-                cpObj.setData( obj.Data(:) );
+            if ~Signal.doShallowCopy
+                if isa( cpObj.Buf, 'circVBuf' ) && cpObj.Buf.isvalid()
+                    cpObj.setBufferSize( ceil( size( obj.Buf.dat, 1 ) / obj.FsHz ) );
+                    cpObj.setData( obj.Data(:) );
+                end
             end
         end
       
     end
     
     methods (Static)
+        
+        function b = doShallowCopy( bSet, newValue )
+            persistent dsc;
+            if isempty( dsc )
+                dsc = false;
+            end
+            if nargin > 0  &&  bSet
+                dsc = newValue;
+            end
+            b = dsc;
+        end
+
         
         function sList = signalList()
             
