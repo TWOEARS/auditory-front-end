@@ -25,9 +25,12 @@ fb_lowFreqHz  = 80;
 fb_highFreqHz = 8000;
 fb_nChannels  = 16;  
 
+adpt_model = 'adt_vandorpschuitman';
+
 % Summary of parameters 
 par = genParStruct('fb_type',fb_type,'fb_lowFreqHz',fb_lowFreqHz,...
-                   'fb_highFreqHz',fb_highFreqHz,'fb_nChannels',fb_nChannels);
+                   'fb_highFreqHz',fb_highFreqHz,'fb_nChannels',fb_nChannels, ...
+                   'adpt_model', adpt_model);
                
 
 %% PERFORM PROCESSING
