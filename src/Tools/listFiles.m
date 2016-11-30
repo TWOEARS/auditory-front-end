@@ -30,9 +30,9 @@ function [ stFileList ] = listFiles(szCurDir, szFileMask, iRecursionDepth)
 
 %-------------------------------------------------------------------------%
 % Check input arguments.
-error(nargchk(0,3,nargin));
+narginchk(0,3);
 % Check output arguments.
-error(nargoutchk(0,1,nargout));
+nargoutchk(0,1);
 %-------------------------------------------------------------------------%
 
 %-------------------------------------------------------------------------%
@@ -44,7 +44,7 @@ if( (nargin<3) || (isempty(iRecursionDepth)) ), iRecursionDepth =   4; end
 %-------------------------------------------------------------------------%
 
 stFileList = dir( fullfile( szCurDir, szFileMask ) );
-stFileList = stFileList( find( ~[stFileList.isdir] ) );
+stFileList = stFileList(  ~[stFileList.isdir]  );
 for( k = [ 1 : length(stFileList) ] )
   stFileList(k).name = fullfile( szCurDir, stFileList(k).name );
 end
