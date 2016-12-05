@@ -29,6 +29,12 @@ classdef adaptationProc < Processor
 %                              model. This consists of 5 adaptation loops without
 %                              overshoot limiting. The adapation loops have a linear spacing.
 %             'adt_breebaart'  As 'puschel', but with overshoot limiting.
+%             'adt_vandorpschuitman'
+%                              5 adaptation loops, same tau spacing as
+%                              'adt_dau', no overshoot limiting,
+%                              FREQUENCY-DEPENDENT Absloute Threshold of Hearing (ATH)
+%                              according to (Terhardt 1979). See [3].
+
 %
 %   See also: Processor, ihcProc
 %
@@ -37,8 +43,12 @@ classdef adaptationProc < Processor
 %   [2] Dau, T., Puschel, D., & Kohlrausch, A. (1996). 
 %       A quantitative model of the "effective" signal processing 
 %       in the auditory system. I. Model structure. 
-%       The Journal of the Acoustical Society of America, 99(6), 3615?3622. 
-    
+%       The Journal of the Acoustical Society of America, 99(6), 3615-3622. 
+%   [3] van Dorp Schuitman, J., de Vries, D., & Lindau, A. (2013). 
+%       Deriving content-specific measures of room acoustic perception using 
+%       a binaural, nonlinear auditory model. 
+%       The Journal of the Acoustical Society of America, 133(March), 1572–1585. 
+
     properties (Dependent = true)
      overshootLimit      % limit to the overshoot of the output
      minLeveldB          % the lowest audible threshhold of the signal 
@@ -151,6 +161,15 @@ classdef adaptationProc < Processor
                 % frequency-dependent ATH from Terhardt 1979
                 % ath_terhardt function is inside /Tools folder
                 athdB = ath_terhardt(pObj.cfHz);      % dB SPL (1 x Frequency)
+                
+                % The following athMU is calculated such that the ATH is
+                % returned in MUs instead of dB, as exactly implemented in 
+                % the original van Dorp Schuitman model (uses a separate function 
+                % adpt_thresholdmu.m), but due to a discrepancy in the
+                % final adaptation loop output, it is not used, but left
+                % here for future reference
+                % athMU = adpt_thresholdmu(pObj.cfHz);    % threshold in MU to be used for the final scaling
+                
                 dBSPLCal = 100;         % signal amplitude 1 should correspond to max SPL 100 dB
                 ampCal = 1;             % signal amplitude to correspond to dBSPLRef
                 pObj.minLevel = ampCal*10.^((athdB-dBSPLCal)/20);
@@ -162,9 +181,16 @@ classdef adaptationProc < Processor
                 % Scaling values to get a range from 0 to 100 model units
                 % corr and mult are fixed throughout the loops
                 % dimensions to be matched to output signal (Time x Freq)
-                corr = repmat(pObj.minLevel, sigLen, 1);
-                mult = 100./...
-                    ((10^5)^(1/(2^nLoops)) - repmat(pObj.minLevel, sigLen, 1));                
+                % Steady state output ~= I.^(1/2^nLoops)
+                
+                % freq. dependent threshold application (conventional)
+                corr = repmat((pObj.minLevel).^(1/(2^nLoops)), sigLen, 1);
+                mult = 100./(1 - corr);
+                
+                % original vd Schuitman version, when athMU is calculated above
+                % corr = repmat(athMU, sigLen, 1);
+                % mult = 100./...
+                %    ((10^5)^(1/(2^nLoops)) - repmat(athMU, sigLen, 1));                
                 
                 % Determine steady-state levels 
                 % Dimension: (nLoops x Frequency)
