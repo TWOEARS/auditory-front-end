@@ -6,14 +6,17 @@ clc
 %% LOAD SIGNAL
 % 
 % 
+% Audio path
+audioPath = fullfile(fileparts(mfilename('fullpath')),'Test_signals');
+
 % Load anechoic signal
-load('Test_signals/DEMO_Speech_Anechoic');
+load([audioPath,filesep,'DEMO_Speech_Anechoic']);
 
 % Create a data object based on the ear signals
 dObj1 = dataObject(earSignals(1:22494,:),fsHz);
 
-% Load erverberant signal
-load('Test_signals/DEMO_Speech_Room_D');
+% Load reverberant signal
+load([audioPath,filesep,'DEMO_Speech_Room_D']);
 
 % Create a data object based on the ear signals
 dObj2 = dataObject(earSignals(1:22494,:),fsHz);

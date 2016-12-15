@@ -6,8 +6,11 @@ clc
 %% LOAD SIGNAL
 % 
 % 
+% Audio path
+audioPath = fullfile(fileparts(mfilename('fullpath')),'Test_signals');
+
 % Load a signal
-load('Test_signals/AFE_earSignals_16kHz');
+load([audioPath,filesep,'AFE_earSignals_16kHz']);
 
 % Take single channel (1- Left or 2 - Right)
 earSignal = earSignals(:,2);
@@ -31,10 +34,6 @@ dObj_GT = dataObject(earSignalScaled, fsHz);
 % Plot properties
 p_plot = genParStruct('fsize_label',10,'fsize_axes',10,'fsize_title',10);
 
-% % Plot the original ear signal
-% dObj_DRNL.plot([],p_plot,'bGray',1,'decimateRatio',3,'bSignal',1);
-% legend off, ylim([-0.4 0.4])
-% title(sprintf('Original input signal sampled at %i Hz',fsHz))
 
 %% PLACE REQUEST AND CONTROL PARAMETERS
 % 
@@ -47,8 +46,8 @@ pp_refSPLdB = 100;
 pp_middleEarModel = 'jepsen';
 
 % Parameters of auditory filterbank 
-% fb_cfHz = [500 1000 2000 4000 8000];
 fb_cfHz = 1000;
+
 % Summary of parameters 
 par_DRNL = genParStruct('pp_bLevelScaling', true, 'pp_refSPLdB', pp_refSPLdB, ...
                         'pp_bMiddleEarFiltering', true, ...

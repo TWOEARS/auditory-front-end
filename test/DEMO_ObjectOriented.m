@@ -26,9 +26,11 @@ clc
 path = fileparts(mfilename('fullpath')); 
 run([path filesep '..' filesep 'startAuditoryFrontEnd.m'])
 
+% Audio path
+audioPath = fullfile(fileparts(mfilename('fullpath')),'Test_signals');
 
 % Load a signal
-load('Test_signals/AFE_earSignals_16kHz');
+load([audioPath,filesep,'AFE_earSignals_16kHz']);
 
 
 %% 1- Basic advantages of object-oriented approach: 

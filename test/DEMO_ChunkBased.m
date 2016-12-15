@@ -5,8 +5,12 @@ close all;
 % arbitrary chunk size.
 % It goes along the description in section 2.4 of the user manual (Deliverable 2.2)
 
-% Loading a signal
-load('Test_signals/AFE_earSignals_16kHz');
+% Audio path
+audioPath = fullfile(fileparts(mfilename('fullpath')),'Test_signals');
+
+% Load a signal
+load([audioPath,filesep,'AFE_earSignals_16kHz']);
+
 sIn = earSignals;
 clear earSignals
 
