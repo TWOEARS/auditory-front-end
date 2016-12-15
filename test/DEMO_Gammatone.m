@@ -54,7 +54,7 @@ wavPlotDS   = 3; % Down-sampling factor
 p = genParStruct('wavPlotZoom',wavPlotZoom,'wavPlotDS',wavPlotDS);
 
 % Plot time domain signal
-dObj.time{1}.plot
+dObj.time{1}.plot;
 
 % Plot filterbank output
 dObj.filterbank{1}.plot([],p);

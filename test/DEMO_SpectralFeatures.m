@@ -59,7 +59,7 @@ mObj.processSignal();
 % 
 % 
 % Plot time domain signal
-dObj.time{1}.plot
+dObj.time{1}.plot;
 
 % Handle to the ratemap for plot overlay
 rmap = dObj.ratemap{1};   

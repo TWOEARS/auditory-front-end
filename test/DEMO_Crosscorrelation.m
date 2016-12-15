@@ -74,7 +74,7 @@ samplesIdx = (1:wSizeSamples) + ((frameIdx2Plot-1) * wStepSamples);
 lagsMS = dObj.crosscorrelation{1}.lags*1E3;
 
 % Plot the waveforms in that frame
-dObj.plot([],[],'bGray',1,'rangeSec',[samplesIdx(1) samplesIdx(end)]/fsHz)
+dObj.plot([],[],'bGray',1,'rangeSec',[samplesIdx(1) samplesIdx(end)]/fsHz);
 ylim([-0.35 0.35])
 
 % Plot the cross-correlation in that frame
@@ -88,14 +88,14 @@ if 0
     h3 = figure;
     % Pause in seconds between two consecutive plots 
     pauseSec = 0.0125;
-    dObj.crosscorrelation{1}.plot(h3,p3,1);
+    dObj.crosscorrelation{1}.plot(h3,p,1);
     
     % Loop over the number of frames
     for ii = 2 : size(dObj.crosscorrelation{1}.Data(:),1)
         h31=get(h3,'children');
         cla(h31(1)); cla(h31(2));
         
-        dObj.crosscorrelation{1}.plot(h3,p3,ii,'noTitle',1);
+        dObj.crosscorrelation{1}.plot(h3,p,ii,'noTitle',1);
         pause(pauseSec);
         title(h31(2),['Frame number ',num2str(ii)])
     end
