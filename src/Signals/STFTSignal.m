@@ -99,7 +99,7 @@ classdef STFTSignal < Signal
                     case {'ratemap'}
                         do_dB = 1;
                     otherwise 
-                        warning('Cannot plot this object')
+                        error('Cannot plot this object')
                 end
             
                 % Manage plotting parameters
@@ -244,7 +244,7 @@ classdef STFTSignal < Signal
 
                 end
             else
-                warning('This is an empty signal, cannot be plotted')
+                error('This is an empty signal, cannot be plotted')
             end
                 
             
