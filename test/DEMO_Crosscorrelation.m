@@ -1,4 +1,4 @@
-clear;
+clear
 close all
 clc
 
@@ -32,9 +32,9 @@ fb_nChannels  = 32;
 ihc_method    = 'dau';
 
 % Parameters of crosscorrelation processor
-cc_wSizeSec  = 0.02;
-cc_hSizeSec  = 0.01;
-cc_wname     = 'hann';
+cc_wSizeSec   = 0.02;
+cc_hSizeSec   = 0.01;
+cc_wname      = 'hann';
 
 % Summary of parameters 
 par = genParStruct('fb_type',fb_type,'fb_lowFreqHz',fb_lowFreqHz,...

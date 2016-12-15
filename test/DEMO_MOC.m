@@ -2,8 +2,10 @@ clear
 close all
 clc
 
-%% CREATE TEST SIGNALS
 
+%% CREATE TEST SIGNALS
+% 
+% 
 % sinusoid with onset/offset ramps
 % The scripts for the input signals were adopted from MAP1_14h codes
 % (Matlab Auditory Periphery, Hearing Research Lab, University of Essex) 

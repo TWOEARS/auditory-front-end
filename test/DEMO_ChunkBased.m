@@ -1,5 +1,6 @@
-clear;
-close all;
+clear
+close all
+clc
 
 % This script illustrates the chunk-based compatibility of the AFE framework with 
 % arbitrary chunk size.
@@ -16,7 +17,6 @@ clear earSignals
 
 L = size(sIn,1);    % Number of samples in the input signal
 request = 'innerhaircell';
-
 
 % Boundaries for arbitrary chunk size
 chunkSizeMin = 100;

@@ -1,4 +1,4 @@
-clear;
+clear
 close all
 clc
 
@@ -59,6 +59,7 @@ par_GT = genParStruct('pp_bLevelScaling', true, 'pp_refSPLdB', pp_refSPLdB, ...
                         'pp_middleEarModel', pp_middleEarModel, ...
                         'fb_type', 'gammatone', 'fb_cfHz', fb_cfHz);
                     
+                    
 %% PERFORM PROCESSING
 % 
 % 
@@ -74,21 +75,10 @@ mObj_GT.processSignal();
 %% PLOT RESULTS
 % 
 % 
-% % Plot time domain signal (after pre-processing)
-% dObj_DRNL.time{1}.plot
-% 
-% 
-% % Plot-related parameters
-% wavPlotZoom = 2; % Zoom factor
-% wavPlotDS   = 3; % Down-sampling factor
-% 
-% % Summarize plot parameters
-% p = genParStruct('wavPlotZoom',wavPlotZoom,'wavPlotDS',wavPlotDS);
-% 
-% % Plot filterbank output
-% dObj_DRNL.filterbank{1}.plot([],p);
-% dObj_GT.filterbank{1}.plot([],p);
+% Plot time domain signal (after pre-processing)
+dObj_DRNL.time{1}.plot;
 
+% Plot filterbank output
 tSec = (1:size(earSignalScaled,1))/fsHz;
 figure;
 plot(tSec, 1E5 * dObj_GT.filterbank{1}.Data(:));

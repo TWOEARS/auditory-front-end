@@ -1,6 +1,5 @@
 %% Object-oriented implementation of Two!Ears Auditory Front-End processing
 %
-
 % This Demo scripts presents the object-oriented implementation of the Two!Ears
 % Auditory Front-End cue/feature extraction. It is intended as a demo at that stage,
 % and not a working copy, as important feature are not implemented fully

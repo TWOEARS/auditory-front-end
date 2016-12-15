@@ -152,8 +152,12 @@ classdef TimeFrequencySignal < Signal
                 % Find position of y-axis ticks
                 M = size(sObj.cfHz,2);  % Number of channels
                 n_points = 500;         % Number of points in the interpolation
-                interpolate_ticks = spline(1:M,sObj.cfHz,...
-                    linspace(0.5,M+0.5,n_points));
+                if M > 1
+                    interpolate_ticks = spline(1:M,sObj.cfHz,...
+                        linspace(0.5,M+0.5,n_points));
+                else
+                    interpolate_ticks = sObj.cfHz;
+                end
                 %
                 % Restrain ticks to signal range (+/- a half channel)
                 aud_ticks = p.map('aud_ticks');

@@ -3,9 +3,9 @@
 % This script demonstrates feedback capabilities by computing the ratemap of a pure sine
 % wave with an auditory filterbank of filters of increasing bandwidth 
 
-clear;
-close all;
-
+clear
+close all
+clc
 
 % Request and parameters for feature extraction
 request = {'ratemap'};
@@ -23,6 +23,7 @@ range = [1 4];          % Range of values to span in the simulation
 f = 1000;       % Frequency of the pure tone (Hz)
 fsHz = 16000;   % Sampling frequency (Hz)
 T = 5;          % Duration (s)
+
 
 %% Signal
 

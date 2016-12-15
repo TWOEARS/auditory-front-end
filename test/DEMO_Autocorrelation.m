@@ -1,4 +1,4 @@
-clear;
+clear
 close all
 clc
 
@@ -32,11 +32,11 @@ fb_nChannels  = 16;
 ihc_method    = 'dau';
 
 % Parameters of autocorrelation processor
-ac_wSizeSec  = 0.02;
-ac_hSizeSec  = 0.01;
-ac_clipAlpha = 0.0;
-ac_K         = 2;
-ac_wname     = 'hann';
+ac_wSizeSec   = 0.02;
+ac_hSizeSec   = 0.01;
+ac_clipAlpha  = 0.0;
+ac_K          = 2;
+ac_wname      = 'hann';
 
 % Summary of parameters 
 par = genParStruct('fb_type',fb_type,'fb_lowFreqHz',fb_lowFreqHz,...
