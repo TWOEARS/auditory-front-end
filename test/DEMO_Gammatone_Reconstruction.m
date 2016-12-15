@@ -1,4 +1,4 @@
-clear;
+clear
 close all
 clc
 
@@ -166,9 +166,9 @@ xlabel('Time (s)')
 ylabel('Amplitude')
 
 % RMS reconstruction error in dB
-20*log10(sqrt(mean((input-out1).^2)))
-20*log10(sqrt(mean((input-out2).^2)))
-20*log10(sqrt(mean((input-out3).^2)))
+errordB_OUT = 20*log10(sqrt(mean((input-out1).^2)))
+errordB_PHASE = 20*log10(sqrt(mean((input-out2).^2)))
+errordB_PHASEandGAIN = 20*log10(sqrt(mean((input-out3).^2)))
 
 % FFT size
 nfft = pow2(nextpow2(nSamples));

@@ -54,9 +54,9 @@ wavPlotDS   = 3; % Down-sampling factor
 p = genParStruct('wavPlotZoom',wavPlotZoom,'wavPlotDS',wavPlotDS);
 
 % Plot innerhaircell signal
-dObj.innerhaircell{1}.plot([])
+dObj.innerhaircell{1}.plot([]);
 title('IHC signal')
 
 % Plot adaptation signal
-dObj.adaptation{1}.plot([],p)
+dObj.adaptation{1}.plot([],p);
 
