@@ -1,5 +1,4 @@
 function [par, psi] = afeRAA(filename, parConf)
-
 %afeRAA Room Acoustic Analyzer (RAA) based on Auditory Front-End (AFE).
 %   This is an implementation of the Room Acoustic Analyzer (RAA) 
 %   developed by Jasper van Dorp Schuitman (2011), using the Two!Ears
@@ -10,10 +9,10 @@ function [par, psi] = afeRAA(filename, parConf)
 %   listener envelopment (LEV). The additional input is a structure 
 %   which contains a list of internal constants used to derive the 4
 %   predictors. The parConf consists of the following:
-
+% 
 %         parConf.mu_psi = 0.34;            % (folowing a modification 
 %         parConf.mu_psi_dip = -60.39*1e-3; % suggestedby Osses Vecchi)
-
+% 
 %         parConf.T_min = 63.1*1e-3;
 % 
 %         parConf.a_P_REV = 0.207; 
@@ -96,7 +95,13 @@ end
 % 
 % Load a signal
 [earSignals, psi.fs] = audioread(filename);
-psi.numSamples = size(earSignals, 1);
+[psi.numSamples,nChannels] = size(earSignals);
+
+% Check if input is binaural
+if nChannels ~= 2
+    error('The afeRAA requires a binaural input signal.')
+end
+
 time = (1:psi.numSamples).'/(psi.fs);
 psi.t_psi = time;
 
