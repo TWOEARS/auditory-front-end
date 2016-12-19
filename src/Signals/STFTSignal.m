@@ -68,8 +68,8 @@ classdef STFTSignal < Signal
         end
         
         function h = plot(sObj,h0,p,varargin)
-            %plot       This method plots the data from a time-frequency
-            %           domain signal object
+            %plot       This method plots the magnitude of the data from 
+            %           a time-frequency domain signal object
             %
             %USAGE
             %       sObj.plot
@@ -212,6 +212,8 @@ classdef STFTSignal < Signal
                         % label = [sObj.Label ' (magnitude)'];
                         label = sObj.Label;
                     end
+                elseif strcmp(sObj.Name,'stft')
+                    label = [sObj.Label, ' magnitude'];
                 else
                     label = sObj.Label;
                 end
@@ -231,7 +233,7 @@ classdef STFTSignal < Signal
 
                 % Scaling the plot
                 switch sObj.Name
-                    case {'innerhaircell','ratemap'}
+                    case {'innerhaircell','ratemap', 'stft'}
                         m = max(data(:));    % Get maximum value for scaling
                         set(gca,'CLim',[m-p.map('dynrange') m])
 

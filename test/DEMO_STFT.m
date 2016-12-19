@@ -73,4 +73,3 @@ dObj.ratemap{1}.plot;
 
 % Plot IHC signal
 dObj.stft{1}.plot;
-title('STFT signal')
