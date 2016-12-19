@@ -69,7 +69,10 @@ wavPlotDS   = 3; % Down-sampling factor
 p = genParStruct('wavPlotZoom',wavPlotZoom,'wavPlotDS',wavPlotDS);
 
 % Plot ratemap
-dObj.ratemap{1}.plot;
+figure();
+h1 = subplot(211);
+dObj.ratemap{1}.plot(h1);
 
 % Plot IHC signal
-dObj.stft{1}.plot;
+h2 = subplot(212);
+dObj.stft{1}.plot(h2);
