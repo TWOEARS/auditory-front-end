@@ -81,7 +81,7 @@ classdef Signal < matlab.mixin.Copyable
             sObj.Name = procHandle.getProcessorInfo.requestName;
             sObj.Label = procHandle.getProcessorInfo.requestLabel;
         end
-        
+
         function setBufferSize( sObj, newBufferSize_s )
             %setBufferSize  This method sets the buffer to a new size,
             %               erasing all data previously stored.
@@ -179,11 +179,13 @@ classdef Signal < matlab.mixin.Copyable
             %  
             [rows, ~] = size(dataBlock);
             x = 0 : 1 / srcFsHz : (rows-1) / srcFsHz;
-            xq = 0 : 1 / sObj.FsHz : (rows-1) / srcFsHz;
-            dataBlockResampled = interp1( x, dataBlock, xq );
+            xq = 0 : size( sObj.Data, 1 ) - 1;
+            xq = xq * 1 / sObj.FsHz;
+            x = x + (max( xq ) - max( x ));
+            dataBlockResampled = interp1( x, dataBlock, xq, 'linear', 'extrap' );
         end
                 
-        function newSobj = maskSignalCopy( sObj, mask, maskHopSize )
+        function newSobj = maskSignalCopy( sObj, mask, freq_src, maskHopSize )
             %maskSignalCopy  mask a copy of a Signal's dataBlock
             %
             %USAGE:
@@ -197,31 +199,29 @@ classdef Signal < matlab.mixin.Copyable
                 % assume both are sampled at equal rates
                 maskHopSize = 1./sObj.FsHz;
             end
-            mask = sObj.resampleToFsHz( mask, 1./maskHopSize );
             newSobj = sObj.copy();
             dataBlock = newSobj.Data(:,:,:,:,:);
-            [rm, cm, dm] = size(mask);
-            [rd, cd, dd] = size(dataBlock);
+            [rd, ~, dd] = size(dataBlock);
+            if ((1/maskHopSize) ~= sObj.FsHz) || (size( mask, 1 ) ~= rd)
+                mask = sObj.resampleToFsHz( mask, 1./maskHopSize );
+            end
+            [rm, ~, dm] = size(mask);
             if rm > rd
                 % crop
                 mask = mask(end+1-max(1, rd):end, :);
-            else
+            elseif rm < rd
                 error('mask too short for dataBlock');
             end
-            if cm ~= cd                
-                freq_src = 0 : 1 / cm : (cm-1) / cm;
-                freq_dst = 0 : 1 / cd : (cd-1) / cd;
-                mask_eff = interp1( freq_src, mask', freq_dst )';
-            else
-                mask_eff = mask;
+            if any(size( freq_src ) ~= size( sObj.cfHz )) || any(freq_src ~= sObj.cfHz)
+                mask = interp1( freq_src, mask', sObj.cfHz, 'linear', 'extrap' )';
             end
             if dd > dm
-                mask_eff = repmat(mask_eff, [1, 1, dd]);
+                mask = repmat(mask, [1, 1, dd]);
             elseif dd < dm
                 error('cannot mask dataBlock dimensions < mask');
             end
-            dataBlock = dataBlock .* mask_eff;
-            if isa(newSobj, 'circVBufArrayInterface')
+            dataBlock = dataBlock .* mask;
+            if isa(newSobj.Buf, 'circVBuf')
                 newSobj.setData( dataBlock );
             else
                 newSobj.Data = dataBlock;
@@ -256,7 +256,9 @@ classdef Signal < matlab.mixin.Copyable
             %  blocksize_s : Length of the required data block in seconds
             % backOffset_s : Offset from the end of the signal to the 
             %                requested block's end in seconds (default: 0s)
+            Signal.doShallowCopy( true, true );
             newSobj = sObj.copy();
+            Signal.doShallowCopy( true, false );
             newSobj.Buf = [];
             newSobj.Data = sObj.getSignalBlock( blocksize_s, backOffset_s );
         end
@@ -386,7 +388,37 @@ classdef Signal < matlab.mixin.Copyable
         
     end
     
+    methods (Access = protected)
+
+        function cpObj = copyElement(obj)
+            %copyElement	Override of Copyable method. Needed because Buf is handle.
+            %               If Subclasses of Signal have private properties, override
+            %               copyElement in those classes!
+
+            cpObj = copyElement@matlab.mixin.Copyable(obj);
+            if ~Signal.doShallowCopy
+                if isa( cpObj.Buf, 'circVBuf' ) && cpObj.Buf.isvalid()
+                    cpObj.setBufferSize( ceil( size( obj.Buf.dat, 1 ) / obj.FsHz ) );
+                    cpObj.setData( obj.Data(:) );
+                end
+            end
+        end
+      
+    end
+    
     methods (Static)
+        
+        function b = doShallowCopy( bSet, newValue )
+            persistent dsc;
+            if isempty( dsc )
+                dsc = false;
+            end
+            if nargin > 0  &&  bSet
+                dsc = newValue;
+            end
+            b = dsc;
+        end
+
         
         function sList = signalList()
             
