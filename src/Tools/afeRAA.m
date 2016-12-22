@@ -77,8 +77,8 @@ function [par, psi] = afeRAA(filename, parConf)
 %       http://doi.org/10.1121/1.4789357
 %
 %
-% Note: This function uses the following script/=functions for
-%     internal operation (the files are in Tools folder):
+% Note: This function uses the following script/functions for
+%     internal operation (the files are in the Tools folder):
 %   RAA_param_configuration.m: default parameter configuration script
 %     (in case separate input parameter structure is not given)
 %   RAA_group_indices.m: used to calculate the foreground/background streams
