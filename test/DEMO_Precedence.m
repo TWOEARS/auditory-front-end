@@ -137,7 +137,7 @@ samplesIdx = (1:wSizeSamples) + ((frameIdx2Plot-1) * wStepSamples);
 lagsMS = dObj_anechoic.precedence{3}.lags*1E3;
 
 % Plot the waveforms in that frame
-dObj_anechoic.plot([],[],'bGray',1,'rangeSec',[samplesIdx(1) samplesIdx(end)]/fsHz)
+dObj_anechoic.plot([],[],'bGray',1,'rangeSec',[samplesIdx(1) samplesIdx(end)]/fsHz);
 set(gca, 'FontSize', 12, 'FontName','times');
 xlabel('Time (s)', 'FontSize', 14);
 ylabel('Amplitude', 'FontSize', 14);
@@ -216,7 +216,7 @@ samplesIdx = (1:wSizeSamples) + ((frameIdx2Plot-1) * wStepSamples);
 lagsMS = dObj_reverberant.precedence{3}.lags*1E3;
 
 % Plot the waveforms in that frame
-dObj_reverberant.plot([],[],'bGray',1,'rangeSec',[samplesIdx(1) samplesIdx(end)]/fsHz)
+dObj_reverberant.plot([],[],'bGray',1,'rangeSec',[samplesIdx(1) samplesIdx(end)]/fsHz);
 set(gca, 'FontSize', 12, 'FontName','times');
 xlabel('Time (s)', 'FontSize', 14);
 ylabel('Amplitude', 'FontSize', 14);
