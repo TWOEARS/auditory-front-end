@@ -7,7 +7,7 @@ clc
 % 
 % Load from Two!Ears database
 % (alternatively use your own input - binaural .wav file)
-filename = xml.dbGetFile('stimuli/binaural/binaural_cello.wav');   
+filename = db.getFile('stimuli/binaural/binaural_cello.wav');   
 
 % Load default input parameter structure 
 % For more details see afeRAA.m and RAA_param_configuration.m 
