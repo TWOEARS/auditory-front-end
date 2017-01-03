@@ -295,13 +295,13 @@ classdef Signal < matlab.mixin.Copyable
             offset_samples = max( 0, floor( sObj.FsHz * backOffset_s ) - 1 );
             
             % ... with a warning if the requested signal is "too old"
-            if offset_samples >= length(sObj.Data)
+            if offset_samples >= size(sObj.Data,1)
                 warning( ['You are requesting a block that is not in the ',...
                     'buffer anymore.'] );
             end
             
             % Figure out the starting index in the buffer
-            blockStart = max( 1, length( sObj.Data ) - ...
+            blockStart = max( 1, size( sObj.Data, 1 ) - ...
                 blocksize_samples - offset_samples + 1 );
             
             % Extract the data block
