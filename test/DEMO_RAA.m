@@ -5,9 +5,8 @@ clc
 
 %% CREATE INPUT SIGNAL
 % 
-% Load from Two!Ears database
-% (alternatively use your own input - binaural .wav file)
-filename = db.getFile('stimuli/binaural/binaural_cello.wav');   
+% Get test input data
+load('Test_signals/DEMO_Speech_Room_D.mat');
 
 % Load default input parameter structure 
 % For more details see afeRAA.m and RAA_param_configuration.m 
@@ -20,7 +19,7 @@ run RAA_param_configuration
 %% PERFORM PROCESSING
 % Note that afeRAA is a wrapper function based on AFE modules, not an AFE
 %   processor so does not follow the convention of the other DEMO scripts
-[par, psi] = afeRAA(filename, parConf);
+[par, psi] = afeRAA(earSignals, fsHz, parConf);
 
 
 %% PLOT PART OF RESULTS
