@@ -29,9 +29,8 @@ run RAA_param_configuration
 %   demonstration purpose only
 
 % Input signal
-[Y, Fs] = audioread(filename);
 figure;
-plot(psi.t_psi, Y);
+plot(psi.t_psi, earSignals);
 xlim([psi.t_psi(1) psi.t_psi(end)]);
 xlabel('Time (s)');
 ylabel('Amplitude');
@@ -56,8 +55,6 @@ xlabel('Time (s)');
 ylabel('MU');
 title('\Psi_{L,rev} (Reverberant stream at 1430 Hz, left channel)');
 
-
-
-
-
-
+fprintf(1,'\n\n');
+disp('Estimated parameter:')
+par
