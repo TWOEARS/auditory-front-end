@@ -20,7 +20,7 @@ dObj = dataObject(earSignals(1:22495,2),fsHz);
 % 
 % 
 % Request ratemap    
-requests = {'ratemap'};
+requests = {'ratemap', 'stft'};
 
 % Parameters of auditory filterbank 
 fb_type       = 'gammatone';
@@ -38,12 +38,17 @@ rm_scaling   = 'magnitude';
 rm_decaySec  = 8E-3;
 rm_wname     = 'hann';
 
+% Parameters of ratemap processor
+stft_wSizeSec = 20E-3;
+stft_isPruned = true;
+
 % Summary of parameters 
 par = genParStruct('fb_type',fb_type,'fb_lowFreqHz',fb_lowFreqHz,...
                    'fb_highFreqHz',fb_highFreqHz,'fb_nChannels',fb_nChannels,...
                    'ihc_method',ihc_method,'ac_wSizeSec',rm_wSizeSec,...
                    'ac_hSizeSec',rm_hSizeSec,'rm_scaling',rm_scaling,...
-                   'rm_decaySec',rm_decaySec,'ac_wname',rm_wname); 
+                   'rm_decaySec',rm_decaySec,'ac_wname',rm_wname,...
+                   'stft_wSizeSec',stft_wSizeSec,'stft_isPruned',stft_isPruned); 
 
 
 %% PERFORM PROCESSING
@@ -67,8 +72,10 @@ wavPlotDS   = 3; % Down-sampling factor
 p = genParStruct('wavPlotZoom',wavPlotZoom,'wavPlotDS',wavPlotDS);
 
 % Plot ratemap
-dObj.ratemap{1}.plot;
+figure();
+h1 = subplot(211);
+dObj.ratemap{1}.plot(h1);
 
 % Plot IHC signal
-dObj.innerhaircell{1}.plot([],p);
-title('IHC signal')
+h2 = subplot(212);
+dObj.stft{1}.plot(h2);

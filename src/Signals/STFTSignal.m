@@ -1,13 +1,6 @@
-classdef TimeFrequencySignal < Signal
-%TIMEFREQUENCYSIGNAL Signal class for two-dimensional, time-frequency representations.
-%   This children signal class regroups all signal that are some sort of time frequency 
-%   representation, including representation that were decimated in time.
-%
-%   TIMEFREQUENCYSIGNAL properties:
-%       cfHz - Center frequencies of audio frequency channels (Hz)
-%
-% See also Signal, gammatoneProc, drnlProc, ihcProc, icProc, ildProc, itdProc, onsetProc, 
-% offsetProc
+classdef STFTSignal < Signal
+%STFTSignalSTFT Signal class for complex two-dimensional, time-frequency representations.
+%   see circVBufC and TimeFrequenySignal
     
     properties (SetAccess=protected)
         cfHz        % Center frequencies of the frequency channels
@@ -17,53 +10,66 @@ classdef TimeFrequencySignal < Signal
         scaling
     end
     
-    methods 
-        function sObj = TimeFrequencySignal(procHandle,bufferSize,channel,data)
-            %TimeFrequencySignal   Class constructor 
+    methods
+        
+        function sObj = STFTSignal(procHandle,bufferSize,channel,data,cfHz)
+            %STFTSignal   Class constructor
             %
             %USAGE
-            %     sObj = TimeFrequencySignal(procHandle)
-            %     sObj = TimeFrequencySignal(procHandle,bufferSize,channel,data)
+            %     sObj = STFTSignal(procHandle,bufferSize,channel,data,freqs)
             %
             %INPUT ARGUMENTS
             % procHandle : Handle to the processor generating this signal as output
             % bufferSize : Size of the ring buffer in s (default: bufferSize = 10)
-            %    channel : Flag indicating 'left', 'right', or 'mono' (default: 
+            %    channel : Flag indicating 'left', 'right', or 'mono' (default:
             %              channel = 'mono')
             %       data : Array of amplitudes to construct an object from existing data
             %
             %OUTPUT ARGUMENT
             %  sObj : Time-frequency signal object inheriting the signal class
-             
+            
+            if nargin<5; cfHz = procHandle.cfHz; end
             if nargin<4; data = []; end
             if nargin<3||isempty(channel); channel = 'mono'; end
             if nargin<2||isempty(bufferSize); bufferSize = 10; end
             if nargin<1||isempty(procHandle); procHandle = emptyProc; end
             
-            sObj = sObj@Signal( procHandle, bufferSize, ...
-                                length(procHandle.getDependentParameter('fb_cfHz')));
+            sObj = sObj@Signal( procHandle, bufferSize, length(cfHz));
+            % buffer will store double reals at this point but have correct dimensions.
+            % we will call the overloaded setBufferSize to get a complex buffer
+            sObj.setBufferSize(bufferSize);
             
             if nargin>0     % Safeguard for Matlab empty calls
-            
-            sObj.Dimensions = 'nSamples x nFilters';
-            sObj.cfHz = procHandle.getDependentParameter('fb_cfHz');
-            sObj.setData( data );
-            sObj.Channel = channel;
-            
-            % TODO: do something non-specific for the scaling?
-            if isa(procHandle,'ratemapProc')
-                sObj.scaling = procHandle.scaling;
-            else
+                
+                sObj.Dimensions = 'nSamples x nFilters';
+                sObj.cfHz = cfHz;
+                sObj.setData( data );
+                sObj.Channel = channel;
                 sObj.scaling = 'magnitude';
-            end
-            
+                
             end
             
         end
         
+        function setBufferSize( sObj, newBufferSize_s )
+            %setBufferSize  This method sets the buffer to a new size,
+            %               erasing all data previously stored.
+            %USAGE:
+            %   sObj.setBufferSize( newBufferSize_s )
+            %
+            %INPUT ARGUMENTS:
+            %   newBufferSize_s : new size of the buffer in seconds. The
+            %                     dimensionality of the individual elements
+            %                     remains the same
+            
+            bufferSizeSamples = ceil( newBufferSize_s * sObj.FsHz );
+            sObj.Buf = circVBufC( bufferSizeSamples, sObj.Buf.matSz );
+            sObj.Data = circVBufArrayInterface( sObj.Buf );
+        end
+        
         function h = plot(sObj,h0,p,varargin)
-            %plot       This method plots the data from a time-frequency
-            %           domain signal object
+            %plot       This method plots the magnitude of the data from 
+            %           a time-frequency domain signal object
             %
             %USAGE
             %       sObj.plot
@@ -90,18 +96,18 @@ classdef TimeFrequencySignal < Signal
                             'offsetStrength','innerhaircell','adaptation','onsetMap',...
                             'offsetMap','drnl'}
                         do_dB = 0;
-                    case {'ratemap'}
+                    case {'ratemap', 'stft'}
                         do_dB = 1;
                     otherwise 
-                        warning('Cannot plot this object')
+                        error('Cannot plot this object')
                 end
             
                 % Manage plotting parameters
                 if nargin < 3 || isempty(p) 
                     % Get default plotting parameters
-                    p = Parameters.getPlottingParameters('TimeFrequencySignal');
+                    p = Parameters.getPlottingParameters('STFTSignal');
                 else
-                    defaultPar = Parameters.getPlottingParameters('TimeFrequencySignal');
+                    defaultPar = Parameters.getPlottingParameters('STFTSignal');
                     defaultPar.replaceParameters(p);
                     p = defaultPar;
                 end
@@ -152,12 +158,8 @@ classdef TimeFrequencySignal < Signal
                 % Find position of y-axis ticks
                 M = size(sObj.cfHz,2);  % Number of channels
                 n_points = 500;         % Number of points in the interpolation
-                if M > 1
-                    interpolate_ticks = spline(1:M,sObj.cfHz,...
-                        linspace(0.5,M+0.5,n_points));
-                else
-                    interpolate_ticks = sObj.cfHz;
-                end
+                interpolate_ticks = spline(1:M,sObj.cfHz,...
+                    linspace(0.5,M+0.5,n_points));
                 %
                 % Restrain ticks to signal range (+/- a half channel)
                 aud_ticks = p.map('aud_ticks');
@@ -210,6 +212,8 @@ classdef TimeFrequencySignal < Signal
                         % label = [sObj.Label ' (magnitude)'];
                         label = sObj.Label;
                     end
+                elseif strcmp(sObj.Name,'stft')
+                    label = [sObj.Label, ' magnitude'];
                 else
                     label = sObj.Label;
                 end
@@ -229,7 +233,7 @@ classdef TimeFrequencySignal < Signal
 
                 % Scaling the plot
                 switch sObj.Name
-                    case {'innerhaircell','ratemap'}
+                    case {'innerhaircell','ratemap', 'stft'}
                         m = max(data(:));    % Get maximum value for scaling
                         set(gca,'CLim',[m-p.map('dynrange') m])
 
@@ -242,7 +246,7 @@ classdef TimeFrequencySignal < Signal
 
                 end
             else
-                warning('This is an empty signal, cannot be plotted')
+                error('This is an empty signal, cannot be plotted')
             end
                 
             
@@ -250,34 +254,34 @@ classdef TimeFrequencySignal < Signal
     end
     
     methods (Static)
-       
-        function sObj = construct(fs,bufferSize,name,label,cfHz,channel,data)
-            %construct
-            %
-            %
-            
-            if nargin<7; data = []; end
-            if nargin<6; channel = []; end
-            if nargin<5; cfHz = []; end
-            if nargin<4; label = []; end
-            if nargin<3; name = []; end
-            if nargin<2||isempty(bufferSize); bufferSize = 10; end
-            if nargin<1; fs = []; end
-            
-            % Create a dummy structure with that information to emulate a processor and
-            % correctly call the class constructor
-            dummyStruct = struct;
-            dummyStruct.FsHzOut = fs;
-            dummyStruct.getProcessorInfo.requestName = name;
-            dummyStruct.getProcessorInfo.requestLabel = label;
-            dummyStruct.getDependentParameter = containers.Map;
-            dummyStruct.getDependentParameter('fb_cfHz') = cfHz;
-            
-            % Instantiate the signal
-            sObj = TimeFrequencySignal(dummyStruct,bufferSize,channel,data);
-            
-        end
-        
+%        
+%         function sObj = construct(fs,bufferSize,name,label,cfHz,channel,data)
+%             %construct
+%             %
+%             %
+%             
+%             if nargin<7; data = []; end
+%             if nargin<6; channel = []; end
+%             if nargin<5; cfHz = []; end
+%             if nargin<4; label = []; end
+%             if nargin<3; name = []; end
+%             if nargin<2||isempty(bufferSize); bufferSize = 10; end
+%             if nargin<1; fs = []; end
+%             
+%             % Create a dummy structure with that information to emulate a processor and
+%             % correctly call the class constructor
+%             dummyStruct = struct;
+%             dummyStruct.FsHzOut = fs;
+%             dummyStruct.getProcessorInfo.requestName = name;
+%             dummyStruct.getProcessorInfo.requestLabel = label;
+%             dummyStruct.getDependentParameter = containers.Map;
+%             dummyStruct.getDependentParameter('fb_cfHz') = cfHz;
+%             
+%             % Instantiate the signal
+%             sObj = STFTSignal(dummyStruct,bufferSize,channel,data);
+%             
+%         end
+%         
         function [names, defaultValues, descriptions] = getPlottingParameterInfo()
             %GETPLOTTINGPARAMETERINFO   Stores plot parameters that are common to all
             %signals.
@@ -308,7 +312,7 @@ classdef TimeFrequencySignal < Signal
                     [0 0 0]};
             
         end
-        
-        
+%         
     end
+
 end
