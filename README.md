@@ -215,7 +215,7 @@ The ILD processor is further demonstrated by the script `DEMO_ILD.m` in the
 ### More help
 
 The complete functionality of the AFE is discussed in detail in the accompanying
-[Online user manual](http://twoears.aipa.tu-berlin.de/doc/afe/).
+[Online user manual](http://docs.twoears.eu/en/latest/afe/).
 
 
 ## Credits
