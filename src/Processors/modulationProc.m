@@ -222,7 +222,7 @@ classdef modulationProc < Processor
                         end
                         
                         % Frame-based analysis...
-                        out(:,ii,jj) = mean(abs(frameData(currAMS,pObj.blockSize,pObj.blockSize-pObj.overlap,pObj.win,false)));
+                        out(:,ii,jj) = mean(abs(frameData(currAMS,pObj.blockSize,pObj.blockSize-pObj.overlap,pObj.win,false)),1);
 
                         % Initialize a temporary buffer
                         if (ii==1) && (jj==1)

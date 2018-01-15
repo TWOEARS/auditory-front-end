@@ -185,7 +185,7 @@ classdef Signal < matlab.mixin.Copyable
             dataBlockResampled = interp1( x, dataBlock, xq, 'linear', 'extrap' );
         end
                 
-        function newSobj = maskSignalCopy( sObj, mask, freq_src, maskHopSize )
+        function [newSobj,mask,freq_src,maskHopSize] = maskSignalCopy( sObj, mask, freq_src, maskHopSize )
             %maskSignalCopy  mask a copy of a Signal's dataBlock
             %
             %USAGE:
@@ -200,10 +200,14 @@ classdef Signal < matlab.mixin.Copyable
                 maskHopSize = 1./sObj.FsHz;
             end
             newSobj = sObj.copy();
+            if all( abs(mask(:) - 1) <= eps )
+                return;
+            end
             dataBlock = newSobj.Data(:,:,:,:,:);
             [rd, ~, dd] = size(dataBlock);
             if ((1/maskHopSize) ~= sObj.FsHz) || (size( mask, 1 ) ~= rd)
                 mask = sObj.resampleToFsHz( mask, 1./maskHopSize );
+                maskHopSize = 1/sObj.FsHz;
             end
             [rm, ~, dm] = size(mask);
             if rm > rd
@@ -214,6 +218,7 @@ classdef Signal < matlab.mixin.Copyable
             end
             if any(size( freq_src ) ~= size( sObj.cfHz )) || any(freq_src ~= sObj.cfHz)
                 mask = interp1( freq_src, mask', sObj.cfHz, 'linear', 'extrap' )';
+                freq_src = sObj.cfHz;
             end
             if dd > dm
                 mask = repmat(mask, [1, 1, dd]);

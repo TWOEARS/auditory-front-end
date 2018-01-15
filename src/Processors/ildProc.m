@@ -104,18 +104,12 @@ classdef ildProc < Processor
                 n_start = (ii-1)*pObj.hSize+1;
                 n_end = (ii-1)*pObj.hSize+pObj.wSize;
                 
-                % Loop on the channel
-                for jj = 1:nChannels
-                    
-                    % Energy in the windowed frame for left and right input
-                    frame_l = mean(power(pObj.win.*in_l(n_start:n_end,jj),2));
-                    frame_r = mean(power(pObj.win.*in_r(n_start:n_end,jj),2));
-                    
-                    % Compute the ild for that frame
-                    out(ii,jj) = 10*log10((frame_r+eps)/(frame_l+eps));
-                    
-                end
+                % Energy in the windowed frame for left and right input
+                frame_l = mean(power(bsxfun(@times,pObj.win,in_l(n_start:n_end,:)),2),1);
+                frame_r = mean(power(bsxfun(@times,pObj.win,in_r(n_start:n_end,:)),2),1);
                 
+                % Compute the ild for that frame
+                out(ii,:) = 10*log10((frame_r+eps)./(frame_l+eps));
             end
             
             % Update the buffer: the input that was not extracted as a
