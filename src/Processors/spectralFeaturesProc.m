@@ -396,12 +396,15 @@ classdef spectralFeaturesProc < Processor
     
     methods (Hidden = true)
         
-        function prepareForProcessing(pObj)
+        function prepareForProcessing(pObj,varargin)
+            ip = inputParser;
+            ip.addOptional('bUseInterp', true);
+            ip.parse( varargin{:} );
             
             % Hard-coded properties (for the moment)
             pObj.eps = 1E-15;
             pObj.ro_eps = 1E-10;
-            pObj.bUseInterp = true;
+            pObj.bUseInterp = ip.Results.bUseInterp;
 
             % Access center frequencies for computing statistics
             pObj.cfHz = pObj.getDependentParameter('fb_cfHz');
